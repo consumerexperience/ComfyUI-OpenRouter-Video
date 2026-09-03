@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools>=80,<81"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openrouter-video"
+version = "0.1.0"
+description = "Open-source BYOK model-agnostic OpenRouter Video gateway for ComfyUI."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+  "httpx>=0.28.1,<1",
+]
+
+[project.urls]
+Repository = "https://github.com/consumerexperience/ComfyUI-OpenRouter-Video"
+
+[project.optional-dependencies]
+dev = [
+  "build==1.6.0",
+  "mypy==2.3.1",
+  "pip-audit==2.10.1",
+  "pytest==9.1.1",
+  "ruff==0.16.5",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["openrouter_video*"]
+
+[tool.setuptools.package-data]
+openrouter_video = ["py.typed"]
+
+[tool.pytest.ini_options]
+addopts = "-ra -m 'not live'"
+testpaths = ["tests"]
+markers = [
+  "live: requires immediate human approval and an explicitly capped DEV credential",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+exclude = [".git", ".venv", "build", "dist"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "S", "UP", "B", "SIM", "T20"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["N999"]
+"tests/**/*.py" = ["S101"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+explicit_package_bases = true
+mypy_path = "src"
+files = ["src", "tests"]
+exclude = ["build", "dist"]
+
+[[tool.mypy.overrides]]
+module = ["comfy_api.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["openrouter_video.comfy.extension"]
+disallow_subclassing_any = false
