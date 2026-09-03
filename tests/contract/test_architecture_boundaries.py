@@ -66,6 +66,16 @@ def test_security_sensitive_production_ownership_is_centralized() -> None:
     assert async_client_owners == {"transport.py"}
 
 
+def test_official_release_identity_is_owned_only_by_app_identity() -> None:
+    sources = {path.name: path.read_text(encoding="utf-8") for path in CORE_FILES}
+    referer_owners = {
+        name
+        for name, text in sources.items()
+        if "https://github.com/consumerexperience/ComfyUI-OpenRouter-Video" in text
+    }
+    assert referer_owners == {"app_identity.py"}
+
+
 def test_core_contains_no_tracking_telemetry_or_provider_branches() -> None:
     forbidden_imports = {"uuid", "getpass", "platform"}
     forbidden_tokens = (

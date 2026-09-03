@@ -30,7 +30,7 @@ request is received.
 | External host receives no attribution | `PASS — Phase-4 prepared-request/transport boundary` |
 | Redirect is not followed | `PASS — observable 302/307/308 tests` |
 | Canonical title and category stability | `PASS` |
-| Canonical Referer exact-value stability | `PENDING_PRODUCT_OWNER_FREEZE` |
+| Canonical Referer exact-value stability | `PASS — frozen release fixture` |
 | Capability cache avoids synthetic network calls | `PENDING_IMPLEMENTATION` |
 
 Phase-4 tests additionally cover origin spoofing, validation-before-secret ordering, exact

@@ -4,7 +4,7 @@ Open-source BYOK model-agnostic OpenRouter Video gateway for ComfyUI.
 
 ## Status
 
-**PRE-ALPHA — Phase 4: Safe boundary implemented; canonical Referer freeze pending.**
+**PRE-ALPHA — Phase 4: Safe boundary implemented with frozen canonical identity.**
 
 The headless core now contains a policy-prepared, origin-bound OpenRouter HTTP transport. It
 validates the canonical destination before resolving a credential, composes static application
@@ -25,17 +25,16 @@ implement lifecycle, persistence, model discovery, polling, Resume, or media dow
 
 ## Attribution state
 
-The official title is **OpenRouter Video for ComfyUI** and the approved category is
-`video-gen`. The canonical public Referer remains intentionally unresolved. No production value
-is present in source, workflow, environment configuration, or test fixtures.
+The Product Owner has frozen the official release identity as:
 
-The public repository URL,
-`https://github.com/consumerexperience/ComfyUI-OpenRouter-Video`, is a documented candidate for
-future Product Owner review. Repository creation does not promote it to production AppIdentity.
+- `HTTP-Referer`: `https://github.com/consumerexperience/ComfyUI-OpenRouter-Video`
+- `X-OpenRouter-Title`: `OpenRouter Video for ComfyUI`
+- `X-OpenRouter-Categories`: `video-gen`
 
-Phase 4 is therefore complete except for release identity. The sole remaining gate is an explicit
-Product Owner freeze of `APP_REFERER`, followed by the reviewed production identity fixture and a
-full Phase-4 verification rerun.
+This identity is immutable source-level project metadata. It cannot be changed through a workflow,
+environment variable, runtime preference, user, device, installation, or session value. Phase 4
+engineering is complete; canonical delivery still requires the feature PR, required CI and CodeQL,
+human protected merge, and a final `main` read-back.
 
 ## Security warning
 

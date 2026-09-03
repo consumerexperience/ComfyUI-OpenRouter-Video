@@ -1,4 +1,4 @@
-"""Unmistakably non-production application identity fixture."""
+"""Independent application-identity fixtures for contract tests."""
 
 from openrouter_video.app_identity import APP_CATEGORIES, APP_TITLE, AppIdentity
 
@@ -8,4 +8,10 @@ TEST_APP_IDENTITY = AppIdentity(
     categories=APP_CATEGORIES,
 )
 
-__all__ = ("TEST_APP_IDENTITY",)
+EXPECTED_RELEASE_IDENTITY = AppIdentity(
+    referer="https://github.com/consumerexperience/ComfyUI-OpenRouter-Video",
+    title="OpenRouter Video for ComfyUI",
+    categories=("video-gen",),
+)
+
+__all__ = ("EXPECTED_RELEASE_IDENTITY", "TEST_APP_IDENTITY")

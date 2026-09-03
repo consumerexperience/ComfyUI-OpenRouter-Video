@@ -9,7 +9,7 @@ import httpx
 import pytest
 
 import openrouter_video.request_policy as request_policy_module
-from openrouter_video.app_identity import AppIdentity
+from openrouter_video.app_identity import OFFICIAL_APP_IDENTITY, AppIdentity
 from openrouter_video.errors import RequestPolicyError
 from openrouter_video.policy import Operation, TimeoutPolicy
 from openrouter_video.request_policy import (
@@ -17,7 +17,7 @@ from openrouter_video.request_policy import (
     _PreparedOpenRouterRequest,
     _validate_canonical_destination,
 )
-from tests.fixtures.identity import TEST_APP_IDENTITY
+from tests.fixtures.identity import EXPECTED_RELEASE_IDENTITY, TEST_APP_IDENTITY
 
 CANARY = "TEST_ONLY_OPENROUTER_KEY_CANARY"
 
@@ -80,6 +80,25 @@ def test_exact_operation_paths_methods_and_headers() -> None:
             "video/*" if prepared.operation is Operation.CONTENT else "application/json"
         )
         assert ("Content-Type" in headers) is (prepared.operation is not Operation.CONTENT)
+
+
+def test_frozen_release_identity_is_applied_exactly_to_every_operation() -> None:
+    policy = OpenRouterRequestPolicy(
+        identity=OFFICIAL_APP_IDENTITY,
+        secret_provider=RecordingSecretProvider(),
+    )
+    prepared_requests = (
+        policy.prepare(Operation.DISCOVERY),
+        policy.prepare(Operation.SUBMIT, json_body={"synthetic": True}),
+        policy.prepare(Operation.POLL, job_id="job-one"),
+        policy.prepare(Operation.CONTENT, job_id="job-one"),
+    )
+
+    for prepared in prepared_requests:
+        headers = _headers(prepared)
+        assert headers["HTTP-Referer"] == EXPECTED_RELEASE_IDENTITY.referer
+        assert headers["X-OpenRouter-Title"] == EXPECTED_RELEASE_IDENTITY.title
+        assert headers["X-OpenRouter-Categories"] == ",".join(EXPECTED_RELEASE_IDENTITY.categories)
 
 
 def test_prepared_request_is_immutable_internal_and_repr_safe() -> None:

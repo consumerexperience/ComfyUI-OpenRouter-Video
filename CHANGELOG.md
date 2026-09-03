@@ -8,4 +8,7 @@
 - Added centralized origin-bound authentication and attribution request composition.
 - Added a zero-auto-retry HTTPX transport with redirects and ambient proxies disabled.
 - Added redaction, origin-spoofing, redirect-containment, and external-host leakage tests.
-- Kept the canonical production Referer unresolved pending explicit Product Owner freeze.
+- Froze the canonical production Referer as
+  `https://github.com/consumerexperience/ComfyUI-OpenRouter-Video` by explicit Product Owner
+  decision.
+- Added exact-value release-identity and attribution-header drift tests.

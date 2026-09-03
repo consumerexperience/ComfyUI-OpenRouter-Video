@@ -30,8 +30,10 @@ redirects, does not inherit ambient proxies, and performs zero automatic connect
 Transport defensively revalidates policy-prepared requests before sending. Neither header class is
 forwarded to external media hosts.
 
-The official canonical Referer is not frozen. Phase 4 uses an unmistakable `.invalid` identity
-only in tests; it does not provide a production identity fallback or runtime override.
+The official canonical Referer is the immutable source-level value
+`https://github.com/consumerexperience/ComfyUI-OpenRouter-Video`. Phase 4 retains an unmistakable
+`.invalid` identity only for synthetic tests. Production identity has no workflow, environment,
+runtime, user, device, installation, or session override.
 
 ## Supply chain
 
