@@ -1,6 +1,6 @@
-"""OpenRouter Video package scaffold.
+"""OpenRouter Video package.
 
-Product implementation has not started.
+Phase 4 provides internal safe-boundary infrastructure but no product API.
 """
 
 __all__: tuple[str, ...] = ()

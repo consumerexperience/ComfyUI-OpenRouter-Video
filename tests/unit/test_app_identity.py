@@ -1,6 +1,7 @@
 """Application identity invariants."""
 
 from dataclasses import FrozenInstanceError
+from pathlib import Path
 
 import pytest
 
@@ -31,4 +32,6 @@ def test_identity_is_immutable_and_contains_only_project_metadata() -> None:
 def test_production_referer_is_explicitly_unresolved() -> None:
     assert APP_REFERER_STATUS == "UNRESOLVED_RELEASE_IDENTITY"
     assert not hasattr(identity_module, "OFFICIAL_APP_IDENTITY")
-    assert "github.com/consumerexperience" not in identity_module.__file__
+    source = Path(identity_module.__file__).read_text(encoding="utf-8")
+    assert "github.com/consumerexperience" not in source
+    assert "example.invalid" not in source

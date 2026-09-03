@@ -30,9 +30,18 @@ def test_core_never_imports_comfyui() -> None:
     assert not {name: imports for name, imports in violations.items() if imports}
 
 
-def test_core_files_are_documentation_only_seams() -> None:
+def test_phase_5_and_comfy_product_modules_remain_documentation_only() -> None:
+    deferred = {
+        "application.py",
+        "capabilities.py",
+        "client.py",
+        "lifecycle.py",
+        "media.py",
+        "models.py",
+        "persistence.py",
+    }
     violations: list[str] = []
-    for path in CORE_FILES:
+    for path in (PACKAGE_ROOT / name for name in deferred):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         statements = (
             tree.body[1:] if tree.body and isinstance(tree.body[0], ast.Expr) else tree.body
@@ -42,12 +51,39 @@ def test_core_files_are_documentation_only_seams() -> None:
     assert violations == []
 
 
-def test_source_contains_no_openrouter_network_implementation() -> None:
-    forbidden = ("/api/v1/videos", "submit_video(", "httpx.", "OPENROUTER_API_KEY")
+def test_security_sensitive_production_ownership_is_centralized() -> None:
+    sources = {path.name: path.read_text(encoding="utf-8") for path in CORE_FILES}
+    env_owners = {name for name, text in sources.items() if "OPENROUTER_API_KEY" in text}
+    header_owners = {name for name, text in sources.items() if "X-OpenRouter-Title" in text}
+    async_client_owners = {
+        name
+        for name, text in sources.items()
+        if "AsyncClient(" in text or "AsyncHTTPTransport(" in text
+    }
+
+    assert env_owners == {"secrets.py"}
+    assert header_owners == {"request_policy.py"}
+    assert async_client_owners == {"transport.py"}
+
+
+def test_core_contains_no_tracking_telemetry_or_provider_branches() -> None:
+    forbidden_imports = {"uuid", "getpass", "platform"}
+    forbidden_tokens = (
+        "gethostname(",
+        "node_instance_id",
+        "workflow_id",
+        "installation_id",
+        "machine_id",
+        "analytics_sdk",
+        "telemetry_backend",
+        'provider == "',
+        "model.startswith(",
+    )
     violations: dict[str, list[str]] = {}
-    for path in PACKAGE_ROOT.rglob("*.py"):
+    for path in CORE_FILES:
         text = path.read_text(encoding="utf-8")
-        hits = [token for token in forbidden if token in text]
+        imports = _imports(path) & forbidden_imports
+        hits = sorted(imports) + [token for token in forbidden_tokens if token in text]
         if hits:
-            violations[str(path.relative_to(PACKAGE_ROOT))] = hits
+            violations[path.name] = hits
     assert violations == {}
