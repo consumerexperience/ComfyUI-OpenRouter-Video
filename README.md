@@ -4,11 +4,15 @@ Open-source BYOK model-agnostic OpenRouter Video gateway for ComfyUI.
 
 ## Status
 
-**PRE-ALPHA — Phase 3: Scaffold / Bootstrap. Product implementation has not started.**
+**PRE-ALPHA — Phase 4: Safe boundary implemented; canonical Referer freeze pending.**
 
-This repository currently provides the engineering construction site: package layout,
-development tooling, local mock/fault infrastructure, CI, security policy, and an isolated DEV
-ComfyUI contract. It does not generate video and does not call OpenRouter.
+The headless core now contains a policy-prepared, origin-bound OpenRouter HTTP transport. It
+validates the canonical destination before resolving a credential, composes static application
+attribution centrally, disables redirects and ambient proxy inheritance, and performs zero
+automatic transport retries. All behavior is proven with synthetic fixtures and local transports.
+
+The extension still does not generate video, expose product nodes, call OpenRouter endpoints, or
+implement lifecycle, persistence, model discovery, polling, Resume, or media download behavior.
 
 ## Product principles
 
@@ -22,12 +26,16 @@ ComfyUI contract. It does not generate video and does not call OpenRouter.
 ## Attribution state
 
 The official title is **OpenRouter Video for ComfyUI** and the approved category is
-`video-gen`. The canonical public Referer is intentionally unresolved during Scaffold. No
-production value is present in source, workflow, environment configuration, or test fixtures.
+`video-gen`. The canonical public Referer remains intentionally unresolved. No production value
+is present in source, workflow, environment configuration, or test fixtures.
 
 The public repository URL,
 `https://github.com/consumerexperience/ComfyUI-OpenRouter-Video`, is a documented candidate for
 future Product Owner review. Repository creation does not promote it to production AppIdentity.
+
+Phase 4 is therefore complete except for release identity. The sole remaining gate is an explicit
+Product Owner freeze of `APP_REFERER`, followed by the reviewed production identity fixture and a
+full Phase-4 verification rerun.
 
 ## Security warning
 
