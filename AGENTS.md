@@ -12,6 +12,9 @@
 - Resume never receives submit capability.
 - Poll/download retries operate only on an existing job ID.
 - Poll failure is not generation failure.
+- Corrupt or contradictory durable state never grants submit permission.
+- A uniqueness conflict is a recovery signal, never permission to retry submit.
+- `request_fingerprint` is advisory and never an idempotency or recovery authority.
 
 ## Secrets and network
 

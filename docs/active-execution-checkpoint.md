@@ -1,87 +1,76 @@
 # Active execution checkpoint
 
-## Task
+## Previous phase
 
-Phase 4 — Headless Core I: Safe OpenRouter Boundary
+- Phase: `PHASE 4 — DONE`
+- Canonical merge: `9faa1ed4ffbc5b548aca8e5241afc9ed60e9196e`
+- Delivery: protected `main`, merge commit, PR #2, required CI matrix and CodeQL green
+- Read-back: local `main == origin/main`; every Phase-4 commit is an ancestor of canonical main
+
+## Current task
+
+Phase 5 — Headless Core II
 
 ## State
 
-- Phase: `PHASE 4 — ENGINEERING IMPLEMENTATION COMPLETE`
-- Status: `DELIVERY PARTIAL — PROTECTED MERGE PENDING`
-- Product gate: `CLEARED — APP_REFERER FROZEN`
-- Delivery state: `PR / CI / CODEQL / PROTECTED MERGE PENDING`
+- Status: `ENGINEERING COMPLETE — DELIVERY PENDING PROTECTED MERGE`
 - Baseline branch: `main`
-- Baseline commit: `4984ec7c38a3ec0bbaf0c8dd92a16d05f2dc139e`
-- Working branch: `phase-4/safe-openrouter-boundary`
-- Safe-boundary implementation HEAD: `6fb3e26`
-- Identity-delta parent HEAD: `e30f8b9`
-- Worktree must be clean at post-commit verification
-- Remote branch: pushed to `origin/phase-4/safe-openrouter-boundary`
-- Pull request: `https://github.com/consumerexperience/ComfyUI-OpenRouter-Video/pull/2`
+- Baseline commit: `9faa1ed4ffbc5b548aca8e5241afc9ed60e9196e`
+- Working branch: `phase-5/headless-core-ii`
 - Specification: Product / Engineering Specification v0.1.0, revision 1.1
 - Architecture: Validated Architecture & Threat Model v1.1
-- ADR set: ADR-001 through ADR-027 accepted
-- Implementation Handoff: embedded in Architecture v1.1; complete
+- Accepted ADRs: ADR-001 through ADR-027
+- Additive Phase-5 decisions: ADR-028 and ADR-029 accepted
+- Evidence gate: `COMPLETE — 2026-09-04`
 - Contract drift: `NONE`
-- App title: `OpenRouter Video for ComfyUI`
-- App categories: `video-gen`
-- App Referer: `https://github.com/consumerexperience/ComfyUI-OpenRouter-Video`
-- App Referer status: `FROZEN_RELEASE_IDENTITY`
+- Upstream expansion: `PRESENT, OUT OF V0.1 SCOPE`
+- Live OpenRouter traffic: `PROHIBITED`
+- Paid submits: `PROHIBITED`
+- Production credential access: `PROHIBITED`
 
-## Completed
+## Verification at feature HEAD
 
-- Immutable official AppIdentity with an exact production Referer and no runtime override.
-- EnvironmentSecretProvider resolving only `OPENROUTER_API_KEY` without retaining it.
-- Exact DISCOVERY, SUBMIT, POLL, and CONTENT operation/path/timeout policy.
-- Canonical-origin validation before credential resolution.
-- Central allowlisted Authorization and attribution composition.
-- Internal prepared-request capability between RequestPolicy and Transport.
-- HTTPX transport with TLS verification, redirects disabled, ambient proxies disabled, connection
-  retries zero, and bounded connection limits.
-- Safe local observability foundation.
-- Origin-spoofing, redirect-containment, external-host isolation, redaction, no-tracking, and
-  headless-core tests.
-- Exact frozen-release identity fixture and attribution-header drift tests for all four operations.
-
-## Deferred by design
-
-- OpenRouterVideoClient endpoint methods.
-- Real model discovery, paid submit, polling, content download, lifecycle, persistence, Resume,
-  application services, and ComfyUI product nodes.
-- Live attribution smoke, release, merge, tag, or publication.
-
-## Verification
-
-- Pytest: `51 passed`
-- Ruff check: `PASS`
-- Ruff format check: `PASS`
-- Strict Mypy: `PASS`
-- Build sdist/wheel: `PASS`
-- Wheel install/import: `PASS`
-- pip-audit: `PASS`; local package itself is not published on PyPI and is reported as skipped
+- `pytest`: `102 passed`
+- `ruff check`: `PASS`
+- `ruff format --check`: `PASS`
+- strict `mypy`: `PASS`
+- sdist and wheel build: `PASS`
+- clean-venv wheel install/import: `PASS`
+- `pip-audit`: `No known vulnerabilities found`
+- architecture/security scan: `PASS`
 - Real OpenRouter API calls: `0`
 - Paid submits: `0`
 - OpenRouter credits spent: `$0`
 - Production key accessed: `NO`
-- CI state: `PENDING — PR #2 opened; final checks evaluate the governance-corrected head`
+- Project telemetry: `NONE`
+- Comfy imports in Core: `NONE`
 
-## Engineering completion
+## First decisions
 
-The Safe OpenRouter Boundary and frozen release identity are implemented. Phase 4 is not marked
-`DONE` until protected delivery is canonicalized on `main`.
+- ADR-028 fixes local recovery authority, versioned privacy-preserving request fingerprints, and
+  SQLite concurrency enforcement.
+- ADR-029 fixes the durable disposition of authoritative definite submit rejection as local
+  terminal state `SUBMIT_REJECTED`.
 
-## Open delivery gates
+## Phase-5 scope
 
-- Observe the required quality matrix and CodeQL.
-- Complete human protected merge using a merge commit.
-- Verify the Phase-4 commits are ancestors of canonical remote `main`.
+- Typed contracts and exact OpenRouter Video client methods.
+- Capability discovery, normalization, validation, fresh cache, and bounded last-known-good data.
+- Local lifecycle state machine with unknown-state preservation.
+- SQLite recovery state and atomic `operation_id` submit-right claim.
+- Billing-safe Generate and submit-incapable Resume services.
+- Bounded polling, observation recovery, canonical content streaming, and durable media download.
+- Zero-cost tests for billing, privacy, lifecycle, recovery, concurrency, and boundary fitness.
+
+## Deferred by design
+
+- ComfyUI product behavior and VIDEO conversion.
+- Live OpenRouter calls, production credentials, live attribution smoke, or paid generation.
+- Full scenario DSL, general fake OpenRouter platform, and full Contract Harness.
+- Release, tag, and autonomous protected merge.
 
 ## Next exact action
 
-1. Commit and push this governance correction to `phase-4/safe-openrouter-boundary`.
-2. Wait for required CI and CodeQL on PR #2.
-3. Review the final diff against Architecture v1.1.
-4. Human merges through protected `main` with a merge commit.
-5. Verify canonical `main` and report Phase 4 `DONE` without opening a checkpoint-only PR.
-6. Only then create a Phase-5 branch from canonical `main`; its first checkpoint records the
-   verified Phase-4 merge SHA.
+Push `phase-5/headless-core-ii`, open its protected-main PR, and read required CI and CodeQL.
+Do not merge autonomously; Phase 5 becomes DONE only after human protected merge and canonical
+`main` read-back.

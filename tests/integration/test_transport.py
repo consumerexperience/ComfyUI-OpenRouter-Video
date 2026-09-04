@@ -154,6 +154,25 @@ def test_operation_timeout_reaches_httpx_request() -> None:
     assert observed_timeout == {"connect": 10.0, "read": 60.0, "write": 30.0, "pool": 10.0}
 
 
+def test_streaming_transport_uses_one_canonical_request_and_closes_response() -> None:
+    observed: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        observed.append(request)
+        return httpx.Response(200, content=b"streamed", request=request)
+
+    async def scenario() -> None:
+        async with HttpxTransport.for_test(httpx.MockTransport(handler)) as transport:
+            prepared = _request_policy().prepare(Operation.CONTENT, job_id="job-1")
+            async with transport.stream(prepared) as response:
+                assert await response.aread() == b"streamed"
+            assert response.is_closed
+
+    asyncio.run(scenario())
+    assert len(observed) == 1
+    assert observed[0].url.raw_path == b"/api/v1/videos/job-1/content?index=0"
+
+
 def test_production_factory_sets_explicit_safe_httpx_controls(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

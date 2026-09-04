@@ -1,4 +1,4 @@
-"""Scaffold architecture and no-product-behavior contracts."""
+"""Headless-core architecture and forbidden-boundary contracts."""
 
 from __future__ import annotations
 
@@ -30,18 +30,10 @@ def test_core_never_imports_comfyui() -> None:
     assert not {name: imports for name, imports in violations.items() if imports}
 
 
-def test_phase_5_and_comfy_product_modules_remain_documentation_only() -> None:
-    deferred = {
-        "application.py",
-        "capabilities.py",
-        "client.py",
-        "lifecycle.py",
-        "media.py",
-        "models.py",
-        "persistence.py",
-    }
+def test_comfy_product_modules_remain_documentation_only() -> None:
+    deferred = {"compat.py", "nodes.py", "routes.py", "video.py"}
     violations: list[str] = []
-    for path in (PACKAGE_ROOT / name for name in deferred):
+    for path in (PACKAGE_ROOT / "comfy" / name for name in deferred):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         statements = (
             tree.body[1:] if tree.body and isinstance(tree.body[0], ast.Expr) else tree.body
@@ -80,7 +72,6 @@ def test_core_contains_no_tracking_telemetry_or_provider_branches() -> None:
     forbidden_imports = {"uuid", "getpass", "platform"}
     forbidden_tokens = (
         "gethostname(",
-        "node_instance_id",
         "workflow_id",
         "installation_id",
         "machine_id",
@@ -94,6 +85,8 @@ def test_core_contains_no_tracking_telemetry_or_provider_branches() -> None:
         text = path.read_text(encoding="utf-8")
         imports = _imports(path) & forbidden_imports
         hits = sorted(imports) + [token for token in forbidden_tokens if token in text]
+        if path.name not in {"models.py", "persistence.py"} and "node_instance_id" in text:
+            hits.append("node_instance_id")
         if hits:
             violations[path.name] = hits
     assert violations == {}
