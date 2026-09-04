@@ -5,13 +5,14 @@ import sqlite3
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from decimal import Decimal
 from pathlib import Path
 
 import httpx
 
 from openrouter_video.application import GenerateService, ResumeService
 from openrouter_video.capabilities import CapabilityService, RequestValidator
-from openrouter_video.errors import OpenRouterHTTPError, TransportError
+from openrouter_video.errors import OpenRouterHTTPError, RequestPolicyError, TransportError
 from openrouter_video.media import DownloadService
 from openrouter_video.models import (
     GenerationRequest,
@@ -19,6 +20,7 @@ from openrouter_video.models import (
     ModelCapabilities,
     ProductErrorCode,
     RemoteJobSnapshot,
+    UsageCost,
     request_fingerprint_v1,
 )
 from openrouter_video.persistence import JobStore
@@ -127,7 +129,7 @@ def _generate_service(tmp_path: Path, client: ScenarioClient) -> tuple[GenerateS
 def test_generate_happy_path_has_one_total_post_and_durable_artifact(tmp_path: Path) -> None:
     client = ScenarioClient(
         submit=RemoteJobSnapshot("job-1", "pending"),
-        polls=[RemoteJobSnapshot("job-1", "completed")],
+        polls=[RemoteJobSnapshot("job-1", "completed", usage=UsageCost(Decimal("0.25")))],
     )
     service, store = _generate_service(tmp_path, client)
 
@@ -135,6 +137,7 @@ def test_generate_happy_path_has_one_total_post_and_durable_artifact(tmp_path: P
 
     assert result.state is LocalLifecycleState.DONE
     assert result.artifact is not None and result.artifact.path.exists()
+    assert result.actual_cost_usd == Decimal("0.25")
     assert client.submit_calls == 1
     assert store.get_by_operation_id("operation-1") == store.get_by_job_id("job-1")
 
@@ -197,6 +200,38 @@ def test_polling_outage_preserves_known_job_and_total_post_count(tmp_path: Path)
     assert result.job_id == "job-1"
     assert client.submit_calls == 1
     assert client.poll_calls == 5
+
+
+def test_restart_after_accepted_job_adds_zero_posts_and_keeps_lifecycle_total_one(
+    tmp_path: Path,
+) -> None:
+    client = ScenarioClient(
+        submit=RemoteJobSnapshot("job-1", "pending"),
+        polls=[TransportError("poll")],
+    )
+    generate, store = _generate_service(tmp_path, client)
+    interrupted = asyncio.run(generate.generate("operation-1", REQUEST))
+    assert interrupted.state is LocalLifecycleState.OBSERVATION_INTERRUPTED
+    assert client.submit_calls == 1
+
+    client.polls = [RemoteJobSnapshot("job-1", "completed")]
+    client.poll_calls = 0
+    resume = ResumeService(
+        observation_client=client,
+        store=store,
+        downloader=DownloadService(
+            client=client,
+            output_root=tmp_path / "output",
+            sleep=_no_sleep,
+        ),
+        sleep=_no_sleep,
+        now=lambda: NOW,
+        monotonic=lambda: 0.0,
+    )
+    recovered = asyncio.run(resume.resume("job-1"))
+
+    assert recovered.state is LocalLifecycleState.DONE
+    assert client.submit_calls == 1
 
 
 def test_unknown_remote_status_is_preserved_without_additional_post(tmp_path: Path) -> None:
@@ -321,3 +356,30 @@ def test_two_concurrent_generate_calls_share_one_submit_right(tmp_path: Path) ->
     assert winner_state is LocalLifecycleState.DONE
     assert loser_state is LocalLifecycleState.SUBMISSION_UNKNOWN
     assert submit_calls == 1
+
+
+def test_missing_key_failure_occurs_before_submit_claim(tmp_path: Path) -> None:
+    class MissingKeyDiscovery:
+        async def list_video_models(self) -> tuple[ModelCapabilities, ...]:
+            raise RequestPolicyError("OpenRouter API credential is not configured")
+
+    client = ScenarioClient(submit=RemoteJobSnapshot("job-1", "pending"), polls=[])
+    store = JobStore(tmp_path / "jobs.sqlite3")
+    capabilities = CapabilityService(client=MissingKeyDiscovery(), store=store, now=lambda: NOW)
+    service = GenerateService(
+        capabilities=capabilities,
+        validator=RequestValidator(),
+        store=store,
+        submit_client=client,
+        observation_client=client,
+        downloader=DownloadService(client=client, output_root=tmp_path / "output"),
+        sleep=_no_sleep,
+        now=lambda: NOW,
+        monotonic=lambda: 0.0,
+    )
+
+    result = asyncio.run(service.generate("operation-1", REQUEST))
+
+    assert result.error is not None and result.error.code is ProductErrorCode.API_KEY_MISSING
+    assert client.submit_calls == 0
+    assert store.get_by_operation_id("operation-1") is None

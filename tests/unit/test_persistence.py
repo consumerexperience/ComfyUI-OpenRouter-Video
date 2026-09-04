@@ -39,6 +39,17 @@ def test_schema_enforces_operation_and_remote_job_uniqueness(tmp_path: Path) -> 
     with pytest.raises(PersistenceError):
         store.save(replace(first, job_id="job-1"))
 
+    with sqlite3.connect(store.path) as connection:
+        indexes = connection.execute("PRAGMA index_list(jobs)").fetchall()
+        indexed_columns = {
+            column[2]
+            for index in indexes
+            for column in connection.execute(f"PRAGMA index_info('{index[1]}')").fetchall()
+        }
+    assert "operation_id" in indexed_columns
+    assert "job_id" in indexed_columns
+    assert "request_fingerprint" not in indexed_columns
+
 
 def test_concurrent_same_operation_acquires_exactly_one_submit_right(tmp_path: Path) -> None:
     store = JobStore(tmp_path / "jobs.sqlite3")

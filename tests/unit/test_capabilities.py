@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from openrouter_video.capabilities import CapabilityService, RequestValidator
-from openrouter_video.errors import ProductFailureError, TransportError
+from openrouter_video.errors import OpenRouterHTTPError, ProductFailureError, TransportError
 from openrouter_video.models import (
     FrameReference,
     FrameType,
@@ -17,6 +17,7 @@ from openrouter_video.models import (
     ProductErrorCode,
 )
 from openrouter_video.persistence import JobStore
+from openrouter_video.policy import Operation
 
 NOW = datetime(2026, 9, 4, 12, 0, tzinfo=timezone.utc)
 MODEL = ModelCapabilities(
@@ -108,6 +109,17 @@ def test_expired_lkg_fails_without_submit_context(tmp_path: Path) -> None:
     with pytest.raises(ProductFailureError) as caught:
         asyncio.run(service.catalog())
     assert caught.value.error.code is ProductErrorCode.DISCOVERY_UNAVAILABLE
+
+
+def test_discovery_auth_rejection_maps_to_api_key_invalid(tmp_path: Path) -> None:
+    store = JobStore(tmp_path / "jobs.sqlite3")
+    client = DiscoveryStub([OpenRouterHTTPError(401, Operation.DISCOVERY)])
+    service = CapabilityService(client=client, store=store, now=lambda: NOW)
+
+    with pytest.raises(ProductFailureError) as caught:
+        asyncio.run(service.catalog())
+    assert caught.value.error.code is ProductErrorCode.API_KEY_INVALID
+    assert client.calls == 1
 
 
 def test_validator_enforces_geometry_and_public_https_media() -> None:

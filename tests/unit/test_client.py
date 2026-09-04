@@ -142,6 +142,20 @@ def test_client_exposes_status_without_response_body() -> None:
     asyncio.run(scenario())
 
 
+def test_client_exposes_only_bounded_numeric_retry_after() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(429, headers={"Retry-After": "12"}, request=request)
+
+    async def scenario() -> None:
+        async with HttpxTransport.for_test(httpx.MockTransport(handler)) as transport:
+            client = OpenRouterVideoClient(request_policy=_policy(), transport=transport)
+            with pytest.raises(OpenRouterHTTPError) as caught:
+                await client.list_video_models()
+            assert caught.value.retry_after_seconds == 12.0
+
+    asyncio.run(scenario())
+
+
 def test_client_constructor_and_methods_have_no_policy_escape_hatches() -> None:
     import inspect
 

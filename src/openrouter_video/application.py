@@ -443,6 +443,17 @@ class GenerateService:
             self._validator.validate_capabilities(request, capability)
         except ProductFailureError as exc:
             return GenerationResult(LocalLifecycleState.NOT_SUBMITTED, None, error=exc.error)
+        except RequestPolicyError as exc:
+            code = (
+                ProductErrorCode.API_KEY_MISSING
+                if "credential" in str(exc).lower()
+                else ProductErrorCode.ATTRIBUTION_CONFIG_INVALID
+            )
+            return GenerationResult(
+                LocalLifecycleState.NOT_SUBMITTED,
+                None,
+                error=_product_error(code, BillingContext.NO_SUBMIT),
+            )
         except PersistenceError:
             return _local_state_failure(None)
 

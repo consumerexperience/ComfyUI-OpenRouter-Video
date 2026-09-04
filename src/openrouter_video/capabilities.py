@@ -16,7 +16,6 @@ from openrouter_video.errors import (
     MalformedOpenRouterResponseError,
     OpenRouterHTTPError,
     ProductFailureError,
-    RequestPolicyError,
     TransportError,
 )
 from openrouter_video.models import (
@@ -92,7 +91,6 @@ class CapabilityService:
                 TransportError,
                 OpenRouterHTTPError,
                 MalformedOpenRouterResponseError,
-                RequestPolicyError,
             ) as exc:
                 failure = exc
                 if attempt == 2 or not _retryable_discovery(exc):
@@ -111,7 +109,14 @@ class CapabilityService:
                 self._store.replace_capability_catalog(models, observed_at)
                 return CapabilityObservation(observed_at, models)
 
-        del failure
+        if isinstance(failure, OpenRouterHTTPError) and failure.status_code in {401, 403}:
+            raise ProductFailureError(
+                ProductError(
+                    ProductErrorCode.API_KEY_INVALID,
+                    "OpenRouter rejected the configured API key.",
+                    BillingContext.NO_SUBMIT,
+                )
+            )
         if cached is not None and current - cached[0] <= LKG_TTL:
             return CapabilityObservation(cached[0], cached[1])
         raise ProductFailureError(
