@@ -1,0 +1,30 @@
+{
+  "data": [
+    {
+      "id": "test/video-alpha",
+      "canonical_slug": "test/video-alpha",
+      "name": "Synthetic Alpha",
+      "supported_durations": [4, 8],
+      "supported_resolutions": ["720p"],
+      "supported_aspect_ratios": ["16:9"],
+      "supported_sizes": ["1280x720"],
+      "supported_frame_images": ["first_frame"],
+      "generate_audio": false,
+      "seed": true,
+      "description": "Synthetic test data only",
+      "pricing_skus": {"generate": "0.01"},
+      "future_additive_field": {"ignored": true}
+    },
+    {
+      "id": "test/video-beta",
+      "supported_durations": [6],
+      "supported_resolutions": ["1080p"],
+      "supported_aspect_ratios": ["9:16"],
+      "supported_sizes": ["1080x1920"],
+      "supported_frame_images": ["first_frame", "last_frame", "future_frame"],
+      "generate_audio": true,
+      "seed": false
+    }
+  ],
+  "future_envelope_field": "ignored"
+}

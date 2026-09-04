@@ -1,0 +1,8 @@
+{
+  "id": "job_123",
+  "status": "completed",
+  "generation_id": "gen_123",
+  "usage": {"cost": 0.123456, "is_byok": false},
+  "unsigned_urls": ["https://example.invalid/not-authoritative.mp4"],
+  "future_additive_field": {"ignored": true}
+}

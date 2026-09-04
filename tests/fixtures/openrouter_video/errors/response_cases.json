@@ -1,0 +1,11 @@
+[
+  {"status": 400, "operation": "submit", "classification": "CONFIRMED"},
+  {"status": 401, "operation": "submit,poll,content", "classification": "CONFIRMED"},
+  {"status": 402, "operation": "submit", "classification": "CONFIRMED"},
+  {"status": 404, "operation": "submit,poll,content", "classification": "CONFIRMED"},
+  {"status": 413, "operation": "submit", "classification": "INFERRED"},
+  {"status": 429, "operation": "submit", "classification": "CONFIRMED"},
+  {"status": 500, "operation": "all", "classification": "CONFIRMED"},
+  {"status": 502, "operation": "content", "classification": "CONFIRMED"},
+  {"status": 503, "operation": "transient", "classification": "INFERRED"}
+]
