@@ -97,7 +97,15 @@ class CapabilityService:
                 failure = exc
                 if attempt == 2 or not _retryable_discovery(exc):
                     break
-                await self._sleep(self._jitter(_BACKOFF_SECONDS[attempt]))
+                retry_after = (
+                    exc.retry_after_seconds if isinstance(exc, OpenRouterHTTPError) else None
+                )
+                delay = (
+                    retry_after
+                    if retry_after is not None
+                    else self._jitter(_BACKOFF_SECONDS[attempt])
+                )
+                await self._sleep(delay)
             else:
                 observed_at = self._now()
                 self._store.replace_capability_catalog(models, observed_at)

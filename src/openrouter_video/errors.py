@@ -17,10 +17,17 @@ class TransportError(RuntimeError):
 class OpenRouterHTTPError(RuntimeError):
     """OpenRouter returned a non-success status without retaining its response body."""
 
-    def __init__(self, status_code: int, operation: Operation) -> None:
+    def __init__(
+        self,
+        status_code: int,
+        operation: Operation,
+        *,
+        retry_after_seconds: float | None = None,
+    ) -> None:
         super().__init__(f"OpenRouter {operation.value.lower()} returned HTTP {status_code}")
         self.status_code = status_code
         self.operation = operation
+        self.retry_after_seconds = retry_after_seconds
 
 
 class MalformedOpenRouterResponseError(RuntimeError):

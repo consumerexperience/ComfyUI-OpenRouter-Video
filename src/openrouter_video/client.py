@@ -105,7 +105,21 @@ class OpenRouterVideoClient:
 
 def _require_status(response: httpx.Response, operation: Operation, allowed: set[int]) -> None:
     if response.status_code not in allowed:
-        raise OpenRouterHTTPError(response.status_code, operation)
+        retry_after: float | None = None
+        raw_retry_after = response.headers.get("Retry-After")
+        if raw_retry_after is not None:
+            try:
+                parsed_retry_after = float(raw_retry_after)
+            except ValueError:
+                pass
+            else:
+                if 0 <= parsed_retry_after <= 60:
+                    retry_after = parsed_retry_after
+        raise OpenRouterHTTPError(
+            response.status_code,
+            operation,
+            retry_after_seconds=retry_after,
+        )
 
 
 def _json_object(response: httpx.Response) -> Mapping[str, Any]:
