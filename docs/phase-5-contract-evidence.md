@@ -52,4 +52,3 @@ OpenRouter request policy.
 - [Download generated video content](https://openrouter.ai/docs/api/api-reference/video-generation/list-videos-content)
 - [Video Generation guide](https://openrouter.ai/docs/guides/overview/multimodal/video-generation)
 - [OpenRouter Video Generation API tutorial](https://openrouter.ai/blog/tutorials/video-generation-api/)
-

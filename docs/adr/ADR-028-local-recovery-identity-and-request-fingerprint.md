@@ -127,4 +127,3 @@ uniqueness conflict is a recovery signal, not permission to retry submission.
 
 Recovery authority is explicit without persisting sensitive request content. The Core can detect
 non-sensitive shape drift but intentionally cannot detect every caller misuse of `operation_id`.
-

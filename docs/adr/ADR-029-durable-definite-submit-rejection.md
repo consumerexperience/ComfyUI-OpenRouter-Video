@@ -70,4 +70,3 @@ definite submit rejection
 
 Durable pre-submit intent remains truthful after definite rejection, and local recovery cannot
 convert a rejected logical operation into a second paid attempt.
-
