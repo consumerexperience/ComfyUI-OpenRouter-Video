@@ -13,7 +13,7 @@ Phase 5 — Headless Core II
 
 ## State
 
-- Status: `IMPLEMENTATION IN PROGRESS`
+- Status: `ENGINEERING COMPLETE — DELIVERY PENDING PROTECTED MERGE`
 - Baseline branch: `main`
 - Baseline commit: `9faa1ed4ffbc5b548aca8e5241afc9ed60e9196e`
 - Working branch: `phase-5/headless-core-ii`
@@ -27,6 +27,23 @@ Phase 5 — Headless Core II
 - Live OpenRouter traffic: `PROHIBITED`
 - Paid submits: `PROHIBITED`
 - Production credential access: `PROHIBITED`
+
+## Verification at feature HEAD
+
+- `pytest`: `102 passed`
+- `ruff check`: `PASS`
+- `ruff format --check`: `PASS`
+- strict `mypy`: `PASS`
+- sdist and wheel build: `PASS`
+- clean-venv wheel install/import: `PASS`
+- `pip-audit`: `No known vulnerabilities found`
+- architecture/security scan: `PASS`
+- Real OpenRouter API calls: `0`
+- Paid submits: `0`
+- OpenRouter credits spent: `$0`
+- Production key accessed: `NO`
+- Project telemetry: `NONE`
+- Comfy imports in Core: `NONE`
 
 ## First decisions
 
@@ -54,4 +71,6 @@ Phase 5 — Headless Core II
 
 ## Next exact action
 
-Implement Headless Core II in coherent verified slices from the refreshed first-party contract.
+Push `phase-5/headless-core-ii`, open its protected-main PR, and read required CI and CodeQL.
+Do not merge autonomously; Phase 5 becomes DONE only after human protected merge and canonical
+`main` read-back.
