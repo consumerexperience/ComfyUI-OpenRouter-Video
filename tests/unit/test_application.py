@@ -187,6 +187,31 @@ def test_submit_429_is_one_total_post_and_terminal_rejection(tmp_path: Path) -> 
     assert client.submit_calls == 1
 
 
+def test_submit_408_is_ambiguous_and_never_retried(tmp_path: Path) -> None:
+    client = ScenarioClient(submit=OpenRouterHTTPError(408, Operation.SUBMIT), polls=[])
+    service, store = _generate_service(tmp_path, client)
+
+    first = asyncio.run(service.generate("operation-1", REQUEST))
+    replay = asyncio.run(service.generate("operation-1", REQUEST))
+
+    assert first.state is LocalLifecycleState.SUBMISSION_UNKNOWN
+    assert replay.state is LocalLifecycleState.SUBMISSION_UNKNOWN
+    assert client.submit_calls == 1
+    persisted = store.get_by_operation_id("operation-1")
+    assert persisted is not None
+    assert persisted.local_state is LocalLifecycleState.SUBMISSION_UNKNOWN
+
+
+def test_unclassified_submit_4xx_is_ambiguous(tmp_path: Path) -> None:
+    client = ScenarioClient(submit=OpenRouterHTTPError(409, Operation.SUBMIT), polls=[])
+    service, _ = _generate_service(tmp_path, client)
+
+    result = asyncio.run(service.generate("operation-1", REQUEST))
+
+    assert result.state is LocalLifecycleState.SUBMISSION_UNKNOWN
+    assert client.submit_calls == 1
+
+
 def test_polling_outage_preserves_known_job_and_total_post_count(tmp_path: Path) -> None:
     client = ScenarioClient(
         submit=RemoteJobSnapshot("job-1", "pending"),

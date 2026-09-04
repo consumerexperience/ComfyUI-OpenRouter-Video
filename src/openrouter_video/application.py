@@ -498,7 +498,7 @@ class GenerateService:
                 error=_product_error(code, BillingContext.NO_SUBMIT),
             )
         except OpenRouterHTTPError as exc:
-            if 400 <= exc.status_code <= 499:
+            if exc.status_code in {400, 401, 402, 403, 404, 422, 429}:
                 return self._persist_definite_rejection(record, _submit_rejection_code(exc))
             return self._persist_submission_unknown(record)
         except (TransportError, MalformedOpenRouterResponseError):

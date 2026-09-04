@@ -189,6 +189,19 @@ def _parse_job(row: sqlite3.Row) -> JobRecord:
         LocalLifecycleState.UNKNOWN_REMOTE_STATE,
     }:
         raise PersistenceError("Known-job lifecycle state is missing job identity")
+    if record.job_id is not None and record.local_state in {
+        LocalLifecycleState.NOT_SUBMITTED,
+        LocalLifecycleState.VALIDATING,
+        LocalLifecycleState.SUBMITTING,
+        LocalLifecycleState.SUBMIT_REJECTED,
+        LocalLifecycleState.SUBMISSION_UNKNOWN,
+    }:
+        raise PersistenceError("No-job lifecycle state has contradictory job identity")
+    if (
+        record.local_state is LocalLifecycleState.SUBMIT_REJECTED
+        and record.product_error_code is None
+    ):
+        raise PersistenceError("Durable submit rejection is missing its product error")
     return record
 
 

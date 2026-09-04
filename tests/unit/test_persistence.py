@@ -10,7 +10,13 @@ from pathlib import Path
 import pytest
 
 from openrouter_video.errors import PersistenceError
-from openrouter_video.models import FrameType, JobRecord, LocalLifecycleState, ModelCapabilities
+from openrouter_video.models import (
+    FrameType,
+    JobRecord,
+    LocalLifecycleState,
+    ModelCapabilities,
+    ProductErrorCode,
+)
 from openrouter_video.persistence import JobStore
 
 NOW = datetime(2026, 9, 4, 12, 0, tzinfo=timezone.utc)
@@ -99,6 +105,25 @@ def test_corrupt_state_never_degrades_to_missing_record(tmp_path: Path) -> None:
     assert store.claim_submitting(_submitting())
     with sqlite3.connect(path) as connection:
         connection.execute("UPDATE jobs SET local_state = 'BROKEN'")
+        connection.commit()
+
+    with pytest.raises(PersistenceError):
+        store.get_by_operation_id("operation-1")
+
+
+def test_contradictory_no_job_state_with_job_identity_fails_closed(tmp_path: Path) -> None:
+    store = JobStore(tmp_path / "jobs.sqlite3")
+    rejected = replace(
+        _submitting(),
+        local_state=LocalLifecycleState.SUBMIT_REJECTED,
+        product_error_code=ProductErrorCode.INSUFFICIENT_CREDITS,
+    )
+    assert store.insert(rejected)
+    with sqlite3.connect(store.path) as connection:
+        connection.execute(
+            "UPDATE jobs SET job_id = ? WHERE operation_id = ?",
+            ("contradictory-job", "operation-1"),
+        )
         connection.commit()
 
     with pytest.raises(PersistenceError):

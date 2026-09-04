@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import AsyncIterator, Mapping, Sequence
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from decimal import Decimal, InvalidOperation
@@ -124,8 +125,8 @@ def _require_status(response: httpx.Response, operation: Operation, allowed: set
 
 def _json_object(response: httpx.Response) -> Mapping[str, Any]:
     try:
-        value = response.json()
-    except (ValueError, UnicodeError):
+        value = json.loads(response.content, parse_float=Decimal)
+    except (json.JSONDecodeError, UnicodeError):
         raise MalformedOpenRouterResponseError("OpenRouter JSON response is malformed") from None
     if not isinstance(value, Mapping):
         raise MalformedOpenRouterResponseError("OpenRouter JSON response is malformed")
@@ -195,7 +196,11 @@ def _parse_capability(value: Mapping[Any, Any]) -> ModelCapabilities:
 
 
 def _parse_cost(value: object) -> Decimal | None:
-    if value is None or isinstance(value, bool) or not isinstance(value, (int, float, str)):
+    if (
+        value is None
+        or isinstance(value, bool)
+        or not isinstance(value, (Decimal, int, float, str))
+    ):
         return None
     try:
         parsed = Decimal(str(value))

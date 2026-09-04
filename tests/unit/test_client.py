@@ -156,6 +156,27 @@ def test_client_exposes_only_bounded_numeric_retry_after() -> None:
     asyncio.run(scenario())
 
 
+def test_client_preserves_exact_numeric_usage_cost() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            content=(
+                b'{"id":"job-1","status":"completed","usage":'
+                b'{"cost":0.1234567890123456789012345678}}'
+            ),
+            headers={"Content-Type": "application/json"},
+            request=request,
+        )
+
+    async def scenario() -> None:
+        async with HttpxTransport.for_test(httpx.MockTransport(handler)) as transport:
+            client = OpenRouterVideoClient(request_policy=_policy(), transport=transport)
+            snapshot = await client.get_job("job-1")
+            assert snapshot.usage.actual_cost_usd == Decimal("0.1234567890123456789012345678")
+
+    asyncio.run(scenario())
+
+
 def test_client_constructor_and_methods_have_no_policy_escape_hatches() -> None:
     import inspect
 
