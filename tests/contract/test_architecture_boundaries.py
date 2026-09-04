@@ -30,6 +30,16 @@ def test_core_never_imports_comfyui() -> None:
     assert not {name: imports for name, imports in violations.items() if imports}
 
 
+def test_production_never_imports_test_harness_or_fixtures() -> None:
+    violations = {
+        path.name: sorted(
+            name for name in _imports(path) if name == "tests" or name.startswith("tests.")
+        )
+        for path in PACKAGE_ROOT.rglob("*.py")
+    }
+    assert not {name: imports for name, imports in violations.items() if imports}
+
+
 def test_comfy_product_modules_remain_documentation_only() -> None:
     deferred = {"compat.py", "nodes.py", "routes.py", "video.py"}
     violations: list[str] = []
@@ -90,3 +100,19 @@ def test_core_contains_no_tracking_telemetry_or_provider_branches() -> None:
         if hits:
             violations[path.name] = hits
     assert violations == {}
+
+
+def test_production_has_no_testability_escape_hatches() -> None:
+    forbidden = (
+        "base_url",
+        "follow_redirects=True",
+        "verify=False",
+        "transport retries",
+        "identity_override",
+        "arbitrary_headers",
+    )
+    violations = {
+        path.name: [token for token in forbidden if token in path.read_text(encoding="utf-8")]
+        for path in CORE_FILES
+    }
+    assert not {name: hits for name, hits in violations.items() if hits}

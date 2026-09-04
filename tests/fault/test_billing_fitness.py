@@ -229,6 +229,45 @@ def test_unknown_remote_status_preserves_job_and_submits_no_additional_generatio
     scenario.ledger.assert_generation_submit_count(1)
 
 
+@pytest.mark.parametrize(
+    ("fixture", "state", "code"),
+    [
+        ("poll/failed.json", LocalLifecycleState.FAILED, ProductErrorCode.GENERATION_FAILED),
+        ("poll/cancelled.json", LocalLifecycleState.CANCELLED, ProductErrorCode.JOB_CANCELLED),
+        ("poll/expired.json", LocalLifecycleState.EXPIRED, ProductErrorCode.JOB_EXPIRED),
+    ],
+)
+def test_remote_terminal_outcomes_remain_distinct_from_transport_failure(
+    fixture: str,
+    state: LocalLifecycleState,
+    code: ProductErrorCode,
+    tmp_path: Path,
+) -> None:
+    scenario = Scenario(
+        fixture,
+        _prefix()
+        + [
+            ScenarioStep(
+                Operation.POLL,
+                "GET",
+                "/api/v1/videos/job_123",
+                json_body=_json(fixture),
+            )
+        ],
+    )
+
+    async def run() -> None:
+        async with core_harness(scenario, tmp_path) as core:
+            result = await core.generate.generate(f"operation-{state.value.lower()}", REQUEST)
+            assert result.state is state
+            assert result.job_id == "job_123"
+            assert result.error is not None and result.error.code is code
+
+    asyncio.run(run())
+    scenario.assert_complete()
+    scenario.ledger.assert_generation_submit_count(1)
+
+
 def test_download_failure_exhaustion_is_recoverable_and_never_generates(tmp_path: Path) -> None:
     failed = Scenario(
         "download-failure",
@@ -287,7 +326,10 @@ def test_download_failure_exhaustion_is_recoverable_and_never_generates(tmp_path
     resumed.ledger.assert_resume_submits_zero()
 
 
-def test_content_redirect_is_not_followed_and_cannot_leak_headers(tmp_path: Path) -> None:
+@pytest.mark.parametrize("redirect_status", [302, 307, 308])
+def test_content_redirect_is_not_followed_and_cannot_leak_headers(
+    redirect_status: int, tmp_path: Path
+) -> None:
     scenario = Scenario(
         "content-redirect",
         _prefix()
@@ -302,7 +344,7 @@ def test_content_redirect_is_not_followed_and_cannot_leak_headers(tmp_path: Path
                 Operation.CONTENT,
                 "GET",
                 "/api/v1/videos/job_123/content?index=0",
-                status=307,
+                status=redirect_status,
                 headers={"Location": "https://example.invalid/steal"},
             ),
         ],
@@ -317,6 +359,120 @@ def test_content_redirect_is_not_followed_and_cannot_leak_headers(tmp_path: Path
     scenario.assert_complete()
     assert scenario.ledger.total_requests == 4
     assert all("example.invalid" not in item.canonical_path for item in scenario.ledger.requests)
+    scenario.ledger.assert_generation_submit_count(1)
+
+
+def test_content_transport_interruption_retries_same_job_and_never_generates(
+    tmp_path: Path,
+) -> None:
+    scenario = Scenario(
+        "content-interruption",
+        _prefix()
+        + [
+            ScenarioStep(
+                Operation.POLL,
+                "GET",
+                "/api/v1/videos/job_123",
+                json_body=_json("poll/completed_no_cost.json"),
+            ),
+            ScenarioStep(
+                Operation.CONTENT,
+                "GET",
+                "/api/v1/videos/job_123/content?index=0",
+                exception=httpx.ReadError("synthetic content disconnect"),
+            ),
+            ScenarioStep(
+                Operation.CONTENT,
+                "GET",
+                "/api/v1/videos/job_123/content?index=0",
+                body=MP4,
+            ),
+        ],
+    )
+
+    async def run() -> None:
+        async with core_harness(scenario, tmp_path) as core:
+            result = await core.generate.generate("operation-content-retry", REQUEST)
+            assert result.state is LocalLifecycleState.DONE
+            assert core.clock.delays == [5.0]
+
+    asyncio.run(run())
+    scenario.assert_complete()
+    assert scenario.ledger.content_request_count == 2
+    scenario.ledger.assert_generation_submit_count(1)
+
+
+def test_local_poll_interruption_preserves_job_for_zero_submit_resume(tmp_path: Path) -> None:
+    database = tmp_path / "jobs.sqlite3"
+
+    async def interrupt() -> Scenario:
+        entered = asyncio.Event()
+        release = asyncio.Event()
+        scenario = Scenario(
+            "local-interruption",
+            _prefix()
+            + [
+                ScenarioStep(
+                    Operation.POLL,
+                    "GET",
+                    "/api/v1/videos/job_123",
+                    entered_event=entered,
+                    release_event=release,
+                )
+            ],
+        )
+        async with core_harness(scenario, tmp_path, database=database) as core:
+            task = asyncio.create_task(core.generate.generate("operation-interrupted", REQUEST))
+            await entered.wait()
+            task.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await task
+            stored = core.store.get_by_job_id("job_123")
+            assert stored is not None
+            assert stored.local_state is LocalLifecycleState.POLLING
+        return scenario
+
+    interrupted = asyncio.run(interrupt())
+    interrupted.assert_complete()
+    interrupted.ledger.assert_generation_submit_count(1)
+
+    resumed = Scenario("resume-after-local-interrupt", _completed_steps())
+
+    async def resume() -> None:
+        async with core_harness(resumed, tmp_path, database=database) as core:
+            result = await core.resume.resume("job_123")
+            assert result.state is LocalLifecycleState.DONE
+
+    asyncio.run(resume())
+    resumed.assert_complete()
+    resumed.ledger.assert_resume_submits_zero()
+
+
+def test_poll_local_ceiling_uses_fake_time_and_preserves_known_job(tmp_path: Path) -> None:
+    pending = _json("poll/pending.json")
+    scenario = Scenario(
+        "poll-ceiling",
+        _prefix()
+        + [
+            ScenarioStep(
+                Operation.POLL,
+                "GET",
+                "/api/v1/videos/job_123",
+                json_body=pending,
+            )
+            for _ in range(120)
+        ],
+    )
+
+    async def run() -> None:
+        async with core_harness(scenario, tmp_path) as core:
+            result = await core.generate.generate("operation-ceiling", REQUEST)
+            assert result.state is LocalLifecycleState.OBSERVATION_INTERRUPTED
+            assert result.job_id == "job_123"
+            assert core.clock.elapsed == 3600.0
+
+    asyncio.run(run())
+    scenario.assert_complete()
     scenario.ledger.assert_generation_submit_count(1)
 
 

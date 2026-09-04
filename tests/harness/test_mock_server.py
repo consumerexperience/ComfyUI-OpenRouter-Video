@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import http.client
+import socket
+import time
 
 import httpx
 import pytest
@@ -146,3 +148,47 @@ def test_local_fault_server_strictly_matches_and_counts_generation_endpoint() ->
         connection.close()
         assert server.wait_until_request_received()
         assert server.generation_submit_count == 1
+
+
+def test_server_can_truncate_after_headers_and_mid_body_reproducibly() -> None:
+    plans = [
+        ResponsePlan(
+            body=b"declared-body",
+            disconnect_after_headers=True,
+            expected_method="GET",
+            expected_path="/headers-only",
+        ),
+        ResponsePlan(
+            body=b"0123456789",
+            disconnect_after_body_bytes=4,
+            expected_method="GET",
+            expected_path="/partial",
+        ),
+    ]
+    with LocalFaultServer(plans) as server:
+        host, port = server.address
+        for path in ("/headers-only", "/partial"):
+            connection = http.client.HTTPConnection(host, port, timeout=2)
+            connection.request("GET", path)
+            response = connection.getresponse()
+            with pytest.raises(http.client.IncompleteRead):
+                response.read()
+            connection.close()
+
+
+def test_server_delay_is_bounded_and_cleanup_stops_listener() -> None:
+    with LocalFaultServer([ResponsePlan(delay_seconds=0.05, body=b"ok")]) as server:
+        host, port = server.address
+        started = time.monotonic()
+        connection = http.client.HTTPConnection(host, port, timeout=2)
+        connection.request("GET", "/delay")
+        assert connection.getresponse().read() == b"ok"
+        assert time.monotonic() - started >= 0.02
+        connection.close()
+    with pytest.raises(OSError):
+        socket.create_connection((host, port), timeout=0.1)
+
+
+def test_external_network_guard_rejects_non_loopback_before_connection() -> None:
+    with pytest.raises(AssertionError, match="external network is forbidden"):
+        socket.create_connection(("203.0.113.1", 443), timeout=0.01)
