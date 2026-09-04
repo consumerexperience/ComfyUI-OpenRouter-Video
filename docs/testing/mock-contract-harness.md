@@ -37,8 +37,18 @@ was consumed; an accidental half-scenario cannot pass.
 scenario = Scenario(
     "poll-timeout-recovers",
     [
-        ScenarioStep(Operation.POLL, "GET", "/api/v1/videos/job_123", exception=httpx.ReadTimeout("synthetic")),
-        ScenarioStep(Operation.POLL, "GET", "/api/v1/videos/job_123", json_body={"id": "job_123", "status": "completed"}),
+        ScenarioStep(
+            Operation.POLL,
+            "GET",
+            "/api/v1/videos/job_123",
+            exception=httpx.ReadTimeout("synthetic"),
+        ),
+        ScenarioStep(
+            Operation.POLL,
+            "GET",
+            "/api/v1/videos/job_123",
+            json_body={"id": "job_123", "status": "completed"},
+        ),
     ],
 )
 ```
