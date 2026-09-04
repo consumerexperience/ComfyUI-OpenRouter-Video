@@ -1,76 +1,107 @@
 # Active execution checkpoint
 
-## Previous phase
+## Canonical baseline
 
-- Phase: `PHASE 4 — DONE`
-- Canonical merge: `9faa1ed4ffbc5b548aca8e5241afc9ed60e9196e`
-- Delivery: protected `main`, merge commit, PR #2, required CI matrix and CodeQL green
-- Read-back: local `main == origin/main`; every Phase-4 commit is an ancestor of canonical main
-
-## Current task
-
-Phase 5 — Headless Core II
-
-## State
-
-- Status: `ENGINEERING COMPLETE — DELIVERY PENDING PROTECTED MERGE`
-- Baseline branch: `main`
-- Baseline commit: `9faa1ed4ffbc5b548aca8e5241afc9ed60e9196e`
-- Working branch: `phase-5/headless-core-ii`
+- Stage: `MOCK / CONTRACT TEST HARNESS — ENGINEERING COMPLETE, DELIVERY PENDING`
+- Canonical starting main: `3923c2570862ae496a494787e6e17329c244d974`
+- Phase-5 completion evidence: protected-main merge PR #3; expected Phase-5 merge is canonical and an
+  ancestor of `origin/main`
+- Branch: `phase-5a/mock-contract-harness`
+- HEAD: branch tip; exact immutable SHA is read back after final verification/push
+- Canonical main at branch creation: `origin/main == 3923c2570862ae496a494787e6e17329c244d974`
 - Specification: Product / Engineering Specification v0.1.0, revision 1.1
 - Architecture: Validated Architecture & Threat Model v1.1
-- Accepted ADRs: ADR-001 through ADR-027
-- Additive Phase-5 decisions: ADR-028 and ADR-029 accepted
-- Evidence gate: `COMPLETE — 2026-09-04`
+- Accepted ADR set: ADR-001 through ADR-029; ADR-028 and ADR-029 present and `ACCEPTED`
+
+## Contract evidence
+
+- Evidence date: `2026-09-05`
+- Sources: first-party OpenRouter Video model discovery, submit, poll, content, guide, cookbook, and
+  app-attribution documentation
 - Contract drift: `NONE`
-- Upstream expansion: `PRESENT, OUT OF V0.1 SCOPE`
-- Live OpenRouter traffic: `PROHIBITED`
-- Paid submits: `PROHIBITED`
-- Production credential access: `PROHIBITED`
+- Upstream expansion: `PRESENT, OUT OF V0.1 SCOPE` — `input_references`, `provider`,
+  `callback_url`, webhook behavior, returned URLs, passthrough metadata, and additional attribution
+  headers are represented only as tolerant-reader/non-authority evidence where relevant
+- Live API requests: `0`
 
-## Verification at feature HEAD
+## Harness components
 
-- `pytest`: `102 passed`
-- `ruff check`: `PASS`
-- `ruff format --check`: `PASS`
-- strict `mypy`: `PASS`
-- sdist and wheel build: `PASS`
-- clean-venv wheel install/import: `PASS`
-- `pip-audit`: `No known vulnerabilities found`
-- architecture/security scan: `PASS`
+- Strict typed `Scenario` / ordered `ScenarioStep` semantic engine
+- Canonical test-only `RequestLedger` with first-class `generation_submit_count`
+- `httpx.MockTransport` semantic layer around the real OpenRouterVideoClient/Core
+- Existing `LocalFaultServer` extended with strict matching, completion audit, deterministic
+  request-received synchronization, disconnect-after-request/headers/body, truncation, delay, and
+  generation-submit counting
+- Test-only loopback rewrite below the production RequestPolicy boundary
+- Suite-wide non-loopback socket guard
+- Fake clock/sleeper for retry, cadence, and 60-minute ceiling checks
+- Explicit synthetic credential provider with no environment access
+
+## Contract corpus
+
+- Discovery: synthetic two-model capability matrix, additive fields, empty and malformed catalog
+- Submit: accepted job, polling URL, hostile returned URL additions
+- Poll: pending, in_progress, completed with/without exact `usage.cost`, failed, cancelled, expired,
+  and future unknown status
+- Errors: reviewed 400/401/402/404/413/429/500/502/503 evidence-classified matrix
+- Malformed: invalid JSON, wrong top-level shape, missing required fields, wrong types
+- Content/media: deterministic MP4/WebM and invalid/truncated/oversize behavior through existing
+  production media tests plus harness fault coverage
+
+## Fault capabilities
+
+- Timeout/read error through semantic transport
+- Request observed then response lost through real loopback socket
+- Disconnect after request, headers, or partial body
+- Response truncation and bounded delay
+- 302/307/308 redirect isolation
+- Poll and content transient status matrices
+- Restart, SQLite corruption, operation concurrency, and local cancellation/re-entry
+
+## Product fitness results
+
+- Normal Generate: total generation POST `1`
+- Poll timeout/disconnect/429/5xx recovery: total generation POST `1`
+- Ambiguous submit after server observation: total generation POST `1`; state `SUBMISSION_UNKNOWN`
+- Submit 429/definite rejection: total generation POST `1`; restart additional POST `0`
+- Resume: generation POST `0`
+- Restart after known accepted job: additional generation POST `0`
+- Concurrent same `operation_id`: total generation POST `1`
+- Fingerprint mismatch/corrupt durable state: additional generation POST `0`
+- Download retry/exhaustion/recovery: additional generation POST `0`
+- Unknown remote status: additional generation POST `0`
+- Polling failure remains observation failure of the same known job
+
+## Verification snapshot
+
+- Baseline before changes: `102 passed`
+- Feature suite before final docs: `155 passed`
+- Harness self-tests: `10 passed`
+- Contract/security tests: `46 passed`
+- Fault/billing tests: `26 passed`
+- Integration tests: `12 passed`
+- Full lint/type/build/security pipeline: pending final post-documentation run
+- CI / CodeQL: pending push and PR
+
+## Security / real-world state
+
 - Real OpenRouter API calls: `0`
 - Paid submits: `0`
 - OpenRouter credits spent: `$0`
 - Production key accessed: `NO`
+- External test network: `BLOCKED`; real sockets are loopback-only
 - Project telemetry: `NONE`
-- Comfy imports in Core: `NONE`
+- ComfyUI required for harness: `NO`
+- Production files changed for defects: `NONE`
 
-## First decisions
+## Open gates
 
-- ADR-028 fixes local recovery authority, versioned privacy-preserving request fingerprints, and
-  SQLite concurrency enforcement.
-- ADR-029 fixes the durable disposition of authoritative definite submit rejection as local
-  terminal state `SUBMIT_REJECTED`.
-
-## Phase-5 scope
-
-- Typed contracts and exact OpenRouter Video client methods.
-- Capability discovery, normalization, validation, fresh cache, and bounded last-known-good data.
-- Local lifecycle state machine with unknown-state preservation.
-- SQLite recovery state and atomic `operation_id` submit-right claim.
-- Billing-safe Generate and submit-incapable Resume services.
-- Bounded polling, observation recovery, canonical content streaming, and durable media download.
-- Zero-cost tests for billing, privacy, lifecycle, recovery, concurrency, and boundary fitness.
-
-## Deferred by design
-
-- ComfyUI product behavior and VIDEO conversion.
-- Live OpenRouter calls, production credentials, live attribution smoke, or paid generation.
-- Full scenario DSL, general fake OpenRouter platform, and full Contract Harness.
-- Release, tag, and autonomous protected merge.
+1. Run the complete post-documentation verification pipeline.
+2. Push feature branch and open protected-main PR.
+3. Wait for required CI matrix and CodeQL; fix only demonstrated root causes.
+4. Human protected merge and canonical `origin/main` ancestry/read-back are required for `DONE`.
 
 ## Next exact action
 
-Push `phase-5/headless-core-ii`, open its protected-main PR, and read required CI and CodeQL.
-Do not merge autonomously; Phase 5 becomes DONE only after human protected merge and canonical
-`main` read-back.
+Run full verification, push `phase-5a/mock-contract-harness`, open the PR, and wait for required
+checks. Do not merge autonomously and do not start the next roadmap stage.

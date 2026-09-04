@@ -35,6 +35,9 @@
 ## Testing and dependencies
 
 - Default tests cost zero; live tests are excluded and require immediate human approval.
+- Contract fixtures are reviewed evidence snapshots, not live or permanent API truth.
+- Harness execution may use only MockTransport or explicit loopback with synthetic credentials.
+- Testability never authorizes production destination, header, credential, or identity overrides.
 - No telemetry/analytics SDK, runtime pip installation, or unreviewed runtime dependency.
 
 ## Agent permissions
