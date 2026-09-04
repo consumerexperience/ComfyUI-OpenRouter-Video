@@ -4,15 +4,16 @@ Open-source BYOK model-agnostic OpenRouter Video gateway for ComfyUI.
 
 ## Status
 
-**PRE-ALPHA — Phase 4: Safe boundary implemented with frozen canonical identity.**
+**PRE-ALPHA — Phase 5: Headless Core II implemented on the feature branch.**
 
-The headless core now contains a policy-prepared, origin-bound OpenRouter HTTP transport. It
-validates the canonical destination before resolving a credential, composes static application
-attribution centrally, disables redirects and ambient proxy inheritance, and performs zero
-automatic transport retries. All behavior is proven with synthetic fixtures and local transports.
+The headless core now contains typed Video API contracts, capability discovery and bounded cache,
+pre-submit validation, a durable SQLite lifecycle, one-attempt Generate, submit-incapable Resume,
+bounded polling, and durable MP4/WebM download. The Phase-4 origin-bound request policy still owns
+all authentication, attribution, destination, redirect, TLS, and zero-transport-retry controls.
 
-The extension still does not generate video, expose product nodes, call OpenRouter endpoints, or
-implement lifecycle, persistence, model discovery, polling, Resume, or media download behavior.
+The ComfyUI extension remains an empty discovery scaffold. Phase 5 does not expose product nodes,
+perform VIDEO conversion, make live OpenRouter calls, access a production credential, or spend
+credits during tests.
 
 ## Product principles
 
@@ -32,9 +33,19 @@ The Product Owner has frozen the official release identity as:
 - `X-OpenRouter-Categories`: `video-gen`
 
 This identity is immutable source-level project metadata. It cannot be changed through a workflow,
-environment variable, runtime preference, user, device, installation, or session value. Phase 4
-engineering is complete; canonical delivery still requires the feature PR, required CI and CodeQL,
-human protected merge, and a final `main` read-back.
+environment variable, runtime preference, user, device, installation, or session value. Phase 4 is
+canonically merged at `9faa1ed`; Phase 5 remains a feature-branch delivery until its own protected
+PR is reviewed and merged.
+
+## Headless recovery identity
+
+- `job_id` is authoritative remote generation identity after acceptance.
+- `operation_id` is authoritative local logical-operation identity.
+- `request_fingerprint` is a versioned, privacy-preserving advisory checksum and never grants
+  submit, Resume, deduplication, or idempotency authority.
+
+See [Headless Core II](docs/headless-core-ii.md), [ADR-028](docs/adr/ADR-028-local-recovery-identity-and-request-fingerprint.md),
+and [ADR-029](docs/adr/ADR-029-durable-definite-submit-rejection.md).
 
 ## Security warning
 

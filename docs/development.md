@@ -40,9 +40,14 @@ nodes, or copied product source. Run its CPU quick-test only; model execution is
 A refreshed evidence gate is required before the future Comfy adapter makes any V3 support
 promise. This gate does not block Phase 4 Headless Core.
 
-## Phase 4 headless boundary
+## Phase 5 headless core
 
-Phase-4 development and tests do not require ComfyUI. The production source resolves only the
+Headless Core development and tests do not require ComfyUI. The production source resolves only the
 named `OPENROUTER_API_KEY` environment variable, while default tests inject a synthetic provider
 and never inspect a production credential. Network tests use HTTPX MockTransport or the existing
 loopback fault harness; they do not contact OpenRouter.
+
+SQLite tests use temporary databases. They exercise WAL, synchronous FULL, schema versioning,
+operation/job uniqueness, exact Decimal-as-TEXT cost storage, corruption handling, restart, and
+same-operation concurrency. Media tests write only generated temporary `.part`, MP4, and WebM
+fixtures below pytest temporary roots.
