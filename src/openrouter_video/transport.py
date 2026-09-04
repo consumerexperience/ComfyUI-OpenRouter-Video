@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from types import TracebackType
 
 import httpx
@@ -62,6 +64,28 @@ class HttpxTransport:
     async def send(self, request: _PreparedOpenRouterRequest) -> httpx.Response:
         """Send exactly one prepared request and never follow a redirect."""
 
+        outgoing = self._build_request(request)
+        try:
+            return await self._client.send(outgoing, follow_redirects=False)
+        except httpx.HTTPError:
+            raise TransportError("OpenRouter transport failed") from None
+
+    @asynccontextmanager
+    async def stream(self, request: _PreparedOpenRouterRequest) -> AsyncIterator[httpx.Response]:
+        """Stream one policy-prepared response without buffering or following redirects."""
+
+        outgoing = self._build_request(request)
+        response: httpx.Response | None = None
+        try:
+            response = await self._client.send(outgoing, follow_redirects=False, stream=True)
+            yield response
+        except httpx.HTTPError:
+            raise TransportError("OpenRouter streaming transport failed") from None
+        finally:
+            if response is not None:
+                await response.aclose()
+
+    def _build_request(self, request: _PreparedOpenRouterRequest) -> httpx.Request:
         _validate_prepared_request(request)
         timeout = httpx.Timeout(
             connect=request.timeout.connect_seconds,
@@ -69,17 +93,13 @@ class HttpxTransport:
             read=request.timeout.read_seconds,
             pool=request.timeout.pool_seconds,
         )
-        outgoing = self._client.build_request(
+        return self._client.build_request(
             request.method,
             request.url,
             headers=request._headers,
             content=request._body,
             timeout=timeout,
         )
-        try:
-            return await self._client.send(outgoing, follow_redirects=False)
-        except httpx.HTTPError:
-            raise TransportError("OpenRouter transport failed") from None
 
     async def aclose(self) -> None:
         """Close the shared HTTPX client."""
