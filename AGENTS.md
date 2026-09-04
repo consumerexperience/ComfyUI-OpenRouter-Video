@@ -3,7 +3,7 @@
 ## Architecture
 
 - Core must never import ComfyUI; the Comfy adapter remains thin.
-- Raw HTTP stays behind the future OpenRouterClient / RequestPolicy / Transport boundary.
+- Raw HTTP stays behind the OpenRouterVideoClient / RequestPolicy / Transport boundary.
 - Provider-specific core behavior requires architecture review.
 
 ## Billing
@@ -24,7 +24,10 @@
 - Official attribution is static release identity, not runtime configuration.
 - Use `X-OpenRouter-Title`; never add user/install/device/session/workflow identity.
 - Never forward authentication or attribution to external hosts.
-- The canonical Referer remains unresolved and requires explicit Product Owner review.
+- Preserve the exact official identity: Referer
+  `https://github.com/consumerexperience/ComfyUI-OpenRouter-Video`, title
+  `OpenRouter Video for ComfyUI`, and category `video-gen`.
+- Any canonical identity change requires explicit Product Owner and architecture/release review.
 
 ## Testing and dependencies
 
