@@ -20,17 +20,20 @@ request is received.
 
 ## Future product fitness functions
 
-| Contract | Phase 3 status |
+| Contract | Current status |
 | --- | --- |
 | Generate paid POST count at most one | `PENDING_IMPLEMENTATION` |
 | Ambiguous submit never creates another POST | `PENDING_IMPLEMENTATION` |
 | Resume POST count zero | `PENDING_IMPLEMENTATION` |
 | Poll/download failure observes the same job | `PENDING_IMPLEMENTATION` |
-| External host receives no Authorization | `PENDING_IMPLEMENTATION` |
-| External host receives no attribution | `PENDING_IMPLEMENTATION` |
-| Redirect is not followed | `PENDING_IMPLEMENTATION` |
-| Canonical identity exact-value stability | `NOT_APPLICABLE — APP_REFERER UNRESOLVED` |
+| External host receives no Authorization | `PASS — Phase-4 prepared-request/transport boundary` |
+| External host receives no attribution | `PASS — Phase-4 prepared-request/transport boundary` |
+| Redirect is not followed | `PASS — observable 302/307/308 tests` |
+| Canonical title and category stability | `PASS` |
+| Canonical Referer exact-value stability | `PASS — frozen release fixture` |
 | Capability cache avoids synthetic network calls | `PENDING_IMPLEMENTATION` |
 
-Harness self-tests are PASS evidence for harness mechanics only. They are not product fitness
-evidence.
+Phase-4 tests additionally cover origin spoofing, validation-before-secret ordering, exact
+operation paths and timeout classes, zero transport retry, safe error/log content, no tracking
+identity, and headless core isolation. Harness self-tests remain evidence for harness mechanics
+only and do not prove Phase-5 lifecycle behavior.

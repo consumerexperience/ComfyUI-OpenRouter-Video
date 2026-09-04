@@ -2,8 +2,10 @@
 
 ## Current posture
 
-This project is pre-alpha Scaffold. Product networking, credential access, persistence, media
-handling, and ComfyUI product nodes do not exist yet.
+This project is pre-alpha. Phase 4 implements the headless request-policy and HTTP transport
+boundary, but no endpoint client, paid submission, lifecycle, persistence, media handling, or
+ComfyUI product nodes exist yet. Default tests use only synthetic credentials, MockTransport, and
+loopback infrastructure.
 
 ## Reporting a vulnerability
 
@@ -22,9 +24,16 @@ a private disclosure channel.
 
 ## Network and attribution boundary
 
-Future Authorization and OpenRouter attribution headers may leave the process only for the
-validated canonical OpenRouter origin. Redirects are not followed by default. Neither header
-class may be forwarded to external media hosts.
+Authorization and OpenRouter attribution are composed only after the destination has been proven
+to be HTTPS `openrouter.ai` under `/api/v1`. The production transport verifies TLS, does not follow
+redirects, does not inherit ambient proxies, and performs zero automatic connection retries.
+Transport defensively revalidates policy-prepared requests before sending. Neither header class is
+forwarded to external media hosts.
+
+The official canonical Referer is the immutable source-level value
+`https://github.com/consumerexperience/ComfyUI-OpenRouter-Video`. Phase 4 retains an unmistakable
+`.invalid` identity only for synthetic tests. Production identity has no workflow, environment,
+runtime, user, device, installation, or session override.
 
 ## Supply chain
 
