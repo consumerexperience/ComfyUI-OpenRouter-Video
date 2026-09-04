@@ -9,7 +9,10 @@
 - Branch: `phase-5a/mock-contract-harness`
 - Verified implementation/docs tip before this checkpoint refresh:
   `182788484f0ac22952cd2a5ef752fcd11d480d3a`
-- HEAD: this checkpoint commit becomes the branch tip; exact immutable SHA is read back after push
+- Published verified feature HEAD before this final remote-state checkpoint:
+  `611c53b510da58c1de959a6006b7f15d42c5f515`
+- HEAD: this checkpoint-only commit becomes the final branch tip; exact immutable SHA is read back
+  after push
 - Canonical main at branch creation: `origin/main == 3923c2570862ae496a494787e6e17329c244d974`
 - Specification: Product / Engineering Specification v0.1.0, revision 1.1
 - Architecture: Validated Architecture & Threat Model v1.1
@@ -90,7 +93,10 @@
 - Clean-wheel install/import: `PASS`
 - pip-audit: `No known vulnerabilities found`; local package itself is not published on PyPI and
   is explicitly reported as unauditable by name
-- CI / CodeQL: pending push and PR
+- PR: `#4` — https://github.com/consumerexperience/ComfyUI-OpenRouter-Video/pull/4
+- CI / CodeQL on `611c53b510da58c1de959a6006b7f15d42c5f515`: `7/7 PASS` — quality,
+  Linux/Windows Python 3.10/3.13, CodeQL Analyze Python, and CodeQL
+- Final checkpoint-only commit: required checks must re-run after push
 
 ## Security / real-world state
 
@@ -105,11 +111,10 @@
 
 ## Open gates
 
-1. Push feature branch and open protected-main PR.
-2. Wait for required CI matrix and CodeQL; fix only demonstrated root causes.
-3. Human protected merge and canonical `origin/main` ancestry/read-back are required for `DONE`.
+1. Push this final checkpoint-only commit and wait for its required CI matrix and CodeQL.
+2. Human protected merge and canonical `origin/main` ancestry/read-back are required for `DONE`.
 
 ## Next exact action
 
-Push `phase-5a/mock-contract-harness`, open the PR, and wait for required checks. Do not merge
-autonomously and do not start the next roadmap stage.
+Push the final checkpoint-only commit and wait for required checks. Then stop at the human
+protected-merge gate; do not merge autonomously and do not start the next roadmap stage.
