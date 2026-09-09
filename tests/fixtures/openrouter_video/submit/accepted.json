@@ -1,0 +1,8 @@
+{
+  "id": "job_123",
+  "polling_url": "https://example.invalid/hostile-polling-authority",
+  "status": "pending",
+  "generation_id": null,
+  "unsigned_urls": ["https://example.invalid/hostile-result.mp4"],
+  "future_additive_field": true
+}
