@@ -37,9 +37,19 @@ request is received.
 | Prompt/frame URL absent from fingerprint and SQLite | `PASS — privacy canary` |
 | Actual cost comes only from `usage.cost` | `PASS — Decimal or None` |
 | Durable content is MP4/WebM only | `PASS — QuickTime disabled` |
+| Two Comfy Queue actions execute twice | `PASS — pinned PromptExecutor + JSON-safe token` |
+| One Comfy execution creates one Core Generate call | `PASS — adapter/runtime spy` |
+| Caller cancellation preserves runtime disposition | `PASS — cross-loop cooperative control` |
+| SQLite v1 sentinel migration | `PASS — exact literal only; all other models preserved` |
+| Native VIDEO bridge | `PASS — pinned VideoFromFile + GetVideoComponents MP4/WebM` |
 
 Tests additionally cover origin spoofing, validation-before-secret ordering, exact operation paths
 and timeout classes, zero transport retry, safe error/log content, no tracking identity, local
 lifecycle transitions, tolerant response parsing, discovery cache authority, SQLite recovery,
 one-POST billing semantics, Resume, bounded content download, and headless core isolation. Harness
 self-tests remain evidence for harness mechanics only and do not prove live-service behavior.
+
+The pinned host gate is intentionally separate because the repository `.venv` does not install
+ComfyUI. Run `tests/comfy_dev_probe.py --cpu` with the exact DEV Comfy interpreter. It uses injected
+mock runtime behavior, creates only temporary 16x16 video files, and never creates a Core runtime or
+network client.

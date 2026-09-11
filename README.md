@@ -4,16 +4,18 @@ Open-source BYOK model-agnostic OpenRouter Video gateway for ComfyUI.
 
 ## Status
 
-**PRE-ALPHA — Phase 5: Headless Core II implemented on the feature branch.**
+**PRE-ALPHA — Phase 6: ComfyUI adapter implemented on the feature branch.**
 
 The headless core now contains typed Video API contracts, capability discovery and bounded cache,
 pre-submit validation, a durable SQLite lifecycle, one-attempt Generate, submit-incapable Resume,
 bounded polling, and durable MP4/WebM download. The Phase-4 origin-bound request policy still owns
 all authentication, attribution, destination, redirect, TLS, and zero-transport-retry controls.
 
-The ComfyUI extension remains an empty discovery scaffold. Phase 5 does not expose product nodes,
-perform VIDEO conversion, make live OpenRouter calls, access a production credential, or spend
-credits during tests.
+The pinned ComfyUI extension exposes exactly two V3 nodes: Generate and submit-incapable Resume.
+They bridge the existing Headless Core to native file-backed `VIDEO`, keep durable recovery state
+in the Comfy user directory, and fetch the model combo through a local capability route. Phase 6
+verification makes no live OpenRouter calls, accesses no production credential, and spends no
+credits.
 
 ## Product principles
 
@@ -33,9 +35,7 @@ The Product Owner has frozen the official release identity as:
 - `X-OpenRouter-Categories`: `video-gen`
 
 This identity is immutable source-level project metadata. It cannot be changed through a workflow,
-environment variable, runtime preference, user, device, installation, or session value. Phase 4 is
-canonically merged at `9faa1ed`; Phase 5 remains a feature-branch delivery until its own protected
-PR is reviewed and merged.
+environment variable, runtime preference, user, device, installation, or session value.
 
 ## Headless recovery identity
 
@@ -46,6 +46,13 @@ PR is reviewed and merged.
 
 See [Headless Core II](docs/headless-core-ii.md), [ADR-028](docs/adr/ADR-028-local-recovery-identity-and-request-fingerprint.md),
 and [ADR-029](docs/adr/ADR-029-durable-definite-submit-rejection.md).
+
+## ComfyUI compatibility
+
+Phase 6 supports exactly ComfyUI `v0.34.3` at commit
+`87465b8f1f64a27a46f16f22b13b410494dca66d` through `comfy_api.v0_0_2`. Other versions are
+unsupported and API mismatches fail closed; there is no fallback to `comfy_api.latest`. See the
+[adapter contract](docs/comfyui-adapter.md).
 
 ## Security warning
 

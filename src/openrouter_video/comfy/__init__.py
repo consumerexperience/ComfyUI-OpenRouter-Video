@@ -1,3 +1,3 @@
-"""Thin ComfyUI adapter scaffold; product nodes are not implemented."""
+"""Pinned thin ComfyUI V3 adapter for the Headless Core."""
 
 __all__: tuple[str, ...] = ()

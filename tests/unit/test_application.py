@@ -9,10 +9,12 @@ from decimal import Decimal
 from pathlib import Path
 
 import httpx
+import pytest
 
-from openrouter_video.application import GenerateService, ResumeService
+from openrouter_video.application import GenerateService, OperationInterrupted, ResumeService
 from openrouter_video.capabilities import CapabilityService, RequestValidator
 from openrouter_video.errors import OpenRouterHTTPError, RequestPolicyError, TransportError
+from openrouter_video.execution_hooks import ExecutionControl, ExecutionPhase
 from openrouter_video.media import DownloadService
 from openrouter_video.models import (
     GenerationRequest,
@@ -23,7 +25,7 @@ from openrouter_video.models import (
     UsageCost,
     request_fingerprint_v1,
 )
-from openrouter_video.persistence import JobStore
+from openrouter_video.persistence import SCHEMA_VERSION, JobStore
 from openrouter_video.policy import Operation
 
 NOW = datetime(2026, 9, 4, 12, 0, tzinfo=timezone.utc)
@@ -333,9 +335,10 @@ def test_corrupt_state_adds_zero_posts(tmp_path: Path) -> None:
             INSERT INTO jobs (
                 schema_version, operation_id, request_fingerprint, model,
                 local_state, created_at
-            ) VALUES (1, ?, ?, ?, 'BROKEN', ?)
+            ) VALUES (?, ?, ?, ?, 'BROKEN', ?)
             """,
             (
+                SCHEMA_VERSION,
                 "operation-1",
                 request_fingerprint_v1(REQUEST),
                 "vendor/model",
@@ -408,3 +411,149 @@ def test_missing_key_failure_occurs_before_submit_claim(tmp_path: Path) -> None:
     assert result.error is not None and result.error.code is ProductErrorCode.API_KEY_MISSING
     assert client.submit_calls == 0
     assert store.get_by_operation_id("operation-1") is None
+
+
+def test_interrupt_before_submit_releases_claim_and_posts_zero_times(tmp_path: Path) -> None:
+    control = ExecutionControl()
+
+    class InterruptingDiscovery(DiscoveryStub):
+        async def list_video_models(self) -> tuple[ModelCapabilities, ...]:
+            control.request_interrupt()
+            return await super().list_video_models()
+
+    client = ScenarioClient(submit=RemoteJobSnapshot("job-1", "pending"), polls=[])
+    store = JobStore(tmp_path / "jobs.sqlite3")
+    capabilities = CapabilityService(
+        client=InterruptingDiscovery(),
+        store=store,
+        sleep=_no_sleep,
+        now=lambda: NOW,
+    )
+    service = GenerateService(
+        capabilities=capabilities,
+        validator=RequestValidator(),
+        store=store,
+        submit_client=client,
+        observation_client=client,
+        downloader=DownloadService(client=client, output_root=tmp_path / "output"),
+        sleep=_no_sleep,
+        now=lambda: NOW,
+        monotonic=lambda: 0.0,
+        control=control,
+    )
+
+    with pytest.raises(OperationInterrupted) as raised:
+        asyncio.run(service.generate("operation-1", REQUEST))
+
+    assert raised.value.result.state is LocalLifecycleState.NOT_SUBMITTED
+    assert client.submit_calls == 0
+    assert store.get_by_operation_id("operation-1") is None
+
+
+def test_accepted_response_is_persisted_before_interrupt_surfaces(tmp_path: Path) -> None:
+    control = ExecutionControl()
+
+    class AcceptThenInterruptClient(ScenarioClient):
+        async def submit_video(self, request: GenerationRequest) -> RemoteJobSnapshot:
+            snapshot = await super().submit_video(request)
+            control.request_interrupt()
+            return snapshot
+
+    client = AcceptThenInterruptClient(
+        submit=RemoteJobSnapshot("job-1", "pending"),
+        polls=[RemoteJobSnapshot("job-1", "completed")],
+    )
+    service, store = _generate_service(tmp_path, client)
+    service._control = control
+    service._coordinator._control = control
+
+    with pytest.raises(OperationInterrupted) as raised:
+        asyncio.run(service.generate("operation-1", REQUEST))
+
+    persisted = store.get_by_operation_id("operation-1")
+    assert persisted is not None
+    assert persisted.job_id == "job-1"
+    assert persisted.local_state is LocalLifecycleState.OBSERVATION_INTERRUPTED
+    assert raised.value.result.job_id == "job-1"
+    assert client.submit_calls == 1
+    assert client.poll_calls == 0
+
+
+def test_imported_resume_persists_valid_remote_model_without_placeholder(
+    tmp_path: Path,
+) -> None:
+    class ModeledClient(ObservationOnlyClient):
+        async def get_job(self, job_id: str) -> RemoteJobSnapshot:
+            self.poll_calls += 1
+            return RemoteJobSnapshot(job_id, "completed", model="vendor/remote-model")
+
+    client = ModeledClient()
+    store = JobStore(tmp_path / "jobs.sqlite3")
+    service = ResumeService(
+        observation_client=client,
+        store=store,
+        downloader=DownloadService(client=client, output_root=tmp_path / "output"),
+        sleep=_no_sleep,
+        now=lambda: NOW,
+        monotonic=lambda: 0.0,
+    )
+
+    result = asyncio.run(service.resume("job-1"))
+
+    assert result.model == "vendor/remote-model"
+    persisted = store.get_by_job_id("job-1")
+    assert persisted is not None and persisted.model == "vendor/remote-model"
+
+
+def test_known_local_model_takes_precedence_over_remote_snapshot(tmp_path: Path) -> None:
+    client = ScenarioClient(
+        submit=RemoteJobSnapshot("job-1", "pending"),
+        polls=[RemoteJobSnapshot("job-1", "completed", model="vendor/remote-model")],
+    )
+    service, store = _generate_service(tmp_path, client)
+
+    result = asyncio.run(service.generate("operation-1", REQUEST))
+
+    assert result.model == "vendor/model"
+    persisted = store.get_by_job_id("job-1")
+    assert persisted is not None and persisted.model == "vendor/model"
+
+
+def test_progress_failure_cannot_change_durable_result_or_post_count(tmp_path: Path) -> None:
+    phases: list[ExecutionPhase] = []
+
+    async def broken_progress(phase: ExecutionPhase) -> None:
+        phases.append(phase)
+        raise RuntimeError("presentation failure")
+
+    client = ScenarioClient(
+        submit=RemoteJobSnapshot("job-1", "pending"),
+        polls=[RemoteJobSnapshot("job-1", "completed")],
+    )
+    store = JobStore(tmp_path / "jobs.sqlite3")
+    capabilities = CapabilityService(client=DiscoveryStub(), store=store, sleep=_no_sleep)
+    service = GenerateService(
+        capabilities=capabilities,
+        validator=RequestValidator(),
+        store=store,
+        submit_client=client,
+        observation_client=client,
+        downloader=DownloadService(client=client, output_root=tmp_path / "output"),
+        sleep=_no_sleep,
+        now=lambda: NOW,
+        monotonic=lambda: 0.0,
+        progress=broken_progress,
+    )
+
+    result = asyncio.run(service.generate("operation-1", REQUEST))
+
+    assert result.state is LocalLifecycleState.DONE
+    assert phases == [
+        ExecutionPhase.VALIDATING,
+        ExecutionPhase.SUBMITTING,
+        ExecutionPhase.ACCEPTED,
+        ExecutionPhase.POLLING,
+        ExecutionPhase.DOWNLOADING,
+        ExecutionPhase.DONE,
+    ]
+    assert client.submit_calls == 1

@@ -2,119 +2,90 @@
 
 ## Canonical baseline
 
-- Stage: `MOCK / CONTRACT TEST HARNESS — ENGINEERING COMPLETE, DELIVERY PENDING`
-- Canonical starting main: `3923c2570862ae496a494787e6e17329c244d974`
-- Phase-5 completion evidence: protected-main merge PR #3; expected Phase-5 merge is canonical and an
-  ancestor of `origin/main`
-- Branch: `phase-5a/mock-contract-harness`
-- Verified implementation/docs tip before this checkpoint refresh:
-  `182788484f0ac22952cd2a5ef752fcd11d480d3a`
-- Published verified feature HEAD before this final remote-state checkpoint:
-  `611c53b510da58c1de959a6006b7f15d42c5f515`
-- HEAD: this checkpoint-only commit becomes the final branch tip; exact immutable SHA is read back
-  after push
-- Canonical main at branch creation: `origin/main == 3923c2570862ae496a494787e6e17329c244d974`
+- Stage: `PHASE 6 COMFYUI ADAPTER — ENGINEERING COMPLETE, DELIVERY PENDING`
+- Branch: `phase-6/comfyui-adapter`
+- Canonical starting main: `e67d8759eeeaa1bd6c189ea78c974c29dea9022d`
+- Baseline suite before Phase 6: `155 passed`
 - Specification: Product / Engineering Specification v0.1.0, revision 1.1
 - Architecture: Validated Architecture & Threat Model v1.1
-- Accepted ADR set: ADR-001 through ADR-029; ADR-028 and ADR-029 present and `ACCEPTED`
-
-## Contract evidence
-
-- Evidence date: `2026-09-05`
-- Sources: first-party OpenRouter Video model discovery, submit, poll, content, guide, cookbook, and
-  app-attribution documentation
+- Accepted ADR set: ADR-001 through ADR-029
 - Contract drift: `NONE`
-- Upstream expansion: `PRESENT, OUT OF V0.1 SCOPE` — `input_references`, `provider`,
-  `callback_url`, webhook behavior, returned URLs, passthrough metadata, and additional attribution
-  headers are represented only as tolerant-reader/non-authority evidence where relevant
-- Live API requests: `0`
+- Upstream expansion: `NONE USED`
 
-## Harness components
+## Implemented adapter
 
-- Strict typed `Scenario` / ordered `ScenarioStep` semantic engine
-- Canonical test-only `RequestLedger` with first-class `generation_submit_count`
-- `httpx.MockTransport` semantic layer around the real OpenRouterVideoClient/Core
-- Existing `LocalFaultServer` extended with strict matching, completion audit, deterministic
-  request-received synchronization, disconnect-after-request/headers/body, truncation, delay, and
-  generation-submit counting
-- Test-only loopback rewrite below the production RequestPolicy boundary
-- Suite-wide non-loopback socket guard
-- Fake clock/sleeper for retry, cadence, and 60-minute ceiling checks
-- Explicit synthetic credential provider with no environment access
+- Exactly two numbered V3 nodes: `OpenRouterVideoGenerate` and `OpenRouterVideoResume`
+- Category: `OpenRouter/Video`
+- Outputs: `VIDEO`, `JOB_ID`, `MODEL`, `ACTUAL_COST_USD`, `STATUS`
+- Dynamic local model route: `GET /openrouter-video/v1/models`
+- Native artifact bridge: pinned `VideoFromFile`, no copy/decode/re-encode/ffmpeg
+- Resume owns no submit client and cannot POST
+- One lazy process runtime with one SQLite store, one managed client, and one event-loop thread
+- Cooperative caller cancellation waits for durable runtime disposition
+- Bounded idempotent shutdown closes client/loop/thread with no pending tracked tasks
 
-## Contract corpus
+## Compatibility decision
 
-- Discovery: synthetic two-model capability matrix, additive fields, empty and malformed catalog
-- Submit: accepted job, polling URL, hostile returned URL additions
-- Poll: pending, in_progress, completed with/without exact `usage.cost`, failed, cancelled, expired,
-  and future unknown status
-- Errors: reviewed 400/401/402/404/413/429/500/502/503 evidence-classified matrix
-- Malformed: invalid JSON, wrong top-level shape, missing required fields, wrong types
-- Content/media: deterministic MP4/WebM and invalid/truncated/oversize behavior through existing
-  production media tests plus harness fault coverage
+- Supported host: ComfyUI `v0.34.3`
+- Supported commit: `87465b8f1f64a27a46f16f22b13b410494dca66d`
+- Supported API: `comfy_api.v0_0_2`, semantic version `0.0.2`
+- Other hosts: `UNSUPPORTED`; mismatch: `FAIL CLOSED`
+- Production imports no `comfy_api.latest`, `execution.py`, `PromptExecutor`, or
+  `comfy_execution` internals
+- Pinned `PromptExecutor` proved that `not_idempotent=True` alone reused the cached output across
+  Queue requests. The approved fallback is active: a thread-safe process-local monotonic integer
+  from `fingerprint_inputs`, JSON-safe and unrelated to business `operation_id`.
 
-## Fault capabilities
+## Durable state and billing safety
 
-- Timeout/read error through semantic transport
-- Request observed then response lost through real loopback socket
-- Disconnect after request, headers, or partial body
-- Response truncation and bounded delay
-- 302/307/308 redirect isolation
-- Poll and content transient status matrices
-- Restart, SQLite corruption, operation concurrency, and local cancellation/re-entry
-
-## Product fitness results
-
-- Normal Generate: total generation POST `1`
-- Poll timeout/disconnect/429/5xx recovery: total generation POST `1`
-- Ambiguous submit after server observation: total generation POST `1`; state `SUBMISSION_UNKNOWN`
-- Submit 429/definite rejection: total generation POST `1`; restart additional POST `0`
-- Resume: generation POST `0`
-- Restart after known accepted job: additional generation POST `0`
-- Concurrent same `operation_id`: total generation POST `1`
-- Fingerprint mismatch/corrupt durable state: additional generation POST `0`
-- Download retry/exhaustion/recovery: additional generation POST `0`
-- Unknown remote status: additional generation POST `0`
-- Polling failure remains observation failure of the same known job
+- SQLite schema v2 makes `model` nullable
+- Transactional v1-to-v2 table rebuild changes only exact `unknown/remote-job` to `NULL`
+- All other non-empty legacy model values remain byte-for-byte unchanged
+- Existing local model wins; only a valid non-empty remote model fills durable `NULL`
+- Runtime creation/migration is serialized before publication
+- Every Generate execution creates one fresh opaque operation ID immediately before one Core call
+- Claim remains durable before POST; accepted `job_id` remains durable before interruption surfaces
+- Ambiguous submit remains `SUBMISSION_UNKNOWN` and never resubmits
+- Poll/download interrupt remains `OBSERVATION_INTERRUPTED` with the same `job_id`
+- Partial download is deleted; no remote cancellation is claimed
 
 ## Verification snapshot
 
-- Baseline before changes: `102 passed`
-- Feature suite before final docs: `155 passed`
-- Harness self-tests: `10 passed`
-- Contract/security tests: `46 passed`
-- Fault/billing tests: `26 passed`
-- Integration tests: `12 passed`
-- Full `pytest`: `155 passed`
+- Full pytest: `183 passed`
 - Ruff lint: `PASS`
 - Ruff format check: `PASS`
-- Strict mypy (`src tests`): `PASS`
+- Strict mypy: `PASS — 55 source files`
 - sdist and wheel build: `PASS`
 - Clean-wheel install/import: `PASS`
-- pip-audit: `No known vulnerabilities found`; local package itself is not published on PyPI and
-  is explicitly reported as unauditable by name
-- PR: `#4` — https://github.com/consumerexperience/ComfyUI-OpenRouter-Video/pull/4
-- CI / CodeQL on `611c53b510da58c1de959a6006b7f15d42c5f515`: `7/7 PASS` — quality,
-  Linux/Windows Python 3.10/3.13, CodeQL Analyze Python, and CodeQL
-- Final checkpoint-only commit: required checks must re-run after push
+- pip-audit: `No known vulnerabilities found`; the unpublished local package name is unauditable
+- Security/privacy/billing focused suite: `42 passed`
+- Pinned Comfy CPU quick-test: `PASS`; both custom nodes discovered without import failure
+- Pinned test-only PromptExecutor: `PASS`; two Queue requests execute Generate twice and Resume twice
+- Pinned real V3 schemas: `PASS`; independent outputs and exact public surface
+- Pinned native video consumer: `PASS`; generated MP4 and WebM pass
+  `VideoFromFile -> GetVideoComponents`
+- Deleted artifact boundary: `PASS — sanitized failure`
 
-## Security / real-world state
+## Security and real-world state
 
-- Real OpenRouter API calls: `0`
-- Paid submits: `0`
-- OpenRouter credits spent: `$0`
-- Production key accessed: `NO`
-- External test network: `BLOCKED`; real sockets are loopback-only
+- Live OpenRouter requests: `0`
+- Paid generation submits: `0`
+- Credits spent: `$0`
+- Production credential access: `NO`
+- COMFY PROD touched: `NO`
+- External test network: blocked except reviewed loopback harness; adapter tests use MockTransport
 - Project telemetry: `NONE`
-- ComfyUI required for harness: `NO`
-- Production files changed for defects: `NONE`
+- Canonical application identity: unchanged
 
-## Open gates
+## Delivery state
 
-1. Push this final checkpoint-only commit and wait for its required CI matrix and CodeQL.
-2. Human protected merge and canonical `origin/main` ancestry/read-back are required for `DONE`.
+- Local engineering: `COMPLETE`
+- Feature commit/push/PR: `PENDING`
+- Required CI and CodeQL: `PENDING`
+- Protected merge: `HUMAN ONLY — NOT AUTHORIZED`
+- Canonical-main ancestry for Phase 6: `PENDING PROTECTED MERGE`
 
 ## Next exact action
 
-Push the final checkpoint-only commit and wait for required checks. Then stop at the human
-protected-merge gate; do not merge autonomously and do not start the next roadmap stage.
+Commit the verified Phase 6 delta, recheck `origin/main`, push this one feature branch, open one PR,
+and wait for required CI and CodeQL. Stop before protected merge.
