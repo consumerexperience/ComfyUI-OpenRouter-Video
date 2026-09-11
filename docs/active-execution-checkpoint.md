@@ -80,12 +80,15 @@
 ## Delivery state
 
 - Local engineering: `COMPLETE`
-- Feature commit/push/PR: `PENDING`
-- Required CI and CodeQL: `PENDING`
+- Verified implementation commit: `a08edceacb151bbd0e3f34bb4869f3bc20020bb7`
+- Feature branch: `PUSHED`
+- PR: `#6 — https://github.com/consumerexperience/ComfyUI-OpenRouter-Video/pull/6`
+- Required CI and CodeQL on implementation commit: `7/7 PASS`
+- This checkpoint-only update requires the same checks on the final PR head after push
 - Protected merge: `HUMAN ONLY — NOT AUTHORIZED`
 - Canonical-main ancestry for Phase 6: `PENDING PROTECTED MERGE`
 
 ## Next exact action
 
-Commit the verified Phase 6 delta, recheck `origin/main`, push this one feature branch, open one PR,
-and wait for required CI and CodeQL. Stop before protected merge.
+Push this checkpoint-only update, wait for required CI and CodeQL on the final PR head, and stop
+before protected merge.
