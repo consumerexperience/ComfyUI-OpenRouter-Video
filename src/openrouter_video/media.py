@@ -20,6 +20,7 @@ from openrouter_video.errors import (
     OpenRouterHTTPError,
     TransportError,
 )
+from openrouter_video.execution_hooks import CooperativeInterrupt, ExecutionControl
 from openrouter_video.models import VideoArtifact
 
 MAX_VIDEO_BYTES = 1 << 30
@@ -39,7 +40,7 @@ def _jitter(value: float) -> float:
 class DownloadService:
     """Download index zero through ContentClient into one configured local root."""
 
-    __slots__ = ("_client", "_jitter", "_monotonic", "_output_root", "_sleep")
+    __slots__ = ("_client", "_control", "_jitter", "_monotonic", "_output_root", "_sleep")
 
     def __init__(
         self,
@@ -49,21 +50,25 @@ class DownloadService:
         sleep: Sleep = asyncio.sleep,
         monotonic: Monotonic = time.monotonic,
         jitter: Jitter = _jitter,
+        control: ExecutionControl | None = None,
     ) -> None:
         self._client = client
         self._output_root = Path(output_root)
         self._sleep = sleep
         self._monotonic = monotonic
         self._jitter = jitter
+        self._control = control
 
     async def download(self, job_id: str) -> VideoArtifact:
         """Return a valid existing artifact or perform up to three GET attempts."""
 
+        self._raise_if_interrupted()
         existing = self._find_existing(job_id)
         if existing is not None:
             return existing
         last_error: MediaDownloadError | OpenRouterHTTPError | TransportError | None = None
         for attempt in range(DOWNLOAD_ATTEMPTS):
+            self._raise_if_interrupted()
             try:
                 return await self._download_once(job_id)
             except (TransportError, OpenRouterHTTPError, InvalidVideoResponseError) as exc:
@@ -79,6 +84,7 @@ class DownloadService:
                     else self._jitter(_BACKOFF_SECONDS[attempt])
                 )
                 await self._sleep(delay)
+                self._raise_if_interrupted()
             except LocalDiskError:
                 raise
         if isinstance(last_error, InvalidVideoResponseError):
@@ -94,6 +100,7 @@ class DownloadService:
         expected_length: int | None = None
         try:
             self._output_root.mkdir(parents=True, exist_ok=True)
+            self._raise_if_interrupted()
             async with self._client.stream_content(job_id) as response:
                 length_header = response.headers.get("Content-Length")
                 if length_header is not None:
@@ -105,6 +112,7 @@ class DownloadService:
                         raise InvalidVideoResponseError("Video content length is outside limits")
                 with part.open("xb") as handle:
                     async for chunk in response.aiter_bytes():
+                        self._raise_if_interrupted()
                         if self._monotonic() - started > DOWNLOAD_WALL_SECONDS:
                             raise MediaDownloadError("Video download exceeded wall-clock limit")
                         if not chunk:
@@ -123,7 +131,7 @@ class DownloadService:
             final = self._output_root / f"{stem}{extension}"
             os.replace(part, final)
             return VideoArtifact(final, media_type, bytes_written)
-        except (OpenRouterHTTPError, TransportError, MediaDownloadError):
+        except (OpenRouterHTTPError, TransportError, MediaDownloadError, CooperativeInterrupt):
             raise
         except OSError:
             raise LocalDiskError("Local artifact storage failed") from None
@@ -161,6 +169,10 @@ class DownloadService:
             if candidate.exists():
                 return self.load_artifact(candidate.name)
         return None
+
+    def _raise_if_interrupted(self) -> None:
+        if self._control is not None:
+            self._control.raise_if_interrupted()
 
 
 def _detect_container(header: bytes) -> tuple[str, str]:

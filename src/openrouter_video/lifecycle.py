@@ -28,7 +28,12 @@ _ALLOWED: Final = MappingProxyType(
                 LocalLifecycleState.SUBMISSION_UNKNOWN,
             }
         ),
-        LocalLifecycleState.ACCEPTED: frozenset({LocalLifecycleState.POLLING}),
+        LocalLifecycleState.ACCEPTED: frozenset(
+            {
+                LocalLifecycleState.POLLING,
+                LocalLifecycleState.OBSERVATION_INTERRUPTED,
+            }
+        ),
         LocalLifecycleState.POLLING: frozenset(
             {
                 LocalLifecycleState.POLLING,

@@ -186,7 +186,7 @@ class JobRecord:
     schema_version: int
     operation_id: str
     request_fingerprint: str
-    model: str
+    model: str | None
     local_state: LocalLifecycleState
     created_at: datetime
     node_instance_id: str | None = None
@@ -207,6 +207,7 @@ class GenerationResult:
 
     state: LocalLifecycleState
     job_id: str | None
+    model: str | None = None
     actual_cost_usd: Decimal | None = None
     artifact: VideoArtifact | None = None
     error: ProductError | None = None

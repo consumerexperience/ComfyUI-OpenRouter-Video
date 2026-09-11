@@ -9,6 +9,7 @@ import httpx
 import pytest
 
 from openrouter_video.errors import InvalidVideoResponseError, OpenRouterHTTPError
+from openrouter_video.execution_hooks import CooperativeInterrupt, ExecutionControl
 from openrouter_video.media import MAX_VIDEO_BYTES, DownloadService
 from openrouter_video.policy import Operation
 
@@ -119,3 +120,30 @@ def test_durable_relative_path_cannot_escape_output_root(tmp_path: Path) -> None
 
     with pytest.raises(Exception, match="unavailable"):
         service.load_artifact("../outside.mp4")
+
+
+def test_download_interrupt_deletes_partial_artifact(tmp_path: Path) -> None:
+    control = ExecutionControl()
+
+    class InterruptingStream(httpx.AsyncByteStream):
+        async def __aiter__(self) -> AsyncIterator[bytes]:
+            yield MP4[:16]
+            control.request_interrupt()
+            yield MP4[16:]
+
+    class InterruptingClient:
+        @asynccontextmanager
+        async def stream_content(self, job_id: str) -> AsyncIterator[httpx.Response]:
+            request = httpx.Request("GET", "https://openrouter.ai/api/v1/videos/job-1/content")
+            yield httpx.Response(200, stream=InterruptingStream(), request=request)
+
+    service = DownloadService(
+        client=InterruptingClient(),
+        output_root=tmp_path,
+        sleep=_no_sleep,
+        control=control,
+    )
+
+    with pytest.raises(CooperativeInterrupt):
+        asyncio.run(service.download("job-1"))
+    assert not tuple(tmp_path.iterdir())

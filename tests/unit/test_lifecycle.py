@@ -7,13 +7,14 @@ import pytest
 from openrouter_video.errors import PersistenceError
 from openrouter_video.lifecycle import can_transition, transition
 from openrouter_video.models import JobRecord, LocalLifecycleState
+from openrouter_video.persistence import SCHEMA_VERSION
 
 NOW = datetime(2026, 9, 4, tzinfo=timezone.utc)
 
 
 def _record(state: LocalLifecycleState) -> JobRecord:
     return JobRecord(
-        schema_version=1,
+        schema_version=SCHEMA_VERSION,
         operation_id="operation-1",
         request_fingerprint="v1:" + "0" * 64,
         model="vendor/model",

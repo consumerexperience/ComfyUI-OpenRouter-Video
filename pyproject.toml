@@ -69,9 +69,9 @@ files = ["src", "tests"]
 exclude = ["build", "dist"]
 
 [[tool.mypy.overrides]]
-module = ["comfy_api.*"]
+module = ["aiohttp", "comfy.*", "comfy_api.*", "folder_paths", "server"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = ["openrouter_video.comfy.extension"]
+module = ["openrouter_video.comfy.extension", "openrouter_video.comfy.nodes"]
 disallow_subclassing_any = false

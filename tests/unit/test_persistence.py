@@ -17,14 +17,14 @@ from openrouter_video.models import (
     ModelCapabilities,
     ProductErrorCode,
 )
-from openrouter_video.persistence import JobStore
+from openrouter_video.persistence import SCHEMA_VERSION, JobStore
 
 NOW = datetime(2026, 9, 4, 12, 0, tzinfo=timezone.utc)
 
 
 def _submitting() -> JobRecord:
     return JobRecord(
-        schema_version=1,
+        schema_version=SCHEMA_VERSION,
         operation_id="operation-1",
         request_fingerprint="v1:" + "1" * 64,
         model="vendor/model",
@@ -137,3 +137,140 @@ def test_release_claim_requires_proven_pre_network_shape(tmp_path: Path) -> None
     assert not store.release_unsubmitted_claim("operation-1", "v1:" + "2" * 64)
     assert store.release_unsubmitted_claim("operation-1", _submitting().request_fingerprint)
     assert store.get_by_operation_id("operation-1") is None
+
+
+def _create_v1_database(path: Path, model: str) -> None:
+    with sqlite3.connect(path) as connection:
+        connection.executescript(
+            """
+            CREATE TABLE jobs (
+                schema_version INTEGER NOT NULL CHECK (schema_version = 1),
+                operation_id TEXT NOT NULL PRIMARY KEY,
+                node_instance_id TEXT,
+                request_fingerprint TEXT NOT NULL,
+                job_id TEXT UNIQUE,
+                model TEXT NOT NULL,
+                local_state TEXT NOT NULL,
+                remote_status_raw TEXT,
+                created_at TEXT NOT NULL,
+                submission_started_at TEXT,
+                accepted_at TEXT,
+                last_observed_at TEXT,
+                completed_at TEXT,
+                actual_cost_usd TEXT,
+                output_relpath TEXT,
+                product_error_code TEXT
+            );
+            CREATE TABLE capability_catalog_meta (
+                singleton INTEGER NOT NULL PRIMARY KEY CHECK (singleton = 1),
+                observed_at TEXT NOT NULL
+            );
+            CREATE TABLE capability_models (
+                model_id TEXT NOT NULL PRIMARY KEY,
+                canonical_slug TEXT,
+                name TEXT,
+                supported_durations TEXT,
+                supported_resolutions TEXT,
+                supported_aspect_ratios TEXT,
+                supported_sizes TEXT,
+                supported_frame_types TEXT NOT NULL,
+                generate_audio INTEGER,
+                supports_seed INTEGER
+            );
+            PRAGMA user_version = 1;
+            """
+        )
+        connection.execute(
+            """
+            INSERT INTO jobs (
+                schema_version, operation_id, request_fingerprint, job_id, model,
+                local_state, created_at, accepted_at
+            ) VALUES (1, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "legacy-operation",
+                "v1:" + "3" * 64,
+                "legacy-job",
+                model,
+                LocalLifecycleState.ACCEPTED.value,
+                NOW.isoformat(),
+                NOW.isoformat(),
+            ),
+        )
+        connection.commit()
+
+
+@pytest.mark.parametrize(
+    ("legacy_model", "expected"),
+    (("unknown/remote-job", None), ("vendor/unknown/remote-job", "vendor/unknown/remote-job")),
+)
+def test_v1_migration_only_nulls_exact_legacy_sentinel(
+    tmp_path: Path, legacy_model: str, expected: str | None
+) -> None:
+    path = tmp_path / "jobs.sqlite3"
+    _create_v1_database(path, legacy_model)
+
+    store = JobStore(path)
+
+    record = store.get_by_job_id("legacy-job")
+    assert record is not None and record.model == expected
+    assert record.schema_version == SCHEMA_VERSION
+    with sqlite3.connect(path) as connection:
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == SCHEMA_VERSION
+        model_not_null = next(
+            row[3] for row in connection.execute("PRAGMA table_info(jobs)") if row[1] == "model"
+        )
+    assert model_not_null == 0
+
+
+def test_nullable_model_round_trips_in_schema_v2(tmp_path: Path) -> None:
+    store = JobStore(tmp_path / "jobs.sqlite3")
+    record = replace(
+        _submitting(),
+        model=None,
+        local_state=LocalLifecycleState.ACCEPTED,
+        job_id="imported-job",
+        accepted_at=NOW,
+    )
+
+    assert store.insert(record)
+    assert store.get_by_job_id("imported-job") == record
+
+
+def test_fresh_database_is_schema_v2_with_nullable_model(tmp_path: Path) -> None:
+    path = tmp_path / "jobs.sqlite3"
+
+    JobStore(path)
+
+    with sqlite3.connect(path) as connection:
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == SCHEMA_VERSION
+        columns = {row[1]: row for row in connection.execute("PRAGMA table_info(jobs)")}
+    assert columns["schema_version"][3] == 1
+    assert columns["model"][3] == 0
+
+
+def test_unknown_schema_version_fails_closed(tmp_path: Path) -> None:
+    path = tmp_path / "jobs.sqlite3"
+    with sqlite3.connect(path) as connection:
+        connection.execute("CREATE TABLE unexpected (value TEXT)")
+        connection.execute("PRAGMA user_version = 99")
+        connection.commit()
+
+    with pytest.raises(PersistenceError, match="Unsupported"):
+        JobStore(path)
+
+
+def test_failed_v1_migration_preserves_original_schema_and_rows(tmp_path: Path) -> None:
+    path = tmp_path / "jobs.sqlite3"
+    _create_v1_database(path, "vendor/model")
+    with sqlite3.connect(path) as connection:
+        connection.execute("CREATE TABLE jobs_v2 (collision TEXT)")
+        connection.commit()
+
+    with pytest.raises(PersistenceError, match="initialize"):
+        JobStore(path)
+
+    with sqlite3.connect(path) as connection:
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == 1
+        assert connection.execute("SELECT model FROM jobs").fetchone()[0] == "vendor/model"
+        assert connection.execute("SELECT COUNT(*) FROM jobs").fetchone()[0] == 1

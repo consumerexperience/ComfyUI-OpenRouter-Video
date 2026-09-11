@@ -40,17 +40,58 @@ def test_production_never_imports_test_harness_or_fixtures() -> None:
     assert not {name: imports for name, imports in violations.items() if imports}
 
 
-def test_comfy_product_modules_remain_documentation_only() -> None:
-    deferred = {"compat.py", "nodes.py", "routes.py", "video.py"}
-    violations: list[str] = []
-    for path in (PACKAGE_ROOT / "comfy" / name for name in deferred):
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        statements = (
-            tree.body[1:] if tree.body and isinstance(tree.body[0], ast.Expr) else tree.body
+def test_comfy_production_uses_only_numbered_api_and_no_executor_internals() -> None:
+    comfy_files = tuple((PACKAGE_ROOT / "comfy").glob("*.py"))
+    imports = {path.name: _imports(path) for path in comfy_files}
+    comfy_api_imports = {
+        path: sorted(name for name in names if name.startswith("comfy_api"))
+        for path, names in imports.items()
+    }
+    assert {path: names for path, names in comfy_api_imports.items() if names} == {
+        "compat.py": ["comfy_api.v0_0_2"]
+    }
+    forbidden = {
+        path: sorted(
+            name
+            for name in names
+            if name == "execution"
+            or name.startswith("execution.")
+            or name == "comfy_execution"
+            or name.startswith("comfy_execution.")
         )
-        if statements:
-            violations.append(path.name)
-    assert violations == []
+        for path, names in imports.items()
+    }
+    assert not {path: names for path, names in forbidden.items() if names}
+
+
+def test_comfy_adapter_cache_fallback_has_no_business_identity_or_nan() -> None:
+    sources = {
+        path.name: path.read_text(encoding="utf-8")
+        for path in (PACKAGE_ROOT / "comfy").glob("*.py")
+    }
+    public_surface = sources["nodes.py"] + sources["extension.py"]
+    assert 'float("nan")' not in public_surface
+    assert "next_cache_token" in public_surface
+    for forbidden in (
+        "workflow_id",
+        "session_id",
+        "installation_id",
+        "machine_id",
+        "node_instance_id",
+    ):
+        assert forbidden not in public_surface
+
+
+def test_resume_runtime_constructs_no_generate_or_submit_service() -> None:
+    runtime = ast.parse((PACKAGE_ROOT / "comfy" / "runtime.py").read_text(encoding="utf-8"))
+    resume = next(
+        node
+        for node in ast.walk(runtime)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == "resume"
+    )
+    names = {node.id for node in ast.walk(resume) if isinstance(node, ast.Name)}
+    assert "ResumeService" in names
+    assert "GenerateService" not in names
 
 
 def test_security_sensitive_production_ownership_is_centralized() -> None:

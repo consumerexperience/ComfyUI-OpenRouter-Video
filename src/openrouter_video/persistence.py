@@ -19,7 +19,8 @@ from openrouter_video.models import (
     ProductErrorCode,
 )
 
-SCHEMA_VERSION: Final = 1
+SCHEMA_VERSION: Final = 2
+LEGACY_IMPORTED_MODEL_SENTINEL: Final = "unknown/remote-job"
 
 _JOB_COLUMNS: Final = (
     "schema_version",
@@ -103,8 +104,10 @@ def _parse_decimal(value: object) -> Decimal | None:
 def _job_values(record: JobRecord) -> tuple[object, ...]:
     if record.schema_version != SCHEMA_VERSION:
         raise PersistenceError("Unsupported JobRecord schema version")
-    if not record.operation_id or not record.model or not record.request_fingerprint:
+    if not record.operation_id or not record.request_fingerprint:
         raise PersistenceError("Required durable job identity is missing")
+    if record.model is not None and (not isinstance(record.model, str) or not record.model):
+        raise PersistenceError("Durable model identity is invalid")
     return (
         record.schema_version,
         record.operation_id,
@@ -144,11 +147,11 @@ def _parse_job(row: sqlite3.Row) -> JobRecord:
             or not operation_id
             or not isinstance(fingerprint, str)
             or not fingerprint
-            or not isinstance(model, str)
-            or not model
             or schema_version != SCHEMA_VERSION
         ):
             raise PersistenceError("Durable job identity is corrupt")
+        if model is not None and (not isinstance(model, str) or not model):
+            raise PersistenceError("Durable model identity is corrupt")
         job_id = _as_optional_string(row["job_id"])
         local_state = LocalLifecycleState(str(row["local_state"]))
         product_error_raw = _as_optional_string(row["product_error_code"])
@@ -206,7 +209,7 @@ def _parse_job(row: sqlite3.Row) -> JobRecord:
 
 
 class JobStore:
-    """Small schema-v1 SQLite store; every mutation is its own committed transaction."""
+    """Small schema-v2 SQLite store; every mutation is its own committed transaction."""
 
     __slots__ = ("_path",)
 
@@ -236,18 +239,20 @@ class JobStore:
     def _initialize(self) -> None:
         with self._connect() as connection:
             version = int(connection.execute("PRAGMA user_version").fetchone()[0])
-            if version not in (0, SCHEMA_VERSION):
+            if version not in (0, 1, SCHEMA_VERSION):
                 raise PersistenceError("Unsupported SQLite schema version")
             connection.execute("BEGIN IMMEDIATE")
+            if version == 1:
+                self._migrate_v1_to_v2(connection)
             connection.execute(
                 """
                 CREATE TABLE IF NOT EXISTS jobs (
-                    schema_version INTEGER NOT NULL CHECK (schema_version = 1),
+                    schema_version INTEGER NOT NULL CHECK (schema_version = 2),
                     operation_id TEXT NOT NULL PRIMARY KEY,
                     node_instance_id TEXT,
                     request_fingerprint TEXT NOT NULL,
                     job_id TEXT UNIQUE,
-                    model TEXT NOT NULL,
+                    model TEXT,
                     local_state TEXT NOT NULL,
                     remote_status_raw TEXT,
                     created_at TEXT NOT NULL,
@@ -287,6 +292,53 @@ class JobStore:
             )
             connection.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
             connection.commit()
+
+    @staticmethod
+    def _migrate_v1_to_v2(connection: sqlite3.Connection) -> None:
+        """Transactionally make model nullable without broad sentinel normalization."""
+
+        connection.execute(
+            """
+            CREATE TABLE jobs_v2 (
+                schema_version INTEGER NOT NULL CHECK (schema_version = 2),
+                operation_id TEXT NOT NULL PRIMARY KEY,
+                node_instance_id TEXT,
+                request_fingerprint TEXT NOT NULL,
+                job_id TEXT UNIQUE,
+                model TEXT,
+                local_state TEXT NOT NULL,
+                remote_status_raw TEXT,
+                created_at TEXT NOT NULL,
+                submission_started_at TEXT,
+                accepted_at TEXT,
+                last_observed_at TEXT,
+                completed_at TEXT,
+                actual_cost_usd TEXT,
+                output_relpath TEXT,
+                product_error_code TEXT
+            )
+            """
+        )
+        connection.execute(
+            """
+            INSERT INTO jobs_v2 (
+                schema_version, operation_id, node_instance_id, request_fingerprint, job_id,
+                model, local_state, remote_status_raw, created_at, submission_started_at,
+                accepted_at, last_observed_at, completed_at, actual_cost_usd, output_relpath,
+                product_error_code
+            )
+            SELECT
+                2, operation_id, node_instance_id, request_fingerprint, job_id,
+                CASE WHEN model = ? THEN NULL ELSE model END,
+                local_state, remote_status_raw, created_at, submission_started_at,
+                accepted_at, last_observed_at, completed_at, actual_cost_usd, output_relpath,
+                product_error_code
+            FROM jobs
+            """,
+            (LEGACY_IMPORTED_MODEL_SENTINEL,),
+        )
+        connection.execute("DROP TABLE jobs")
+        connection.execute("ALTER TABLE jobs_v2 RENAME TO jobs")
 
     def get_by_operation_id(self, operation_id: str) -> JobRecord | None:
         """Load only by authoritative local operation identity."""
@@ -514,4 +566,4 @@ def _parse_capability(row: sqlite3.Row) -> ModelCapabilities:
         raise PersistenceError("Capability catalog record is corrupt") from None
 
 
-__all__ = ("JobStore", "SCHEMA_VERSION")
+__all__ = ("JobStore", "LEGACY_IMPORTED_MODEL_SENTINEL", "SCHEMA_VERSION")

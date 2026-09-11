@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import random
 import secrets
 import time
@@ -22,6 +23,13 @@ from openrouter_video.errors import (
     ProductFailureError,
     RequestPolicyError,
     TransportError,
+)
+from openrouter_video.execution_hooks import (
+    CooperativeInterrupt,
+    ExecutionControl,
+    ExecutionPhase,
+    ProgressObserver,
+    report_progress,
 )
 from openrouter_video.lifecycle import transition
 from openrouter_video.media import DownloadService
@@ -48,6 +56,14 @@ Sleep = Callable[[float], Awaitable[None]]
 Now = Callable[[], datetime]
 Monotonic = Callable[[], float]
 Jitter = Callable[[float], float]
+
+
+class OperationInterrupted(RuntimeError):  # noqa: N818 - domain lifecycle signal
+    """A cooperative local interruption with its safe durable disposition."""
+
+    def __init__(self, result: GenerationResult) -> None:
+        super().__init__("Local observation was interrupted")
+        self.result = result
 
 
 def _utc_now() -> datetime:
@@ -99,6 +115,7 @@ def _result(
     return GenerationResult(
         state=record.local_state,
         job_id=record.job_id,
+        model=record.model,
         actual_cost_usd=record.actual_cost_usd,
         artifact=artifact,
         error=error,
@@ -106,7 +123,17 @@ def _result(
 
 
 class _ObservationCoordinator:
-    __slots__ = ("_downloader", "_jitter", "_monotonic", "_now", "_observation", "_sleep", "_store")
+    __slots__ = (
+        "_control",
+        "_downloader",
+        "_jitter",
+        "_monotonic",
+        "_now",
+        "_observation",
+        "_progress",
+        "_sleep",
+        "_store",
+    )
 
     def __init__(
         self,
@@ -118,6 +145,8 @@ class _ObservationCoordinator:
         now: Now,
         monotonic: Monotonic,
         jitter: Jitter,
+        control: ExecutionControl | None,
+        progress: ProgressObserver | None,
     ) -> None:
         self._observation = observation_client
         self._store = store
@@ -126,6 +155,8 @@ class _ObservationCoordinator:
         self._now = now
         self._monotonic = monotonic
         self._jitter = jitter
+        self._control = control
+        self._progress = progress
 
     async def reconcile(self, record: JobRecord) -> GenerationResult:
         """Continue only the known durable operation represented by record."""
@@ -212,13 +243,16 @@ class _ObservationCoordinator:
                 ),
             )
         job_id = record.job_id
+        self._raise_if_interrupted(record)
         if record.local_state is not LocalLifecycleState.POLLING:
             record = transition(record, LocalLifecycleState.POLLING, now=self._now())
             self._store.save(record)
+        await report_progress(self._progress, ExecutionPhase.POLLING)
         started = self._monotonic()
         consecutive_failures = 0
         last_http_status: int | None = None
         while self._monotonic() - started < POLL_CEILING_SECONDS:
+            self._raise_if_interrupted(record)
             try:
                 snapshot = await self._observation.get_job(job_id)
             except (TransportError, OpenRouterHTTPError) as exc:
@@ -238,7 +272,10 @@ class _ObservationCoordinator:
                     exc.retry_after_seconds if isinstance(exc, OpenRouterHTTPError) else None
                 )
                 backoff = _BACKOFF_SECONDS[consecutive_failures - 1]
-                await self._sleep(retry_after if retry_after is not None else self._jitter(backoff))
+                await self._sleep_or_interrupt(
+                    record,
+                    retry_after if retry_after is not None else self._jitter(backoff),
+                )
                 continue
             except RequestPolicyError as exc:
                 code = (
@@ -254,7 +291,7 @@ class _ObservationCoordinator:
             record = self._apply_observation(record, snapshot)
             if record.local_state is LocalLifecycleState.POLLING:
                 self._store.save(record)
-                await self._sleep(POLL_INTERVAL_SECONDS)
+                await self._sleep_or_interrupt(record, POLL_INTERVAL_SECONDS)
                 continue
             if record.local_state is LocalLifecycleState.COMPLETED:
                 self._store.save(record)
@@ -275,6 +312,9 @@ class _ObservationCoordinator:
         status = snapshot.status_raw.lower()
         cost = snapshot.usage.actual_cost_usd
         next_cost = cost if cost is not None else record.actual_cost_usd
+        next_model = record.model
+        if next_model is None and _valid_model_id(snapshot.model):
+            next_model = snapshot.model
         if status in {"pending", "in_progress"}:
             updated = transition(
                 record,
@@ -325,6 +365,7 @@ class _ObservationCoordinator:
         }
         return replace(
             updated,
+            model=next_model,
             actual_cost_usd=next_cost,
             product_error_code=code_by_state.get(updated.local_state),
         )
@@ -342,8 +383,12 @@ class _ObservationCoordinator:
         if record.local_state is not LocalLifecycleState.DOWNLOADING:
             record = transition(record, LocalLifecycleState.DOWNLOADING, now=self._now())
             self._store.save(record)
+        await report_progress(self._progress, ExecutionPhase.DOWNLOADING)
         try:
             artifact = await self._downloader.download(job_id)
+        except CooperativeInterrupt:
+            self._raise_if_interrupted(record, force=True)
+            raise AssertionError("unreachable") from None
         except InvalidVideoResponseError:
             return self._interrupt(record, ProductErrorCode.INVALID_VIDEO_RESPONSE, retryable=True)
         except LocalDiskError:
@@ -353,7 +398,41 @@ class _ObservationCoordinator:
         record = transition(record, LocalLifecycleState.DONE, now=self._now())
         record = replace(record, output_relpath=self._downloader.relative_path(artifact))
         self._store.save(record)
+        await report_progress(self._progress, ExecutionPhase.DONE)
         return _result(record, artifact=artifact)
+
+    def _raise_if_interrupted(self, record: JobRecord, *, force: bool = False) -> None:
+        if not force and (self._control is None or not self._control.interrupted()):
+            return
+        interrupted = record
+        if record.local_state is not LocalLifecycleState.OBSERVATION_INTERRUPTED:
+            interrupted = transition(
+                record,
+                LocalLifecycleState.OBSERVATION_INTERRUPTED,
+                now=self._now(),
+            )
+        interrupted = replace(
+            interrupted,
+            product_error_code=ProductErrorCode.STATUS_CHECK_FAILED,
+        )
+        self._store.save(interrupted)
+        raise OperationInterrupted(
+            _result(
+                interrupted,
+                error=_product_error(
+                    ProductErrorCode.STATUS_CHECK_FAILED,
+                    BillingContext.KNOWN_JOB_EXISTS,
+                    retryable=True,
+                ),
+            )
+        )
+
+    async def _sleep_or_interrupt(self, record: JobRecord, seconds: float) -> None:
+        try:
+            await self._sleep(seconds)
+        except CooperativeInterrupt:
+            self._raise_if_interrupted(record, force=True)
+        self._raise_if_interrupted(record)
 
     def _interrupt(
         self,
@@ -383,7 +462,16 @@ class _ObservationCoordinator:
 class GenerateService:
     """Own the sole paid-submit capability and reconcile operation_id before POST."""
 
-    __slots__ = ("_capabilities", "_coordinator", "_now", "_store", "_submit", "_validator")
+    __slots__ = (
+        "_capabilities",
+        "_control",
+        "_coordinator",
+        "_now",
+        "_progress",
+        "_store",
+        "_submit",
+        "_validator",
+    )
 
     def __init__(
         self,
@@ -398,12 +486,16 @@ class GenerateService:
         now: Now = _utc_now,
         monotonic: Monotonic = time.monotonic,
         jitter: Jitter = _jitter,
+        control: ExecutionControl | None = None,
+        progress: ProgressObserver | None = None,
     ) -> None:
         self._capabilities = capabilities
         self._validator = validator
         self._store = store
         self._submit = submit_client
         self._now = now
+        self._control = control
+        self._progress = progress
         self._coordinator = _ObservationCoordinator(
             observation_client=observation_client,
             store=store,
@@ -412,11 +504,15 @@ class GenerateService:
             now=now,
             monotonic=monotonic,
             jitter=jitter,
+            control=control,
+            progress=progress,
         )
 
     async def generate(self, operation_id: str, request: GenerationRequest) -> GenerationResult:
         """Validate, atomically claim, submit once, persist job_id, then observe."""
 
+        await report_progress(self._progress, ExecutionPhase.VALIDATING)
+        self._raise_before_submit(request)
         if not operation_id or operation_id != operation_id.strip():
             return GenerationResult(
                 LocalLifecycleState.NOT_SUBMITTED,
@@ -441,6 +537,14 @@ class GenerateService:
         try:
             capability = await self._capabilities.resolve(request.model)
             self._validator.validate_capabilities(request, capability)
+        except CooperativeInterrupt:
+            raise OperationInterrupted(
+                GenerationResult(
+                    LocalLifecycleState.NOT_SUBMITTED,
+                    None,
+                    model=request.model,
+                )
+            ) from None
         except ProductFailureError as exc:
             return GenerationResult(LocalLifecycleState.NOT_SUBMITTED, None, error=exc.error)
         except RequestPolicyError as exc:
@@ -480,6 +584,19 @@ class GenerateService:
                 return _local_state_failure(None)
             return await self._reconcile_existing(raced, fingerprint)
 
+        if self._control is not None and self._control.interrupted():
+            try:
+                self._store.release_unsubmitted_claim(operation_id, fingerprint)
+            except PersistenceError:
+                raise OperationInterrupted(_local_state_failure(record)) from None
+            raise OperationInterrupted(
+                GenerationResult(
+                    LocalLifecycleState.NOT_SUBMITTED,
+                    None,
+                    model=request.model,
+                )
+            )
+        await report_progress(self._progress, ExecutionPhase.SUBMITTING)
         try:
             snapshot = await self._submit.submit_video(request)
         except RequestPolicyError as exc:
@@ -515,10 +632,21 @@ class GenerateService:
             self._store.save(record)
         except PersistenceError:
             return _local_state_failure(record)
+        await report_progress(self._progress, ExecutionPhase.ACCEPTED)
         try:
             return await self._coordinator.reconcile(record)
         except PersistenceError:
             return _local_state_failure(record)
+
+    def _raise_before_submit(self, request: GenerationRequest) -> None:
+        if self._control is not None and self._control.interrupted():
+            raise OperationInterrupted(
+                GenerationResult(
+                    LocalLifecycleState.NOT_SUBMITTED,
+                    None,
+                    model=request.model,
+                )
+            )
 
     async def _reconcile_existing(self, record: JobRecord, fingerprint: str) -> GenerationResult:
         if record.request_fingerprint != fingerprint:
@@ -578,6 +706,8 @@ class ResumeService:
         now: Now = _utc_now,
         monotonic: Monotonic = time.monotonic,
         jitter: Jitter = _jitter,
+        control: ExecutionControl | None = None,
+        progress: ProgressObserver | None = None,
     ) -> None:
         self._store = store
         self._now = now
@@ -589,6 +719,8 @@ class ResumeService:
             now=now,
             monotonic=monotonic,
             jitter=jitter,
+            control=control,
+            progress=progress,
         )
 
     async def resume(self, job_id: str) -> GenerationResult:
@@ -609,14 +741,12 @@ class ResumeService:
             return _local_state_failure(None)
 
     def _claim_imported_job(self, job_id: str) -> JobRecord:
-        model = "unknown/remote-job"
-        request = GenerationRequest(model=model, prompt="")
         now = self._now()
         record = JobRecord(
             schema_version=SCHEMA_VERSION,
             operation_id=f"resume-{secrets.token_hex(16)}",
-            request_fingerprint=request_fingerprint_v1(request),
-            model=model,
+            request_fingerprint=_imported_job_fingerprint(job_id),
+            model=None,
             local_state=LocalLifecycleState.ACCEPTED,
             created_at=now,
             job_id=job_id,
@@ -668,13 +798,28 @@ def _local_state_failure(record: JobRecord | None) -> GenerationResult:
     return GenerationResult(
         record.local_state if record is not None else LocalLifecycleState.NOT_SUBMITTED,
         record.job_id if record is not None else None,
+        model=record.model if record is not None else None,
         actual_cost_usd=record.actual_cost_usd if record is not None else None,
         error=_product_error(ProductErrorCode.LOCAL_STATE_CORRUPT, context),
     )
 
 
+def _imported_job_fingerprint(job_id: str) -> str:
+    digest = hashlib.sha256(f"imported-job-v1:{job_id}".encode()).hexdigest()
+    return f"v1:{digest}"
+
+
+def _valid_model_id(value: str | None) -> bool:
+    return bool(
+        value
+        and value == value.strip()
+        and not any(ord(character) < 32 or ord(character) == 127 for character in value)
+    )
+
+
 __all__ = (
     "GenerateService",
+    "OperationInterrupted",
     "POLL_CEILING_SECONDS",
     "POLL_INTERVAL_SECONDS",
     "POLL_TRANSIENT_ATTEMPTS",
