@@ -32,7 +32,9 @@ async def _models_handler(_: Any) -> Any:
         for model_id in model_ids
     ):
         return compat.json_response({"error": "model_catalog_internal_error"}, status=500)
-    return compat.json_response(sorted(model_ids), status=200)
+    sorted_model_ids = tuple(sorted(model_ids))
+    compat.cache_model_options(sorted_model_ids)
+    return compat.json_response(list(sorted_model_ids), status=200)
 
 
 def register_routes() -> None:
