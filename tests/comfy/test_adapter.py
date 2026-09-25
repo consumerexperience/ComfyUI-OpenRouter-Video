@@ -319,6 +319,7 @@ def test_models_route_returns_only_sorted_valid_ids_and_sanitized_errors(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     responses: list[tuple[object, int]] = []
+    monkeypatch.setattr(compat, "_model_options", ())
 
     def response(payload: object, *, status: int) -> tuple[object, int]:
         responses.append((payload, status))
@@ -336,6 +337,8 @@ def test_models_route_returns_only_sorted_valid_ids_and_sanitized_errors(
     monkeypatch.setattr(compat, "json_response", response)
     monkeypatch.setattr(routes, "get_runtime", Runtime)
     assert asyncio.run(routes._models_handler(None)) == (["a/model", "z/model"], 200)
+    generate = nodes.OpenRouterVideoGenerate.define_schema()
+    assert _schema_inputs(generate)["model"].options["options"] == ["a/model", "z/model"]
 
     class InvalidRuntime:
         async def catalog(self) -> object:

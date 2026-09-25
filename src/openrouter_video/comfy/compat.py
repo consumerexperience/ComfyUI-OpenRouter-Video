@@ -22,6 +22,8 @@ _PHASE_ORDINAL: Final = {
 }
 _CACHE_TOKEN_LOCK = threading.Lock()
 _cache_token = 0
+_MODEL_OPTIONS_LOCK = threading.Lock()
+_model_options: tuple[str, ...] = ()
 
 
 class UnsupportedComfyError(RuntimeError):
@@ -45,11 +47,21 @@ def validate_host_api() -> None:
 
 
 def model_input() -> Any:
-    """Build the pinned remote-backed model combo without a static catalog."""
+    """Build the remote combo with the last catalogue proven by the local route."""
 
     validate_host_api()
+    with _MODEL_OPTIONS_LOCK:
+        options = list(_model_options)
     remote = IO.RemoteOptions(route=MODEL_ROUTE, refresh_button=True)
-    return IO.Combo.Input("model", options=[], remote=remote)
+    return IO.Combo.Input("model", options=options, remote=remote)
+
+
+def cache_model_options(model_ids: tuple[str, ...]) -> None:
+    """Mirror one successful remote response into Comfy's backend validator."""
+
+    global _model_options
+    with _MODEL_OPTIONS_LOCK:
+        _model_options = model_ids
 
 
 def next_cache_token() -> int:
@@ -142,6 +154,7 @@ __all__ = (
     "IO",
     "MODEL_ROUTE",
     "UnsupportedComfyError",
+    "cache_model_options",
     "current_node_id",
     "host_interrupted",
     "json_response",

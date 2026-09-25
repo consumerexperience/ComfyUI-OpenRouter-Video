@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import tempfile
 from pathlib import Path
@@ -124,6 +125,29 @@ def main() -> None:
         adapter_nodes.OpenRouterVideoGenerate
     )
     comfy_nodes.NODE_CLASS_MAPPINGS["OpenRouterVideoResume"] = adapter_nodes.OpenRouterVideoResume
+    validation_prompt = _prompt(
+        "OpenRouterVideoGenerate",
+        {
+            "model": "vendor/model",
+            "prompt": "test-only prompt",
+            "duration": 0,
+            "resolution": "",
+            "aspect_ratio": "",
+            "size": "",
+            "seed": "",
+            "generate_audio": False,
+            "first_frame_url": "",
+            "last_frame_url": "",
+        },
+    )
+    invalid = asyncio.run(execution.validate_inputs("validation-empty", validation_prompt, "1", {}))
+    assert invalid[0] is False
+    assert any(error["type"] == "value_not_in_list" for error in invalid[1])
+    compat.cache_model_options(("vendor/model",))
+    valid = asyncio.run(
+        execution.validate_inputs("validation-catalogue", validation_prompt, "1", {})
+    )
+    assert valid[0] is True, valid[1]
     executor = execution.PromptExecutor(
         _Server(),
         cache_type=False,
