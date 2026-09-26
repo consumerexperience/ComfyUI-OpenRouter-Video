@@ -74,15 +74,15 @@
 
 - Local implementation: `COMPLETE AND ZERO-COST VERIFIED`
 - Verified ADR-030 implementation commit: `8ceb23ff3a06cbbe53184269156b2e32e0e06fbe`
-- Feature branch: `LOCAL AHEAD — FINAL PUSH PENDING`
+- Feature branch: `PUSHED THROUGH 9508f03a9533575daa83fbe435417506a27f2586`
 - PR: `#15 — https://github.com/consumerexperience/ComfyUI-OpenRouter-Video/pull/15`
 - PR base/head: `main <- phase-8/multimodal-expansion`
-- Required CI / CodeQL: `previous PR head passed; final-head rerun pending`
+- Required CI / CodeQL: `7/7 PASS on 9508f03a9533575daa83fbe435417506a27f2586`;
+  every later checkpoint-only head still requires live GitHub read-back before merge
 - Release: not published
 - Merge: `HUMAN ONLY — NOT AUTHORIZED`
 
 ## Open gate and next exact action
 
-Push the verified ADR-030 slice to PR #15, wait for required CI and CodeQL on the exact final head,
-then obtain human review and merge. Read back canonical `origin/main` after the human merge before
-declaring Phase 8 `DONE`.
+Obtain human review and merge for PR #15 after confirming required CI and CodeQL on its exact current
+head. Read back canonical `origin/main` after the human merge before declaring Phase 8 `DONE`.
