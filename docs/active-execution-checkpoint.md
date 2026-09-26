@@ -2,7 +2,7 @@
 
 ## Canonical baseline
 
-- Stage: `PHASE 8 MULTIMODAL EXPANSION — IMPLEMENTED, REFERENCE MODES EVIDENCE-BLOCKED`
+- Stage: `PHASE 8 MULTIMODAL EXPANSION — IMPLEMENTED AND ZERO-COST VERIFIED, DELIVERY PENDING`
 - Branch: `phase-8/multimodal-expansion`
 - Canonical starting main: `e4b116a88147d19fa69e376a8b1873593fe784b8`
 - Last known suite before Phase 8: `183 passed`
@@ -19,9 +19,11 @@
 - T2V: `READY`
 - First frame / first+last: `READY` only when the selected model's Level-A frame set proves it;
   otherwise `UNSUPPORTED`.
-- Multi-image / video / mixed references: `CAPABILITY_SIGNAL_GAP`.
-- Prompt-optional reference generation: `CONFLICT`.
-- No model/provider/slug inference is implemented.
+- ADR-030 exact-ID overlay: `ACCEPTED` by Product Owner on 2026-09-26.
+- Multi-image / video / mixed references: `READY` for `bytedance/seedance-2.5`; unresolved models
+  remain scoped `CAPABILITY_SIGNAL_GAP` or `UNSUPPORTED`.
+- Prompt-optional reference generation: `DEFERRED`; prompt remains required for all v0.1 Generate.
+- No provider, family, name, pattern, or cross-model inference is implemented.
 
 ## Implemented product delta
 
@@ -31,6 +33,8 @@
 - Frame/reference mutual exclusion before discovery or submit authority
 - Video reference remains Generate transport only; no Edit/Extend semantics
 - Independent mode-level enforcement matrix with scoped blocking
+- Generic Level-A-plus-overlay resolver with exact-ID data, field provenance, conflict blocking,
+  fresh-catalog requirement, and initial Seedance 2.5 limit of 50
 - Fingerprint v2 for new Generate operations; v1 rows remain unchanged
 - Database schema v3 separated from JobRecord schema v2
 - Transactional v1-to-v2-to-v3 and v2-to-v3 paths; cache truth is destroyed, not migrated
@@ -39,10 +43,12 @@
 
 ## Verification snapshot
 
-- Repository pytest: `198 passed`
+- Repository pytest: `206 passed`
 - Ruff lint: `PASS`
 - Ruff format check: `PASS`
-- Strict mypy: `PASS — 56 source files`
+- Strict mypy: `PASS — 57 source files`
+- Required reference modes: `PASS — exact payload + complete mock Generate lifecycle`
+- Level-A precedence/conflict, exact-ID-only resolution, stale-LKG block, and count limit: `PASS`
 - Pinned V3 Autogrow/custom-link probe: `PASS`
 - Autogrow zero/one/many, order, repeated occurrence: `PASS`
 - Repeated PromptExecutor Queue executions: `PASS`
@@ -66,17 +72,17 @@
 
 ## Delivery state
 
-- Local implementation: `COMPLETE WITH SCOPED EVIDENCE BLOCK`
-- Verified implementation commit: `9a8ad45d72e223d1136f6e96423d05a57acbbf3e`
-- Feature branch: `PUSHED`
+- Local implementation: `COMPLETE AND ZERO-COST VERIFIED`
+- Verified ADR-030 implementation commit: `8ceb23ff3a06cbbe53184269156b2e32e0e06fbe`
+- Feature branch: `LOCAL AHEAD — FINAL PUSH PENDING`
 - PR: `#15 — https://github.com/consumerexperience/ComfyUI-OpenRouter-Video/pull/15`
 - PR base/head: `main <- phase-8/multimodal-expansion`
-- Required CI / CodeQL: `7/7 PASS on the current PR head`
+- Required CI / CodeQL: `previous PR head passed; final-head rerun pending`
 - Release: not published
 - Merge: `HUMAN ONLY — NOT AUTHORIZED`
 
 ## Open gate and next exact action
 
-Reference modes cannot become `READY` from the current machine-readable catalog. Complete final
-verification and protected PR delivery; then obtain a direct authoritative runtime capability
-signal (kind/count/mix and prompt optionality) before enabling reference submit intent.
+Push the verified ADR-030 slice to PR #15, wait for required CI and CodeQL on the exact final head,
+then obtain human review and merge. Read back canonical `origin/main` after the human merge before
+declaring Phase 8 `DONE`.
