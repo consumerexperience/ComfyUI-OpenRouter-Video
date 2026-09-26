@@ -71,7 +71,7 @@
 - Feature branch: `PUSHED`
 - PR: `#15 — https://github.com/consumerexperience/ComfyUI-OpenRouter-Video/pull/15`
 - PR base/head: `main <- phase-8/multimodal-expansion`
-- CI / CodeQL: pending on the checkpoint-updated final PR head
+- Required CI / CodeQL: `7/7 PASS on the current PR head`
 - Release: not published
 - Merge: `HUMAN ONLY — NOT AUTHORIZED`
 
