@@ -49,6 +49,19 @@ def _install() -> None:
     class ComfyAPI:
         VERSION = "0.0.2"
 
+    class Autogrow:
+        class TemplatePrefix:
+            def __init__(self, *, input: object, prefix: str, min: int, max: int) -> None:
+                self.input = input
+                self.prefix = prefix
+                self.min = min
+                self.max = max
+
+        Input = _Field
+
+    def custom(_: str) -> object:
+        return types.SimpleNamespace(Input=_Field, Output=_Field)
+
     io = types.SimpleNamespace(
         ComfyNode=ComfyNode,
         Schema=_Schema,
@@ -60,6 +73,8 @@ def _install() -> None:
         Int=types.SimpleNamespace(Input=_Field),
         Boolean=types.SimpleNamespace(Input=_Field),
         Video=types.SimpleNamespace(Output=_Field),
+        Autogrow=Autogrow,
+        Custom=custom,
     )
     numbered = types.ModuleType("comfy_api.v0_0_2")
     numbered.ComfyAPI = ComfyAPI

@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Added Phase-8 typed image/video input-reference contracts with structural order and duplicate
+  preservation, while failing closed before submit where runtime capability evidence is absent.
+- Updated `frame_images` to the current typed nested media protocol.
+- Added independent mode-level capability enforcement and sanitized `CAPABILITY_SIGNAL_GAP`.
+- Split database schema v3 from JobRecord schema v2; v2-to-v3 invalidates external capability cache
+  without changing durable job semantics.
+- Added request fingerprint v2 with prompt/reference presence, ordered kinds, and no sensitive
+  values; historical v1 rows remain untouched.
+- Added image reference, video reference, and Autogrow reference collection ComfyUI nodes.
+- Added a credential-free sanitized manual catalog probe and Phase-8 evidence matrix.
+
 - Repository scaffold initialized.
 - Added immutable application-identity and environment secret-provider boundaries.
 - Added canonical operation, path, timeout, and connection policy for OpenRouter Video requests.

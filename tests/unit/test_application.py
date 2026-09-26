@@ -18,14 +18,18 @@ from openrouter_video.execution_hooks import ExecutionControl, ExecutionPhase
 from openrouter_video.media import DownloadService
 from openrouter_video.models import (
     GenerationRequest,
+    InputReference,
+    InputReferenceCollection,
+    InputReferenceKind,
     LocalLifecycleState,
     ModelCapabilities,
     ProductErrorCode,
     RemoteJobSnapshot,
     UsageCost,
     request_fingerprint_v1,
+    request_fingerprint_v2,
 )
-from openrouter_video.persistence import SCHEMA_VERSION, JobStore
+from openrouter_video.persistence import JOB_RECORD_SCHEMA_VERSION, JobStore
 from openrouter_video.policy import Operation
 
 NOW = datetime(2026, 9, 4, 12, 0, tzinfo=timezone.utc)
@@ -282,7 +286,7 @@ def test_prompt_change_same_fingerprint_reconciles_existing_operation(tmp_path: 
     client = ScenarioClient(submit=TransportError("ambiguous"), polls=[])
     service, _ = _generate_service(tmp_path, client)
     changed_prompt = GenerationRequest("vendor/model", "different private prompt")
-    assert request_fingerprint_v1(REQUEST) == request_fingerprint_v1(changed_prompt)
+    assert request_fingerprint_v2(REQUEST) == request_fingerprint_v2(changed_prompt)
 
     asyncio.run(service.generate("operation-1", REQUEST))
     result = asyncio.run(service.generate("operation-1", changed_prompt))
@@ -302,6 +306,37 @@ def test_fingerprint_mismatch_is_local_state_error_and_never_submits(tmp_path: P
 
     assert result.error is not None and result.error.code is ProductErrorCode.LOCAL_STATE_CORRUPT
     assert client.submit_calls == 1
+
+
+def test_reference_signal_gap_is_resolved_before_submit_authority(tmp_path: Path) -> None:
+    client = ScenarioClient(submit=RemoteJobSnapshot("must-not-submit", "pending"), polls=[])
+    service, store = _generate_service(tmp_path, client)
+    requests = (
+        GenerationRequest(
+            "vendor/model",
+            "prompt",
+            input_references=InputReferenceCollection(
+                (
+                    InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
+                    InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
+                )
+            ),
+        ),
+        GenerationRequest(
+            "vendor/model",
+            None,
+            input_references=InputReferenceCollection(
+                (InputReference(InputReferenceKind.VIDEO, "https://assets.example/reference.mp4"),)
+            ),
+        ),
+    )
+
+    for index, request in enumerate(requests):
+        result = asyncio.run(service.generate(f"operation-reference-{index}", request))
+        assert result.error is not None
+        assert result.error.code is ProductErrorCode.CAPABILITY_SIGNAL_GAP
+        assert store.get_by_operation_id(f"operation-reference-{index}") is None
+    assert client.submit_calls == 0
 
 
 def test_resume_unknown_job_has_no_submit_capability_or_post(tmp_path: Path) -> None:
@@ -338,7 +373,7 @@ def test_corrupt_state_adds_zero_posts(tmp_path: Path) -> None:
             ) VALUES (?, ?, ?, ?, 'BROKEN', ?)
             """,
             (
-                SCHEMA_VERSION,
+                JOB_RECORD_SCHEMA_VERSION,
                 "operation-1",
                 request_fingerprint_v1(REQUEST),
                 "vendor/model",

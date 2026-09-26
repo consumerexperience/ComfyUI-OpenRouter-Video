@@ -2,93 +2,80 @@
 
 ## Canonical baseline
 
-- Stage: `PHASE 6 COMFYUI ADAPTER — ENGINEERING COMPLETE, DELIVERY PENDING`
-- Branch: `phase-6/comfyui-adapter`
-- Canonical starting main: `e67d8759eeeaa1bd6c189ea78c974c29dea9022d`
-- Baseline suite before Phase 6: `155 passed`
-- Specification: Product / Engineering Specification v0.1.0, revision 1.1
-- Architecture: Validated Architecture & Threat Model v1.1
-- Accepted ADR set: ADR-001 through ADR-029
-- Contract drift: `NONE`
-- Upstream expansion: `NONE USED`
+- Stage: `PHASE 8 MULTIMODAL EXPANSION — IMPLEMENTED, REFERENCE MODES EVIDENCE-BLOCKED`
+- Branch: `phase-8/multimodal-expansion`
+- Canonical starting main: `e4b116a88147d19fa69e376a8b1873593fe784b8`
+- Last known suite before Phase 8: `183 passed`
+- Contract drift: `PRESENT — typed frame media shape`
+- Upstream expansion: `PRESENT — typed image/video references`
 
-## Implemented adapter
+## Phase-8.0 evidence result
 
-- Exactly two numbered V3 nodes: `OpenRouterVideoGenerate` and `OpenRouterVideoResume`
-- Category: `OpenRouter/Video`
-- Outputs: `VIDEO`, `JOB_ID`, `MODEL`, `ACTUAL_COST_USD`, `STATUS`
-- Dynamic local model route: `GET /openrouter-video/v1/models`
-- Native artifact bridge: pinned `VideoFromFile`, no copy/decode/re-encode/ffmpeg
-- Resume owns no submit client and cannot POST
-- One lazy process runtime with one SQLite store, one managed client, and one event-loop thread
-- Cooperative caller cancellation waits for durable runtime disposition
-- Bounded idempotent shutdown closes client/loop/thread with no pending tracked tasks
+- Sanitized credential-free `GET /api/v1/videos/models`: `200`, 29 models
+- Observation: `2026-09-26T09:52:56.128152+00:00`
+- Level A exposes `supported_frame_images` per model.
+- Level A exposes no `input_modalities`, direct reference capability, reference kind/count/mix, or
+  prompt-requirement field.
+- T2V: `READY`
+- First frame / first+last: `READY` only when the selected model's Level-A frame set proves it;
+  otherwise `UNSUPPORTED`.
+- Multi-image / video / mixed references: `CAPABILITY_SIGNAL_GAP`.
+- Prompt-optional reference generation: `CONFLICT`.
+- No model/provider/slug inference is implemented.
 
-## Compatibility decision
+## Implemented product delta
 
-- Supported host: ComfyUI `v0.34.3`
-- Supported commit: `87465b8f1f64a27a46f16f22b13b410494dca66d`
-- Supported API: `comfy_api.v0_0_2`, semantic version `0.0.2`
-- Other hosts: `UNSUPPORTED`; mismatch: `FAIL CLOSED`
-- Production imports no `comfy_api.latest`, `execution.py`, `PromptExecutor`, or
-  `comfy_execution` internals
-- Pinned `PromptExecutor` proved that `not_idempotent=True` alone reused the cached output across
-  Queue requests. The approved fallback is active: a thread-safe process-local monotonic integer
-  from `fingerprint_inputs`, JSON-safe and unrelated to business `operation_id`.
-
-## Durable state and billing safety
-
-- SQLite schema v2 makes `model` nullable
-- Transactional v1-to-v2 table rebuild changes only exact `unknown/remote-job` to `NULL`
-- All other non-empty legacy model values remain byte-for-byte unchanged
-- Existing local model wins; only a valid non-empty remote model fills durable `NULL`
-- Runtime creation/migration is serialized before publication
-- Every Generate execution creates one fresh opaque operation ID immediately before one Core call
-- Claim remains durable before POST; accepted `job_id` remains durable before interruption surfaces
-- Ambiguous submit remains `SUBMISSION_UNKNOWN` and never resubmits
-- Poll/download interrupt remains `OBSERVATION_INTERRUPTED` with the same `job_id`
-- Partial download is deleted; no remote cancellation is claimed
+- Immutable image/video input-reference domain contracts and ordered collection
+- Exact occurrence preservation: repeated links are not deduplicated
+- Typed nested frame serialization and typed image/video reference serialization
+- Frame/reference mutual exclusion before discovery or submit authority
+- Video reference remains Generate transport only; no Edit/Extend semantics
+- Independent mode-level enforcement matrix with scoped blocking
+- Fingerprint v2 for new Generate operations; v1 rows remain unchanged
+- Database schema v3 separated from JobRecord schema v2
+- Transactional v1-to-v2-to-v3 and v2-to-v3 paths; cache truth is destroyed, not migrated
+- Five pinned V3 nodes: image reference, video reference, Autogrow collection, Generate, Resume
+- Existing Generate lifecycle, native VIDEO, and submit-incapable Resume preserved
 
 ## Verification snapshot
 
-- Full pytest: `183 passed`
+- Repository pytest: `198 passed`
 - Ruff lint: `PASS`
 - Ruff format check: `PASS`
-- Strict mypy: `PASS — 55 source files`
+- Strict mypy: `PASS — 56 source files`
+- Pinned V3 Autogrow/custom-link probe: `PASS`
+- Autogrow zero/one/many, order, repeated occurrence: `PASS`
+- Repeated PromptExecutor Queue executions: `PASS`
+- Pinned native MP4/WebM VIDEO regression: `PASS`
 - sdist and wheel build: `PASS`
 - Clean-wheel install/import: `PASS`
-- pip-audit: `No known vulnerabilities found`; the unpublished local package name is unauditable
-- Security/privacy/billing focused suite: `42 passed`
-- Pinned Comfy CPU quick-test: `PASS`; both custom nodes discovered without import failure
-- Pinned test-only PromptExecutor: `PASS`; two Queue requests execute Generate twice and Resume twice
-- Pinned real V3 schemas: `PASS`; independent outputs and exact public surface
-- Pinned native video consumer: `PASS`; generated MP4 and WebM pass
-  `VideoFromFile -> GetVideoComponents`
-- Deleted artifact boundary: `PASS — sanitized failure`
+- pip-audit: `No known vulnerabilities found`; unpublished local package name is unauditable
+- pip check: `PASS`
+- Pinned Comfy CPU quick-test with isolated in-memory database: `PASS`
 
-## Security and real-world state
+## Security and billing state
 
-- Live OpenRouter requests: `0`
 - Paid generation submits: `0`
 - Credits spent: `$0`
 - Production credential access: `NO`
+- Credential-bearing subprocesses: `0`
+- Read-only catalog GET observations: `2`
 - COMFY PROD touched: `NO`
-- External test network: blocked except reviewed loopback harness; adapter tests use MockTransport
 - Project telemetry: `NONE`
-- Canonical application identity: unchanged
+- Canonical AppIdentity: unchanged
 
 ## Delivery state
 
-- Local engineering: `COMPLETE`
-- Verified implementation commit: `a08edceacb151bbd0e3f34bb4869f3bc20020bb7`
-- Feature branch: `PUSHED`
-- PR: `#6 — https://github.com/consumerexperience/ComfyUI-OpenRouter-Video/pull/6`
-- Required CI and CodeQL on implementation commit: `7/7 PASS`
-- This checkpoint-only update requires the same checks on the final PR head after push
-- Protected merge: `HUMAN ONLY — NOT AUTHORIZED`
-- Canonical-main ancestry for Phase 6: `PENDING PROTECTED MERGE`
+- Local implementation: `COMPLETE WITH SCOPED EVIDENCE BLOCK`
+- Feature branch: local
+- Push: pending
+- PR: pending
+- CI / CodeQL: pending
+- Release: not published
+- Merge: `HUMAN ONLY — NOT AUTHORIZED`
 
-## Next exact action
+## Open gate and next exact action
 
-Push this checkpoint-only update, wait for required CI and CodeQL on the final PR head, and stop
-before protected merge.
+Reference modes cannot become `READY` from the current machine-readable catalog. Complete final
+verification and protected PR delivery; then obtain a direct authoritative runtime capability
+signal (kind/count/mix and prompt optionality) before enabling reference submit intent.

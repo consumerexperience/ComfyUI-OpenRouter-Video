@@ -57,6 +57,19 @@ class _InputImpl:
 
 
 def _install_fake_numbered_api() -> None:
+    class Autogrow:
+        class TemplatePrefix:
+            def __init__(self, *, input: object, prefix: str, min: int, max: int) -> None:
+                self.input = input
+                self.prefix = prefix
+                self.min = min
+                self.max = max
+
+        Input = _Field
+
+    def custom(_: str) -> object:
+        return types.SimpleNamespace(Input=_Field, Output=_Field)
+
     io = types.SimpleNamespace(
         ComfyNode=_ComfyNode,
         Schema=_Schema,
@@ -68,6 +81,8 @@ def _install_fake_numbered_api() -> None:
         Int=types.SimpleNamespace(Input=_Field),
         Boolean=types.SimpleNamespace(Input=_Field),
         Video=types.SimpleNamespace(Output=_Field),
+        Autogrow=Autogrow,
+        Custom=custom,
     )
     numbered = types.ModuleType("comfy_api.v0_0_2")
     numbered.ComfyAPI = _ComfyAPI
@@ -83,10 +98,14 @@ def _install_fake_numbered_api() -> None:
 _install_fake_numbered_api()
 
 from openrouter_video.comfy import compat, nodes, routes  # noqa: E402
+from openrouter_video.comfy.extension import OpenRouterVideoExtension  # noqa: E402
 from openrouter_video.comfy.video import VideoBridgeError, to_native_video  # noqa: E402
 from openrouter_video.errors import RequestPolicyError  # noqa: E402
 from openrouter_video.models import (  # noqa: E402
     GenerationResult,
+    InputReference,
+    InputReferenceCollection,
+    InputReferenceKind,
     LocalLifecycleState,
     ModelCapabilities,
     VideoArtifact,
@@ -97,7 +116,7 @@ def _schema_inputs(schema: _Schema) -> dict[str, _Field]:
     return {field.name: field for field in schema.inputs}
 
 
-def test_exact_two_independent_v3_schemas_and_privacy_surface() -> None:
+def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
     generate = nodes.OpenRouterVideoGenerate.define_schema()
     resume = nodes.OpenRouterVideoResume.define_schema()
 
@@ -133,6 +152,7 @@ def test_exact_two_independent_v3_schemas_and_privacy_surface() -> None:
         "generate_audio",
         "first_frame_url",
         "last_frame_url",
+        "input_references",
     ]
     assert [item.name for item in resume.inputs] == ["job_id"]
     assert generate.hidden == resume.hidden == ["UNIQUE_ID"]
@@ -163,6 +183,18 @@ def test_exact_two_independent_v3_schemas_and_privacy_surface() -> None:
         "user_id",
     ):
         assert forbidden not in serialized
+
+
+def test_extension_registers_exact_phase8_node_set() -> None:
+    registered = asyncio.run(OpenRouterVideoExtension().get_node_list())
+
+    assert registered == [
+        nodes.OpenRouterVideoImageReference,
+        nodes.OpenRouterVideoVideoReference,
+        nodes.OpenRouterVideoReferenceCollection,
+        nodes.OpenRouterVideoGenerate,
+        nodes.OpenRouterVideoResume,
+    ]
 
 
 def test_generate_normalizes_once_and_returns_exact_output(
@@ -213,6 +245,7 @@ def test_generate_normalizes_once_and_returns_exact_output(
     assert request.first_frame is not None
     assert request.first_frame.url == "https://example.invalid/first.png"
     assert request.last_frame is None
+    assert request.input_references is None
     assert output.values == (
         "native-video",
         "job-1",
@@ -220,6 +253,61 @@ def test_generate_normalizes_once_and_returns_exact_output(
         "0.2500",
         "DONE",
     )
+
+
+def test_reference_nodes_preserve_autogrow_positions_and_duplicates() -> None:
+    image = nodes.OpenRouterVideoImageReference.execute(" https://assets.example/a.png ")
+    video = nodes.OpenRouterVideoVideoReference.execute(" https://assets.example/b.mp4 ")
+    image_reference = image.values[0]
+    video_reference = video.values[0]
+
+    assert image_reference == InputReference(
+        InputReferenceKind.IMAGE, "https://assets.example/a.png"
+    )
+    assert video_reference == InputReference(
+        InputReferenceKind.VIDEO, "https://assets.example/b.mp4"
+    )
+    output = nodes.OpenRouterVideoReferenceCollection.execute(
+        {
+            "reference_2": video_reference,
+            "reference_0": image_reference,
+            "reference_1": image_reference,
+        }
+    )
+    assert output.values == (
+        InputReferenceCollection((image_reference, image_reference, video_reference)),
+    )
+
+    schema = nodes.OpenRouterVideoReferenceCollection.define_schema()
+    field = schema.inputs[0]
+    template = field.options["template"]
+    assert field.name == "references"
+    assert field.options["optional"] is True
+    assert template.min == 0
+    assert template.max == 100
+
+
+def test_generate_bridges_typed_reference_collection(monkeypatch: pytest.MonkeyPatch) -> None:
+    collection = InputReferenceCollection(
+        (InputReference(InputReferenceKind.VIDEO, "https://assets.example/reference.mp4"),)
+    )
+    captured: list[object] = []
+
+    class Runtime:
+        async def generate(self, request: object, _: str | None) -> GenerationResult:
+            captured.append(request)
+            return GenerationResult(
+                LocalLifecycleState.DONE,
+                "job-reference",
+                artifact=VideoArtifact(Path("ignored.mp4"), "video/mp4", 10),
+            )
+
+    monkeypatch.setattr(nodes, "get_runtime", Runtime)
+    monkeypatch.setattr(nodes, "to_native_video", lambda _: "native-video")
+    asyncio.run(
+        nodes.OpenRouterVideoGenerate.execute("vendor/model", "prompt", input_references=collection)
+    )
+    assert captured[0].input_references is collection
 
 
 @pytest.mark.parametrize("duration", (-1, True, 1.5))

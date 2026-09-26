@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import json
 import tempfile
 from pathlib import Path
@@ -66,8 +67,14 @@ def main() -> None:
     compat.validate_host_api()
     generate_schema = adapter_nodes.OpenRouterVideoGenerate.define_schema()
     resume_schema = adapter_nodes.OpenRouterVideoResume.define_schema()
+    image_schema = adapter_nodes.OpenRouterVideoImageReference.define_schema()
+    video_schema = adapter_nodes.OpenRouterVideoVideoReference.define_schema()
+    collection_schema = adapter_nodes.OpenRouterVideoReferenceCollection.define_schema()
     assert generate_schema.node_id == "OpenRouterVideoGenerate"
     assert resume_schema.node_id == "OpenRouterVideoResume"
+    assert image_schema.node_id == "OpenRouterVideoImageReference"
+    assert video_schema.node_id == "OpenRouterVideoVideoReference"
+    assert collection_schema.node_id == "OpenRouterVideoReferenceCollection"
     assert generate_schema.outputs is not resume_schema.outputs
     assert [value.id for value in generate_schema.outputs] == [
         "VIDEO",
@@ -81,6 +88,11 @@ def main() -> None:
         {
             "generate": adapter_nodes.OpenRouterVideoGenerate.GET_NODE_INFO_V1(),
             "resume": adapter_nodes.OpenRouterVideoResume.GET_NODE_INFO_V1(),
+            "image_reference": adapter_nodes.OpenRouterVideoImageReference.GET_NODE_INFO_V1(),
+            "video_reference": adapter_nodes.OpenRouterVideoVideoReference.GET_NODE_INFO_V1(),
+            "reference_collection": (
+                adapter_nodes.OpenRouterVideoReferenceCollection.GET_NODE_INFO_V1()
+            ),
         },
         allow_nan=False,
     ).lower()
@@ -98,10 +110,12 @@ def main() -> None:
         def __init__(self) -> None:
             self.generate_calls = 0
             self.resume_calls = 0
+            self.requests: list[Any] = []
 
         async def generate(self, request: Any, node_id: str | None) -> GenerationResult:
             del node_id
             self.generate_calls += 1
+            self.requests.append(request)
             return GenerationResult(
                 LocalLifecycleState.DONE,
                 f"job-{self.generate_calls}",
@@ -125,6 +139,15 @@ def main() -> None:
         adapter_nodes.OpenRouterVideoGenerate
     )
     comfy_nodes.NODE_CLASS_MAPPINGS["OpenRouterVideoResume"] = adapter_nodes.OpenRouterVideoResume
+    comfy_nodes.NODE_CLASS_MAPPINGS["OpenRouterVideoImageReference"] = (
+        adapter_nodes.OpenRouterVideoImageReference
+    )
+    comfy_nodes.NODE_CLASS_MAPPINGS["OpenRouterVideoVideoReference"] = (
+        adapter_nodes.OpenRouterVideoVideoReference
+    )
+    comfy_nodes.NODE_CLASS_MAPPINGS["OpenRouterVideoReferenceCollection"] = (
+        adapter_nodes.OpenRouterVideoReferenceCollection
+    )
     validation_prompt = _prompt(
         "OpenRouterVideoGenerate",
         {
@@ -165,6 +188,105 @@ def main() -> None:
         )
         assert executor.success
     assert mock_runtime.generate_calls == 2
+
+    reference_prompt = {
+        "1": {
+            "class_type": "OpenRouterVideoImageReference",
+            "inputs": {"url": "https://assets.example/a.png"},
+        },
+        "2": {
+            "class_type": "OpenRouterVideoVideoReference",
+            "inputs": {"url": "https://assets.example/b.mp4"},
+        },
+        "3": {
+            "class_type": "OpenRouterVideoReferenceCollection",
+            "inputs": {
+                "references.reference_2": ["2", 0],
+                "references.reference_0": ["1", 0],
+                "references.reference_1": ["1", 0],
+            },
+        },
+        "4": {
+            "class_type": "OpenRouterVideoGenerate",
+            "inputs": {
+                "model": "vendor/model",
+                "prompt": "test-only prompt",
+                "duration": 0,
+                "resolution": "",
+                "aspect_ratio": "",
+                "size": "",
+                "seed": "",
+                "generate_audio": False,
+                "first_frame_url": "",
+                "last_frame_url": "",
+                "input_references": ["3", 0],
+            },
+        },
+    }
+    valid_references = asyncio.run(
+        execution.validate_inputs("validation-references", copy.deepcopy(reference_prompt), "4", {})
+    )
+    assert valid_references[0] is True, valid_references[1]
+    for prompt_id in ("references-1", "references-2"):
+        executor.execute(copy.deepcopy(reference_prompt), prompt_id, {}, ["4"])
+        assert executor.success
+    reference_requests = mock_runtime.requests[2:]
+    assert len(reference_requests) == 2, len(reference_requests)
+    for request in reference_requests:
+        assert request.input_references is not None
+        assert [reference.kind.value for reference in request.input_references.references] == [
+            "image",
+            "image",
+            "video",
+        ]
+        assert request.input_references.references[0] is request.input_references.references[1]
+
+    one_reference_prompt = copy.deepcopy(reference_prompt)
+    del one_reference_prompt["1"]
+    one_reference_prompt["3"]["inputs"] = {"references.reference_0": ["2", 0]}
+    one_valid = asyncio.run(
+        execution.validate_inputs(
+            "validation-one-reference", copy.deepcopy(one_reference_prompt), "4", {}
+        )
+    )
+    assert one_valid[0] is True, one_valid[1]
+    executor.execute(copy.deepcopy(one_reference_prompt), "references-one", {}, ["4"])
+    assert executor.success
+    one_collection = mock_runtime.requests[-1].input_references
+    assert one_collection is not None
+    assert [reference.kind.value for reference in one_collection.references] == ["video"]
+
+    empty_collection_prompt = {
+        "3": {
+            "class_type": "OpenRouterVideoReferenceCollection",
+            "inputs": {},
+        },
+        "4": {
+            "class_type": "OpenRouterVideoGenerate",
+            "inputs": {
+                "model": "vendor/model",
+                "prompt": "test-only prompt",
+                "duration": 0,
+                "resolution": "",
+                "aspect_ratio": "",
+                "size": "",
+                "seed": "",
+                "generate_audio": False,
+                "first_frame_url": "",
+                "last_frame_url": "",
+                "input_references": ["3", 0],
+            },
+        },
+    }
+    empty_valid = asyncio.run(
+        execution.validate_inputs(
+            "validation-empty-collection", copy.deepcopy(empty_collection_prompt), "4", {}
+        )
+    )
+    assert empty_valid[0] is True, empty_valid[1]
+    executor.execute(copy.deepcopy(empty_collection_prompt), "references-empty", {}, ["4"])
+    assert executor.success
+    assert mock_runtime.requests[-1].input_references.references == ()
 
     for prompt_id in ("resume-1", "resume-2"):
         executor.execute(

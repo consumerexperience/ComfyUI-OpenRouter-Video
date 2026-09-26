@@ -19,6 +19,13 @@ class FrameType(str, Enum):
     LAST = "last_frame"
 
 
+class InputReferenceKind(str, Enum):
+    """Typed media kinds accepted by the Phase-8 reference protocol."""
+
+    IMAGE = "image"
+    VIDEO = "video"
+
+
 class LocalLifecycleState(str, Enum):
     """Durable local lifecycle states, including ADR-029 rejection state."""
 
@@ -64,6 +71,7 @@ class ProductErrorCode(str, Enum):
     DISK_ERROR = "DISK_ERROR"
     LOCAL_STATE_CORRUPT = "LOCAL_STATE_CORRUPT"
     ATTRIBUTION_CONFIG_INVALID = "ATTRIBUTION_CONFIG_INVALID"
+    CAPABILITY_SIGNAL_GAP = "CAPABILITY_SIGNAL_GAP"
 
 
 class BillingContext(str, Enum):
@@ -83,11 +91,26 @@ class FrameReference:
 
 
 @dataclass(frozen=True, slots=True)
+class InputReference:
+    """One transient typed media reference; never persisted or logged."""
+
+    kind: InputReferenceKind
+    url: str
+
+
+@dataclass(frozen=True, slots=True)
+class InputReferenceCollection:
+    """Ordered references whose occurrences are preserved exactly."""
+
+    references: tuple[InputReference, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
 class GenerationRequest:
-    """Frozen v0.1 generation request surface; sensitive and transient."""
+    """Bounded generation request surface; sensitive and transient."""
 
     model: str
-    prompt: str
+    prompt: str | None
     duration: int | None = None
     resolution: str | None = None
     aspect_ratio: str | None = None
@@ -96,15 +119,14 @@ class GenerationRequest:
     generate_audio: bool = False
     first_frame: FrameReference | None = None
     last_frame: FrameReference | None = None
+    input_references: InputReferenceCollection | None = None
 
     def to_openrouter_payload(self) -> dict[str, object]:
         """Return only the frozen OpenRouter request fields with no passthrough escape hatch."""
 
-        payload: dict[str, object] = {
-            "model": self.model,
-            "prompt": self.prompt,
-            "generate_audio": self.generate_audio,
-        }
+        payload: dict[str, object] = {"model": self.model, "generate_audio": self.generate_audio}
+        if self.prompt is not None:
+            payload["prompt"] = self.prompt
         optional: tuple[tuple[str, object | None], ...] = (
             ("duration", self.duration),
             ("resolution", self.resolution),
@@ -116,12 +138,25 @@ class GenerationRequest:
             if value is not None:
                 payload[name] = value
         frames = [
-            {"frame_type": frame.frame_type.value, "url": frame.url}
+            {
+                "type": "image_url",
+                "image_url": {"url": frame.url},
+                "frame_type": frame.frame_type.value,
+            }
             for frame in (self.first_frame, self.last_frame)
             if frame is not None
         ]
         if frames:
             payload["frame_images"] = frames
+        references = self.input_references.references if self.input_references is not None else ()
+        if references:
+            payload["input_references"] = [
+                {
+                    "type": f"{reference.kind.value}_url",
+                    f"{reference.kind.value}_url": {"url": reference.url},
+                }
+                for reference in references
+            ]
         return payload
 
 
@@ -237,6 +272,38 @@ def request_fingerprint_v1(request: GenerationRequest) -> str:
     return f"v1:{hashlib.sha256(canonical_bytes).hexdigest()}"
 
 
+def request_fingerprint_v2(request: GenerationRequest) -> str:
+    """Return the Phase-8 structural checksum without sensitive request values."""
+
+    references = request.input_references.references if request.input_references is not None else ()
+    payload: dict[str, Any] = {
+        "schema": 2,
+        "model": request.model,
+        "duration": request.duration,
+        "resolution": request.resolution,
+        "aspect_ratio": request.aspect_ratio,
+        "size": request.size,
+        "seed": request.seed,
+        "generate_audio": request.generate_audio,
+        "prompt_present": bool(request.prompt and request.prompt.strip()),
+        "first_frame_present": request.first_frame is not None,
+        "last_frame_present": request.last_frame is not None,
+        "input_reference_present": bool(references),
+        "input_references": {
+            "schema": 1,
+            "count": len(references),
+            "kinds": [reference.kind.value for reference in references],
+        },
+    }
+    canonical_bytes = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+    return f"v2:{hashlib.sha256(canonical_bytes).hexdigest()}"
+
+
 __all__ = (
     "BillingContext",
     "FrameReference",
@@ -244,6 +311,9 @@ __all__ = (
     "GenerationRequest",
     "GenerationResult",
     "JobRecord",
+    "InputReference",
+    "InputReferenceCollection",
+    "InputReferenceKind",
     "LocalLifecycleState",
     "ModelCapabilities",
     "ProductError",
@@ -252,4 +322,5 @@ __all__ = (
     "UsageCost",
     "VideoArtifact",
     "request_fingerprint_v1",
+    "request_fingerprint_v2",
 )

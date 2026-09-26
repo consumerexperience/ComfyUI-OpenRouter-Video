@@ -7,12 +7,21 @@ from pathlib import Path
 
 import pytest
 
-from openrouter_video.capabilities import CapabilityService, RequestValidator
+from openrouter_video.capabilities import (
+    CapabilityModeStatus,
+    CapabilityService,
+    GenerationMode,
+    RequestValidator,
+    mode_enforcement_matrix,
+)
 from openrouter_video.errors import OpenRouterHTTPError, ProductFailureError, TransportError
 from openrouter_video.models import (
     FrameReference,
     FrameType,
     GenerationRequest,
+    InputReference,
+    InputReferenceCollection,
+    InputReferenceKind,
     ModelCapabilities,
     ProductErrorCode,
 )
@@ -171,3 +180,85 @@ def test_validator_never_silently_changes_explicit_options() -> None:
     assert request.duration == 6
     assert request.resolution == "1080p"
     assert request.seed == 1
+
+
+def test_mode_matrix_scopes_frame_readiness_and_reference_signal_gaps() -> None:
+    matrix = mode_enforcement_matrix(MODEL)
+
+    assert matrix[GenerationMode.T2V] is CapabilityModeStatus.READY
+    assert matrix[GenerationMode.FIRST_FRAME] is CapabilityModeStatus.READY
+    assert matrix[GenerationMode.FIRST_PLUS_LAST] is CapabilityModeStatus.UNSUPPORTED
+    both_frames = mode_enforcement_matrix(
+        replace(MODEL, supported_frame_types=frozenset({FrameType.FIRST, FrameType.LAST}))
+    )
+    assert both_frames[GenerationMode.FIRST_PLUS_LAST] is CapabilityModeStatus.READY
+    assert (
+        matrix[GenerationMode.MULTI_IMAGE_REFERENCE] is CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+    )
+    assert matrix[GenerationMode.VIDEO_REFERENCE] is CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+    assert (
+        matrix[GenerationMode.IMAGE_PLUS_VIDEO_REFERENCE]
+        is CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+    )
+    assert (
+        matrix[GenerationMode.PROMPT_OPTIONAL_REFERENCE_GENERATION] is CapabilityModeStatus.CONFLICT
+    )
+
+
+def test_reference_validation_is_https_order_preserving_and_fail_closed() -> None:
+    validator = RequestValidator()
+    references = InputReferenceCollection(
+        (
+            InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
+            InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
+        )
+    )
+    request = GenerationRequest("vendor/model", "prompt", input_references=references)
+    validator.validate_shape(request)
+
+    with pytest.raises(ProductFailureError) as caught:
+        validator.validate_capabilities(request, MODEL)
+    assert caught.value.error.code is ProductErrorCode.CAPABILITY_SIGNAL_GAP
+    assert caught.value.error.billing_context.value == "NO_SUBMIT"
+
+    invalid = replace(
+        request,
+        input_references=InputReferenceCollection(
+            (InputReference(InputReferenceKind.VIDEO, "http://assets.example/a.mp4"),)
+        ),
+    )
+    with pytest.raises(ProductFailureError) as invalid_caught:
+        validator.validate_shape(invalid)
+    assert invalid_caught.value.error.code is ProductErrorCode.INVALID_MEDIA_URL
+
+
+def test_frame_and_reference_conflict_fails_before_capability_resolution() -> None:
+    validator = RequestValidator()
+    request = GenerationRequest(
+        "vendor/model",
+        "prompt",
+        first_frame=FrameReference(FrameType.FIRST, "https://assets.example/frame.png"),
+        input_references=InputReferenceCollection(
+            (InputReference(InputReferenceKind.VIDEO, "https://assets.example/reference.mp4"),)
+        ),
+    )
+
+    with pytest.raises(ProductFailureError) as caught:
+        validator.validate_shape(request)
+    assert caught.value.error.code is ProductErrorCode.UNSUPPORTED_PARAMETER
+
+
+def test_prompt_omission_requires_positive_runtime_signal() -> None:
+    validator = RequestValidator()
+    request = GenerationRequest(
+        "vendor/model",
+        None,
+        input_references=InputReferenceCollection(
+            (InputReference(InputReferenceKind.VIDEO, "https://assets.example/reference.mp4"),)
+        ),
+    )
+    validator.validate_shape(request)
+
+    with pytest.raises(ProductFailureError) as caught:
+        validator.validate_capabilities(request, MODEL)
+    assert caught.value.error.code is ProductErrorCode.CAPABILITY_SIGNAL_GAP

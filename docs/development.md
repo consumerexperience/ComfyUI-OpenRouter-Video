@@ -26,7 +26,7 @@ depend on a development environment manager.
 - Product link: NTFS junction under `custom_nodes`, targeting this repository
 
 The DEV installation contains no production workflows, production credentials, unrelated custom
-nodes, or copied product source. Phase 6 uses its CPU quick-test and the test-only compatibility
+nodes, or copied product source. Phase 8 uses its CPU quick-test and the test-only compatibility
 probe; model inference and live OpenRouter traffic remain out of scope.
 
 ## Compatibility decisions
@@ -58,7 +58,7 @@ operation/job uniqueness, exact Decimal-as-TEXT cost storage, corruption handlin
 same-operation concurrency. Media tests write only generated temporary `.part`, MP4, and WebM
 fixtures below pytest temporary roots.
 
-## Phase 6 adapter gate
+## Phase 8 adapter and evidence gates
 
 Run the repository suite from this repository's `.venv`. Run host compatibility from the pinned
 Comfy DEV interpreter:
@@ -71,3 +71,14 @@ $env:PYTHONPATH="..\..\ComfyUI-OpenRouter-Video\src;$PWD"
 ```
 
 `PromptExecutor` appears only in `tests/comfy_dev_probe.py`; it is not a production dependency.
+
+The optional catalog observation is manual, read-only, and credential-free:
+
+```powershell
+cd ..\..\ComfyUI-OpenRouter-Video
+.\.venv\Scripts\python.exe tests\manual\phase8_catalog_probe.py
+```
+
+The probe never reads `OPENROUTER_API_KEY`, the process environment, or response headers; it emits
+only field names/types and required non-secret capability values. If the endpoint ever requires a
+credential, stop: only the human may launch a separately reviewed secret-bearing observation.

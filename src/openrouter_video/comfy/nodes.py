@@ -1,4 +1,4 @@
-"""The two public Phase-6 ComfyUI V3 adapter nodes."""
+"""The bounded Phase-8 ComfyUI V3 adapter nodes."""
 
 from __future__ import annotations
 
@@ -8,6 +8,9 @@ from openrouter_video.models import (
     FrameType,
     GenerationRequest,
     GenerationResult,
+    InputReference,
+    InputReferenceCollection,
+    InputReferenceKind,
     ProductErrorCode,
 )
 
@@ -94,6 +97,74 @@ def _outputs() -> list[object]:
     ]
 
 
+class OpenRouterVideoImageReference(compat.IO.ComfyNode):
+    """Create one transient typed image reference from a public URL."""
+
+    @classmethod
+    def define_schema(cls) -> object:
+        return compat.IO.Schema(
+            node_id="OpenRouterVideoImageReference",
+            display_name="OpenRouter Video Image Reference",
+            category="OpenRouter/Video/References",
+            inputs=[compat.IO.String.Input("url", default="")],
+            outputs=[compat.INPUT_REFERENCE_IO.Output("REFERENCE")],
+        )
+
+    @classmethod
+    def execute(cls, url: str) -> object:
+        return compat.IO.NodeOutput(InputReference(InputReferenceKind.IMAGE, url.strip()))
+
+
+class OpenRouterVideoVideoReference(compat.IO.ComfyNode):
+    """Create one transient typed video reference without edit semantics."""
+
+    @classmethod
+    def define_schema(cls) -> object:
+        return compat.IO.Schema(
+            node_id="OpenRouterVideoVideoReference",
+            display_name="OpenRouter Video Video Reference",
+            category="OpenRouter/Video/References",
+            inputs=[compat.IO.String.Input("url", default="")],
+            outputs=[compat.INPUT_REFERENCE_IO.Output("REFERENCE")],
+        )
+
+    @classmethod
+    def execute(cls, url: str) -> object:
+        return compat.IO.NodeOutput(InputReference(InputReferenceKind.VIDEO, url.strip()))
+
+
+class OpenRouterVideoReferenceCollection(compat.IO.ComfyNode):
+    """Preserve structural Autogrow positions, occurrences, and order exactly."""
+
+    @classmethod
+    def define_schema(cls) -> object:
+        template = compat.IO.Autogrow.TemplatePrefix(
+            input=compat.INPUT_REFERENCE_IO.Input("reference"),
+            prefix="reference_",
+            min=0,
+            max=100,
+        )
+        return compat.IO.Schema(
+            node_id="OpenRouterVideoReferenceCollection",
+            display_name="OpenRouter Video Reference Collection",
+            category="OpenRouter/Video/References",
+            inputs=[compat.IO.Autogrow.Input("references", template=template, optional=True)],
+            outputs=[compat.INPUT_REFERENCE_COLLECTION_IO.Output("INPUT_REFERENCES")],
+        )
+
+    @classmethod
+    def execute(cls, references: dict[str, InputReference] | None = None) -> object:
+        indexed: list[tuple[int, InputReference]] = []
+        for name, reference in (references or {}).items():
+            prefix, separator, suffix = name.rpartition("_")
+            if prefix != "reference" or not separator or not suffix.isdigit():
+                raise AdapterExecutionError("UNSUPPORTED_PARAMETER: invalid reference position.")
+            indexed.append((int(suffix), reference))
+        indexed.sort(key=lambda item: item[0])
+        collection = InputReferenceCollection(tuple(reference for _, reference in indexed))
+        return compat.IO.NodeOutput(collection)
+
+
 class OpenRouterVideoGenerate(compat.IO.ComfyNode):
     """Map one intentional queue execution to one Core Generate operation."""
 
@@ -115,6 +186,7 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                 compat.IO.Boolean.Input("generate_audio", default=False, advanced=True),
                 compat.IO.String.Input("first_frame_url", default="", advanced=True),
                 compat.IO.String.Input("last_frame_url", default="", advanced=True),
+                compat.INPUT_REFERENCE_COLLECTION_IO.Input("input_references", optional=True),
             ],
             outputs=_outputs(),
             hidden=[compat.IO.Hidden.unique_id],
@@ -139,12 +211,13 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         generate_audio: bool = False,
         first_frame_url: str = "",
         last_frame_url: str = "",
+        input_references: InputReferenceCollection | None = None,
     ) -> object:
         first = _optional_text(first_frame_url)
         last = _optional_text(last_frame_url)
         request = GenerationRequest(
             model=model.strip(),
-            prompt=prompt,
+            prompt=prompt if prompt.strip() else None,
             duration=_duration(duration),
             resolution=_optional_text(resolution),
             aspect_ratio=_optional_text(aspect_ratio),
@@ -153,6 +226,7 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
             generate_audio=generate_audio,
             first_frame=FrameReference(FrameType.FIRST, first) if first is not None else None,
             last_frame=FrameReference(FrameType.LAST, last) if last is not None else None,
+            input_references=input_references,
         )
         try:
             result = await get_runtime().generate(request, compat.current_node_id(cls))
@@ -197,5 +271,8 @@ class OpenRouterVideoResume(compat.IO.ComfyNode):
 __all__ = (
     "AdapterExecutionError",
     "OpenRouterVideoGenerate",
+    "OpenRouterVideoImageReference",
+    "OpenRouterVideoReferenceCollection",
     "OpenRouterVideoResume",
+    "OpenRouterVideoVideoReference",
 )

@@ -1,13 +1,22 @@
-# Phase 6 ComfyUI adapter
+# Phase 8 ComfyUI adapter
 
 ## Public surface
 
-The extension registers exactly two numbered V3 nodes in `OpenRouter/Video`:
+The extension registers five numbered V3 nodes:
 
 - `OpenRouterVideoGenerate` creates one fresh local operation per Queue execution and delegates to
   `GenerateService` once.
 - `OpenRouterVideoResume` accepts only a stripped, non-empty `job_id` and is constructed without a
   submit client.
+- `OpenRouterVideoImageReference` creates a typed transient image reference.
+- `OpenRouterVideoVideoReference` creates a typed transient video reference; it does not select
+  edit, continue, or extend behavior.
+- `OpenRouterVideoReferenceCollection` uses pinned V3 Autogrow inputs and preserves structural
+  position, order, and every repeated occurrence.
+
+The Autogrow schema uses the pinned host's 100-slot technical ceiling. That ceiling is not model
+capability evidence and never authorizes a reference count; Core still requires a positive runtime
+count signal before submit.
 
 Both return `VIDEO`, `JOB_ID`, `MODEL`, `ACTUAL_COST_USD`, and `STATUS`. `VIDEO` is the pinned
 native `VideoFromFile` bridge over the already validated Core artifact. The adapter does not copy,
@@ -39,9 +48,10 @@ safe, never `NaN`, is not serialized as operation identity, and has no billing a
 ## Runtime and durable state
 
 One lazily published process runtime owns a single SQLite store, Core client, and event-loop thread.
-Creation and v1-to-v2 migration are serialized before publication. Schema v2 makes `model`
-nullable; only the exact legacy sentinel `unknown/remote-job` migrates to `NULL`. A valid remote
-model fills `NULL`, while an existing local model always wins.
+Creation and migration are serialized before publication. Database schema v3 retains JobRecord
+schema v2, makes no jobs-table change from database v2, and recreates the capability cache empty.
+The v1-to-v2 job migration still changes only the exact legacy sentinel `unknown/remote-job` to
+`NULL`. A valid remote model fills `NULL`, while an existing local model always wins.
 
 Cross-loop caller cancellation sets a cooperative control event without cancelling the runtime
 future. The adapter waits for the Core task to reach a durable disposition and then surfaces the
@@ -62,4 +72,6 @@ messages. The default suite blocks external sockets; the pinned DEV gate injects
 uses generated temporary MP4/WebM artifacts.
 
 `PromptExecutor` is a test-only compatibility surface in `tests/comfy_dev_probe.py`. Production
-does not import `execution.py`, `PromptExecutor`, or `comfy_execution` internals.
+does not import `execution.py`, `PromptExecutor`, or `comfy_execution` internals. The pinned probe
+proves custom typed links, Autogrow zero/one/many collections, structural order, repeated links,
+workflow validation, and repeated Queue execution.
