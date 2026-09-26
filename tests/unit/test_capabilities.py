@@ -14,12 +14,19 @@ from openrouter_video.capabilities import (
     RequestValidator,
     mode_enforcement_matrix,
 )
+from openrouter_video.capability_overlays import (
+    SEEDANCE_2_5_OVERLAY,
+    apply_capability_overlay,
+)
 from openrouter_video.errors import OpenRouterHTTPError, ProductFailureError, TransportError
 from openrouter_video.models import (
+    CapabilityEvidenceSource,
     FrameReference,
     FrameType,
     GenerationRequest,
     InputReference,
+    InputReferenceCapabilities,
+    InputReferenceCapabilityField,
     InputReferenceCollection,
     InputReferenceKind,
     ModelCapabilities,
@@ -201,8 +208,89 @@ def test_mode_matrix_scopes_frame_readiness_and_reference_signal_gaps() -> None:
         is CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
     )
     assert (
-        matrix[GenerationMode.PROMPT_OPTIONAL_REFERENCE_GENERATION] is CapabilityModeStatus.CONFLICT
+        matrix[GenerationMode.PROMPT_OPTIONAL_REFERENCE_GENERATION] is CapabilityModeStatus.DEFERRED
     )
+
+
+def test_exact_id_overlay_makes_only_proven_reference_modes_ready() -> None:
+    model = apply_capability_overlay(
+        ModelCapabilities(
+            model_id="bytedance/seedance-2.5",
+            canonical_slug="bytedance/seedance-2.5",
+        )
+    )
+    references = model.input_reference_capabilities
+    assert references is not None
+    assert references.reference_kinds == frozenset(
+        {InputReferenceKind.IMAGE, InputReferenceKind.VIDEO}
+    )
+    assert references.max_reference_count == 50
+    assert references.mixed_image_video_references is True
+    assert references.reference_kinds_source is CapabilityEvidenceSource.EVIDENCE_OVERLAY
+    assert not references.conflicts
+    assert apply_capability_overlay(model) == model
+    matrix = mode_enforcement_matrix(model)
+    assert matrix[GenerationMode.MULTI_IMAGE_REFERENCE] is CapabilityModeStatus.READY
+    assert matrix[GenerationMode.VIDEO_REFERENCE] is CapabilityModeStatus.READY
+    assert matrix[GenerationMode.IMAGE_PLUS_VIDEO_REFERENCE] is CapabilityModeStatus.READY
+    assert (
+        matrix[GenerationMode.PROMPT_OPTIONAL_REFERENCE_GENERATION] is CapabilityModeStatus.DEFERRED
+    )
+
+
+def test_overlay_is_exact_id_data_not_provider_family_inference() -> None:
+    near_matches = (
+        ModelCapabilities("bytedance/seedance-2.5-fast"),
+        ModelCapabilities("bytedance/seedance-2.0"),
+        ModelCapabilities("another/seedance-2.5"),
+    )
+    assert all(apply_capability_overlay(model) == model for model in near_matches)
+    assert SEEDANCE_2_5_OVERLAY.model_id == "bytedance/seedance-2.5"
+
+
+def test_level_a_is_never_overridden_and_conflicts_fail_closed() -> None:
+    level_a = InputReferenceCapabilities(
+        reference_kinds=frozenset({InputReferenceKind.IMAGE}),
+        max_reference_count=4,
+        mixed_image_video_references=False,
+    )
+    model = apply_capability_overlay(
+        ModelCapabilities(
+            "bytedance/seedance-2.5",
+            input_reference_capabilities=level_a,
+        )
+    )
+    effective = model.input_reference_capabilities
+    assert effective is not None
+    assert effective.reference_kinds == level_a.reference_kinds
+    assert effective.max_reference_count == 4
+    assert effective.mixed_image_video_references is False
+    assert effective.reference_kinds_source is CapabilityEvidenceSource.LEVEL_A
+    assert effective.conflicts == frozenset(InputReferenceCapabilityField)
+    matrix = mode_enforcement_matrix(model)
+    assert matrix[GenerationMode.MULTI_IMAGE_REFERENCE] is CapabilityModeStatus.CONFLICT
+    assert matrix[GenerationMode.VIDEO_REFERENCE] is CapabilityModeStatus.CONFLICT
+    assert matrix[GenerationMode.IMAGE_PLUS_VIDEO_REFERENCE] is CapabilityModeStatus.CONFLICT
+
+
+def test_overlay_requires_a_fresh_catalog_observation(tmp_path: Path) -> None:
+    model = ModelCapabilities("bytedance/seedance-2.5")
+    store = JobStore(tmp_path / "jobs.sqlite3")
+    store.replace_capability_catalog((model,), NOW - timedelta(hours=1))
+    client = DiscoveryStub([TransportError("x"), TransportError("x"), TransportError("x")])
+
+    async def sleep(_: float) -> None:
+        return None
+
+    service = CapabilityService(
+        client=client,
+        store=store,
+        now=lambda: NOW,
+        sleep=sleep,
+        jitter=lambda value: value,
+    )
+
+    assert asyncio.run(service.resolve(model.model_id)) == model
 
 
 def test_reference_validation_is_https_order_preserving_and_fail_closed() -> None:
@@ -248,7 +336,7 @@ def test_frame_and_reference_conflict_fails_before_capability_resolution() -> No
     assert caught.value.error.code is ProductErrorCode.UNSUPPORTED_PARAMETER
 
 
-def test_prompt_omission_requires_positive_runtime_signal() -> None:
+def test_prompt_omission_is_outside_the_phase_8_product_contract() -> None:
     validator = RequestValidator()
     request = GenerationRequest(
         "vendor/model",
@@ -257,8 +345,23 @@ def test_prompt_omission_requires_positive_runtime_signal() -> None:
             (InputReference(InputReferenceKind.VIDEO, "https://assets.example/reference.mp4"),)
         ),
     )
-    validator.validate_shape(request)
-
     with pytest.raises(ProductFailureError) as caught:
-        validator.validate_capabilities(request, MODEL)
-    assert caught.value.error.code is ProductErrorCode.CAPABILITY_SIGNAL_GAP
+        validator.validate_shape(request)
+    assert caught.value.error.code is ProductErrorCode.UNSUPPORTED_PARAMETER
+
+
+def test_reference_count_above_overlay_limit_is_rejected() -> None:
+    validator = RequestValidator()
+    model = apply_capability_overlay(ModelCapabilities("bytedance/seedance-2.5"))
+    references = InputReferenceCollection(
+        tuple(
+            InputReference(InputReferenceKind.IMAGE, f"https://assets.example/{index}.png")
+            for index in range(51)
+        )
+    )
+    request = GenerationRequest(model.model_id, "prompt", input_references=references)
+
+    validator.validate_shape(request)
+    with pytest.raises(ProductFailureError) as caught:
+        validator.validate_capabilities(request, model)
+    assert caught.value.error.code is ProductErrorCode.UNSUPPORTED_PARAMETER

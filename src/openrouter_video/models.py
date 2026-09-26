@@ -26,6 +26,21 @@ class InputReferenceKind(str, Enum):
     VIDEO = "video"
 
 
+class CapabilityEvidenceSource(str, Enum):
+    """Authoritative source used for one normalized capability field."""
+
+    LEVEL_A = "LEVEL_A"
+    EVIDENCE_OVERLAY = "EVIDENCE_OVERLAY"
+
+
+class InputReferenceCapabilityField(str, Enum):
+    """Independently mergeable reference-capability fields."""
+
+    REFERENCE_KINDS = "reference_kinds"
+    MAX_REFERENCE_COUNT = "max_reference_count"
+    MIXED_IMAGE_VIDEO_REFERENCES = "mixed_image_video_references"
+
+
 class LocalLifecycleState(str, Enum):
     """Durable local lifecycle states, including ADR-029 rejection state."""
 
@@ -106,6 +121,19 @@ class InputReferenceCollection:
 
 
 @dataclass(frozen=True, slots=True)
+class InputReferenceCapabilities:
+    """Transient effective reference capabilities with field-level provenance."""
+
+    reference_kinds: frozenset[InputReferenceKind] | None = None
+    max_reference_count: int | None = None
+    mixed_image_video_references: bool | None = None
+    reference_kinds_source: CapabilityEvidenceSource | None = None
+    max_reference_count_source: CapabilityEvidenceSource | None = None
+    mixed_image_video_references_source: CapabilityEvidenceSource | None = None
+    conflicts: frozenset[InputReferenceCapabilityField] = frozenset()
+
+
+@dataclass(frozen=True, slots=True)
 class GenerationRequest:
     """Bounded generation request surface; sensitive and transient."""
 
@@ -162,7 +190,7 @@ class GenerationRequest:
 
 @dataclass(frozen=True, slots=True)
 class ModelCapabilities:
-    """Normalized, persistable model capability metadata."""
+    """Normalized catalog metadata plus transient effective capability fields."""
 
     model_id: str
     canonical_slug: str | None = None
@@ -174,6 +202,7 @@ class ModelCapabilities:
     supported_frame_types: frozenset[FrameType] = frozenset()
     generate_audio: bool | None = None
     supports_seed: bool | None = None
+    input_reference_capabilities: InputReferenceCapabilities | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -306,12 +335,15 @@ def request_fingerprint_v2(request: GenerationRequest) -> str:
 
 __all__ = (
     "BillingContext",
+    "CapabilityEvidenceSource",
     "FrameReference",
     "FrameType",
     "GenerationRequest",
     "GenerationResult",
     "JobRecord",
     "InputReference",
+    "InputReferenceCapabilities",
+    "InputReferenceCapabilityField",
     "InputReferenceCollection",
     "InputReferenceKind",
     "LocalLifecycleState",

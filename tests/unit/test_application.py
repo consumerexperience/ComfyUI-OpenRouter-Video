@@ -312,29 +312,40 @@ def test_reference_signal_gap_is_resolved_before_submit_authority(tmp_path: Path
     client = ScenarioClient(submit=RemoteJobSnapshot("must-not-submit", "pending"), polls=[])
     service, store = _generate_service(tmp_path, client)
     requests = (
-        GenerationRequest(
-            "vendor/model",
-            "prompt",
-            input_references=InputReferenceCollection(
-                (
-                    InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
-                    InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
-                )
+        (
+            GenerationRequest(
+                "vendor/model",
+                "prompt",
+                input_references=InputReferenceCollection(
+                    (
+                        InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
+                        InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
+                    )
+                ),
             ),
+            ProductErrorCode.CAPABILITY_SIGNAL_GAP,
         ),
-        GenerationRequest(
-            "vendor/model",
-            None,
-            input_references=InputReferenceCollection(
-                (InputReference(InputReferenceKind.VIDEO, "https://assets.example/reference.mp4"),)
+        (
+            GenerationRequest(
+                "vendor/model",
+                None,
+                input_references=InputReferenceCollection(
+                    (
+                        InputReference(
+                            InputReferenceKind.VIDEO,
+                            "https://assets.example/reference.mp4",
+                        ),
+                    )
+                ),
             ),
+            ProductErrorCode.UNSUPPORTED_PARAMETER,
         ),
     )
 
-    for index, request in enumerate(requests):
+    for index, (request, expected_code) in enumerate(requests):
         result = asyncio.run(service.generate(f"operation-reference-{index}", request))
         assert result.error is not None
-        assert result.error.code is ProductErrorCode.CAPABILITY_SIGNAL_GAP
+        assert result.error.code is expected_code
         assert store.get_by_operation_id(f"operation-reference-{index}") is None
     assert client.submit_calls == 0
 

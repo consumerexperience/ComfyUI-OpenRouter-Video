@@ -13,6 +13,7 @@ from enum import Enum
 from typing import NoReturn
 from urllib.parse import urlsplit
 
+from openrouter_video.capability_overlays import apply_capability_overlay
 from openrouter_video.client import DiscoveryClient
 from openrouter_video.errors import (
     MalformedOpenRouterResponseError,
@@ -79,6 +80,7 @@ class CapabilityModeStatus(str, Enum):
     CONFLICT = "CONFLICT"
     UNSUPPORTED = "UNSUPPORTED"
     UNKNOWN = "UNKNOWN"
+    DEFERRED = "DEFERRED"
 
 
 def mode_enforcement_matrix(
@@ -87,6 +89,48 @@ def mode_enforcement_matrix(
     """Evaluate only current authoritative runtime-resolvable capability evidence."""
 
     frames = capabilities.supported_frame_types
+    references = capabilities.input_reference_capabilities
+    if references is None:
+        multi_image = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+        video = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+        mixed = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+    elif references.conflicts:
+        multi_image = CapabilityModeStatus.CONFLICT
+        video = CapabilityModeStatus.CONFLICT
+        mixed = CapabilityModeStatus.CONFLICT
+    elif references.reference_kinds is None:
+        multi_image = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+        video = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+        mixed = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+    else:
+        kinds = references.reference_kinds
+        if InputReferenceKind.IMAGE not in kinds:
+            multi_image = CapabilityModeStatus.UNSUPPORTED
+        elif references.max_reference_count is None:
+            multi_image = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+        elif references.max_reference_count < 2:
+            multi_image = CapabilityModeStatus.UNSUPPORTED
+        else:
+            multi_image = CapabilityModeStatus.READY
+
+        video = (
+            CapabilityModeStatus.READY
+            if InputReferenceKind.VIDEO in kinds
+            else CapabilityModeStatus.UNSUPPORTED
+        )
+
+        if not {InputReferenceKind.IMAGE, InputReferenceKind.VIDEO}.issubset(kinds):
+            mixed = CapabilityModeStatus.UNSUPPORTED
+        elif references.mixed_image_video_references is None:
+            mixed = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+        elif references.mixed_image_video_references is False:
+            mixed = CapabilityModeStatus.UNSUPPORTED
+        elif references.max_reference_count is None:
+            mixed = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+        elif references.max_reference_count < 2:
+            mixed = CapabilityModeStatus.UNSUPPORTED
+        else:
+            mixed = CapabilityModeStatus.READY
     return {
         GenerationMode.T2V: CapabilityModeStatus.READY,
         GenerationMode.FIRST_FRAME: (
@@ -99,10 +143,10 @@ def mode_enforcement_matrix(
             if {FrameType.FIRST, FrameType.LAST}.issubset(frames)
             else CapabilityModeStatus.UNSUPPORTED
         ),
-        GenerationMode.MULTI_IMAGE_REFERENCE: CapabilityModeStatus.CAPABILITY_SIGNAL_GAP,
-        GenerationMode.VIDEO_REFERENCE: CapabilityModeStatus.CAPABILITY_SIGNAL_GAP,
-        GenerationMode.IMAGE_PLUS_VIDEO_REFERENCE: CapabilityModeStatus.CAPABILITY_SIGNAL_GAP,
-        GenerationMode.PROMPT_OPTIONAL_REFERENCE_GENERATION: CapabilityModeStatus.CONFLICT,
+        GenerationMode.MULTI_IMAGE_REFERENCE: multi_image,
+        GenerationMode.VIDEO_REFERENCE: video,
+        GenerationMode.IMAGE_PLUS_VIDEO_REFERENCE: mixed,
+        GenerationMode.PROMPT_OPTIONAL_REFERENCE_GENERATION: CapabilityModeStatus.DEFERRED,
     }
 
 
@@ -185,6 +229,8 @@ class CapabilityService:
         observation = await self.catalog()
         for model in observation.models:
             if model.model_id == model_id or model.canonical_slug == model_id:
+                if self._now() - observation.observed_at <= FRESH_TTL:
+                    return apply_capability_overlay(model)
                 return model
         raise ProductFailureError(
             ProductError(
@@ -216,7 +262,7 @@ class RequestValidator:
         references = request.input_references.references if request.input_references else ()
         if request.prompt is not None and not isinstance(request.prompt, str):
             self._fail(ProductErrorCode.UNSUPPORTED_PARAMETER, "Prompt must be text.")
-        if not (request.prompt and request.prompt.strip()) and not references:
+        if not (request.prompt and request.prompt.strip()):
             self._fail(ProductErrorCode.UNSUPPORTED_PARAMETER, "A non-empty prompt is required.")
         if request.duration is not None and (
             isinstance(request.duration, bool) or request.duration < 1
@@ -309,12 +355,15 @@ class RequestValidator:
                     f"{mode.value} is blocked because runtime capability evidence "
                     f"is {status.value}.",
                 )
-        if not (request.prompt and request.prompt.strip()):
-            status = matrix[GenerationMode.PROMPT_OPTIONAL_REFERENCE_GENERATION]
-            if status is not CapabilityModeStatus.READY:
+            reference_capabilities = capabilities.input_reference_capabilities
+            if (
+                reference_capabilities is not None
+                and reference_capabilities.max_reference_count is not None
+                and len(references) > reference_capabilities.max_reference_count
+            ):
                 self._fail(
-                    ProductErrorCode.CAPABILITY_SIGNAL_GAP,
-                    "Prompt omission lacks a positive runtime-resolvable capability signal.",
+                    ProductErrorCode.UNSUPPORTED_PARAMETER,
+                    "The input reference collection exceeds the proven model limit.",
                 )
 
     @staticmethod

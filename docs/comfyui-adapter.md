@@ -15,8 +15,9 @@ The extension registers five numbered V3 nodes:
   position, order, and every repeated occurrence.
 
 The Autogrow schema uses the pinned host's 100-slot technical ceiling. That ceiling is not model
-capability evidence and never authorizes a reference count; Core still requires a positive runtime
-count signal before submit.
+capability evidence and never authorizes a reference count; Core still requires Level A or an
+approved exact-ID evidence overlay before submit. The initial Seedance 2.5 overlay limits the total
+reference collection to 50 even though the host can structurally expose more sockets.
 
 Both return `VIDEO`, `JOB_ID`, `MODEL`, `ACTUAL_COST_USD`, and `STATUS`. `VIDEO` is the pinned
 native `VideoFromFile` bridge over the already validated Core artifact. The adapter does not copy,

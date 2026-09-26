@@ -64,9 +64,15 @@ duplicates are never collapsed. The two arrays cannot be combined. Video referen
 media only and never create Edit/Extend semantics or a separate lifecycle.
 
 Capability enforcement is mode-scoped. Current Level A metadata authorizes per-model frame modes
-through `supported_frame_images`. It exposes no direct reference kind/count/mix or prompt-optional
-signal, so only affected reference intent returns `CAPABILITY_SIGNAL_GAP` before the submit claim.
-No slug/provider/name inference exists.
+through `supported_frame_images`. It exposes no direct reference kind/count/mix signal. ADR-030
+therefore permits reviewed exact-ID evidence data to fill only absent fields after a fresh catalog
+observation confirms that model still exists. The initial overlay enables image/video kinds, a
+maximum count of 50, and mixed image/video collections only for `bytedance/seedance-2.5`.
+
+An explicit Level-A value is never overwritten; disagreement produces `CONFLICT` and blocks the
+affected intent. Unknown and near-matching models remain fail-closed. No provider, family, slug
+pattern, display-name, or cross-model inference exists. Prompt is required for every Phase-8
+Generate operation; prompt-optional reference generation is deferred.
 
 New Generate calls use fingerprint v2. It includes model/options, prompt/frame/reference presence,
 reference schema/count, and ordered reference kinds, but never prompt text, URLs, credentials,

@@ -38,7 +38,11 @@ request is received.
 | Reference URLs absent from fingerprint, SQLite, and sanitized errors | `PASS — privacy canary` |
 | Typed frame/reference payload shapes | `PASS — exact contract fixtures` |
 | Reference order and repeated occurrence preservation | `PASS — unit + pinned Autogrow` |
-| Reference capability gaps block before submit | `PASS — zero POST` |
+| Unknown-model reference capability gaps block before submit | `PASS — zero POST` |
+| Exact-ID overlay reference modes | `PASS — multi-image/video/mixed mock lifecycle, one POST each` |
+| Overlay precedence and conflict | `PASS — Level A retained; disagreement fails closed` |
+| Overlay freshness | `PASS — stale LKG cannot activate reference intent` |
+| Prompt required for every Phase-8 Generate | `PASS — omission rejected before discovery/submit` |
 | Database v2-to-v3 semantic equality and cache invalidation | `PASS` |
 | New Generate fingerprint v2 and historical v1 conflict | `PASS` |
 | Actual cost comes only from `usage.cost` | `PASS — Decimal or None` |

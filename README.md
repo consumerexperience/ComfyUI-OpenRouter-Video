@@ -4,7 +4,7 @@ Open-source BYOK model-agnostic OpenRouter Video gateway for ComfyUI.
 
 ## Status
 
-**PRE-ALPHA — Phase 8: multimodal contracts implemented; reference submit modes evidence-gated.**
+**PRE-ALPHA — Phase 8: required multimodal modes implemented with evidence-gated enforcement.**
 
 The headless core now contains typed Video API contracts, capability discovery and bounded cache,
 pre-submit validation, a durable SQLite lifecycle, one-attempt Generate, submit-incapable Resume,
@@ -13,9 +13,10 @@ all authentication, attribution, destination, redirect, TLS, and zero-transport-
 
 The pinned ComfyUI extension exposes Generate, submit-incapable Resume, typed image/video reference
 nodes, and an ordered Autogrow reference collection. T2V and model-proven first/last-frame modes
-remain available. Reference payloads are structurally supported, but the current model catalog has
-no authoritative kind/count/mix signal, so reference intent fails with `CAPABILITY_SIGNAL_GAP`
-before submit authority. See [Phase 8 evidence](docs/phase-8-capability-evidence.md).
+remain available. The exact-ID evidence overlay accepted in ADR-030 enables multi-image, video, and
+mixed image/video reference modes for `bytedance/seedance-2.5`; unresolved models still fail with
+`CAPABILITY_SIGNAL_GAP` before submit authority. Prompt remains required for every Generate call.
+See [Phase 8 evidence](docs/phase-8-capability-evidence.md).
 
 ## Product principles
 
@@ -44,8 +45,10 @@ environment variable, runtime preference, user, device, installation, or session
 - `request_fingerprint` is a versioned, privacy-preserving advisory checksum and never grants
   submit, Resume, deduplication, or idempotency authority.
 
-See [Headless Core II](docs/headless-core-ii.md), [ADR-028](docs/adr/ADR-028-local-recovery-identity-and-request-fingerprint.md),
-and [ADR-029](docs/adr/ADR-029-durable-definite-submit-rejection.md).
+See [Headless Core II](docs/headless-core-ii.md),
+[ADR-028](docs/adr/ADR-028-local-recovery-identity-and-request-fingerprint.md),
+[ADR-029](docs/adr/ADR-029-durable-definite-submit-rejection.md), and
+[ADR-030](docs/adr/ADR-030-evidence-backed-capability-overlay.md).
 
 ## ComfyUI compatibility
 
