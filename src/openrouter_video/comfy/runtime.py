@@ -21,6 +21,7 @@ from openrouter_video.execution_hooks import ExecutionControl, ExecutionPhase
 from openrouter_video.media import DownloadService
 from openrouter_video.models import GenerationRequest, GenerationResult
 from openrouter_video.persistence import JobStore
+from openrouter_video.pricing import CostEstimateInputs, EstimateResult, PreflightCostEstimator
 from openrouter_video.request_policy import OpenRouterRequestPolicy
 from openrouter_video.secrets import EnvironmentSecretProvider
 from openrouter_video.transport import HttpxTransport
@@ -165,12 +166,42 @@ class ProcessRuntime:
 
         return await self._dispatch(run)
 
+    async def effective_catalog(self) -> CapabilityObservation:
+        """Return the same fresh effective capability truth used before submit."""
+
+        async def run(control: ExecutionControl) -> CapabilityObservation:
+            control.raise_if_interrupted()
+            return await self._require_resources().capabilities.effective_catalog()
+
+        return await self._dispatch(run)
+
+    async def estimate_cost(self, inputs: CostEstimateInputs) -> EstimateResult:
+        """Return a side-effect-free estimate without acquiring submit authority."""
+
+        async def run(control: ExecutionControl) -> EstimateResult:
+            control.raise_if_interrupted()
+            capabilities = self._require_resources().capabilities
+            observation = await capabilities.effective_catalog()
+            if not capabilities.is_fresh(observation):
+                return EstimateResult.unavailable(observation.observed_at, "pricing_evidence_stale")
+            for model in observation.models:
+                if inputs.model_id in {model.model_id, model.canonical_slug}:
+                    return PreflightCostEstimator().estimate(
+                        model,
+                        inputs,
+                        observed_at=observation.observed_at,
+                    )
+            return EstimateResult.unavailable(observation.observed_at, "model_unavailable")
+
+        return await self._dispatch(run)
+
     async def generate(self, request: GenerationRequest, node_id: str | None) -> GenerationResult:
         async def run(control: ExecutionControl) -> GenerationResult:
             resources = self._require_resources()
 
             async def progress(phase: ExecutionPhase) -> None:
-                await compat.report_phase(phase, node_id)
+                if phase is not ExecutionPhase.DONE:
+                    await compat.report_phase(phase, node_id)
 
             async def sleep(seconds: float) -> None:
                 await self._cooperative_sleep(control, seconds)
@@ -207,7 +238,8 @@ class ProcessRuntime:
             resources = self._require_resources()
 
             async def progress(phase: ExecutionPhase) -> None:
-                await compat.report_phase(phase, node_id)
+                if phase is not ExecutionPhase.DONE:
+                    await compat.report_phase(phase, node_id)
 
             async def sleep(seconds: float) -> None:
                 await self._cooperative_sleep(control, seconds)

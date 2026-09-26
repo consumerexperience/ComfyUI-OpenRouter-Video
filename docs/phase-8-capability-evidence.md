@@ -93,7 +93,7 @@ or Extend behavior; Generate remains the sole lifecycle.
 
 ## Phase result
 
-`IMPLEMENTATION COMPLETE — DELIVERY PENDING`: T2V, model-proven frame modes, and all required
-reference modes for `bytedance/seedance-2.5` are zero-cost verified through contract fixtures and
-the mock Generate lifecycle. Unknown models remain fail-closed. Phase 8 still requires human review,
-merge, and canonical `origin/main` read-back before project-level `DONE`.
+`COMPLETE`: T2V, model-proven frame modes, and all required reference modes for
+`bytedance/seedance-2.5` were zero-cost verified through contract fixtures and the mock Generate
+lifecycle. Unknown models remain fail-closed. Phase 8 was merged and read back on canonical main at
+`d0d200f54b629d1298546274ebc91b8f3004dde7`; Phase 9 starts from that exact baseline.

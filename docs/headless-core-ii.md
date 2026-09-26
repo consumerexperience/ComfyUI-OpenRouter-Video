@@ -81,10 +81,11 @@ operation-ID fingerprint-version mismatch fails conservatively and never restore
 
 ## SQLite recovery
 
-Database schema v3 and JobRecord schema v2 are independent. Supported migration paths are fresh to
-v3, v1 to v2 to v3, and v2 to v3. The v2-to-v3 step leaves job bytes/semantics unchanged, deletes
-both capability-cache tables, and recreates them empty; only fresh successful discovery can
-repopulate external truth. Unsupported versions fail before mutation.
+Database schema v4 and JobRecord schema v2 are independent. Supported migration paths are fresh to
+v4, v1 to v2 to v3 to v4, v2 to v3 to v4, and v3 to v4. Cache migrations leave job
+bytes/semantics unchanged, delete both capability-cache tables, and recreate them empty; only fresh
+successful discovery can repopulate external capability and pricing truth. Unsupported versions
+fail before mutation.
 
 The store uses WAL, foreign keys, a 5000 ms busy timeout, and synchronous FULL. `operation_id` is
 the jobs-table primary key; non-null `job_id` is unique. The advisory fingerprint is neither unique
@@ -96,8 +97,8 @@ polling. A crash after remote acceptance but before local job-ID persistence rem
 distributed crash window; no client-side retry can eliminate it safely without upstream
 idempotency/reconciliation.
 
-Only approved recovery fields are stored. Capability cache rows contain normalized model metadata,
-not raw discovery payloads. `actual_cost_usd` is stored as exact decimal TEXT and is `None` when
+Only approved recovery fields are stored. Capability cache rows contain normalized model metadata
+and typed pricing evidence, not raw discovery payloads. `actual_cost_usd` is stored as exact decimal TEXT and is `None` when
 OpenRouter omits `usage.cost`; no local estimate is labelled actual cost.
 
 ## Media durability

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from openrouter_video.application import OperationInterrupted
+from openrouter_video.execution_hooks import ExecutionPhase
 from openrouter_video.models import (
     FrameReference,
     FrameType,
@@ -25,6 +26,8 @@ class AdapterExecutionError(RuntimeError):
 
 def _optional_text(value: str) -> str | None:
     normalized = value.strip()
+    if normalized == compat.AUTO_MODEL_DEFAULT:
+        return None
     return normalized or None
 
 
@@ -36,14 +39,40 @@ def _duration(value: int) -> int | None:
     return value or None
 
 
-def _seed(value: str) -> int | None:
+def _model(value: object) -> str:
+    if not isinstance(value, str):
+        raise AdapterExecutionError("UNSUPPORTED_PARAMETER: select a model before Generate.")
+    normalized = value.strip()
+    if not normalized or normalized == compat.MODEL_UNRESOLVED:
+        raise AdapterExecutionError("UNSUPPORTED_PARAMETER: select a model before Generate.")
+    return normalized
+
+
+def _seed(value: object) -> int | None:
+    if value is None or value == "":
+        return None
+    if isinstance(value, bool):
+        raise AdapterExecutionError("UNSUPPORTED_PARAMETER: seed must be an integer.")
+    if isinstance(value, int):
+        if value == -1:
+            return None
+        if value < -1:
+            raise AdapterExecutionError("UNSUPPORTED_PARAMETER: seed must be non-negative.")
+        return value
+    if not isinstance(value, str):
+        raise AdapterExecutionError("UNSUPPORTED_PARAMETER: seed must be an integer.")
     normalized = value.strip()
     if not normalized:
         return None
     try:
-        return int(normalized, 10)
+        parsed = int(normalized, 10)
     except ValueError:
         raise AdapterExecutionError("UNSUPPORTED_PARAMETER: seed must be an integer.") from None
+    if parsed == -1:
+        return None
+    if parsed < -1:
+        raise AdapterExecutionError("UNSUPPORTED_PARAMETER: seed must be non-negative.")
+    return parsed
 
 
 def _safe_job_id(value: str | None) -> str | None:
@@ -67,24 +96,27 @@ def _raise_product_error(result: GenerationResult) -> None:
     raise AdapterExecutionError(message)
 
 
-def _node_output(result: GenerationResult) -> object:
+async def _node_output(result: GenerationResult, node_id: str | None) -> object:
     _raise_product_error(result)
     if result.artifact is None:
         raise AdapterExecutionError(
             "INVALID_VIDEO_RESPONSE: no durable video artifact is available."
         )
     try:
+        await compat.report_phase(ExecutionPhase.NATIVE_VIDEO, node_id)
         video = to_native_video(result.artifact)
     except VideoBridgeError as exc:
         raise AdapterExecutionError(str(exc)) from None
     cost = format(result.actual_cost_usd, "f") if result.actual_cost_usd is not None else ""
-    return compat.IO.NodeOutput(
+    output = compat.IO.NodeOutput(
         video,
         result.job_id or "",
         result.model or "",
         cost,
         result.state.value,
     )
+    await compat.report_phase(ExecutionPhase.DONE, node_id)
+    return output
 
 
 def _outputs() -> list[object]:
@@ -182,7 +214,16 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                 compat.IO.String.Input("resolution", default="", advanced=True),
                 compat.IO.String.Input("aspect_ratio", default="", advanced=True),
                 compat.IO.String.Input("size", default="", advanced=True),
-                compat.IO.String.Input("seed", default="", advanced=True),
+                compat.IO.Int.Input(
+                    "seed",
+                    default=-1,
+                    min=-1,
+                    max=(1 << 63) - 1,
+                    step=1,
+                    control_after_generate=compat.IO.ControlAfterGenerate.randomize,
+                    display_mode=compat.IO.NumberDisplay.number,
+                    advanced=True,
+                ),
                 compat.IO.Boolean.Input("generate_audio", default=False, advanced=True),
                 compat.IO.String.Input("first_frame_url", default="", advanced=True),
                 compat.IO.String.Input("last_frame_url", default="", advanced=True),
@@ -207,7 +248,7 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         resolution: str = "",
         aspect_ratio: str = "",
         size: str = "",
-        seed: str = "",
+        seed: int | str | None = -1,
         generate_audio: bool = False,
         first_frame_url: str = "",
         last_frame_url: str = "",
@@ -216,7 +257,7 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         first = _optional_text(first_frame_url)
         last = _optional_text(last_frame_url)
         request = GenerationRequest(
-            model=model.strip(),
+            model=_model(model),
             prompt=prompt if prompt.strip() else None,
             duration=_duration(duration),
             resolution=_optional_text(resolution),
@@ -228,11 +269,12 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
             last_frame=FrameReference(FrameType.LAST, last) if last is not None else None,
             input_references=input_references,
         )
+        node_id = compat.current_node_id(cls)
         try:
-            result = await get_runtime().generate(request, compat.current_node_id(cls))
+            result = await get_runtime().generate(request, node_id)
         except OperationInterrupted:
             compat.raise_host_interrupt()
-        return _node_output(result)
+        return await _node_output(result, node_id)
 
 
 class OpenRouterVideoResume(compat.IO.ComfyNode):
@@ -261,11 +303,12 @@ class OpenRouterVideoResume(compat.IO.ComfyNode):
         normalized = job_id.strip()
         if not normalized:
             raise AdapterExecutionError("JOB_NOT_FOUND: job_id must not be empty.")
+        node_id = compat.current_node_id(cls)
         try:
-            result = await get_runtime().resume(normalized, compat.current_node_id(cls))
+            result = await get_runtime().resume(normalized, node_id)
         except OperationInterrupted:
             compat.raise_host_interrupt()
-        return _node_output(result)
+        return await _node_output(result, node_id)
 
 
 __all__ = (

@@ -9,6 +9,7 @@ import json
 import sys
 import threading
 import types
+from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -23,9 +24,10 @@ class _Field:
 
 
 class _RemoteOptions:
-    def __init__(self, *, route: str, refresh_button: bool) -> None:
+    def __init__(self, *, route: str, refresh_button: bool, control_after_refresh: str) -> None:
         self.route = route
         self.refresh_button = refresh_button
+        self.control_after_refresh = control_after_refresh
 
 
 class _Schema:
@@ -79,6 +81,10 @@ def _install_fake_numbered_api() -> None:
         Combo=types.SimpleNamespace(Input=_Field),
         String=types.SimpleNamespace(Input=_Field, Output=_Field),
         Int=types.SimpleNamespace(Input=_Field),
+        ControlAfterGenerate=types.SimpleNamespace(
+            fixed="fixed", increment="increment", decrement="decrement", randomize="randomize"
+        ),
+        NumberDisplay=types.SimpleNamespace(number="number", slider="slider"),
         Boolean=types.SimpleNamespace(Input=_Field),
         Video=types.SimpleNamespace(Output=_Field),
         Autogrow=Autogrow,
@@ -102,14 +108,18 @@ from openrouter_video.comfy.extension import OpenRouterVideoExtension  # noqa: E
 from openrouter_video.comfy.video import VideoBridgeError, to_native_video  # noqa: E402
 from openrouter_video.errors import RequestPolicyError  # noqa: E402
 from openrouter_video.models import (  # noqa: E402
+    FrameType,
     GenerationResult,
     InputReference,
     InputReferenceCollection,
     InputReferenceKind,
     LocalLifecycleState,
     ModelCapabilities,
+    PricingEvidence,
+    PricingSku,
     VideoArtifact,
 )
+from openrouter_video.pricing import EstimateAvailability, EstimateResult  # noqa: E402
 
 
 def _schema_inputs(schema: _Schema) -> dict[str, _Field]:
@@ -163,12 +173,16 @@ def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
     assert json.loads(json.dumps({"is_changed": second_token})) == {"is_changed": second_token}
 
     fields = _schema_inputs(generate)
-    assert fields["model"].options["options"] == []
+    assert fields["model"].options["options"] == ["SELECT MODEL"]
+    assert fields["model"].options["default"] == "SELECT MODEL"
     remote = fields["model"].options["remote"]
     assert remote.route == "/openrouter-video/v1/models"
     assert remote.refresh_button is True
+    assert remote.control_after_refresh == "first"
     assert fields["prompt"].options["multiline"] is True
     assert fields["duration"].options["default"] == 0
+    assert fields["seed"].options["default"] == -1
+    assert fields["seed"].options["control_after_generate"] == "randomize"
     assert fields["generate_audio"].options["default"] is False
     serialized = repr((generate.__dict__, resume.__dict__)).lower()
     for forbidden in (
@@ -329,6 +343,22 @@ def test_generate_rejects_invalid_seed(seed: str) -> None:
         asyncio.run(nodes.OpenRouterVideoGenerate.execute("vendor/model", "prompt", seed=seed))
 
 
+def test_unresolved_model_is_rejected_before_runtime_and_seed_omission_migrates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        nodes,
+        "get_runtime",
+        lambda: pytest.fail("unresolved model must not create the runtime"),
+    )
+    with pytest.raises(nodes.AdapterExecutionError, match="select a model"):
+        asyncio.run(nodes.OpenRouterVideoGenerate.execute("SELECT MODEL", "prompt"))
+
+    assert nodes._seed(-1) is None
+    assert nodes._seed(42) == 42
+    assert nodes._seed("42") == 42
+
+
 def test_resume_strips_job_id_and_has_no_submit_surface(monkeypatch: pytest.MonkeyPatch) -> None:
     calls: list[str] = []
 
@@ -373,18 +403,39 @@ def test_video_bridge_rejects_missing_and_outside_artifacts(
         to_native_video(VideoArtifact(outside, "video/mp4", 5))
 
 
+def test_comfy_owned_state_and_output_paths_are_explicit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    user = tmp_path / "user"
+    output = tmp_path / "output"
+    folder_paths = types.SimpleNamespace(
+        get_user_directory=lambda: str(user),
+        get_output_directory=lambda: str(output),
+    )
+    monkeypatch.setitem(sys.modules, "folder_paths", folder_paths)
+
+    assert compat.state_database_path() == user / "openrouter-video" / "state" / "jobs.sqlite3"
+    assert compat.output_directory() == output / "openrouter-video"
+
+
 def test_route_registration_is_thread_safe_lazy_and_idempotent(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     registered: list[tuple[str, object]] = []
 
     class RouteTable:
-        def get(self, path: str) -> Any:
+        def _register(self, method: str, path: str) -> Any:
             def decorator(handler: object) -> object:
-                registered.append((path, handler))
+                registered.append((f"{method} {path}", handler))
                 return handler
 
             return decorator
+
+        def get(self, path: str) -> Any:
+            return self._register("GET", path)
+
+        def post(self, path: str) -> Any:
+            return self._register("POST", path)
 
     server = types.SimpleNamespace(routes=RouteTable())
     monkeypatch.setattr(compat, "prompt_server", lambda: server)
@@ -400,7 +451,11 @@ def test_route_registration_is_thread_safe_lazy_and_idempotent(
     for thread in threads:
         thread.join()
 
-    assert registered == [("/openrouter-video/v1/models", routes._models_handler)]
+    assert registered == [
+        ("GET /openrouter-video/v1/models", routes._models_handler),
+        ("GET /openrouter-video/v1/ui-capabilities", routes._ui_capabilities_handler),
+        ("POST /openrouter-video/v1/cost-estimate", routes._cost_estimate_handler),
+    ]
 
 
 def test_models_route_returns_only_sorted_valid_ids_and_sanitized_errors(
@@ -424,9 +479,16 @@ def test_models_route_returns_only_sorted_valid_ids_and_sanitized_errors(
 
     monkeypatch.setattr(compat, "json_response", response)
     monkeypatch.setattr(routes, "get_runtime", Runtime)
-    assert asyncio.run(routes._models_handler(None)) == (["a/model", "z/model"], 200)
+    assert asyncio.run(routes._models_handler(None)) == (
+        ["SELECT MODEL", "a/model", "z/model"],
+        200,
+    )
     generate = nodes.OpenRouterVideoGenerate.define_schema()
-    assert _schema_inputs(generate)["model"].options["options"] == ["a/model", "z/model"]
+    assert _schema_inputs(generate)["model"].options["options"] == [
+        "SELECT MODEL",
+        "a/model",
+        "z/model",
+    ]
 
     class InvalidRuntime:
         async def catalog(self) -> object:
@@ -448,3 +510,97 @@ def test_models_route_returns_only_sorted_valid_ids_and_sanitized_errors(
         503,
     )
     assert "secret" not in repr(responses[-1])
+
+
+def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    observed = datetime(2026, 9, 26, 19, 54, 44, tzinfo=timezone.utc)
+
+    class Runtime:
+        async def effective_catalog(self) -> object:
+            return types.SimpleNamespace(
+                observed_at=observed,
+                models=(
+                    ModelCapabilities(
+                        "vendor/model",
+                        name="Model",
+                        supported_durations=(4, 5, 8),
+                        supported_resolutions=("480p", "768p"),
+                        supported_aspect_ratios=("16:9", "5:4"),
+                        supported_frame_types=frozenset({FrameType.FIRST}),
+                        supports_seed=None,
+                        generate_audio=False,
+                        pricing_evidence=PricingEvidence(
+                            (PricingSku("generate", Decimal("0.42")),)
+                        ),
+                    ),
+                ),
+            )
+
+    monkeypatch.setattr(routes, "get_runtime", Runtime)
+    monkeypatch.setattr(
+        compat,
+        "json_response",
+        lambda payload, *, status: (payload, status),
+    )
+
+    payload, status = asyncio.run(routes._ui_capabilities_handler(None))
+
+    assert status == 200
+    assert payload["observed_at"] == observed.isoformat()
+    projected = payload["models"][0]
+    assert projected["supported_resolutions"] == ("480p", "768p")
+    assert projected["supported_aspect_ratios"] == ("16:9", "5:4")
+    assert projected["supports_seed"] is None
+    serialized = repr(payload).lower()
+    assert "pricing" not in serialized
+    assert "0.42" not in serialized
+
+
+def test_cost_estimate_route_returns_prepared_result_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    observed = datetime(2026, 9, 26, 19, 54, 44, tzinfo=timezone.utc)
+    captured: list[object] = []
+
+    class Request:
+        async def json(self) -> object:
+            return {
+                "model_id": "vendor/model",
+                "duration": 4,
+                "resolution": "480p",
+                "aspect_ratio": "16:9",
+                "generate_audio": False,
+                "reference_mode": "first_frame",
+            }
+
+    class Runtime:
+        async def estimate_cost(self, inputs: object) -> EstimateResult:
+            captured.append(inputs)
+            return EstimateResult(
+                EstimateAvailability.AVAILABLE,
+                observed,
+                estimated_cost_usd=Decimal("0.140"),
+                provenance="catalogue pricing_skus.per-video-second-480p × duration",
+                applied_skus=("per-video-second-480p",),
+            )
+
+    monkeypatch.setattr(routes, "get_runtime", Runtime)
+    monkeypatch.setattr(
+        compat,
+        "json_response",
+        lambda payload, *, status: (payload, status),
+    )
+
+    payload, status = asyncio.run(routes._cost_estimate_handler(Request()))
+
+    assert status == 200
+    assert captured[0].model_id == "vendor/model"
+    assert payload == {
+        "availability": "AVAILABLE",
+        "observed_at": observed.isoformat(),
+        "applied_skus": ("per-video-second-480p",),
+        "estimated_cost_usd": "0.140",
+        "provenance": "catalogue pricing_skus.per-video-second-480p × duration",
+    }

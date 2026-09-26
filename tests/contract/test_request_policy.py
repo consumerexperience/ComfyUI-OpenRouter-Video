@@ -99,6 +99,7 @@ def test_frozen_release_identity_is_applied_exactly_to_every_operation() -> None
         assert headers["HTTP-Referer"] == EXPECTED_RELEASE_IDENTITY.referer
         assert headers["X-OpenRouter-Title"] == EXPECTED_RELEASE_IDENTITY.title
         assert headers["X-OpenRouter-Categories"] == ",".join(EXPECTED_RELEASE_IDENTITY.categories)
+        assert "X-OpenRouter-App-Visibility" not in headers
 
 
 def test_prepared_request_is_immutable_internal_and_repr_safe() -> None:

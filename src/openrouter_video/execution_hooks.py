@@ -16,6 +16,7 @@ class ExecutionPhase(str, Enum):
     ACCEPTED = "ACCEPTED"
     POLLING = "POLLING"
     DOWNLOADING = "DOWNLOADING"
+    NATIVE_VIDEO = "NATIVE VIDEO"
     DONE = "DONE"
 
 

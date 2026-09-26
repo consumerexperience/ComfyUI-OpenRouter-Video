@@ -15,6 +15,8 @@ from openrouter_video.models import (
     FrameType,
     GenerationRequest,
     ModelCapabilities,
+    PricingEvidence,
+    PricingSku,
     RemoteJobSnapshot,
     UsageCost,
 )
@@ -175,9 +177,15 @@ def _optional_int_tuple(value: object) -> tuple[int, ...] | None:
 
 def _parse_capability(value: Mapping[Any, Any]) -> ModelCapabilities:
     model_id = _safe_required_text(value.get("id"), "model identifier")
-    frame_values = _optional_string_tuple(value.get("supported_frame_images")) or ()
-    frame_types = frozenset(
-        FrameType(item) for item in frame_values if item in {member.value for member in FrameType}
+    frame_values = _optional_string_tuple(value.get("supported_frame_images"))
+    frame_types = (
+        frozenset(
+            FrameType(item)
+            for item in frame_values
+            if item in {member.value for member in FrameType}
+        )
+        if frame_values is not None
+        else None
     )
     audio_raw = value.get("generate_audio")
     seed_raw = value.get("seed")
@@ -192,7 +200,24 @@ def _parse_capability(value: Mapping[Any, Any]) -> ModelCapabilities:
         supported_frame_types=frame_types,
         generate_audio=audio_raw if isinstance(audio_raw, bool) else None,
         supports_seed=seed_raw if isinstance(seed_raw, bool) else None,
+        pricing_evidence=_parse_pricing_evidence(value.get("pricing_skus")),
     )
+
+
+def _parse_pricing_evidence(value: object) -> PricingEvidence | None:
+    if not isinstance(value, Mapping) or not value:
+        return None
+    parsed: list[PricingSku] = []
+    for raw_key, raw_rate in value.items():
+        try:
+            key = _safe_required_text(raw_key, "pricing SKU", maximum=128)
+        except MalformedOpenRouterResponseError:
+            return None
+        rate = _parse_cost(raw_rate)
+        if rate is None:
+            return None
+        parsed.append(PricingSku(key, rate))
+    return PricingEvidence(tuple(sorted(parsed, key=lambda sku: sku.key)))
 
 
 def _parse_cost(value: object) -> Decimal | None:

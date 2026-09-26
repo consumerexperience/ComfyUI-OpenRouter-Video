@@ -1,0 +1,1 @@
+Create a simple four-second geometric transition from the supplied first frame to the supplied last frame. The red square should travel visibly from left to right and become green while the tall white outline moves from right to left. Keep the composition synthetic, silent, and free of text, logos, people, and copyrighted characters.

@@ -16,10 +16,12 @@ from openrouter_video.models import (
     JobRecord,
     LocalLifecycleState,
     ModelCapabilities,
+    PricingEvidence,
+    PricingSku,
     ProductErrorCode,
 )
 
-DATABASE_SCHEMA_VERSION: Final = 3
+DATABASE_SCHEMA_VERSION: Final = 4
 JOB_RECORD_SCHEMA_VERSION: Final = 2
 LEGACY_IMPORTED_MODEL_SENTINEL: Final = "unknown/remote-job"
 
@@ -210,7 +212,7 @@ def _parse_job(row: sqlite3.Row) -> JobRecord:
 
 
 class JobStore:
-    """SQLite schema-v3 store with independently versioned v2 job records."""
+    """SQLite schema-v4 store with independently versioned v2 job records."""
 
     __slots__ = ("_path",)
 
@@ -240,7 +242,7 @@ class JobStore:
     def _initialize(self) -> None:
         with self._connect() as connection:
             version = int(connection.execute("PRAGMA user_version").fetchone()[0])
-            if version not in (0, 1, 2, DATABASE_SCHEMA_VERSION):
+            if version not in (0, 1, 2, 3, DATABASE_SCHEMA_VERSION):
                 raise PersistenceError("Unsupported SQLite schema version")
             if version == 0:
                 user_tables = connection.execute(
@@ -255,6 +257,9 @@ class JobStore:
                 version = 2
             if version == 2:
                 self._migrate_v2_to_v3(connection)
+                version = 3
+            if version == 3:
+                self._migrate_v3_to_v4(connection)
             connection.execute(
                 """
                 CREATE TABLE IF NOT EXISTS jobs (
@@ -295,9 +300,10 @@ class JobStore:
                     supported_resolutions TEXT,
                     supported_aspect_ratios TEXT,
                     supported_sizes TEXT,
-                    supported_frame_types TEXT NOT NULL,
+                    supported_frame_types TEXT,
                     generate_audio INTEGER,
-                    supports_seed INTEGER
+                    supports_seed INTEGER,
+                    pricing_skus TEXT
                 )
                 """
             )
@@ -354,6 +360,13 @@ class JobStore:
     @staticmethod
     def _migrate_v2_to_v3(connection: sqlite3.Connection) -> None:
         """Discard stale external capability truth without touching durable jobs."""
+
+        connection.execute("DROP TABLE IF EXISTS capability_models")
+        connection.execute("DROP TABLE IF EXISTS capability_catalog_meta")
+
+    @staticmethod
+    def _migrate_v3_to_v4(connection: sqlite3.Connection) -> None:
+        """Invalidate cached external truth while preserving all durable jobs."""
 
         connection.execute("DROP TABLE IF EXISTS capability_models")
         connection.execute("DROP TABLE IF EXISTS capability_catalog_meta")
@@ -468,8 +481,8 @@ class JobStore:
                         INSERT INTO capability_models (
                             model_id, canonical_slug, name, supported_durations,
                             supported_resolutions, supported_aspect_ratios, supported_sizes,
-                            supported_frame_types, generate_audio, supports_seed
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            supported_frame_types, generate_audio, supports_seed, pricing_skus
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                         (
                             item.model_id,
@@ -479,12 +492,17 @@ class JobStore:
                             _json_tuple(item.supported_resolutions),
                             _json_tuple(item.supported_aspect_ratios),
                             _json_tuple(item.supported_sizes),
-                            json.dumps(
-                                sorted(frame.value for frame in item.supported_frame_types),
-                                separators=(",", ":"),
+                            (
+                                json.dumps(
+                                    sorted(frame.value for frame in item.supported_frame_types),
+                                    separators=(",", ":"),
+                                )
+                                if item.supported_frame_types is not None
+                                else None
                             ),
                             _optional_bool(item.generate_audio),
                             _optional_bool(item.supports_seed),
+                            _pricing_json(item.pricing_evidence),
                         ),
                     )
                 connection.execute(
@@ -555,15 +573,56 @@ def _load_optional_bool(value: object) -> bool | None:
     return bool(value)
 
 
+def _pricing_json(value: PricingEvidence | None) -> str | None:
+    if value is None:
+        return None
+    return json.dumps(
+        {sku.key: format(sku.rate_usd, "f") for sku in value.skus},
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def _load_pricing(value: object) -> PricingEvidence | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise PersistenceError("Capability pricing evidence is corrupt")
+    try:
+        decoded = json.loads(value)
+    except json.JSONDecodeError:
+        raise PersistenceError("Capability pricing evidence is corrupt") from None
+    if not isinstance(decoded, dict):
+        raise PersistenceError("Capability pricing evidence is corrupt")
+    skus: list[PricingSku] = []
+    for key, raw_rate in decoded.items():
+        if not isinstance(key, str) or not isinstance(raw_rate, str):
+            raise PersistenceError("Capability pricing evidence is corrupt")
+        try:
+            rate = Decimal(raw_rate)
+        except InvalidOperation:
+            raise PersistenceError("Capability pricing evidence is corrupt") from None
+        if not rate.is_finite() or rate < 0:
+            raise PersistenceError("Capability pricing evidence is corrupt")
+        skus.append(PricingSku(key, rate))
+    return PricingEvidence(tuple(sorted(skus, key=lambda sku: sku.key)))
+
+
 def _parse_capability(row: sqlite3.Row) -> ModelCapabilities:
     model_id = row["model_id"]
     if not isinstance(model_id, str) or not model_id:
         raise PersistenceError("Capability model identity is corrupt")
     try:
-        frame_raw = json.loads(str(row["supported_frame_types"]))
-        if not isinstance(frame_raw, list) or any(not isinstance(item, str) for item in frame_raw):
-            raise PersistenceError("Capability frame data is corrupt")
-        frames = frozenset(FrameType(item) for item in frame_raw)
+        frame_value = row["supported_frame_types"]
+        if frame_value is None:
+            frames = None
+        else:
+            frame_raw = json.loads(str(frame_value))
+            if not isinstance(frame_raw, list) or any(
+                not isinstance(item, str) for item in frame_raw
+            ):
+                raise PersistenceError("Capability frame data is corrupt")
+            frames = frozenset(FrameType(item) for item in frame_raw)
         durations = _load_optional_tuple(row["supported_durations"], int)
         resolutions = _load_optional_tuple(row["supported_resolutions"], str)
         aspects = _load_optional_tuple(row["supported_aspect_ratios"], str)
@@ -579,6 +638,7 @@ def _parse_capability(row: sqlite3.Row) -> ModelCapabilities:
             supported_frame_types=frames,
             generate_audio=_load_optional_bool(row["generate_audio"]),
             supports_seed=_load_optional_bool(row["supports_seed"]),
+            pricing_evidence=_load_pricing(row["pricing_skus"]),
         )
     except (TypeError, ValueError, json.JSONDecodeError):
         raise PersistenceError("Capability catalog record is corrupt") from None

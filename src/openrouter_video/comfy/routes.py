@@ -6,8 +6,10 @@ import threading
 from typing import Any, Final
 
 from openrouter_video.errors import ProductFailureError, RequestPolicyError
+from openrouter_video.pricing import CostEstimateInputs, ReferenceMode
 
 from . import compat
+from .projection import project_model
 from .runtime import get_runtime
 
 _REGISTRY_ATTRIBUTE: Final = "_openrouter_video_registered_routes"
@@ -34,7 +36,105 @@ async def _models_handler(_: Any) -> Any:
         return compat.json_response({"error": "model_catalog_internal_error"}, status=500)
     sorted_model_ids = tuple(sorted(model_ids))
     compat.cache_model_options(sorted_model_ids)
-    return compat.json_response(list(sorted_model_ids), status=200)
+    return compat.json_response([compat.MODEL_UNRESOLVED, *sorted_model_ids], status=200)
+
+
+async def _ui_capabilities_handler(_: Any) -> Any:
+    try:
+        observation = await get_runtime().effective_catalog()
+        projected = tuple(
+            project_model(model, observation.observed_at) for model in observation.models
+        )
+    except (ProductFailureError, RequestPolicyError):
+        return compat.json_response({"error": "model_catalog_unavailable"}, status=503)
+    except Exception:
+        return compat.json_response({"error": "model_catalog_internal_error"}, status=500)
+    return compat.json_response(
+        {
+            "observed_at": observation.observed_at.isoformat(),
+            "models": [
+                item.as_dict() for item in sorted(projected, key=lambda item: item.model_id)
+            ],
+        },
+        status=200,
+    )
+
+
+async def _cost_estimate_handler(request: Any) -> Any:
+    try:
+        body = await request.json()
+        inputs = _parse_estimate_inputs(body)
+        result = await get_runtime().estimate_cost(inputs)
+    except (TypeError, ValueError):
+        return compat.json_response({"error": "invalid_estimate_request"}, status=400)
+    except (ProductFailureError, RequestPolicyError):
+        return compat.json_response({"error": "model_catalog_unavailable"}, status=503)
+    except Exception:
+        return compat.json_response({"error": "cost_estimate_internal_error"}, status=500)
+
+    payload: dict[str, object] = {
+        "availability": result.availability.value,
+        "observed_at": result.observed_at.isoformat(),
+        "applied_skus": result.applied_skus,
+    }
+    if result.estimated_cost_usd is not None:
+        payload["estimated_cost_usd"] = format(result.estimated_cost_usd, "f")
+    if result.provenance is not None:
+        payload["provenance"] = result.provenance
+    if result.reason is not None:
+        payload["reason"] = result.reason
+    return compat.json_response(payload, status=200)
+
+
+def _parse_estimate_inputs(value: object) -> CostEstimateInputs:
+    if not isinstance(value, dict):
+        raise ValueError("estimate request must be an object")
+    allowed = {
+        "model_id",
+        "duration",
+        "resolution",
+        "aspect_ratio",
+        "size",
+        "generate_audio",
+        "reference_mode",
+    }
+    if set(value) - allowed:
+        raise ValueError("estimate request contains unsupported fields")
+    model_id = _required_text(value.get("model_id"))
+    duration_raw = value.get("duration")
+    if duration_raw is not None and (
+        isinstance(duration_raw, bool) or not isinstance(duration_raw, int) or duration_raw <= 0
+    ):
+        raise ValueError("duration is invalid")
+    audio = value.get("generate_audio", False)
+    if not isinstance(audio, bool):
+        raise ValueError("generate_audio is invalid")
+    reference_raw = value.get("reference_mode", ReferenceMode.NONE.value)
+    if not isinstance(reference_raw, str):
+        raise ValueError("reference_mode is invalid")
+    return CostEstimateInputs(
+        model_id=model_id,
+        duration=duration_raw,
+        resolution=_optional_text(value.get("resolution")),
+        aspect_ratio=_optional_text(value.get("aspect_ratio")),
+        size=_optional_text(value.get("size")),
+        generate_audio=audio,
+        reference_mode=ReferenceMode(reference_raw),
+    )
+
+
+def _required_text(value: object) -> str:
+    if not isinstance(value, str) or not value or value != value.strip() or len(value) > 512:
+        raise ValueError("required text is invalid")
+    if any(ord(character) < 32 or ord(character) == 127 for character in value):
+        raise ValueError("required text is invalid")
+    return value
+
+
+def _optional_text(value: object) -> str | None:
+    if value is None:
+        return None
+    return _required_text(value)
 
 
 def register_routes() -> None:
@@ -53,10 +153,17 @@ def register_routes() -> None:
         if registered is None:
             registered = set()
             setattr(server, _REGISTRY_ATTRIBUTE, registered)
-        if compat.MODEL_ROUTE in registered:
-            return
-        server.routes.get(compat.MODEL_ROUTE)(_models_handler)
-        registered.add(compat.MODEL_ROUTE)
+        routes = (
+            ("get", compat.MODEL_ROUTE, _models_handler),
+            ("get", compat.UI_CAPABILITIES_ROUTE, _ui_capabilities_handler),
+            ("post", compat.COST_ESTIMATE_ROUTE, _cost_estimate_handler),
+        )
+        for method, path, handler in routes:
+            marker = (method, path)
+            if marker in registered:
+                continue
+            getattr(server.routes, method)(path)(handler)
+            registered.add(marker)
 
 
 __all__ = ("register_routes",)

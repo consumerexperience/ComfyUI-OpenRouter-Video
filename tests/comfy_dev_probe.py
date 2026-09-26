@@ -51,7 +51,7 @@ def main() -> None:
 
     import execution
     import nodes as comfy_nodes
-    from comfy_api.v0_0_2 import ComfyAPI, InputImpl
+    from comfy_api.v0_0_2 import IO, ComfyAPI, InputImpl
     from comfy_extras.nodes_video import GetVideoComponents
 
     from openrouter_video.comfy import compat
@@ -83,6 +83,15 @@ def main() -> None:
         "ACTUAL_COST_USD",
         "STATUS",
     ]
+    assert {item.value for item in IO.ControlAfterGenerate} == {
+        "fixed",
+        "increment",
+        "decrement",
+        "randomize",
+    }
+    seed_input = next(value for value in generate_schema.inputs if value.id == "seed")
+    assert seed_input.control_after_generate is IO.ControlAfterGenerate.randomize
+    assert seed_input.display_mode is IO.NumberDisplay.number
 
     metadata = json.dumps(
         {
@@ -157,7 +166,7 @@ def main() -> None:
             "resolution": "",
             "aspect_ratio": "",
             "size": "",
-            "seed": "",
+            "seed": -1,
             "generate_audio": False,
             "first_frame_url": "",
             "last_frame_url": "",
@@ -215,7 +224,7 @@ def main() -> None:
                 "resolution": "",
                 "aspect_ratio": "",
                 "size": "",
-                "seed": "",
+                "seed": -1,
                 "generate_audio": False,
                 "first_frame_url": "",
                 "last_frame_url": "",
@@ -270,7 +279,7 @@ def main() -> None:
                 "resolution": "",
                 "aspect_ratio": "",
                 "size": "",
-                "seed": "",
+                "seed": -1,
                 "generate_audio": False,
                 "first_frame_url": "",
                 "last_frame_url": "",

@@ -134,14 +134,22 @@ def mode_enforcement_matrix(
     return {
         GenerationMode.T2V: CapabilityModeStatus.READY,
         GenerationMode.FIRST_FRAME: (
-            CapabilityModeStatus.READY
-            if FrameType.FIRST in frames
-            else CapabilityModeStatus.UNSUPPORTED
+            CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+            if frames is None
+            else (
+                CapabilityModeStatus.READY
+                if FrameType.FIRST in frames
+                else CapabilityModeStatus.UNSUPPORTED
+            )
         ),
         GenerationMode.FIRST_PLUS_LAST: (
-            CapabilityModeStatus.READY
-            if {FrameType.FIRST, FrameType.LAST}.issubset(frames)
-            else CapabilityModeStatus.UNSUPPORTED
+            CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+            if frames is None
+            else (
+                CapabilityModeStatus.READY
+                if {FrameType.FIRST, FrameType.LAST}.issubset(frames)
+                else CapabilityModeStatus.UNSUPPORTED
+            )
         ),
         GenerationMode.MULTI_IMAGE_REFERENCE: multi_image,
         GenerationMode.VIDEO_REFERENCE: video,
@@ -240,6 +248,22 @@ class CapabilityService:
             )
         )
 
+    async def effective_catalog(self) -> CapabilityObservation:
+        """Return catalogue truth with overlays only while the observation is fresh."""
+
+        observation = await self.catalog()
+        if not self.is_fresh(observation):
+            return observation
+        return CapabilityObservation(
+            observation.observed_at,
+            tuple(apply_capability_overlay(model) for model in observation.models),
+        )
+
+    def is_fresh(self, observation: CapabilityObservation) -> bool:
+        """Return whether external truth is inside the approved freshness window."""
+
+        return self._now() - observation.observed_at <= FRESH_TTL
+
 
 def _retryable_discovery(error: BaseException) -> bool:
     if isinstance(error, TransportError):
@@ -321,24 +345,27 @@ class RequestValidator:
             "aspect ratio",
         )
         self._supported(request.size, capabilities.supported_sizes, "size")
-        if request.seed is not None and capabilities.supports_seed is False:
-            self._fail(ProductErrorCode.UNSUPPORTED_PARAMETER, "Seed is not supported.")
+        if request.seed is not None and capabilities.supports_seed is not True:
+            self._fail(
+                ProductErrorCode.UNSUPPORTED_PARAMETER,
+                "Seed is not positively supported by this model.",
+            )
         if request.generate_audio and capabilities.generate_audio is not True:
             self._fail(
                 ProductErrorCode.UNSUPPORTED_PARAMETER,
                 "Generated audio is not positively supported by this model.",
             )
-        if (
-            request.first_frame is not None
-            and FrameType.FIRST not in capabilities.supported_frame_types
+        if request.first_frame is not None and (
+            capabilities.supported_frame_types is None
+            or FrameType.FIRST not in capabilities.supported_frame_types
         ):
             self._fail(
                 ProductErrorCode.UNSUPPORTED_PARAMETER,
                 "First-frame guidance is not positively supported by this model.",
             )
-        if (
-            request.last_frame is not None
-            and FrameType.LAST not in capabilities.supported_frame_types
+        if request.last_frame is not None and (
+            capabilities.supported_frame_types is None
+            or FrameType.LAST not in capabilities.supported_frame_types
         ):
             self._fail(
                 ProductErrorCode.UNSUPPORTED_PARAMETER,

@@ -1,88 +1,70 @@
 # Active execution checkpoint
 
-## Canonical baseline
+## Authority and baseline
 
-- Stage: `PHASE 8 MULTIMODAL EXPANSION — IMPLEMENTED AND ZERO-COST VERIFIED, DELIVERY PENDING`
-- Branch: `phase-8/multimodal-expansion`
-- Canonical starting main: `e4b116a88147d19fa69e376a8b1873593fe784b8`
-- Last known suite before Phase 8: `183 passed`
-- Contract drift: `PRESENT — typed frame media shape`
-- Upstream expansion: `PRESENT — typed image/video references`
+- Stage: `PHASE 9 — LOCAL ZERO-COST IMPLEMENTATION IN PROGRESS`
+- Branch: `phase-9/release-hardening-live-validation`
+- Canonical starting main: `d0d200f54b629d1298546274ebc91b8f3004dde7`
+- Phase 8: `COMPLETE`
+- Paid Phase-9 submits: `0`
+- Paid live execution: `NOT AUTHORIZED`
+- Production ComfyUI `8188`: `NOT TOUCHED`
 
-## Phase-8.0 evidence result
+## Implemented checkpoint
 
-- Sanitized credential-free `GET /api/v1/videos/models`: `200`, 29 models
-- Observation: `2026-09-26T09:52:56.128152+00:00`
-- Level A exposes `supported_frame_images` per model.
-- Level A exposes no `input_modalities`, direct reference capability, reference kind/count/mix, or
-  prompt-requirement field.
-- T2V: `READY`
-- First frame / first+last: `READY` only when the selected model's Level-A frame set proves it;
-  otherwise `UNSUPPORTED`.
-- ADR-030 exact-ID overlay: `ACCEPTED` by Product Owner on 2026-09-26.
-- Multi-image / video / mixed references: `READY` for `bytedance/seedance-2.5`; unresolved models
-  remain scoped `CAPABILITY_SIGNAL_GAP` or `UNSUPPORTED`.
-- Prompt-optional reference generation: `DEFERRED`; prompt remains required for all v0.1 Generate.
-- No provider, family, name, pattern, or cross-model inference is implemented.
+- Typed catalogue `pricing_skus` evidence retained inside Core only.
+- Conservative model-agnostic `PreflightCostEstimator` returns `AVAILABLE` or `UNAVAILABLE`.
+- Sanitized capability-only UI projection and local routes added.
+- New Generate nodes start at unresolved `SELECT MODEL`; the first catalogue model is not selected.
+- Seed uses native integer and `ControlAfterGenerate.randomize`; `-1` is the local omission sentinel.
+- A presentation-only frontend helper projects complete catalogue values, paid-intent invalidation,
+  geometry mode, capability status, and prepared estimate results without model or pricing tables.
+- Core `RequestValidator` remains final submit authority.
+- Progress now presents `NATIVE VIDEO` before adapter-level `DONE` without changing Core lifecycle.
+- Capability cache schema v4 stores typed pricing evidence; v3 cache truth is invalidated while jobs
+  remain preserved.
+- AppIdentity equality and absence of the public-attribution opt-out header are regression-tested.
+- Synthetic five-case fixture corpus and prompts are locally frozen and hash-validated.
 
-## Implemented product delta
+## Compatibility snapshot
 
-- Immutable image/video input-reference domain contracts and ordered collection
-- Exact occurrence preservation: repeated links are not deduplicated
-- Typed nested frame serialization and typed image/video reference serialization
-- Frame/reference mutual exclusion before discovery or submit authority
-- Video reference remains Generate transport only; no Edit/Extend semantics
-- Independent mode-level enforcement matrix with scoped blocking
-- Generic Level-A-plus-overlay resolver with exact-ID data, field provenance, conflict blocking,
-  fresh-catalog requirement, and initial Seedance 2.5 limit of 50
-- Fingerprint v2 for new Generate operations; v1 rows remain unchanged
-- Database schema v3 separated from JobRecord schema v2
-- Transactional v1-to-v2-to-v3 and v2-to-v3 paths; cache truth is destroyed, not migrated
-- Five pinned V3 nodes: image reference, video reference, Autogrow collection, Generate, Resume
-- Existing Generate lifecycle, native VIDEO, and submit-incapable Resume preserved
+| Host | Commit | Classification | Probe result |
+| --- | --- | --- | --- |
+| ComfyUI `v0.34.3` | `87465b8f1f64a27a46f16f22b13b410494dca66d` | release-blocking historical anchor | `PASS` |
+| ComfyUI `v0.35.0` | `40c4fcdf513a4523e39d54a9d391908af8df8171` | intermediate probe | `PASS` |
+| ComfyUI `v0.36.0` | `ee71d5c4993f29086b27fde1629a945ae48425bf` | intermediate probe | `PASS` |
+| ComfyUI `v0.37.0` | `73c9bad4d21e7addbe1d13bc92eee0f1431b017d` | release-blocking frozen current target | `PASS` |
 
-## Verification snapshot
+The v0.35–v0.37 probes used detached worktrees and the pinned CPU DEV interpreter. Their exact
+upstream `comfy-aimdo==0.5.5` dependency was installed only into a temporary probe target; the
+v0.34.3 DEV environment was not mutated.
 
-- Repository pytest: `206 passed`
-- Ruff lint: `PASS`
-- Ruff format check: `PASS`
-- Strict mypy: `PASS — 57 source files`
-- Required reference modes: `PASS — exact payload + complete mock Generate lifecycle`
-- Level-A precedence/conflict, exact-ID-only resolution, stale-LKG block, and count limit: `PASS`
-- Pinned V3 Autogrow/custom-link probe: `PASS`
-- Autogrow zero/one/many, order, repeated occurrence: `PASS`
-- Repeated PromptExecutor Queue executions: `PASS`
-- Pinned native MP4/WebM VIDEO regression: `PASS`
-- sdist and wheel build: `PASS`
-- Clean-wheel install/import: `PASS`
-- pip-audit: `No known vulnerabilities found`; unpublished local package name is unauditable
-- pip check: `PASS`
-- Pinned Comfy CPU quick-test with isolated in-memory database: `PASS`
+## Current verification
 
-## Security and billing state
+- Repository pytest: `219 passed`.
+- Focused fixture/frontend/adapter/pricing tests: `23 passed`.
+- Local media validator: `PASS — 9 files / 5 cases`.
+- Ruff lint: `PASS`.
+- Ruff format: `PASS`.
+- Strict mypy: `PASS — 63 source files`.
+- Node syntax check for the presentation helper: `PASS`.
+- Core sdist/wheel build and clean-wheel import: `PASS`.
+- `pip-audit`: `PASS — no known vulnerabilities`.
+- `pip check`: `PASS`.
+- Comfy runtime probe: `PASS` on all four frozen matrix entries.
 
-- Paid generation submits: `0`
-- Credits spent: `$0`
-- Production credential access: `NO`
-- Credential-bearing subprocesses: `0`
-- Read-only catalog GET observations: `2`
-- COMFY PROD touched: `NO`
-- Project telemetry: `NONE`
-- Canonical AppIdentity: unchanged
+## Evidence semantics
 
-## Delivery state
+- `CONTRACT_DRIFT`: `NOT CONFIRMED`.
+- `COMPATIBILITY_RISK`: `PRESENT` because `comfy_api.v0_0_2` delegates into mutable latest code.
+- `DOCUMENTATION_DRIFT`: being corrected in this tranche.
+- `UPSTREAM EXPANSION`: record only; no Phase-9 product expansion.
+- Phase-7 T2V evidence: retrospective record added; evidence-impact review remains required if the
+  shared submit/serialization/lifecycle/content/native-VIDEO path changes materially.
 
-- Local implementation: `COMPLETE AND ZERO-COST VERIFIED`
-- Verified ADR-030 implementation commit: `8ceb23ff3a06cbbe53184269156b2e32e0e06fbe`
-- Feature branch: `PUSHED THROUGH 9508f03a9533575daa83fbe435417506a27f2586`
-- PR: `#15 — https://github.com/consumerexperience/ComfyUI-OpenRouter-Video/pull/15`
-- PR base/head: `main <- phase-8/multimodal-expansion`
-- Required CI / CodeQL: `7/7 PASS on 9508f03a9533575daa83fbe435417506a27f2586`;
-  every later checkpoint-only head still requires live GitHub read-back before merge
-- Release: not published
-- Merge: `HUMAN ONLY — NOT AUTHORIZED`
+## Next exact action
 
-## Open gate and next exact action
-
-Obtain human review and merge for PR #15 after confirming required CI and CodeQL on its exact current
-head. Read back canonical `origin/main` after the human merge before declaring Phase 8 `DONE`.
+Complete the remaining Local Zero-Cost RC Gate: install/upgrade/archive/security verification,
+workflow migration coverage, full repository gates, and exact local commit freeze. Do not push,
+publish assets, access a production key, or execute any paid POST before the remote gate and a new
+immediate Product Owner authorization.

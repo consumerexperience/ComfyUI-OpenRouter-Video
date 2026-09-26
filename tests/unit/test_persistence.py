@@ -15,6 +15,8 @@ from openrouter_video.models import (
     JobRecord,
     LocalLifecycleState,
     ModelCapabilities,
+    PricingEvidence,
+    PricingSku,
     ProductErrorCode,
 )
 from openrouter_video.persistence import (
@@ -96,6 +98,9 @@ def test_capability_cache_round_trips_normalized_fields_only(tmp_path: Path) -> 
         supported_frame_types=frozenset({FrameType.FIRST}),
         generate_audio=True,
         supports_seed=False,
+        pricing_evidence=PricingEvidence(
+            (PricingSku("per-video-second-720p", Decimal("0.03125")),)
+        ),
     )
 
     store.replace_capability_catalog((capability,), NOW)
@@ -261,7 +266,7 @@ def test_fresh_database_is_schema_v3_with_nullable_v2_job_record(tmp_path: Path)
     assert columns["model"][3] == 0
 
 
-def test_v2_to_v3_preserves_job_semantics_and_invalidates_capability_cache(
+def test_v2_to_current_preserves_job_semantics_and_invalidates_capability_cache(
     tmp_path: Path,
 ) -> None:
     path = tmp_path / "jobs.sqlite3"
@@ -284,9 +289,32 @@ def test_v2_to_v3_preserves_job_semantics_and_invalidates_capability_cache(
     assert migrated.get_by_operation_id("operation-1") == before == accepted
     assert migrated.load_capability_catalog() is None
     with sqlite3.connect(path) as connection:
-        assert connection.execute("PRAGMA user_version").fetchone()[0] == 3
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == DATABASE_SCHEMA_VERSION
         assert connection.execute("SELECT COUNT(*) FROM capability_models").fetchone()[0] == 0
         assert connection.execute("SELECT COUNT(*) FROM capability_catalog_meta").fetchone()[0] == 0
+
+
+def test_v3_to_v4_preserves_jobs_and_invalidates_old_capability_truth(tmp_path: Path) -> None:
+    path = tmp_path / "jobs.sqlite3"
+    store = JobStore(path)
+    accepted = replace(
+        _submitting(),
+        local_state=LocalLifecycleState.ACCEPTED,
+        job_id="job-v3",
+        accepted_at=NOW,
+    )
+    assert store.insert(accepted)
+    store.replace_capability_catalog((ModelCapabilities("vendor/model"),), NOW)
+    with sqlite3.connect(path) as connection:
+        connection.execute("PRAGMA user_version = 3")
+        connection.commit()
+
+    migrated = JobStore(path)
+
+    assert migrated.get_by_job_id("job-v3") == accepted
+    assert migrated.load_capability_catalog() is None
+    with sqlite3.connect(path) as connection:
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == 4
 
 
 def test_unknown_schema_version_fails_closed(tmp_path: Path) -> None:

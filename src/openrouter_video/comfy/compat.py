@@ -12,6 +12,10 @@ from openrouter_video.execution_hooks import ExecutionPhase
 
 EXPECTED_API_VERSION: Final = "0.0.2"
 MODEL_ROUTE: Final = "/openrouter-video/v1/models"
+UI_CAPABILITIES_ROUTE: Final = "/openrouter-video/v1/ui-capabilities"
+COST_ESTIMATE_ROUTE: Final = "/openrouter-video/v1/cost-estimate"
+MODEL_UNRESOLVED: Final = "SELECT MODEL"
+AUTO_MODEL_DEFAULT: Final = "AUTO / MODEL DEFAULT"
 _CUSTOM_FACTORY = getattr(IO, "Custom", None)
 INPUT_REFERENCE_IO: Any = (
     _CUSTOM_FACTORY("OPENROUTER_VIDEO_INPUT_REFERENCE") if _CUSTOM_FACTORY is not None else None
@@ -25,7 +29,8 @@ _PHASE_ORDINAL: Final = {
     ExecutionPhase.ACCEPTED: 3,
     ExecutionPhase.POLLING: 4,
     ExecutionPhase.DOWNLOADING: 5,
-    ExecutionPhase.DONE: 6,
+    ExecutionPhase.NATIVE_VIDEO: 6,
+    ExecutionPhase.DONE: 7,
 }
 _CACHE_TOKEN_LOCK = threading.Lock()
 _cache_token = 0
@@ -44,6 +49,9 @@ def validate_host_api() -> None:
     required = (
         getattr(IO, "RemoteOptions", None),
         getattr(getattr(IO, "Combo", None), "Input", None),
+        getattr(getattr(IO, "Int", None), "Input", None),
+        getattr(IO, "ControlAfterGenerate", None),
+        getattr(IO, "NumberDisplay", None),
         getattr(getattr(IO, "Video", None), "Output", None),
         getattr(getattr(IO, "Autogrow", None), "Input", None),
         getattr(IO, "Custom", None),
@@ -62,9 +70,19 @@ def model_input() -> Any:
 
     validate_host_api()
     with _MODEL_OPTIONS_LOCK:
-        options = list(_model_options)
-    remote = IO.RemoteOptions(route=MODEL_ROUTE, refresh_button=True)
-    return IO.Combo.Input("model", options=options, remote=remote)
+        options = [MODEL_UNRESOLVED, *_model_options]
+    remote = IO.RemoteOptions(
+        route=MODEL_ROUTE,
+        refresh_button=True,
+        control_after_refresh="first",
+    )
+    return IO.Combo.Input(
+        "model",
+        options=options,
+        default=MODEL_UNRESOLVED,
+        tooltip="Select a current OpenRouter video model. No model is selected by default.",
+        remote=remote,
+    )
 
 
 def cache_model_options(model_ids: tuple[str, ...]) -> None:
@@ -121,7 +139,10 @@ async def report_phase(phase: ExecutionPhase, node_id: str | None) -> None:
 
     if node_id is None:
         return
-    await ComfyAPI().execution.set_progress(_PHASE_ORDINAL[phase], len(_PHASE_ORDINAL), node_id)
+    try:
+        await ComfyAPI().execution.set_progress(_PHASE_ORDINAL[phase], len(_PHASE_ORDINAL), node_id)
+    except Exception:
+        return
 
 
 def raise_host_interrupt() -> NoReturn:
@@ -161,11 +182,15 @@ def json_response(payload: object, *, status: int) -> Any:
 
 __all__ = (
     "ComfyExtension",
+    "AUTO_MODEL_DEFAULT",
     "EXPECTED_API_VERSION",
     "IO",
     "INPUT_REFERENCE_COLLECTION_IO",
     "INPUT_REFERENCE_IO",
+    "COST_ESTIMATE_ROUTE",
     "MODEL_ROUTE",
+    "MODEL_UNRESOLVED",
+    "UI_CAPABILITIES_ROUTE",
     "UnsupportedComfyError",
     "cache_model_options",
     "current_node_id",

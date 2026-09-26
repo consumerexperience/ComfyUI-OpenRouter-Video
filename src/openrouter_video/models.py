@@ -41,6 +41,21 @@ class InputReferenceCapabilityField(str, Enum):
     MIXED_IMAGE_VIDEO_REFERENCES = "mixed_image_video_references"
 
 
+@dataclass(frozen=True, slots=True)
+class PricingSku:
+    """One normalized non-negative catalogue price with an opaque SKU key."""
+
+    key: str
+    rate_usd: Decimal
+
+
+@dataclass(frozen=True, slots=True)
+class PricingEvidence:
+    """Typed catalogue pricing evidence retained inside Core only."""
+
+    skus: tuple[PricingSku, ...]
+
+
 class LocalLifecycleState(str, Enum):
     """Durable local lifecycle states, including ADR-029 rejection state."""
 
@@ -199,10 +214,11 @@ class ModelCapabilities:
     supported_resolutions: tuple[str, ...] | None = None
     supported_aspect_ratios: tuple[str, ...] | None = None
     supported_sizes: tuple[str, ...] | None = None
-    supported_frame_types: frozenset[FrameType] = frozenset()
+    supported_frame_types: frozenset[FrameType] | None = None
     generate_audio: bool | None = None
     supports_seed: bool | None = None
     input_reference_capabilities: InputReferenceCapabilities | None = None
+    pricing_evidence: PricingEvidence | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -350,6 +366,8 @@ __all__ = (
     "ModelCapabilities",
     "ProductError",
     "ProductErrorCode",
+    "PricingEvidence",
+    "PricingSku",
     "RemoteJobSnapshot",
     "UsageCost",
     "VideoArtifact",

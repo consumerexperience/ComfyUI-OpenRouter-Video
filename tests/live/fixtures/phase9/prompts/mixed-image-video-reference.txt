@@ -1,0 +1,1 @@
+Create a four-second abstract geometric video using the supplied image and video references together. Use the image for the five-color palette and the video for the direction and rhythm of motion. Keep the result synthetic, silent, and free of text, logos, people, and copyrighted characters.
