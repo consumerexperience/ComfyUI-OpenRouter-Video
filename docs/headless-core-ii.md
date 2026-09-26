@@ -15,8 +15,8 @@ Recovery identity has three levels:
    network submit.
 3. `request_fingerprint` checks only non-sensitive request shape and never grants authority.
 
-Prompts and frame URLs remain transient. Their values are excluded from the fingerprint and all
-SQLite tables. A caller that reuses one `operation_id` for different sensitive content has still
+Prompts, frame URLs, and input-reference URLs remain transient. Their values are excluded from the
+fingerprint and all SQLite tables. A caller that reuses one `operation_id` for different sensitive content has still
 declared the same logical operation; the Core reconciles it and does not persist content to detect
 caller misuse.
 
@@ -56,9 +56,37 @@ Backoff uses 5, 10, 20, 30, and 60 seconds capped with 20 percent timing jitter.
 `Retry-After` up to 60 seconds is honored for retry-safe GET operations. Ordinary polling cadence
 is 30 seconds with a 60-minute local observation ceiling.
 
+## Phase-8 request and capability contracts
+
+`frame_images` and `input_references` are distinct. Frames use typed nested `image_url` objects and
+first/last temporal positions. Input references use ordered typed image/video objects for guidance;
+duplicates are never collapsed. The two arrays cannot be combined. Video references are transport
+media only and never create Edit/Extend semantics or a separate lifecycle.
+
+Capability enforcement is mode-scoped. Current Level A metadata authorizes per-model frame modes
+through `supported_frame_images`. It exposes no direct reference kind/count/mix signal. ADR-030
+therefore permits reviewed exact-ID evidence data to fill only absent fields after a fresh catalog
+observation confirms that model still exists. The initial overlay enables image/video kinds, a
+maximum count of 50, and mixed image/video collections only for `bytedance/seedance-2.5`.
+
+An explicit Level-A value is never overwritten; disagreement produces `CONFLICT` and blocks the
+affected intent. Unknown and near-matching models remain fail-closed. No provider, family, slug
+pattern, display-name, or cross-model inference exists. Prompt is required for every Phase-8
+Generate operation; prompt-optional reference generation is deferred.
+
+New Generate calls use fingerprint v2. It includes model/options, prompt/frame/reference presence,
+reference schema/count, and ordered reference kinds, but never prompt text, URLs, credentials,
+media, application identity, or user/workflow identity. Existing v1 rows are not rewritten; an
+operation-ID fingerprint-version mismatch fails conservatively and never restores submit authority.
+
 ## SQLite recovery
 
-Schema v1 uses WAL, foreign keys, a 5000 ms busy timeout, and synchronous FULL. `operation_id` is
+Database schema v3 and JobRecord schema v2 are independent. Supported migration paths are fresh to
+v3, v1 to v2 to v3, and v2 to v3. The v2-to-v3 step leaves job bytes/semantics unchanged, deletes
+both capability-cache tables, and recreates them empty; only fresh successful discovery can
+repopulate external truth. Unsupported versions fail before mutation.
+
+The store uses WAL, foreign keys, a 5000 ms busy timeout, and synchronous FULL. `operation_id` is
 the jobs-table primary key; non-null `job_id` is unique. The advisory fingerprint is neither unique
 nor indexed. A uniqueness race makes the losing Generate call reload and reconcile the winner's
 record; it never retries POST.

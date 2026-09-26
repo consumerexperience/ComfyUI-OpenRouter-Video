@@ -35,12 +35,22 @@ request is received.
 | Definite submit rejection survives restart | `PASS — durable SUBMIT_REJECTED` |
 | Concurrent same-operation Generate | `PASS — one atomic submit-right claim` |
 | Prompt/frame URL absent from fingerprint and SQLite | `PASS — privacy canary` |
+| Reference URLs absent from fingerprint, SQLite, and sanitized errors | `PASS — privacy canary` |
+| Typed frame/reference payload shapes | `PASS — exact contract fixtures` |
+| Reference order and repeated occurrence preservation | `PASS — unit + pinned Autogrow` |
+| Unknown-model reference capability gaps block before submit | `PASS — zero POST` |
+| Exact-ID overlay reference modes | `PASS — multi-image/video/mixed mock lifecycle, one POST each` |
+| Overlay precedence and conflict | `PASS — Level A retained; disagreement fails closed` |
+| Overlay freshness | `PASS — stale LKG cannot activate reference intent` |
+| Prompt required for every Phase-8 Generate | `PASS — omission rejected before discovery/submit` |
+| Database v2-to-v3 semantic equality and cache invalidation | `PASS` |
+| New Generate fingerprint v2 and historical v1 conflict | `PASS` |
 | Actual cost comes only from `usage.cost` | `PASS — Decimal or None` |
 | Durable content is MP4/WebM only | `PASS — QuickTime disabled` |
 | Two Comfy Queue actions execute twice | `PASS — pinned PromptExecutor + JSON-safe token` |
 | One Comfy execution creates one Core Generate call | `PASS — adapter/runtime spy` |
 | Caller cancellation preserves runtime disposition | `PASS — cross-loop cooperative control` |
-| SQLite v1 sentinel migration | `PASS — exact literal only; all other models preserved` |
+| SQLite v1-to-v2-to-v3 migration | `PASS — semantic equality; exact sentinel rule` |
 | Native VIDEO bridge | `PASS — pinned VideoFromFile + GetVideoComponents MP4/WebM` |
 
 Tests additionally cover origin spoofing, validation-before-secret ordering, exact operation paths
@@ -52,4 +62,9 @@ self-tests remain evidence for harness mechanics only and do not prove live-serv
 The pinned host gate is intentionally separate because the repository `.venv` does not install
 ComfyUI. Run `tests/comfy_dev_probe.py --cpu` with the exact DEV Comfy interpreter. It uses injected
 mock runtime behavior, creates only temporary 16x16 video files, and never creates a Core runtime or
-network client.
+network client. Its Phase-8 coverage includes typed custom links and Autogrow zero/one/many,
+ordering, duplicate occurrences, workflow validation, and repeated PromptExecutor queues.
+
+`tests/manual/phase8_catalog_probe.py` is a separate human-run, read-only harness. It performs one
+credential-free GET, disables ambient proxies and redirects, emits only approved sanitized
+capability observations, and is never collected by pytest or run by CI.

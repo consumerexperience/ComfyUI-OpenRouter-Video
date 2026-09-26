@@ -17,14 +17,18 @@ from openrouter_video.models import (
     ModelCapabilities,
     ProductErrorCode,
 )
-from openrouter_video.persistence import SCHEMA_VERSION, JobStore
+from openrouter_video.persistence import (
+    DATABASE_SCHEMA_VERSION,
+    JOB_RECORD_SCHEMA_VERSION,
+    JobStore,
+)
 
 NOW = datetime(2026, 9, 4, 12, 0, tzinfo=timezone.utc)
 
 
 def _submitting() -> JobRecord:
     return JobRecord(
-        schema_version=SCHEMA_VERSION,
+        schema_version=JOB_RECORD_SCHEMA_VERSION,
         operation_id="operation-1",
         request_fingerprint="v1:" + "1" * 64,
         model="vendor/model",
@@ -213,17 +217,25 @@ def test_v1_migration_only_nulls_exact_legacy_sentinel(
     store = JobStore(path)
 
     record = store.get_by_job_id("legacy-job")
-    assert record is not None and record.model == expected
-    assert record.schema_version == SCHEMA_VERSION
+    assert record == JobRecord(
+        schema_version=JOB_RECORD_SCHEMA_VERSION,
+        operation_id="legacy-operation",
+        request_fingerprint="v1:" + "3" * 64,
+        model=expected,
+        local_state=LocalLifecycleState.ACCEPTED,
+        created_at=NOW,
+        job_id="legacy-job",
+        accepted_at=NOW,
+    )
     with sqlite3.connect(path) as connection:
-        assert connection.execute("PRAGMA user_version").fetchone()[0] == SCHEMA_VERSION
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == DATABASE_SCHEMA_VERSION
         model_not_null = next(
             row[3] for row in connection.execute("PRAGMA table_info(jobs)") if row[1] == "model"
         )
     assert model_not_null == 0
 
 
-def test_nullable_model_round_trips_in_schema_v2(tmp_path: Path) -> None:
+def test_nullable_model_round_trips_with_job_record_schema_v2(tmp_path: Path) -> None:
     store = JobStore(tmp_path / "jobs.sqlite3")
     record = replace(
         _submitting(),
@@ -237,16 +249,44 @@ def test_nullable_model_round_trips_in_schema_v2(tmp_path: Path) -> None:
     assert store.get_by_job_id("imported-job") == record
 
 
-def test_fresh_database_is_schema_v2_with_nullable_model(tmp_path: Path) -> None:
+def test_fresh_database_is_schema_v3_with_nullable_v2_job_record(tmp_path: Path) -> None:
     path = tmp_path / "jobs.sqlite3"
 
     JobStore(path)
 
     with sqlite3.connect(path) as connection:
-        assert connection.execute("PRAGMA user_version").fetchone()[0] == SCHEMA_VERSION
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == DATABASE_SCHEMA_VERSION
         columns = {row[1]: row for row in connection.execute("PRAGMA table_info(jobs)")}
     assert columns["schema_version"][3] == 1
     assert columns["model"][3] == 0
+
+
+def test_v2_to_v3_preserves_job_semantics_and_invalidates_capability_cache(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "jobs.sqlite3"
+    store = JobStore(path)
+    accepted = replace(
+        _submitting(),
+        local_state=LocalLifecycleState.ACCEPTED,
+        job_id="job-v2",
+        accepted_at=NOW,
+    )
+    assert store.insert(accepted)
+    store.replace_capability_catalog((ModelCapabilities("vendor/model"),), NOW)
+    before = store.get_by_operation_id("operation-1")
+    with sqlite3.connect(path) as connection:
+        connection.execute("PRAGMA user_version = 2")
+        connection.commit()
+
+    migrated = JobStore(path)
+
+    assert migrated.get_by_operation_id("operation-1") == before == accepted
+    assert migrated.load_capability_catalog() is None
+    with sqlite3.connect(path) as connection:
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == 3
+        assert connection.execute("SELECT COUNT(*) FROM capability_models").fetchone()[0] == 0
+        assert connection.execute("SELECT COUNT(*) FROM capability_catalog_meta").fetchone()[0] == 0
 
 
 def test_unknown_schema_version_fails_closed(tmp_path: Path) -> None:
@@ -258,6 +298,21 @@ def test_unknown_schema_version_fails_closed(tmp_path: Path) -> None:
 
     with pytest.raises(PersistenceError, match="Unsupported"):
         JobStore(path)
+
+
+def test_unversioned_non_empty_database_fails_without_mutation(tmp_path: Path) -> None:
+    path = tmp_path / "jobs.sqlite3"
+    with sqlite3.connect(path) as connection:
+        connection.execute("CREATE TABLE unexpected (value TEXT)")
+        connection.execute("INSERT INTO unexpected VALUES ('preserve-me')")
+        connection.commit()
+
+    with pytest.raises(PersistenceError, match="Unversioned"):
+        JobStore(path)
+
+    with sqlite3.connect(path) as connection:
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == 0
+        assert connection.execute("SELECT value FROM unexpected").fetchone()[0] == "preserve-me"
 
 
 def test_failed_v1_migration_preserves_original_schema_and_rows(tmp_path: Path) -> None:

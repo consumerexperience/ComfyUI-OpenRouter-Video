@@ -4,18 +4,19 @@ Open-source BYOK model-agnostic OpenRouter Video gateway for ComfyUI.
 
 ## Status
 
-**PRE-ALPHA — Phase 6: ComfyUI adapter implemented on the feature branch.**
+**PRE-ALPHA — Phase 8: required multimodal modes implemented with evidence-gated enforcement.**
 
 The headless core now contains typed Video API contracts, capability discovery and bounded cache,
 pre-submit validation, a durable SQLite lifecycle, one-attempt Generate, submit-incapable Resume,
 bounded polling, and durable MP4/WebM download. The Phase-4 origin-bound request policy still owns
 all authentication, attribution, destination, redirect, TLS, and zero-transport-retry controls.
 
-The pinned ComfyUI extension exposes exactly two V3 nodes: Generate and submit-incapable Resume.
-They bridge the existing Headless Core to native file-backed `VIDEO`, keep durable recovery state
-in the Comfy user directory, and fetch the model combo through a local capability route. Phase 6
-verification makes no live OpenRouter calls, accesses no production credential, and spends no
-credits.
+The pinned ComfyUI extension exposes Generate, submit-incapable Resume, typed image/video reference
+nodes, and an ordered Autogrow reference collection. T2V and model-proven first/last-frame modes
+remain available. The exact-ID evidence overlay accepted in ADR-030 enables multi-image, video, and
+mixed image/video reference modes for `bytedance/seedance-2.5`; unresolved models still fail with
+`CAPABILITY_SIGNAL_GAP` before submit authority. Prompt remains required for every Generate call.
+See [Phase 8 evidence](docs/phase-8-capability-evidence.md).
 
 ## Product principles
 
@@ -44,12 +45,14 @@ environment variable, runtime preference, user, device, installation, or session
 - `request_fingerprint` is a versioned, privacy-preserving advisory checksum and never grants
   submit, Resume, deduplication, or idempotency authority.
 
-See [Headless Core II](docs/headless-core-ii.md), [ADR-028](docs/adr/ADR-028-local-recovery-identity-and-request-fingerprint.md),
-and [ADR-029](docs/adr/ADR-029-durable-definite-submit-rejection.md).
+See [Headless Core II](docs/headless-core-ii.md),
+[ADR-028](docs/adr/ADR-028-local-recovery-identity-and-request-fingerprint.md),
+[ADR-029](docs/adr/ADR-029-durable-definite-submit-rejection.md), and
+[ADR-030](docs/adr/ADR-030-evidence-backed-capability-overlay.md).
 
 ## ComfyUI compatibility
 
-Phase 6 supports exactly ComfyUI `v0.34.3` at commit
+Phase 8 supports exactly ComfyUI `v0.34.3` at commit
 `87465b8f1f64a27a46f16f22b13b410494dca66d` through `comfy_api.v0_0_2`. Other versions are
 unsupported and API mismatches fail closed; there is no fallback to `comfy_api.latest`. See the
 [adapter contract](docs/comfyui-adapter.md).

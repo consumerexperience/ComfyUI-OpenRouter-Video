@@ -7,7 +7,15 @@ import json
 from decimal import Decimal
 from pathlib import Path
 
-from openrouter_video.models import GenerationRequest, LocalLifecycleState
+import pytest
+
+from openrouter_video.models import (
+    GenerationRequest,
+    InputReference,
+    InputReferenceCollection,
+    InputReferenceKind,
+    LocalLifecycleState,
+)
 from openrouter_video.policy import Operation
 from tests.harness.core import core_harness
 from tests.harness.scenario import Scenario, ScenarioStep
@@ -84,3 +92,87 @@ def test_real_core_happy_path_is_one_submit_one_job_and_durable_artifact(tmp_pat
     scenario.ledger.assert_generation_submit_count(1)
     assert scenario.ledger.count_by_job_id("job_123") == 4
     assert scenario.ledger.content_request_count == 1
+
+
+@pytest.mark.parametrize(
+    "references",
+    [
+        (
+            InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
+            InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
+        ),
+        (InputReference(InputReferenceKind.VIDEO, "https://assets.example/b.mp4"),),
+        (
+            InputReference(InputReferenceKind.VIDEO, "https://assets.example/b.mp4"),
+            InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
+        ),
+    ],
+    ids=("multi-image", "video", "mixed-image-video"),
+)
+def test_seedance_overlay_reference_modes_use_the_existing_generate_lifecycle(
+    tmp_path: Path,
+    references: tuple[InputReference, ...],
+) -> None:
+    prompt = "REFERENCE_PROMPT_CANARY"
+    request = GenerationRequest(
+        "bytedance/seedance-2.5",
+        prompt,
+        input_references=InputReferenceCollection(references),
+    )
+    expected_references = [
+        {
+            "type": f"{reference.kind.value}_url",
+            f"{reference.kind.value}_url": {"url": reference.url},
+        }
+        for reference in references
+    ]
+    scenario = Scenario(
+        "seedance-reference-overlay",
+        [
+            ScenarioStep(
+                Operation.DISCOVERY,
+                "GET",
+                "/api/v1/videos/models",
+                json_body={"data": [{"id": "bytedance/seedance-2.5"}]},
+            ),
+            ScenarioStep(
+                Operation.SUBMIT,
+                "POST",
+                "/api/v1/videos",
+                status=202,
+                json_body=_json("submit/accepted.json"),
+                expected_json={
+                    "model": "bytedance/seedance-2.5",
+                    "generate_audio": False,
+                    "prompt": prompt,
+                    "input_references": expected_references,
+                },
+            ),
+            ScenarioStep(
+                Operation.POLL,
+                "GET",
+                "/api/v1/videos/job_123",
+                json_body=_json("poll/completed_cost.json"),
+            ),
+            ScenarioStep(
+                Operation.CONTENT,
+                "GET",
+                "/api/v1/videos/job_123/content?index=0",
+                headers={"Content-Type": "video/mp4"},
+                body=MP4,
+            ),
+        ],
+    )
+
+    async def run() -> None:
+        async with core_harness(scenario, tmp_path) as core:
+            result = await core.generate.generate("operation-reference", request)
+            assert result.state is LocalLifecycleState.DONE
+            assert result.artifact is not None and result.artifact.path.read_bytes() == MP4
+
+    asyncio.run(run())
+    scenario.assert_complete()
+    scenario.ledger.assert_generation_submit_count(1)
+    database_bytes = (tmp_path / "jobs.sqlite3").read_bytes()
+    for sensitive in (prompt, *(reference.url for reference in references)):
+        assert sensitive.encode() not in database_bytes

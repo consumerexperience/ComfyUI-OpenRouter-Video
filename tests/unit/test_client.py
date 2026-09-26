@@ -43,6 +43,7 @@ def test_client_maps_exact_endpoints_and_tolerates_additive_fields() -> None:
                             "supported_durations": [5, 8],
                             "supported_frame_images": ["first_frame", "future_frame"],
                             "generate_audio": True,
+                            "input_modalities": ["text", "image", "video"],
                             "future_additive_field": {"ignored": True},
                         }
                     ],
@@ -79,6 +80,7 @@ def test_client_maps_exact_endpoints_and_tolerates_additive_fields() -> None:
             client = OpenRouterVideoClient(request_policy=_policy(), transport=transport)
             models = await client.list_video_models()
             assert models[0].supported_frame_types == frozenset({FrameType.FIRST})
+            assert not hasattr(models[0], "input_modalities")
             request = GenerationRequest(
                 model="vendor/model",
                 prompt="private prompt",
@@ -106,7 +108,13 @@ def test_client_maps_exact_endpoints_and_tolerates_additive_fields() -> None:
         "prompt": "private prompt",
         "duration": 5,
         "generate_audio": False,
-        "frame_images": [{"frame_type": "first_frame", "url": "https://assets.example/frame.png"}],
+        "frame_images": [
+            {
+                "type": "image_url",
+                "image_url": {"url": "https://assets.example/frame.png"},
+                "frame_type": "first_frame",
+            }
+        ],
     }
     assert all(request.url.host == "openrouter.ai" for request in requests)
 

@@ -1,19 +1,31 @@
 """Pinned ComfyUI V3 extension exposing the Phase-6 adapter."""
 
 from .compat import ComfyExtension, validate_host_api
-from .nodes import OpenRouterVideoGenerate, OpenRouterVideoResume
+from .nodes import (
+    OpenRouterVideoGenerate,
+    OpenRouterVideoImageReference,
+    OpenRouterVideoReferenceCollection,
+    OpenRouterVideoResume,
+    OpenRouterVideoVideoReference,
+)
 from .routes import register_routes
 
 
 class OpenRouterVideoExtension(ComfyExtension):
-    """Register one safe route and exactly two public adapter nodes."""
+    """Register one safe route and the bounded Phase-8 adapter nodes."""
 
     async def on_load(self) -> None:
         validate_host_api()
         register_routes()
 
     async def get_node_list(self) -> list[type]:
-        return [OpenRouterVideoGenerate, OpenRouterVideoResume]
+        return [
+            OpenRouterVideoImageReference,
+            OpenRouterVideoVideoReference,
+            OpenRouterVideoReferenceCollection,
+            OpenRouterVideoGenerate,
+            OpenRouterVideoResume,
+        ]
 
 
 async def comfy_entrypoint() -> OpenRouterVideoExtension:

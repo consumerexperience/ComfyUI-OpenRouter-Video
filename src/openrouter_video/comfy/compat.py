@@ -12,6 +12,13 @@ from openrouter_video.execution_hooks import ExecutionPhase
 
 EXPECTED_API_VERSION: Final = "0.0.2"
 MODEL_ROUTE: Final = "/openrouter-video/v1/models"
+_CUSTOM_FACTORY = getattr(IO, "Custom", None)
+INPUT_REFERENCE_IO: Any = (
+    _CUSTOM_FACTORY("OPENROUTER_VIDEO_INPUT_REFERENCE") if _CUSTOM_FACTORY is not None else None
+)
+INPUT_REFERENCE_COLLECTION_IO: Any = (
+    _CUSTOM_FACTORY("OPENROUTER_VIDEO_INPUT_REFERENCES") if _CUSTOM_FACTORY is not None else None
+)
 _PHASE_ORDINAL: Final = {
     ExecutionPhase.VALIDATING: 1,
     ExecutionPhase.SUBMITTING: 2,
@@ -38,6 +45,10 @@ def validate_host_api() -> None:
         getattr(IO, "RemoteOptions", None),
         getattr(getattr(IO, "Combo", None), "Input", None),
         getattr(getattr(IO, "Video", None), "Output", None),
+        getattr(getattr(IO, "Autogrow", None), "Input", None),
+        getattr(IO, "Custom", None),
+        INPUT_REFERENCE_IO,
+        INPUT_REFERENCE_COLLECTION_IO,
         getattr(InputImpl, "VideoFromFile", None),
     )
     if version != EXPECTED_API_VERSION or any(item is None for item in required):
@@ -152,6 +163,8 @@ __all__ = (
     "ComfyExtension",
     "EXPECTED_API_VERSION",
     "IO",
+    "INPUT_REFERENCE_COLLECTION_IO",
+    "INPUT_REFERENCE_IO",
     "MODEL_ROUTE",
     "UnsupportedComfyError",
     "cache_model_options",

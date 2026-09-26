@@ -43,9 +43,9 @@ from openrouter_video.models import (
     ProductErrorCode,
     RemoteJobSnapshot,
     VideoArtifact,
-    request_fingerprint_v1,
+    request_fingerprint_v2,
 )
-from openrouter_video.persistence import SCHEMA_VERSION, JobStore
+from openrouter_video.persistence import JOB_RECORD_SCHEMA_VERSION, JobStore
 
 POLL_INTERVAL_SECONDS = 30.0
 POLL_CEILING_SECONDS = 60 * 60.0
@@ -526,7 +526,7 @@ class GenerateService:
             self._validator.validate_shape(request)
         except ProductFailureError as exc:
             return GenerationResult(LocalLifecycleState.NOT_SUBMITTED, None, error=exc.error)
-        fingerprint = request_fingerprint_v1(request)
+        fingerprint = request_fingerprint_v2(request)
         try:
             existing = self._store.get_by_operation_id(operation_id)
         except PersistenceError:
@@ -563,7 +563,7 @@ class GenerateService:
 
         now = self._now()
         record = JobRecord(
-            schema_version=SCHEMA_VERSION,
+            schema_version=JOB_RECORD_SCHEMA_VERSION,
             operation_id=operation_id,
             request_fingerprint=fingerprint,
             model=request.model,
@@ -743,7 +743,7 @@ class ResumeService:
     def _claim_imported_job(self, job_id: str) -> JobRecord:
         now = self._now()
         record = JobRecord(
-            schema_version=SCHEMA_VERSION,
+            schema_version=JOB_RECORD_SCHEMA_VERSION,
             operation_id=f"resume-{secrets.token_hex(16)}",
             request_fingerprint=_imported_job_fingerprint(job_id),
             model=None,

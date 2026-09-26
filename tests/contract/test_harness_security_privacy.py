@@ -8,7 +8,15 @@ from pathlib import Path
 
 import pytest
 
-from openrouter_video.models import FrameReference, FrameType, GenerationRequest, ProductErrorCode
+from openrouter_video.models import (
+    FrameReference,
+    FrameType,
+    GenerationRequest,
+    InputReference,
+    InputReferenceCollection,
+    InputReferenceKind,
+    ProductErrorCode,
+)
 from openrouter_video.policy import Operation
 from tests.harness.core import SYNTHETIC_API_TOKEN, core_harness
 from tests.harness.scenario import Scenario, ScenarioStep
@@ -81,6 +89,19 @@ def test_secret_prompt_and_frame_canaries_never_persist_or_render(tmp_path: Path
             "prompt",
             first_frame=FrameReference(FrameType.FIRST, "http://assets.example/frame.png"),
         ),
+        GenerationRequest(
+            "test/video-alpha",
+            "prompt",
+            first_frame=FrameReference(FrameType.FIRST, "https://assets.example/frame.png"),
+            input_references=InputReferenceCollection(
+                (
+                    InputReference(
+                        InputReferenceKind.VIDEO,
+                        "https://assets.example/reference.mp4",
+                    ),
+                )
+            ),
+        ),
     ],
 )
 def test_invalid_shape_is_rejected_before_discovery_or_submit(
@@ -135,3 +156,46 @@ def test_unsupported_explicit_intent_is_rejected_before_submit(
     asyncio.run(run())
     scenario.assert_complete()
     scenario.ledger.assert_generation_submit_count(0)
+
+
+def test_reference_canaries_never_persist_and_signal_gap_issues_zero_posts(
+    tmp_path: Path,
+) -> None:
+    first = "https://assets.example/UNIQUE_REFERENCE_CANARY.png"
+    second = "https://assets.example/UNIQUE_REFERENCE_CANARY.mp4"
+    request = GenerationRequest(
+        "test/video-alpha",
+        "REFERENCE_PROMPT_CANARY",
+        input_references=InputReferenceCollection(
+            (
+                InputReference(InputReferenceKind.IMAGE, first),
+                InputReference(InputReferenceKind.VIDEO, second),
+            )
+        ),
+    )
+    scenario = Scenario(
+        "reference-signal-gap",
+        [
+            ScenarioStep(
+                Operation.DISCOVERY,
+                "GET",
+                "/api/v1/videos/models",
+                json_body=_json("discovery/catalog.json"),
+            )
+        ],
+    )
+
+    async def run() -> None:
+        async with core_harness(scenario, tmp_path) as core:
+            result = await core.generate.generate("operation-reference", request)
+            assert result.error is not None
+            assert result.error.code is ProductErrorCode.CAPABILITY_SIGNAL_GAP
+            rendered = repr(result) + repr(result.error) + repr(scenario.ledger.requests)
+            assert first not in rendered and second not in rendered
+
+    asyncio.run(run())
+    scenario.assert_complete()
+    scenario.ledger.assert_generation_submit_count(0)
+    database_bytes = (tmp_path / "jobs.sqlite3").read_bytes()
+    assert first.encode() not in database_bytes
+    assert second.encode() not in database_bytes

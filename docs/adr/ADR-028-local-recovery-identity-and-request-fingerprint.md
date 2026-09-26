@@ -90,6 +90,37 @@ The Core must not persist sensitive request content merely to detect caller misu
 the same `operation_id` with a different prompt or frame URL but the same advisory fingerprint
 still reconciles the existing logical operation.
 
+### Phase-8 amendment: request fingerprint v2
+
+Historical v1 rows remain valid and are never rewritten. Every new Generate operation uses v2:
+
+```json
+{
+  "schema": 2,
+  "model": "...",
+  "duration": null,
+  "resolution": null,
+  "aspect_ratio": null,
+  "size": null,
+  "seed": null,
+  "generate_audio": false,
+  "prompt_present": true,
+  "first_frame_present": false,
+  "last_frame_present": false,
+  "input_reference_present": true,
+  "input_references": {
+    "schema": 1,
+    "count": 3,
+    "kinds": ["image", "image", "video"]
+  }
+}
+```
+
+Reference kinds are structural and ordered; duplicate occurrences remain represented. Prompt text,
+frame/reference URLs, credentials, raw media, AppIdentity, and user/workflow identity remain
+excluded. An existing `operation_id` whose stored fingerprint uses another version is an unequal
+fingerprint: it produces the same conservative conflict and never authorizes a new submit.
+
 ### Persistence and concurrency enforcement
 
 `operation_id` is mechanically authoritative in `JobStore`:
@@ -118,6 +149,8 @@ uniqueness conflict is a recovery signal, not permission to retry submission.
   order or omitted-vs-null raw input normalized to the same domain value.
 - Model, generation option, or frame-presence changes produce a different fingerprint.
 - Prompt-only and frame-URL-only changes produce the same fingerprint by design.
+- In v2, prompt presence, reference presence/count, and ordered reference kinds change the
+  fingerprint, while prompt and URL values do not.
 - Credential, identity, header, and `operation_id` changes do not change the fingerprint.
 - Fingerprint alone never authorizes resume or submit.
 - Two concurrent compatible Generate calls with the same `operation_id` issue exactly one total
