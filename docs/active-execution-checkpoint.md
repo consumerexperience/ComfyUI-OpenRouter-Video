@@ -67,10 +67,11 @@
 ## Delivery state
 
 - Local implementation: `COMPLETE WITH SCOPED EVIDENCE BLOCK`
-- Feature branch: local
-- Push: pending
-- PR: pending
-- CI / CodeQL: pending
+- Verified implementation commit: `9a8ad45d72e223d1136f6e96423d05a57acbbf3e`
+- Feature branch: `PUSHED`
+- PR: `#15 — https://github.com/consumerexperience/ComfyUI-OpenRouter-Video/pull/15`
+- PR base/head: `main <- phase-8/multimodal-expansion`
+- CI / CodeQL: pending on the checkpoint-updated final PR head
 - Release: not published
 - Merge: `HUMAN ONLY — NOT AUTHORIZED`
 
