@@ -254,7 +254,7 @@ def test_nullable_model_round_trips_with_job_record_schema_v2(tmp_path: Path) ->
     assert store.get_by_job_id("imported-job") == record
 
 
-def test_fresh_database_is_schema_v3_with_nullable_v2_job_record(tmp_path: Path) -> None:
+def test_fresh_database_is_schema_v4_with_nullable_v2_job_record(tmp_path: Path) -> None:
     path = tmp_path / "jobs.sqlite3"
 
     JobStore(path)
@@ -294,27 +294,48 @@ def test_v2_to_current_preserves_job_semantics_and_invalidates_capability_cache(
         assert connection.execute("SELECT COUNT(*) FROM capability_catalog_meta").fetchone()[0] == 0
 
 
-def test_v3_to_v4_preserves_jobs_and_invalidates_old_capability_truth(tmp_path: Path) -> None:
+def test_v3_to_v4_reinstall_is_idempotent_and_preserves_jobs_outputs(
+    tmp_path: Path,
+) -> None:
     path = tmp_path / "jobs.sqlite3"
+    output = tmp_path / "output" / "openrouter-video" / "job-v3" / "video.mp4"
+    output.parent.mkdir(parents=True)
+    output.write_bytes(b"preserved-video-output")
     store = JobStore(path)
     accepted = replace(
         _submitting(),
         local_state=LocalLifecycleState.ACCEPTED,
         job_id="job-v3",
         accepted_at=NOW,
+        output_relpath="openrouter-video/job-v3/video.mp4",
     )
     assert store.insert(accepted)
-    store.replace_capability_catalog((ModelCapabilities("vendor/model"),), NOW)
+    store.replace_capability_catalog(
+        (
+            ModelCapabilities(
+                "vendor/model",
+                pricing_evidence=PricingEvidence(
+                    (PricingSku("per-video-second", Decimal("0.10")),)
+                ),
+            ),
+        ),
+        NOW,
+    )
     with sqlite3.connect(path) as connection:
         connection.execute("PRAGMA user_version = 3")
         connection.commit()
 
     migrated = JobStore(path)
+    reinstalled = JobStore(path)
 
     assert migrated.get_by_job_id("job-v3") == accepted
+    assert reinstalled.get_by_operation_id("operation-1") == accepted
     assert migrated.load_capability_catalog() is None
+    assert reinstalled.load_capability_catalog() is None
+    assert output.read_bytes() == b"preserved-video-output"
     with sqlite3.connect(path) as connection:
         assert connection.execute("PRAGMA user_version").fetchone()[0] == 4
+        assert connection.execute("SELECT COUNT(*) FROM jobs").fetchone()[0] == 1
 
 
 def test_unknown_schema_version_fails_closed(tmp_path: Path) -> None:

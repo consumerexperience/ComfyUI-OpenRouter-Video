@@ -8,6 +8,8 @@
 | Catalogue contains option and pricing values beyond static documentation, including observed `768p` | Read-only snapshot at `2026-09-26T19:54:44.1434713Z` | `UPSTREAM_EXPANSION` | Generic normalized projection; documented vocabulary is not a whitelist. |
 | Pricing has 37 keys and 20 distinct shapes in the planning snapshot | Same read-only snapshot | `PRICING_VARIABILITY` | Typed Core evidence; estimate only explicitly supported generic semantics, otherwise unavailable. |
 | New prompt-optional/passthrough/product modes remain visible upstream | Current upstream evidence | `PRODUCT_DELTA` | Record only; Phase-9 v0.1 scope remains frozen. |
+| Native V3 schema alone does not reliably refresh the complete model-dependent option surface on both release-blocking hosts | Isolated real-browser probes on ComfyUI `v0.34.3` / frontend `1.49.6` and ComfyUI `v0.37.0` / frontend `1.52.7` | `EVIDENCE-REQUIRED COMPATIBILITY ADAPTATION` | Retain the minimal presentation-only helper; Core remains capability and submit authority. |
+| Remote combo refresh could reset a serialized model, reference-link changes could leave an old estimate visible, and successive invalidations could hide an earlier paid-intent disclosure | Real save/reload, model-switch and reference-link browser scenarios | `PHASE-9 BUG FIX` | Preserve the saved model after refresh, invalidate estimates on link changes, and accumulate visible reset disclosures. |
 
 ## Phase 8
 

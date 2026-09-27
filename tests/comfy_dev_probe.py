@@ -9,6 +9,7 @@ import copy
 import json
 import tempfile
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 
@@ -50,9 +51,10 @@ def main() -> None:
     comfy.options.enable_args_parsing()
 
     import execution
+    import folder_paths
     import nodes as comfy_nodes
     from comfy_api.v0_0_2 import IO, ComfyAPI, InputImpl
-    from comfy_extras.nodes_video import GetVideoComponents
+    from comfy_extras.nodes_video import GetVideoComponents, SaveVideo
 
     from openrouter_video.comfy import compat
     from openrouter_video.comfy import nodes as adapter_nodes
@@ -310,24 +312,37 @@ def main() -> None:
     with tempfile.TemporaryDirectory() as temporary:
         root = Path(temporary)
         compat.output_directory = lambda: root
-        for name, container_format, codec, media_type in (
-            ("tiny.mp4", "mp4", "mpeg4", "video/mp4"),
-            ("tiny.webm", "webm", "libvpx", "video/webm"),
-        ):
-            path = root / name
-            _write_video(path, container_format=container_format, codec=codec)
-            artifact = VideoArtifact(path, media_type, path.stat().st_size)
-            native = to_native_video(artifact)
-            assert isinstance(native, InputImpl.VideoFromFile)
-            components = GetVideoComponents.execute(native).result
-            assert components[0].shape == (1, 16, 16, 3)
-            path.unlink()
-            try:
-                to_native_video(artifact)
-            except VideoBridgeError as error:
-                assert str(error) == "Generated video artifact is unavailable."
-            else:
-                raise AssertionError("deleted artifact must fail closed")
+        original_output = folder_paths.get_output_directory()
+        original_hidden = SaveVideo.hidden
+        folder_paths.set_output_directory(str(root))
+        SaveVideo.hidden = SimpleNamespace(extra_pnginfo=None, prompt=None)
+        try:
+            for name, container_format, codec, media_type in (
+                ("tiny.mp4", "mp4", "mpeg4", "video/mp4"),
+                ("tiny.webm", "webm", "libvpx", "video/webm"),
+            ):
+                path = root / name
+                _write_video(path, container_format=container_format, codec=codec)
+                artifact = VideoArtifact(path, media_type, path.stat().st_size)
+                native = to_native_video(artifact)
+                assert isinstance(native, InputImpl.VideoFromFile)
+                components = GetVideoComponents.execute(native).result
+                assert components[0].shape == (1, 16, 16, 3)
+                before = set(root.rglob("phase9-probe-*"))
+                saved = SaveVideo.execute(native, f"phase9-probe-{path.stem}", "auto")
+                after = set(root.rglob("phase9-probe-*"))
+                assert saved.result[0] is native
+                assert after - before
+                path.unlink()
+                try:
+                    to_native_video(artifact)
+                except VideoBridgeError as error:
+                    assert str(error) == "Generated video artifact is unavailable."
+                else:
+                    raise AssertionError("deleted artifact must fail closed")
+        finally:
+            SaveVideo.hidden = original_hidden
+            folder_paths.set_output_directory(original_output)
 
 
 if __name__ == "__main__":

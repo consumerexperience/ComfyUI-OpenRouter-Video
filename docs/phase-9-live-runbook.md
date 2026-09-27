@@ -23,13 +23,13 @@ Use a fresh dedicated key with starting spend `0` or explicitly reconciled spend
 Every case uses `duration=4`, `resolution=480p`, `aspect_ratio=16:9`, and
 `generate_audio=false`.
 
-| Case | Model | Inputs |
-| --- | --- | --- |
-| First Frame | `bytedance/seedance-2.0-mini` | `first-frame.png` |
-| First + Last Frame | `bytedance/seedance-2.0-mini` | `first-frame.png`, `last-frame.png` |
-| Multi Image Reference | `bytedance/seedance-2.5` | ordered `first-frame.png`, `style-marker.png` |
-| Video Reference | `bytedance/seedance-2.5` | `motion-reference.mp4` |
-| Image + Video References | `bytedance/seedance-2.5` | ordered `style-marker.png`, `motion-reference.mp4` |
+| Case | Case ID / exact reference mode | Model | Inputs |
+| --- | --- | --- | --- |
+| First Frame | `first_frame` / `first_frame` | `bytedance/seedance-2.0-mini` | `first-frame.png` |
+| First + Last Frame | `first_plus_last` / `first_plus_last` | `bytedance/seedance-2.0-mini` | `first-frame.png`, `last-frame.png` |
+| Multi Image Reference | `multi_image_reference` / `multi_image_reference` | `bytedance/seedance-2.5` | ordered `first-frame.png`, `style-marker.png` |
+| Video Reference | `video_reference` / `video_reference` | `bytedance/seedance-2.5` | `motion-reference.mp4` |
+| Image + Video References | `image_plus_video_reference` / `image_plus_video_reference` | `bytedance/seedance-2.5` | ordered `style-marker.png`, `motion-reference.mp4` |
 
 The exact prompt paths and hashes live in `tests/live/fixtures/phase9/manifest.json`.
 

@@ -62,7 +62,14 @@ function normalizedValue(item) {
 function disclose(node, message) {
     if (!message) return;
     const status = node.__orvCapabilityStatus;
-    status.value = message;
+    const current = String(status.value || "");
+    const replacesTransient =
+        current === "" ||
+        current === "LOADING CAPABILITIES" ||
+        current === "SELECT MODEL" ||
+        current.startsWith("CATALOGUE ");
+    if (replacesTransient) status.value = message;
+    else if (!current.split("; ").includes(message)) status.value = `${current}; ${message}`;
     node.setDirtyCanvas?.(true, true);
 }
 
@@ -319,6 +326,16 @@ app.registerExtension({
     name: EXTENSION,
     async beforeRegisterNodeDef(nodeType, nodeData) {
         if (nodeData?.name !== GENERATE_NODE) return;
+        const previousConnectionsChange = nodeType.prototype.onConnectionsChange;
+        nodeType.prototype.onConnectionsChange = function (...args) {
+            const result = previousConnectionsChange?.apply(this, args);
+            const referenceInput = this.inputs?.find((item) => item.name === "input_references");
+            if (referenceInput) {
+                clearTimeout(this.__orvEstimateTimer);
+                this.__orvEstimateTimer = setTimeout(() => refreshEstimate(this), 120);
+            }
+            return result;
+        };
         const previousCreated = nodeType.prototype.onNodeCreated;
         nodeType.prototype.onNodeCreated = function (...args) {
             const result = previousCreated?.apply(this, args);
@@ -359,9 +376,20 @@ app.registerExtension({
 
         const previousConfigure = nodeType.prototype.onConfigure;
         nodeType.prototype.onConfigure = function (...args) {
+            const modelIndex = this.widgets?.findIndex((item) => item.name === "model") ?? -1;
+            const serializedModel = args[0]?.widgets_values?.[modelIndex];
+            const configuredModel =
+                typeof serializedModel === "string" && serializedModel !== SELECT_MODEL
+                    ? serializedModel
+                    : widget(this, "model")?.value;
             const result = previousConfigure?.apply(this, args);
             migratePhase8Values(this);
-            setTimeout(() => projectSelectedModel(this), 0);
+            setTimeout(() => {
+                if (configuredModel && configuredModel !== SELECT_MODEL) {
+                    widget(this, "model").value = configuredModel;
+                }
+                projectSelectedModel(this);
+            }, 200);
             return result;
         };
     },

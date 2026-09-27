@@ -107,6 +107,7 @@ from openrouter_video.comfy import compat, nodes, routes  # noqa: E402
 from openrouter_video.comfy.extension import OpenRouterVideoExtension  # noqa: E402
 from openrouter_video.comfy.video import VideoBridgeError, to_native_video  # noqa: E402
 from openrouter_video.errors import RequestPolicyError  # noqa: E402
+from openrouter_video.execution_hooks import ExecutionPhase  # noqa: E402
 from openrouter_video.models import (  # noqa: E402
     FrameType,
     GenerationResult,
@@ -267,6 +268,31 @@ def test_generate_normalizes_once_and_returns_exact_output(
         "0.2500",
         "DONE",
     )
+
+
+def test_native_video_and_done_progress_are_truthful_and_ordered(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    phases: list[tuple[ExecutionPhase, str | None]] = []
+
+    async def report(phase: ExecutionPhase, node_id: str | None) -> None:
+        phases.append((phase, node_id))
+
+    monkeypatch.setattr(compat, "report_phase", report)
+    monkeypatch.setattr(nodes, "to_native_video", lambda _: "native-video")
+    result = GenerationResult(
+        LocalLifecycleState.DONE,
+        "job-progress",
+        artifact=VideoArtifact(Path("ignored.mp4"), "video/mp4", 10),
+    )
+
+    output = asyncio.run(nodes._node_output(result, "node-progress"))
+
+    assert output.values[0] == "native-video"
+    assert phases == [
+        (ExecutionPhase.NATIVE_VIDEO, "node-progress"),
+        (ExecutionPhase.DONE, "node-progress"),
+    ]
 
 
 def test_reference_nodes_preserve_autogrow_positions_and_duplicates() -> None:
