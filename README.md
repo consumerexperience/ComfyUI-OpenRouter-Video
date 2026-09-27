@@ -11,11 +11,12 @@ pre-submit validation, a durable SQLite lifecycle, one-attempt Generate, submit-
 bounded polling, and durable MP4/WebM download. The Phase-4 origin-bound request policy still owns
 all authentication, attribution, destination, redirect, TLS, and zero-transport-retry controls.
 
-The pinned ComfyUI extension exposes Generate, submit-incapable Resume, typed image/video reference
-nodes, and an ordered Autogrow reference collection. T2V and model-proven first/last-frame modes
-remain available. The exact-ID evidence overlay accepted in ADR-030 enables multi-image, video, and
-mixed image/video reference modes for `bytedance/seedance-2.5`; unresolved models still fail with
-`CAPABILITY_SIGNAL_GAP` before submit authority. Prompt remains required for every Generate call.
+The pinned ComfyUI extension exposes Generate, submit-incapable Resume, public-HTTPS image/video
+reference nodes, direct ordered Autogrow reference inputs, and a legacy Phase-8 collection node.
+T2V and model-proven first/last-frame modes remain available. The exact-ID evidence overlay accepted
+in ADR-030 enables multi-image, video, and mixed image/video reference modes for
+`bytedance/seedance-2.5`; unresolved models still fail with `CAPABILITY_SIGNAL_GAP` before submit
+authority. Prompt remains required for every Generate call.
 Phase 9 adds a catalogue-driven RC interface: the selected model's normalized durations,
 resolutions, aspect ratios, sizes, frame support, seed support, audio support, and approved
 reference modes are projected from the same Core truth used by pre-submit validation. There are no

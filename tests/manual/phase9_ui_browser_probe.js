@@ -20,6 +20,9 @@ async (page) => {
                 supported_frame_types: ["first_frame", "last_frame"],
                 supports_seed: true,
                 generate_audio: false,
+                supported_reference_kinds: ["image", "video"],
+                max_reference_count: 3,
+                mixed_image_video_references: true,
                 normalized_reference_modes: [
                     { mode: "multi_image_reference", status: "ENFORCED" },
                     { mode: "video_reference", status: "ENFORCED" },
@@ -37,6 +40,9 @@ async (page) => {
                 supported_frame_types: ["first_frame"],
                 supports_seed: false,
                 generate_audio: true,
+                supported_reference_kinds: [],
+                max_reference_count: 0,
+                mixed_image_video_references: false,
                 normalized_reference_modes: [
                     { mode: "multi_image_reference", status: "UNSUPPORTED" },
                     { mode: "video_reference", status: "UNSUPPORTED" },
@@ -187,29 +193,46 @@ async (page) => {
         const videoReference = globalThis.LiteGraph.createNode(
             "OpenRouterVideoVideoReference",
         );
-        const collection = globalThis.LiteGraph.createNode(
-            "OpenRouterVideoReferenceCollection",
-        );
         const saveVideo = globalThis.LiteGraph.createNode("SaveVideo");
-        for (const required of [imageReference, videoReference, collection, saveVideo]) {
+        for (const required of [imageReference, videoReference, saveVideo]) {
             if (!required) throw new Error("required native/reference node is not registered");
             app.graph.add(required);
         }
-        collection.connect(0, restoredModelA, 0);
+        const firstReferenceIndex = restoredModelA.inputs.findIndex(
+            (item) => item.type === "OPENROUTER_VIDEO_INPUT_REFERENCE",
+        );
+        if (firstReferenceIndex < 0) throw new Error("direct reference input is absent");
+        imageReference.connect(0, restoredModelA, firstReferenceIndex);
+        await wait(300);
+        const secondReferenceIndex = restoredModelA.inputs.findIndex(
+            (item, index) =>
+                index !== firstReferenceIndex &&
+                item.type === "OPENROUTER_VIDEO_INPUT_REFERENCE" &&
+                item.link == null,
+        );
+        if (secondReferenceIndex < 0) throw new Error("autogrow did not create a trailing input");
+        videoReference.connect(0, restoredModelA, secondReferenceIndex);
         restoredModelA.connect(0, saveVideo, 0);
         await wait(300);
+        const directInputs = restoredModelA.inputs.filter(
+            (item) => item.type === "OPENROUTER_VIDEO_INPUT_REFERENCE",
+        );
         const referenceAndVideo = {
-            collection_output: collection.outputs?.[0]?.type ?? null,
-            generate_reference_input: restoredModelA.inputs?.[0]?.type ?? null,
+            generate_reference_inputs: directInputs.map((item) => ({
+                name: item.name,
+                label: item.label,
+                linked: item.link != null,
+            })),
             generate_video_output: restoredModelA.outputs?.[0]?.type ?? null,
             save_video_input: saveVideo.inputs?.[0]?.type ?? null,
-            reference_linked: restoredModelA.inputs?.[0]?.link != null,
+            reference_links: directInputs.filter((item) => item.link != null).length,
+            trailing_empty_inputs: directInputs.filter((item) => item.link == null).length,
             save_video_linked: saveVideo.inputs?.[0]?.link != null,
             estimate: getWidget(restoredModelA, "ESTIMATED COST")?.value ?? null,
+            reference_status: getWidget(restoredModelA, "REFERENCE INPUTS")?.value ?? null,
             registered_reference_nodes: [
                 imageReference.type,
                 videoReference.type,
-                collection.type,
             ],
         };
 
@@ -222,7 +245,10 @@ async (page) => {
         const reloaded = snapshot(restored);
         const saveVideoReloaded = app.graph._nodes.find((item) => item.type === "SaveVideo");
         const reloadedLinks = {
-            reference_linked: restored.inputs?.[0]?.link != null,
+            reference_links: restored.inputs?.filter(
+                (item) =>
+                    item.type === "OPENROUTER_VIDEO_INPUT_REFERENCE" && item.link != null,
+            ).length,
             save_video_linked: saveVideoReloaded?.inputs?.[0]?.link != null,
         };
 
@@ -249,6 +275,9 @@ async (page) => {
 
         const checks = {
             initial_model_unresolved: initial.model?.value === "SELECT MODEL",
+            model_picker_uses_readable_labels:
+                getWidget(node, "model")?.options?.getOptionLabel?.("phase9/model-a") ===
+                "Phase 9 Model A",
             initial_estimate_unavailable:
                 initial["ESTIMATED COST"]?.value === "ESTIMATE UNAVAILABLE — SELECT MODEL",
             complete_future_resolution_reachable:
@@ -285,18 +314,18 @@ async (page) => {
                 modelB.generate_audio?.hidden === false &&
                 modelB.last_frame_url?.hidden === true,
             typed_references_and_native_video_connect:
-                referenceAndVideo.collection_output === "OPENROUTER_VIDEO_INPUT_REFERENCES" &&
-                referenceAndVideo.generate_reference_input ===
-                    "OPENROUTER_VIDEO_INPUT_REFERENCES" &&
+                referenceAndVideo.reference_links === 2 &&
+                referenceAndVideo.trailing_empty_inputs === 1 &&
+                referenceAndVideo.reference_status.includes("2/3") &&
+                referenceAndVideo.reference_status.includes("IMAGE + VIDEO") &&
                 referenceAndVideo.generate_video_output === "VIDEO" &&
                 referenceAndVideo.save_video_input === "VIDEO" &&
-                referenceAndVideo.reference_linked === true &&
                 referenceAndVideo.save_video_linked === true,
             reference_link_updates_estimate:
                 referenceAndVideo.estimate ===
                 "ESTIMATE UNAVAILABLE — REFERENCE SHAPE RESOLVES AT EXECUTION",
             links_survive_reload:
-                reloadedLinks.reference_linked === true && reloadedLinks.save_video_linked === true,
+                reloadedLinks.reference_links === 2 && reloadedLinks.save_video_linked === true,
             phase8_values_migrate_without_intent_drift:
                 migrated.model?.value === "phase9/model-a" &&
                 migrated.prompt?.value === "legacy prompt" &&

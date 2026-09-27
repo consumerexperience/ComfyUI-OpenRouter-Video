@@ -28,7 +28,8 @@ def test_frontend_helper_keeps_unresolved_and_auto_semantics_local() -> None:
 
     assert 'const SELECT_MODEL = "SELECT MODEL"' in text
     assert 'const AUTO = "AUTO / MODEL DEFAULT"' in text
-    assert "model === SELECT_MODEL" in text
+    assert "canonicalModel(node)" in text
+    assert "getOptionLabel" in text
     assert 'result.availability === "AVAILABLE"' in text
     assert "ESTIMATE UNAVAILABLE" in text
     assert "migratePhase8Values" in text

@@ -209,14 +209,6 @@ def main() -> None:
             "class_type": "OpenRouterVideoVideoReference",
             "inputs": {"url": "https://assets.example/b.mp4"},
         },
-        "3": {
-            "class_type": "OpenRouterVideoReferenceCollection",
-            "inputs": {
-                "references.reference_2": ["2", 0],
-                "references.reference_0": ["1", 0],
-                "references.reference_1": ["1", 0],
-            },
-        },
         "4": {
             "class_type": "OpenRouterVideoGenerate",
             "inputs": {
@@ -230,7 +222,9 @@ def main() -> None:
                 "generate_audio": False,
                 "first_frame_url": "",
                 "last_frame_url": "",
-                "input_references": ["3", 0],
+                "direct_references.reference_2": ["2", 0],
+                "direct_references.reference_0": ["1", 0],
+                "direct_references.reference_1": ["1", 0],
             },
         },
     }
@@ -254,7 +248,14 @@ def main() -> None:
 
     one_reference_prompt = copy.deepcopy(reference_prompt)
     del one_reference_prompt["1"]
-    one_reference_prompt["3"]["inputs"] = {"references.reference_0": ["2", 0]}
+    one_reference_prompt["4"]["inputs"] = {
+        **{
+            name: value
+            for name, value in one_reference_prompt["4"]["inputs"].items()
+            if not name.startswith("direct_references.")
+        },
+        "direct_references.reference_0": ["2", 0],
+    }
     one_valid = asyncio.run(
         execution.validate_inputs(
             "validation-one-reference", copy.deepcopy(one_reference_prompt), "4", {}

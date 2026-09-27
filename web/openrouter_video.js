@@ -26,8 +26,48 @@ function setVisible(item, visible) {
 function addReadOnlyWidget(node, name, initial) {
     const item = node.addWidget("text", name, initial, null, { multiline: false });
     item.serialize = false;
-    item.disabled = true;
+    item.options = item.options || {};
+    item.options.readOnly = true;
     return item;
+}
+
+function canonicalModel(node) {
+    const item = widget(node, "model");
+    const value = item?.value;
+    return typeof value === "string" && value !== SELECT_MODEL ? value : null;
+}
+
+function configureModelPicker(node, projection) {
+    const item = widget(node, "model");
+    if (!item) return null;
+    const models = [...(projection.models || [])].sort((left, right) =>
+        String(left.display_name || left.model_id).localeCompare(
+            String(right.display_name || right.model_id),
+        ),
+    );
+    const nameCounts = new Map();
+    for (const model of models) {
+        const name = String(model.display_name || model.model_id);
+        nameCounts.set(name, (nameCounts.get(name) || 0) + 1);
+    }
+    const entries = models.map((model) => {
+        const name = String(model.display_name || model.model_id);
+        return {
+            id: model.model_id,
+            label: nameCounts.get(name) > 1 ? `${name} — ${model.model_id}` : name,
+        };
+    });
+    item.__orvIdToLabel = new Map(entries.map((entry) => [entry.id, entry.label]));
+    const currentId = canonicalModel(node);
+    item.options = item.options || {};
+    item.options.values = [SELECT_MODEL, ...entries.map((entry) => entry.id)];
+    item.options.getOptionLabel = (value) => item.__orvIdToLabel.get(value) ?? value;
+    if (currentId && item.__orvIdToLabel.has(currentId)) {
+        item.value = currentId;
+    } else {
+        item.value = SELECT_MODEL;
+    }
+    return currentId && !item.__orvIdToLabel.has(currentId) ? currentId : null;
 }
 
 function migratePhase8Values(node) {
@@ -152,6 +192,90 @@ function supportedReference(capability, mode) {
     return capability.normalized_reference_modes?.find((item) => item.mode === mode)?.status;
 }
 
+function isDirectReferenceInput(item) {
+    return item?.type === "OPENROUTER_VIDEO_INPUT_REFERENCE";
+}
+
+function directReferenceInputs(node) {
+    return (node.inputs || []).filter(isDirectReferenceInput);
+}
+
+function referenceInputSuffix(item) {
+    const match = String(item?.name || "").match(/reference_(\d+)$/);
+    return match ? Number(match[1]) : -1;
+}
+
+function referenceKindsLabel(capability) {
+    const kinds = capability.supported_reference_kinds;
+    if (kinds === null) return "KINDS UNKNOWN";
+    if (!kinds?.length) return "NO REFERENCE KINDS";
+    return kinds.map((kind) => kind.toUpperCase()).join(" + ");
+}
+
+function addTrailingReferenceInput(node, current) {
+    if (!node.addInput) return;
+    if (current.length === 0) {
+        node.addInput(
+            "direct_references.reference_0",
+            "OPENROUTER_VIDEO_INPUT_REFERENCE",
+        );
+        return;
+    }
+    const last = [...current].sort(
+        (left, right) => referenceInputSuffix(left) - referenceInputSuffix(right),
+    ).at(-1);
+    const suffix = referenceInputSuffix(last) + 1;
+    const name = String(last.name).replace(/reference_\d+$/, `reference_${suffix}`);
+    node.addInput(name, last.type);
+}
+
+function configureReferenceTopology(node, capability) {
+    const inputs = directReferenceInputs(node);
+    const linked = inputs.filter((item) => item.link != null);
+    const unlinked = inputs.filter((item) => item.link == null);
+    const limit = capability.max_reference_count;
+    const allowedKinds = referenceKindsLabel(capability);
+    const mixed = capability.mixed_image_video_references;
+    const support = [
+        "multi_image_reference",
+        "video_reference",
+        "image_plus_video_reference",
+    ].some((mode) => supportedReference(capability, mode) === "ENFORCED");
+    const effectiveLimit = Number.isInteger(limit) && limit >= 0 ? limit : null;
+    const keepTrailing = support && (effectiveLimit === null || linked.length < effectiveLimit);
+
+    if (node.removeInput && unlinked.length > (keepTrailing ? 1 : 0)) {
+        const keep = keepTrailing ? unlinked[0] : null;
+        const removable = unlinked
+            .filter((item) => item !== keep)
+            .map((item) => node.inputs.indexOf(item))
+            .filter((index) => index >= 0)
+            .sort((left, right) => right - left);
+        for (const index of removable) node.removeInput(index);
+    }
+    const afterTrim = directReferenceInputs(node);
+    if (keepTrailing && afterTrim.every((item) => item.link != null)) {
+        addTrailingReferenceInput(node, afterTrim);
+    }
+    const finalInputs = directReferenceInputs(node).sort(
+        (left, right) => referenceInputSuffix(left) - referenceInputSuffix(right),
+    );
+    for (let index = 0; index < finalInputs.length; index += 1) {
+        finalInputs[index].label = `REFERENCE ${index + 1} · ${allowedKinds} · PUBLIC URL`;
+    }
+
+    const currentCount = finalInputs.filter((item) => item.link != null).length;
+    const limitText = effectiveLimit === null ? "?" : String(effectiveLimit);
+    const mixedText = mixed === true ? "MIXED ORDER ALLOWED" : mixed === false ? "MIXED ORDER OFF" : "MIXED UNKNOWN";
+    node.__orvReferenceStatus.value = `${currentCount}/${limitText} · ${allowedKinds} · ${mixedText} · PUBLIC HTTPS URL`;
+    node.__orvReferenceInvalid = effectiveLimit !== null && currentCount > effectiveLimit;
+    if (node.__orvReferenceInvalid) {
+        disclose(node, `REFERENCES ${currentCount}/${effectiveLimit}: preserve links; reduce explicitly before Generate`);
+    } else if (!support) {
+        disclose(node, "INPUT REFERENCES: not positively authorized for selected model");
+    }
+}
+
 function configureGeometry(node, capability) {
     configureEnum(node, widget(node, "resolution"), capability.supported_resolutions, "RESOLUTION");
     configureEnum(
@@ -198,15 +322,17 @@ function selectedReferenceMode(node) {
     const first = normalizedValue(widget(node, "first_frame_url"));
     const last = normalizedValue(widget(node, "last_frame_url"));
     const referenceInput = node.inputs?.find((item) => item.name === "input_references");
-    if (referenceInput?.link != null) return null;
+    if (referenceInput?.link != null || directReferenceInputs(node).some((item) => item.link != null)) {
+        return null;
+    }
     if (first !== null && last !== null) return "first_plus_last";
     if (first !== null) return "first_frame";
     return "none";
 }
 
 async function refreshEstimate(node) {
-    const model = widget(node, "model")?.value;
-    if (!model || model === SELECT_MODEL) {
+    const model = canonicalModel(node);
+    if (!model) {
         node.__orvEstimate.value = "ESTIMATE UNAVAILABLE — SELECT MODEL";
         return;
     }
@@ -265,8 +391,15 @@ async function projectSelectedModel(node, force = false) {
     node.__orvCapabilityStatus.value = "LOADING CAPABILITIES";
     try {
         const projection = await loadCapabilities(force);
-        const model = widget(node, "model")?.value;
-        if (!model || model === SELECT_MODEL) {
+        const missingSavedModel = configureModelPicker(node, projection);
+        if (missingSavedModel) {
+            node.__orvCapabilityStatus.value =
+                `SAVED MODEL NOT IN CURRENT CATALOGUE: ${missingSavedModel} — SELECT MODEL`;
+            node.__orvEstimate.value = "ESTIMATE UNAVAILABLE — SELECT MODEL";
+            return;
+        }
+        const model = canonicalModel(node);
+        if (!model) {
             node.__orvCapabilityStatus.value = "SELECT MODEL";
             node.__orvEstimate.value = "ESTIMATE UNAVAILABLE — SELECT MODEL";
             return;
@@ -305,14 +438,8 @@ async function projectSelectedModel(node, force = false) {
         }
         setVisible(firstFrame, firstSupported);
         setVisible(lastFrame, lastSupported);
-        const referenceStates = [
-            "multi_image_reference",
-            "video_reference",
-            "image_plus_video_reference",
-        ].map((mode) => supportedReference(capability, mode));
-        if (referenceStates.every((status) => status !== "ENFORCED")) {
-            disclose(node, "INPUT REFERENCES: not positively authorized for selected model");
-        }
+        node.__orvCapability = capability;
+        configureReferenceTopology(node, capability);
         await refreshEstimate(node);
     } catch {
         node.__orvCapabilityStatus.value = "CAPABILITY PROJECTION UNAVAILABLE — SUBMIT BLOCKED BY CORE";
@@ -329,10 +456,15 @@ app.registerExtension({
         const previousConnectionsChange = nodeType.prototype.onConnectionsChange;
         nodeType.prototype.onConnectionsChange = function (...args) {
             const result = previousConnectionsChange?.apply(this, args);
-            const referenceInput = this.inputs?.find((item) => item.name === "input_references");
-            if (referenceInput) {
+            const hasReferences = this.inputs?.some(
+                (item) => item.name === "input_references" || isDirectReferenceInput(item),
+            );
+            if (hasReferences) {
                 clearTimeout(this.__orvEstimateTimer);
-                this.__orvEstimateTimer = setTimeout(() => refreshEstimate(this), 120);
+                this.__orvEstimateTimer = setTimeout(() => {
+                    if (this.__orvCapability) configureReferenceTopology(this, this.__orvCapability);
+                    refreshEstimate(this);
+                }, 120);
             }
             return result;
         };
@@ -344,6 +476,11 @@ app.registerExtension({
                 this,
                 "ESTIMATED COST",
                 "ESTIMATE UNAVAILABLE — SELECT MODEL",
+            );
+            this.__orvReferenceStatus = addReadOnlyWidget(
+                this,
+                "REFERENCE INPUTS",
+                "SELECT MODEL · PUBLIC HTTPS URL TRANSPORT",
             );
             this.__orvGeometryMode = this.addWidget(
                 "combo",

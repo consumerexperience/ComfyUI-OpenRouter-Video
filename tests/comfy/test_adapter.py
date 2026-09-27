@@ -112,6 +112,7 @@ from openrouter_video.models import (  # noqa: E402
     FrameType,
     GenerationResult,
     InputReference,
+    InputReferenceCapabilities,
     InputReferenceCollection,
     InputReferenceKind,
     LocalLifecycleState,
@@ -163,6 +164,7 @@ def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
         "generate_audio",
         "first_frame_url",
         "last_frame_url",
+        "direct_references",
         "input_references",
     ]
     assert [item.name for item in resume.inputs] == ["job_id"]
@@ -185,6 +187,11 @@ def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
     assert fields["seed"].options["default"] == -1
     assert fields["seed"].options["control_after_generate"] == "randomize"
     assert fields["generate_audio"].options["default"] is False
+    direct = fields["direct_references"]
+    assert direct.options["optional"] is True
+    assert direct.options["template"].min == 0
+    assert direct.options["template"].max == 100
+    assert fields["input_references"].options["advanced"] is True
     serialized = repr((generate.__dict__, resume.__dict__)).lower()
     for forbidden in (
         "api_key",
@@ -348,6 +355,48 @@ def test_generate_bridges_typed_reference_collection(monkeypatch: pytest.MonkeyP
         nodes.OpenRouterVideoGenerate.execute("vendor/model", "prompt", input_references=collection)
     )
     assert captured[0].input_references is collection
+
+
+def test_generate_bridges_direct_ordered_references_and_rejects_mixed_topologies(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    image = InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png")
+    video = InputReference(InputReferenceKind.VIDEO, "https://assets.example/b.mp4")
+    captured: list[object] = []
+
+    class Runtime:
+        async def generate(self, request: object, _: str | None) -> GenerationResult:
+            captured.append(request)
+            return GenerationResult(
+                LocalLifecycleState.DONE,
+                "job-direct-references",
+                artifact=VideoArtifact(Path("ignored.mp4"), "video/mp4", 10),
+            )
+
+    monkeypatch.setattr(nodes, "get_runtime", Runtime)
+    monkeypatch.setattr(nodes, "to_native_video", lambda _: "native-video")
+    asyncio.run(
+        nodes.OpenRouterVideoGenerate.execute(
+            "vendor/model",
+            "prompt",
+            direct_references={
+                "reference_2": video,
+                "reference_0": image,
+                "reference_1": image,
+            },
+        )
+    )
+    assert captured[0].input_references == InputReferenceCollection((image, image, video))
+
+    with pytest.raises(nodes.AdapterExecutionError, match="not both"):
+        asyncio.run(
+            nodes.OpenRouterVideoGenerate.execute(
+                "vendor/model",
+                "prompt",
+                direct_references={"reference_0": image},
+                input_references=InputReferenceCollection((video,)),
+            )
+        )
 
 
 @pytest.mark.parametrize("duration", (-1, True, 1.5))
@@ -557,6 +606,13 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
                         supported_frame_types=frozenset({FrameType.FIRST}),
                         supports_seed=None,
                         generate_audio=False,
+                        input_reference_capabilities=InputReferenceCapabilities(
+                            reference_kinds=frozenset(
+                                {InputReferenceKind.IMAGE, InputReferenceKind.VIDEO}
+                            ),
+                            max_reference_count=50,
+                            mixed_image_video_references=True,
+                        ),
                         pricing_evidence=PricingEvidence(
                             (PricingSku("generate", Decimal("0.42")),)
                         ),
@@ -579,6 +635,9 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
     assert projected["supported_resolutions"] == ("480p", "768p")
     assert projected["supported_aspect_ratios"] == ("16:9", "5:4")
     assert projected["supports_seed"] is None
+    assert projected["supported_reference_kinds"] == ("image", "video")
+    assert projected["max_reference_count"] == 50
+    assert projected["mixed_image_video_references"] is True
     serialized = repr(payload).lower()
     assert "pricing" not in serialized
     assert "0.42" not in serialized

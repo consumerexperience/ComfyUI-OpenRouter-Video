@@ -30,6 +30,9 @@ class UiModelCapabilities:
     supported_frame_types: tuple[str, ...] | None
     supports_seed: bool | None
     generate_audio: bool | None
+    supported_reference_kinds: tuple[str, ...] | None
+    max_reference_count: int | None
+    mixed_image_video_references: bool | None
     normalized_reference_modes: tuple[tuple[str, str], ...]
     observed_at: datetime
 
@@ -44,6 +47,9 @@ class UiModelCapabilities:
             "supported_frame_types": self.supported_frame_types,
             "supports_seed": self.supports_seed,
             "generate_audio": self.generate_audio,
+            "supported_reference_kinds": self.supported_reference_kinds,
+            "max_reference_count": self.max_reference_count,
+            "mixed_image_video_references": self.mixed_image_video_references,
             "normalized_reference_modes": [
                 {"mode": mode, "status": status} for mode, status in self.normalized_reference_modes
             ],
@@ -56,6 +62,7 @@ def project_model(capabilities: ModelCapabilities, observed_at: datetime) -> UiM
 
     matrix = mode_enforcement_matrix(capabilities)
     frames = capabilities.supported_frame_types
+    references = capabilities.input_reference_capabilities
     return UiModelCapabilities(
         model_id=capabilities.model_id,
         display_name=capabilities.name or capabilities.model_id,
@@ -68,6 +75,15 @@ def project_model(capabilities: ModelCapabilities, observed_at: datetime) -> UiM
         ),
         supports_seed=capabilities.supports_seed,
         generate_audio=capabilities.generate_audio,
+        supported_reference_kinds=(
+            tuple(sorted(kind.value for kind in references.reference_kinds))
+            if references is not None and references.reference_kinds is not None
+            else None
+        ),
+        max_reference_count=(references.max_reference_count if references is not None else None),
+        mixed_image_video_references=(
+            references.mixed_image_video_references if references is not None else None
+        ),
         normalized_reference_modes=tuple((mode.value, matrix[mode].value) for mode in _UI_MODES),
         observed_at=observed_at,
     )

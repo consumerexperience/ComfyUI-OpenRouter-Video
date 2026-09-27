@@ -8,30 +8,37 @@ The extension registers five numbered V3 nodes:
   `GenerateService` once.
 - `OpenRouterVideoResume` accepts only a stripped, non-empty `job_id` and is constructed without a
   submit client.
-- `OpenRouterVideoImageReference` creates a typed transient image reference.
-- `OpenRouterVideoVideoReference` creates a typed transient video reference; it does not select
-  edit, continue, or extend behavior.
-- `OpenRouterVideoReferenceCollection` uses pinned V3 Autogrow inputs and preserves structural
-  position, order, and every repeated occurrence.
+- `OpenRouterVideoImageReference` creates a typed transient image reference from a public HTTPS URL.
+- `OpenRouterVideoVideoReference` creates a typed transient video reference from a public HTTPS URL;
+  it does not select edit, continue, or extend behavior.
+- `OpenRouterVideoGenerate` exposes direct ordered Autogrow reference sockets and projects the
+  selected model's effective reference kinds and maximum count.
+- `OpenRouterVideoReferenceCollection` remains only for Phase-8 workflow compatibility and preserves
+  structural position, order, and every repeated occurrence.
 
-The Autogrow schema uses the pinned host's 100-slot technical ceiling. That ceiling is not model
-capability evidence and never authorizes a reference count; Core still requires Level A or an
-approved exact-ID evidence overlay before submit. The initial Seedance 2.5 overlay limits the total
-reference collection to 50 even though the host can structurally expose more sockets.
+The Generate Autogrow schema uses the pinned host's 100-slot technical ceiling. That ceiling is not
+model capability evidence and never authorizes a reference count. The presentation helper grows only
+to the effective selected-model limit, while already-linked references are preserved and visibly
+invalidated if a later model selection lowers that limit. Core still requires Level A or an approved
+exact-ID evidence overlay before submit. The initial Seedance 2.5 overlay limits the total reference
+collection to 50 even though the host can structurally expose more sockets.
 
 Both return `VIDEO`, `JOB_ID`, `MODEL`, `ACTUAL_COST_USD`, and `STATUS`. `VIDEO` is the pinned
 native `VideoFromFile` bridge over the already validated Core artifact. The adapter does not copy,
 decode, re-encode, or invoke ffmpeg. Before returning, it rechecks that the path is an existing file
 inside the Comfy output root.
 
-Generate model choices come from `GET /openrouter-video/v1/models`. A visible unresolved sentinel
-precedes the sorted model IDs and cannot become a GenerationRequest model. Expected catalog failures are
+Generate model choices come from `GET /openrouter-video/v1/models`. The widget serializes the
+canonical model ID but renders the corresponding sanitized catalogue display name. A visible
+unresolved sentinel precedes the sorted model IDs and cannot become a GenerationRequest model.
+Expected catalog failures are
 `503 {"error":"model_catalog_unavailable"}`; malformed internal catalogs are
 `500 {"error":"model_catalog_internal_error"}`. Route registration is process-local,
 thread-safe, idempotent, lazy, and performs no network I/O.
 
 `GET /openrouter-video/v1/ui-capabilities` returns only a sanitized projection of effective Core
-capability truth. `POST /openrouter-video/v1/cost-estimate` accepts a bounded non-sensitive selected
+capability truth, including effective reference kinds/count/mixed support. `POST
+/openrouter-video/v1/cost-estimate` accepts a bounded non-sensitive selected
 configuration and returns a prepared `AVAILABLE` or `UNAVAILABLE` estimate. Raw `pricing_skus`
 remain inside Core. The presentation helper contains no model table, pricing table, credential,
 prompt, or billing authority; manipulated values still reach Core validation before submit.
