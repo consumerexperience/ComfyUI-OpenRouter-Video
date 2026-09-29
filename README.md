@@ -4,24 +4,25 @@ Open-source BYOK model-agnostic OpenRouter Video gateway for ComfyUI.
 
 ## Status
 
-**PRE-ALPHA — Phase 9 zero-cost release hardening in progress; paid validation is not authorized.**
+**PRE-ALPHA — Phase 10 pre-implementation visual acceptance gate; paid validation is not authorized.**
 
 The headless core now contains typed Video API contracts, capability discovery and bounded cache,
 pre-submit validation, a durable SQLite lifecycle, one-attempt Generate, submit-incapable Resume,
 bounded polling, and durable MP4/WebM download. The Phase-4 origin-bound request policy still owns
 all authentication, attribution, destination, redirect, TLS, and zero-transport-retry controls.
 
-The pinned ComfyUI extension exposes Generate, submit-incapable Resume, public-HTTPS image/video
+The canonical Phase-9 baseline exposes Generate, submit-incapable Resume, public-HTTPS image/video
 reference nodes, direct ordered Autogrow reference inputs, and a legacy Phase-8 collection node.
 T2V and model-proven first/last-frame modes remain available. The exact-ID evidence overlay accepted
 in ADR-030 enables multi-image, video, and mixed image/video reference modes for
 `bytedance/seedance-2.5`; unresolved models still fail with `CAPABILITY_SIGNAL_GAP` before submit
 authority. Prompt remains required for every Generate call.
-Phase 9 adds a catalogue-driven RC interface: the selected model's normalized durations,
-resolutions, aspect ratios, sizes, frame support, seed support, audio support, and approved
-reference modes are projected from the same Core truth used by pre-submit validation. There are no
-model/provider option tables. See [Phase 8 evidence](docs/phase-8-capability-evidence.md) and the
-[active Phase-9 checkpoint](docs/active-execution-checkpoint.md).
+
+Phase 10 is approved for capability-driven local inference methods and Seedance 2.5 AUDIO/Edit/Extend
+expansion, but product implementation is stopped pending Product Owner acceptance of the refined
+Direction 3 visual specification. See the [canonical Phase-10 plan](docs/phase-10-capability-driven-inference-methods-plan.md),
+[ADR-031](docs/adr/ADR-031-capability-driven-inference-methods-and-multimodal-references.md), and the
+[active checkpoint](docs/active-execution-checkpoint.md).
 
 ## Product principles
 
@@ -52,12 +53,13 @@ environment variable, runtime preference, user, device, installation, or session
 
 See [Headless Core II](docs/headless-core-ii.md),
 [ADR-028](docs/adr/ADR-028-local-recovery-identity-and-request-fingerprint.md),
-[ADR-029](docs/adr/ADR-029-durable-definite-submit-rejection.md), and
-[ADR-030](docs/adr/ADR-030-evidence-backed-capability-overlay.md).
+[ADR-029](docs/adr/ADR-029-durable-definite-submit-rejection.md),
+[ADR-030](docs/adr/ADR-030-evidence-backed-capability-overlay.md), and
+[ADR-031](docs/adr/ADR-031-capability-driven-inference-methods-and-multimodal-references.md).
 
 ## ComfyUI compatibility
 
-Phase 9 uses capability-first host compatibility. `v0.34.3` is the release-blocking historical
+The product uses capability-first host compatibility. `v0.34.3` is the release-blocking historical
 anchor and `v0.37.0` is the frozen release-blocking current target; `v0.35.0` and `v0.36.0` are
 intermediate regression probes, not unconditional support commitments. Missing required V3 host
 capabilities fail visibly. Production imports only `comfy_api.v0_0_2`; because that adapter

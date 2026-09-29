@@ -1,83 +1,58 @@
 # Active execution checkpoint
 
-## Canonical completion
+## Current stage
 
-- Stage: `PHASE 9 / RUNTIME RELIABILITY PROGRAM = COMPLETE`
-- Canonical branch: `main`
-- Canonical main: `a4d2beb0194fd4a6dd9025605c0b93a957ec91d3`
-- Delivered feature head: `5a5826f7cbc03d082c04b1e03f2fb09925c27463`
-- Delivery PR: `#16 — MERGED`
-- Merge method: `merge commit`
-- Phase 8: `COMPLETE`
-- Phase 9: `COMPLETE`
-- Runtime Reliability Program: `COMPLETE`
+- Stage: `PHASE 10 — CAPABILITY-DRIVEN INFERENCE METHODS & MULTIMODAL EXPANSION`
+- Canonical baseline: `main@b492184f41492d37677a2dde9afdbe88666717a2`
+- Working branch: `phase-10/capability-driven-inference-methods`
+- Delivery PR: `NOT CREATED — strict sequence places draft PR after implementation and verification`
+- Current gate: `PRODUCT OWNER VISUAL ACCEPTANCE`
+- Product implementation: `NOT STARTED`
+- Paid generation authority: `NONE`
+- Merge authority: `HUMAN ONLY`
 
-Canonical read-back proved:
-
-```text
-local main == origin/main == a4d2beb0194fd4a6dd9025605c0b93a957ec91d3
-5a5826f7cbc03d082c04b1e03f2fb09925c27463 is an ancestor of origin/main
-product worktree clean
-```
-
-## Delivered product state
-
-- The Generate node uses one sanitized catalogue projection and one authoritative frontend state
-  controller for the model picker and dependent controls.
-- Core remains the final capability, request, billing and paid-submit authority.
-- `/openrouter-video/v1/health` exposes pure local sanitized runtime state without upstream work,
-  mutation, user content or credentials.
-- Catalogue/UI desynchronization, empty catalogue and frontend/backend contract mismatch are explicit
-  states rather than silent empty-picker failures.
-- Phase-8 workflow values migrate without paid-intent drift.
-- Native `VIDEO` output, SaveVideo interoperability, typed reference inputs and save/reload behavior
-  are verified.
-
-## Verification read-back
+Canonical read-back on 2026-09-29 proved:
 
 ```text
-product pytest                              224 passed
-Ruff lint / format                         PASS
-mypy src tests                             PASS (64 source files)
-JavaScript syntax / git diff               PASS
-canonical ComfyUI v0.34.3 browser          PASS
-backend models / selectable picker IDs     29 / 29
-production model-picker /models requests   0
-workflow queue executions                  0
-paid generation POSTs                      0
-PR #16 exact-head checks                   7 / 7 SUCCESS
+local main == origin/main == b492184f41492d37677a2dde9afdbe88666717a2
+PR #16 = MERGED, checks PASS
+PR #17 = MERGED, checks PASS
+source worktree clean before branch creation
 ```
 
-The isolated ComfyUI `v0.37.0` fixture also passed the real backend/browser coherence matrix,
-including explicit `CATALOG_UI_DESYNC` detection, serialized-value migration and native VIDEO wiring.
+## Completed pre-implementation work
 
-## Canonical DEV and Builder state
+- Phase 10.0 zero-cost evidence gate completed against canonical DEV `127.0.0.1:8189`.
+- Canonical session state: `RUNNING_HEALTHY`; 29 selectable models; real `/models` and
+  `/ui-capabilities` returned HTTP 200.
+- Exact AUDIO wire form confirmed from the current official OpenRouter generated SDK.
+- Exact Seedance 2.5 IMAGE/VIDEO/AUDIO, count, mixed, edit, extend, and pricing evidence classified.
+- ADR-031 added as a partial supersession of ADR-030; ADR-030 remains historical.
+- Primitive capability contract, deterministic method derivation, and `MI2V` product preference frozen.
+- One self-contained Phase-10 plan and refined Direction 3 visual specification produced.
 
-- OpenRouter Video Builder: `0.4.0+codex.20260929062732`, installed from the existing
-  `openrouter-project` marketplace with seven skills and exact source/cache parity.
-- Canonical DEV: `E:\_ARENAS_lab\Bizdev\AI\OPENROUTER\dev\ComfyUI-DEV` on
-  `http://127.0.0.1:8189`.
-- Final state: `RUNNING_HEALTHY → REUSE`.
-- Authenticated catalogue: `29` selectable models.
-- Credential: available only to the governed child process; value not disclosed.
-- Fresh-thread implicit skill pickup: `PASS`.
+## Historical completion preserved
+
+Phase 9 and the Runtime Reliability Program are complete in canonical main. Their delivery heads,
+evidence, and historical documents remain valid history but are not the current execution branch or
+phase. Phase-9 paid generation count was zero.
 
 ## Preserved boundaries
 
 ```text
-PHASE-9 PAID GENERATION COUNT = 0
+PHASE-10 PAID GENERATION COUNT = 0
+WORKFLOW QUEUE EXECUTIONS = 0
 OPENROUTER KEY VALUE EXPOSED TO CODEX = NO
 PRODUCTION COMFYUI 8188 CONTACTED = NO
 C:\ COMFYUI ENVIRONMENTS CONTACTED = NO
 ALTERNATE DEV PORT CREATED = NO
+PRODUCT SOURCE IMPLEMENTATION STARTED = NO
 ```
 
-Key availability still does not authorize a paid `POST /api/v1/videos`. Any future paid validation,
-product release or publication remains separately approval-gated.
-
-## Final state
+## Current stop
 
 ```text
-PHASE 9 / RUNTIME RELIABILITY PROGRAM = COMPLETE
-NEXT EXACT ACTION = NONE — STOP AND AWAIT PRODUCT OWNER DECISION
+PHASE 10 PRE-IMPLEMENTATION PACKAGE = COMPLETE
+NEXT EXACT ACTION = PRODUCT OWNER VISUAL ACCEPTANCE OF DIRECTION 3 SPEC
+DO NOT IMPLEMENT CORE / ADAPTER / FRONTEND / PRICING BEFORE ACCEPTANCE
 ```
