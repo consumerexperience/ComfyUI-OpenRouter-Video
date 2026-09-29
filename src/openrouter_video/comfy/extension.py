@@ -2,6 +2,7 @@
 
 from .compat import ComfyExtension, validate_host_api
 from .nodes import (
+    OpenRouterVideoAudioReference,
     OpenRouterVideoGenerate,
     OpenRouterVideoImageReference,
     OpenRouterVideoReferenceCollection,
@@ -22,6 +23,7 @@ class OpenRouterVideoExtension(ComfyExtension):
         return [
             OpenRouterVideoImageReference,
             OpenRouterVideoVideoReference,
+            OpenRouterVideoAudioReference,
             OpenRouterVideoReferenceCollection,
             OpenRouterVideoGenerate,
             OpenRouterVideoResume,

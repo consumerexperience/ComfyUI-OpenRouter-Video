@@ -5,16 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-from openrouter_video.capabilities import GenerationMode, mode_enforcement_matrix
-from openrouter_video.models import ModelCapabilities
+from openrouter_video.capabilities import CapabilityModeStatus, inference_method_matrix
+from openrouter_video.capability_overlays import preferred_inference_method
+from openrouter_video.models import InferenceMethod, ModelCapabilities
 
-_UI_MODES = (
-    GenerationMode.FIRST_FRAME,
-    GenerationMode.FIRST_PLUS_LAST,
-    GenerationMode.MULTI_IMAGE_REFERENCE,
-    GenerationMode.VIDEO_REFERENCE,
-    GenerationMode.IMAGE_PLUS_VIDEO_REFERENCE,
-)
+_UI_METHODS = tuple(InferenceMethod)
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,8 +27,12 @@ class UiModelCapabilities:
     generate_audio: bool | None
     supported_reference_kinds: tuple[str, ...] | None
     max_reference_count: int | None
-    mixed_image_video_references: bool | None
-    normalized_reference_modes: tuple[tuple[str, str], ...]
+    mixed_reference_kinds: bool | None
+    supports_edit: bool | None
+    supports_extend: bool | None
+    supported_inference_methods: tuple[str, ...]
+    inference_method_statuses: tuple[tuple[str, str], ...]
+    preferred_inference_method: str | None
     observed_at: datetime
 
     def as_dict(self) -> dict[str, object]:
@@ -49,10 +48,15 @@ class UiModelCapabilities:
             "generate_audio": self.generate_audio,
             "supported_reference_kinds": self.supported_reference_kinds,
             "max_reference_count": self.max_reference_count,
-            "mixed_image_video_references": self.mixed_image_video_references,
-            "normalized_reference_modes": [
-                {"mode": mode, "status": status} for mode, status in self.normalized_reference_modes
+            "mixed_reference_kinds": self.mixed_reference_kinds,
+            "supports_edit": self.supports_edit,
+            "supports_extend": self.supports_extend,
+            "supported_inference_methods": self.supported_inference_methods,
+            "inference_method_statuses": [
+                {"method": method, "status": status}
+                for method, status in self.inference_method_statuses
             ],
+            "preferred_inference_method": self.preferred_inference_method,
             "observed_at": self.observed_at.isoformat(),
         }
 
@@ -60,7 +64,7 @@ class UiModelCapabilities:
 def project_model(capabilities: ModelCapabilities, observed_at: datetime) -> UiModelCapabilities:
     """Project effective Core truth without pricing, credentials or request data."""
 
-    matrix = mode_enforcement_matrix(capabilities)
+    matrix = inference_method_matrix(capabilities)
     frames = capabilities.supported_frame_types
     references = capabilities.input_reference_capabilities
     return UiModelCapabilities(
@@ -81,10 +85,25 @@ def project_model(capabilities: ModelCapabilities, observed_at: datetime) -> UiM
             else None
         ),
         max_reference_count=(references.max_reference_count if references is not None else None),
-        mixed_image_video_references=(
-            references.mixed_image_video_references if references is not None else None
+        mixed_reference_kinds=(
+            references.mixed_reference_kinds if references is not None else None
         ),
-        normalized_reference_modes=tuple((mode.value, matrix[mode].value) for mode in _UI_MODES),
+        supports_edit=capabilities.supports_edit,
+        supports_extend=capabilities.supports_extend,
+        supported_inference_methods=tuple(
+            method.value
+            for method in _UI_METHODS
+            if matrix[method] is CapabilityModeStatus.READY
+        ),
+        inference_method_statuses=tuple(
+            (method.value, matrix[method].value) for method in _UI_METHODS
+        ),
+        preferred_inference_method=(
+            preferred.value
+            if (preferred := preferred_inference_method(capabilities.model_id)) is not None
+            and matrix[preferred] is CapabilityModeStatus.READY
+            else None
+        ),
         observed_at=observed_at,
     )
 

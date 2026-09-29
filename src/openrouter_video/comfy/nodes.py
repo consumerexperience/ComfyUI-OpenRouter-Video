@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from openrouter_video.application import OperationInterrupted
+from openrouter_video.capabilities import infer_legacy_inference_method
 from openrouter_video.execution_hooks import ExecutionPhase
 from openrouter_video.models import (
     FrameReference,
     FrameType,
     GenerationRequest,
     GenerationResult,
+    InferenceMethod,
     InputReference,
     InputReferenceCollection,
     InputReferenceKind,
@@ -187,6 +189,35 @@ class OpenRouterVideoVideoReference(compat.IO.ComfyNode):
         return compat.IO.NodeOutput(InputReference(InputReferenceKind.VIDEO, url.strip()))
 
 
+class OpenRouterVideoAudioReference(compat.IO.ComfyNode):
+    """Create one transient typed audio reference from a public URL."""
+
+    @classmethod
+    def define_schema(cls) -> object:
+        return compat.IO.Schema(
+            node_id="OpenRouterVideoAudioReference",
+            display_name="OpenRouter Video · Public Audio URL",
+            category="OpenRouter/Video/References",
+            description=(
+                "Creates an ordered audio reference from a public HTTPS URL. "
+                "Local AUDIO upload is not claimed by the current OpenRouter Video contract."
+            ),
+            inputs=[
+                compat.IO.String.Input(
+                    "url",
+                    display_name="PUBLIC HTTPS AUDIO URL",
+                    default="",
+                    tooltip="Publicly retrievable HTTPS audio URL.",
+                )
+            ],
+            outputs=[compat.INPUT_REFERENCE_IO.Output("REFERENCE")],
+        )
+
+    @classmethod
+    def execute(cls, url: str) -> object:
+        return compat.IO.NodeOutput(InputReference(InputReferenceKind.AUDIO, url.strip()))
+
+
 class OpenRouterVideoReferenceCollection(compat.IO.ComfyNode):
     """Legacy Phase-8 collection node retained only for workflow compatibility."""
 
@@ -242,6 +273,12 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
             not_idempotent=True,
             inputs=[
                 compat.model_input(),
+                compat.IO.Combo.Input(
+                    "inference_method",
+                    options=[method.value for method in InferenceMethod],
+                    default=InferenceMethod.T2V.value,
+                    tooltip="Local product intent. Never sent as an OpenRouter field.",
+                ),
                 compat.IO.String.Input("prompt", default="", multiline=True),
                 compat.IO.Int.Input("duration", default=0, min=0, step=1, advanced=True),
                 compat.IO.String.Input("resolution", default="", advanced=True),
@@ -260,14 +297,20 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                 compat.IO.Boolean.Input("generate_audio", default=False, advanced=True),
                 compat.IO.String.Input(
                     "first_frame_url",
-                    display_name="FIRST FRAME · PUBLIC HTTPS URL",
+                    display_name="first_frame",
                     default="",
                     advanced=True,
                 ),
                 compat.IO.String.Input(
                     "last_frame_url",
-                    display_name="LAST FRAME · PUBLIC HTTPS URL",
+                    display_name="last_frame",
                     default="",
+                    advanced=True,
+                ),
+                compat.INPUT_REFERENCE_IO.Input(
+                    "source_video",
+                    display_name="source_video",
+                    optional=True,
                     advanced=True,
                 ),
                 compat.IO.Autogrow.Input(
@@ -331,8 +374,10 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         generate_audio: bool = False,
         first_frame_url: str = "",
         last_frame_url: str = "",
+        source_video: InputReference | None = None,
         direct_references: dict[str, InputReference] | None = None,
         input_references: InputReferenceCollection | None = None,
+        inference_method: str = "",
     ) -> object:
         if direct_references and input_references is not None:
             raise AdapterExecutionError(
@@ -345,17 +390,32 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         )
         first = _optional_text(first_frame_url)
         last = _optional_text(last_frame_url)
+        first_reference = (
+            FrameReference(FrameType.FIRST, first) if first is not None else None
+        )
+        last_reference = FrameReference(FrameType.LAST, last) if last is not None else None
+        references = effective_references.references if effective_references is not None else ()
+        try:
+            method = InferenceMethod(inference_method)
+        except (TypeError, ValueError):
+            method = infer_legacy_inference_method(
+                first_frame=first_reference,
+                last_frame=last_reference,
+                references=references,
+            )
         request = GenerationRequest(
             model=_model(model),
             prompt=prompt if prompt.strip() else None,
+            inference_method=method,
             duration=_duration(duration),
             resolution=_optional_text(resolution),
             aspect_ratio=_optional_text(aspect_ratio),
             size=_optional_text(size),
             seed=_seed(seed),
             generate_audio=generate_audio,
-            first_frame=FrameReference(FrameType.FIRST, first) if first is not None else None,
-            last_frame=FrameReference(FrameType.LAST, last) if last is not None else None,
+            first_frame=first_reference,
+            last_frame=last_reference,
+            source_video=source_video,
             input_references=effective_references,
         )
         node_id = compat.current_node_id(cls)
@@ -403,6 +463,7 @@ class OpenRouterVideoResume(compat.IO.ComfyNode):
 __all__ = (
     "AdapterExecutionError",
     "OpenRouterVideoGenerate",
+    "OpenRouterVideoAudioReference",
     "OpenRouterVideoImageReference",
     "OpenRouterVideoReferenceCollection",
     "OpenRouterVideoResume",

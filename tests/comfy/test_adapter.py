@@ -155,6 +155,7 @@ def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
     ]
     assert [item.name for item in generate.inputs] == [
         "model",
+        "inference_method",
         "prompt",
         "duration",
         "resolution",
@@ -164,6 +165,7 @@ def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
         "generate_audio",
         "first_frame_url",
         "last_frame_url",
+        "source_video",
         "direct_references",
         "input_references",
     ]
@@ -210,6 +212,7 @@ def test_extension_registers_exact_phase8_node_set() -> None:
     assert registered == [
         nodes.OpenRouterVideoImageReference,
         nodes.OpenRouterVideoVideoReference,
+        nodes.OpenRouterVideoAudioReference,
         nodes.OpenRouterVideoReferenceCollection,
         nodes.OpenRouterVideoGenerate,
         nodes.OpenRouterVideoResume,
@@ -352,6 +355,37 @@ def test_generate_bridges_typed_reference_collection(monkeypatch: pytest.MonkeyP
         nodes.OpenRouterVideoGenerate.execute("vendor/model", "prompt", input_references=collection)
     )
     assert captured[0].input_references is collection
+
+
+def test_audio_helper_and_v2v_source_role_bridge_to_core(monkeypatch: pytest.MonkeyPatch) -> None:
+    source = nodes.OpenRouterVideoVideoReference.execute("https://assets.example/source.mp4").values[0]
+    audio = nodes.OpenRouterVideoAudioReference.execute("https://assets.example/guide.mp3").values[0]
+    captured: list[object] = []
+
+    class Runtime:
+        async def generate(self, request: object, _: str | None) -> GenerationResult:
+            captured.append(request)
+            return GenerationResult(
+                LocalLifecycleState.DONE,
+                "job-v2v",
+                artifact=VideoArtifact(Path("ignored.mp4"), "video/mp4", 10),
+            )
+
+    monkeypatch.setattr(nodes, "get_runtime", Runtime)
+    monkeypatch.setattr(nodes, "to_native_video", lambda _: "native-video")
+    asyncio.run(
+        nodes.OpenRouterVideoGenerate.execute(
+            "vendor/model",
+            "prompt",
+            inference_method="V2V_EDIT",
+            source_video=source,
+            direct_references={"reference_0": audio},
+        )
+    )
+
+    assert captured[0].inference_method.value == "V2V_EDIT"
+    assert captured[0].source_video == source
+    assert captured[0].input_references == InputReferenceCollection((audio,))
 
 
 def test_generate_bridges_direct_ordered_references_and_rejects_mixed_topologies(
@@ -607,7 +641,7 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
                                 {InputReferenceKind.IMAGE, InputReferenceKind.VIDEO}
                             ),
                             max_reference_count=50,
-                            mixed_image_video_references=True,
+                            mixed_reference_kinds=True,
                         ),
                         pricing_evidence=PricingEvidence(
                             (PricingSku("generate", Decimal("0.42")),)
@@ -627,7 +661,7 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
 
     assert status == 200
     assert payload["observed_at"] == observed.isoformat()
-    assert payload["ui_contract_version"] == 3
+    assert payload["ui_contract_version"] == 4
     assert len(payload["catalogue_revision"]) == 64
     generate = nodes.OpenRouterVideoGenerate.define_schema()
     assert _schema_inputs(generate)["model"].options["options"] == ["SELECT MODEL"]
@@ -637,7 +671,8 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
     assert projected["supports_seed"] is None
     assert projected["supported_reference_kinds"] == ("image", "video")
     assert projected["max_reference_count"] == 50
-    assert projected["mixed_image_video_references"] is True
+    assert projected["mixed_reference_kinds"] is True
+    assert projected["supported_inference_methods"] == ("T2V", "I2V", "IR2V", "MI2V", "VR2V", "MMR2V")
     serialized = repr(payload).lower()
     assert "pricing" not in serialized
     assert "0.42" not in serialized
@@ -704,7 +739,7 @@ def test_health_route_is_pure_local_sanitized_observation(
         "catalogue_model_count": 30,
         "catalogue_revision": "a" * 64,
         "plugin_version": "0.1.0",
-        "ui_contract_version": 3,
+        "ui_contract_version": 4,
     }
     assert "key" not in repr(payload).lower()
     assert "authorization" not in repr(payload).lower()
