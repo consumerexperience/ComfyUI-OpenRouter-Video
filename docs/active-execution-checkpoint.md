@@ -6,7 +6,7 @@
 - Canonical baseline: `main@b492184f41492d37677a2dde9afdbe88666717a2`
 - Working branch: `phase-10/capability-driven-inference-methods`
 - Delivery PR: `NOT CREATED — strict sequence places draft PR after implementation and verification`
-- Current gate: `PRODUCT OWNER VISUAL ACCEPTANCE`
+- Current gate: `VISUAL ACCEPTANCE COMPLETE — CORE IMPLEMENTATION READY`
 - Product implementation: `NOT STARTED`
 - Paid generation authority: `NONE`
 - Merge authority: `HUMAN ONLY`
@@ -30,6 +30,8 @@ source worktree clean before branch creation
 - ADR-031 added as a partial supersession of ADR-030; ADR-030 remains historical.
 - Primitive capability contract, deterministic method derivation, and `MI2V` product preference frozen.
 - One self-contained Phase-10 plan and refined Direction 3 visual specification produced.
+- Product Owner final correction applied: compact `image_N`, `video_N`, `audio_N` socket labels.
+- Direction 3 visual acceptance: `COMPLETE`.
 
 ## Historical completion preserved
 
@@ -53,6 +55,7 @@ PRODUCT SOURCE IMPLEMENTATION STARTED = NO
 
 ```text
 PHASE 10 PRE-IMPLEMENTATION PACKAGE = COMPLETE
-NEXT EXACT ACTION = PRODUCT OWNER VISUAL ACCEPTANCE OF DIRECTION 3 SPEC
-DO NOT IMPLEMENT CORE / ADAPTER / FRONTEND / PRICING BEFORE ACCEPTANCE
+PHASE 10 DIRECTION 3 VISUAL ACCEPTANCE = COMPLETE
+NEXT EXACT ACTION = IMPLEMENT CORE DOMAIN / VALIDATION / AUDIO / V2V ROLES / FINGERPRINT V3 / MIGRATION
+LATER ADAPTER / FRONTEND / PRICING STEPS REMAIN ORDERED
 ```

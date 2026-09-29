@@ -1,10 +1,10 @@
 # Phase 10 Direction 3 Visual Specification
 
-- Status: `PRODUCT DIRECTION APPROVED — VISUAL ACCEPTANCE PENDING`
+- Status: `PRODUCT DIRECTION APPROVED — VISUAL ACCEPTED AFTER SHORT-LABEL CORRECTION`
 - Visual direction: `Direction 3 — balanced native/polished ComfyUI`
 - Primary model state: `bytedance/seedance-2.5`
 - Primary method state: `MI2V`
-- Implementation authorization: `NOT GRANTED`
+- Implementation authorization: `GRANTED — PRODUCT CODE NOT YET STARTED`
 
 Raster mockups are visual targets. This document is the exact semantic source if generated text in a
 mockup ever differs from the specification.
@@ -68,17 +68,21 @@ V2V_EXTEND — Source Video → Extended Video
 | Method | Visible sockets | Local validity |
 | --- | --- | --- |
 | `T2V` | none | prompt-to-video |
-| `I2V` | `First Frame · IMAGE` | exactly one required |
-| `FLF2V` | `First Frame · IMAGE`, `Last Frame · IMAGE` | both required |
-| `IR2V` | `Image Reference 1 · IMAGE` | exactly one IMAGE reference |
-| `MI2V` | `Image Reference 1…N · IMAGE` | at least two IMAGE references |
-| `VR2V` | `Video Reference 1…N · VIDEO` | at least one VIDEO reference |
-| `AR2V` | `Audio Reference 1…N · AUDIO` | at least one AUDIO reference |
-| `MMR2V` | `Reference 1…N · IMAGE / VIDEO / AUDIO` | at least two refs and two distinct kinds |
-| `V2V_EDIT` | `Source Video · VIDEO`, optional `Reference 1…N` | source required; intent EDIT |
-| `V2V_EXTEND` | `Source Video · VIDEO`, optional `Reference 1…N` | source required; intent EXTEND |
+| `I2V` | `first_frame` | exactly one required |
+| `FLF2V` | `first_frame`, `last_frame` | both required |
+| `IR2V` | `image_1` | exactly one IMAGE reference |
+| `MI2V` | `image_1…image_N` | at least two IMAGE references |
+| `VR2V` | `video_1…video_N` | at least one VIDEO reference |
+| `AR2V` | `audio_1…audio_N` | at least one AUDIO reference |
+| `MMR2V` | connected `image_N` / `video_N` / `audio_N`; free `reference_N` | at least two refs and two distinct kinds |
+| `V2V_EDIT` | `source_video`, optional short typed references | source required; intent EDIT |
+| `V2V_EXTEND` | `source_video`, optional short typed references | source required; intent EXTEND |
 
-Socket labels express product role and media type. They never expose upstream-invented field names.
+Socket labels use compact lowercase snake_case. Reference-slot numbering is stable, one-based, and
+follows visible serialization order. In MMR2V an unconnected trailing socket is `reference_N`; after a
+typed connection it becomes `image_N`, `video_N`, or `audio_N` without moving the socket. These labels
+are presentation semantics only and never become upstream field names.
+
 Transport is expressed by the helper nodes `Public Image URL`, `Public Video URL`, and
 `Public Audio URL`; the Generate node remains task-oriented.
 
@@ -136,9 +140,9 @@ Save/reload preserves model, explicit method, reference order, duplicate referen
 role, and all connected links. A saved incompatible state reloads as incompatible; it is never silently
 rewritten to the preferred method.
 
-## Visual acceptance gate
+## Visual acceptance
 
-Acceptance covers the hierarchy, labels, method menu, typed sockets, autogrow, maximum state,
-incompatible state, lifecycle presentation, cost badge, error/Resume presentation, and save/reload
-semantics shown here. Product implementation must not start until the Product Owner explicitly accepts
-this refined specification.
+The Product Owner accepted Direction 3 with one final correction: replace long typed reference labels
+with the compact `image_N`, `video_N`, and `audio_N` convention. The updated primary and dropdown
+assets satisfy that condition. The Phase-10 visual gate is closed and implementation may proceed
+without reopening design direction.

@@ -1,6 +1,6 @@
 # Phase 10 — Capability-Driven Inference Methods & Multimodal Expansion
 
-- Status: `PRE-IMPLEMENTATION — PRODUCT OWNER VISUAL ACCEPTANCE REQUIRED`
+- Status: `IMPLEMENTATION READY — PRODUCT OWNER VISUAL ACCEPTANCE COMPLETE`
 - Canonical baseline: `main@b492184f41492d37677a2dde9afdbe88666717a2`
 - Feature branch: `phase-10/capability-driven-inference-methods`
 - Product direction: `Direction 3 — APPROVED`
@@ -162,8 +162,8 @@ slug-pattern pricing branch is allowed.
 | 7 | Define Seedance 2.5 preference `MI2V` | `COMPLETE — PRODUCT POLICY` |
 | 8 | Consolidate canonical Phase-10 plan | `COMPLETE` |
 | 9 | Refine Direction 3 visual specification | `COMPLETE` |
-| 10 | Product Owner visual acceptance | `OPEN — STOP` |
-| 11 | Implement Core domain, validation, AUDIO, V2V roles, fingerprint v3, migration | `NOT STARTED` |
+| 10 | Product Owner visual acceptance | `COMPLETE — short socket labels accepted` |
+| 11 | Implement Core domain, validation, AUDIO, V2V roles, fingerprint v3, migration | `READY — NOT STARTED` |
 | 12 | Update Comfy adapter | `NOT STARTED` |
 | 13 | Update frontend projection and dynamic sockets | `NOT STARTED` |
 | 14 | Update pricing estimator | `NOT STARTED` |
@@ -174,7 +174,7 @@ slug-pattern pricing branch is allowed.
 | 19 | Open new Phase-10 draft PR | `NOT STARTED` |
 | 20 | Human-only review and merge | `NOT STARTED` |
 
-No step after 10 may begin until explicit visual acceptance.
+Visual acceptance is complete. Step 11 is now the first unfinished action; later steps remain ordered.
 
 ## Acceptance matrix
 
