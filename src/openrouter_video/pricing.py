@@ -13,7 +13,12 @@ from openrouter_video.capabilities import (
     CapabilityModeStatus,
     mode_enforcement_matrix,
 )
-from openrouter_video.models import InferenceMethod, ModelCapabilities, PricingEvidence
+from openrouter_video.models import (
+    InferenceMethod,
+    InputReferenceKind,
+    ModelCapabilities,
+    PricingEvidence,
+)
 
 _PER_SECOND: Final = "per-video-second"
 _RESOLUTION_SKU = re.compile(r"^per-video-second-(?P<resolution>[a-z0-9]+)$")
@@ -26,26 +31,6 @@ class EstimateAvailability(str, Enum):
     UNAVAILABLE = "UNAVAILABLE"
 
 
-class ReferenceMode(str, Enum):
-    """Normalized request shape relevant to catalogue pricing."""
-
-    NONE = "none"
-    FIRST_FRAME = "first_frame"
-    FIRST_PLUS_LAST = "first_plus_last"
-    MULTI_IMAGE_REFERENCE = "multi_image_reference"
-    VIDEO_REFERENCE = "video_reference"
-    IMAGE_PLUS_VIDEO_REFERENCE = "image_plus_video_reference"
-
-
-_REFERENCE_MODES: Final = {
-    ReferenceMode.FIRST_FRAME: InferenceMethod.I2V,
-    ReferenceMode.FIRST_PLUS_LAST: InferenceMethod.FLF2V,
-    ReferenceMode.MULTI_IMAGE_REFERENCE: InferenceMethod.MI2V,
-    ReferenceMode.VIDEO_REFERENCE: InferenceMethod.VR2V,
-    ReferenceMode.IMAGE_PLUS_VIDEO_REFERENCE: InferenceMethod.MMR2V,
-}
-
-
 @dataclass(frozen=True, slots=True)
 class CostEstimateInputs:
     """Non-sensitive selected configuration used by the estimator."""
@@ -56,7 +41,10 @@ class CostEstimateInputs:
     aspect_ratio: str | None = None
     size: str | None = None
     generate_audio: bool = False
-    reference_mode: ReferenceMode = ReferenceMode.NONE
+    inference_method: InferenceMethod = InferenceMethod.T2V
+    reference_kinds: tuple[InputReferenceKind, ...] = ()
+    reference_count: int = 0
+    source_video_present: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -106,9 +94,21 @@ class PreflightCostEstimator:
             return EstimateResult.unavailable(observed_at, "configuration_not_authorized")
         if inputs.generate_audio and capabilities.generate_audio is not True:
             return EstimateResult.unavailable(observed_at, "configuration_not_authorized")
-        mode = _REFERENCE_MODES.get(inputs.reference_mode, InferenceMethod.T2V)
-        if mode_enforcement_matrix(capabilities)[mode] is not CapabilityModeStatus.READY:
-            return EstimateResult.unavailable(observed_at, "reference_mode_not_authorized")
+        if inputs.reference_count != len(inputs.reference_kinds) or inputs.reference_count < 0:
+            return EstimateResult.unavailable(observed_at, "reference_topology_invalid")
+        if (
+            mode_enforcement_matrix(capabilities)[inputs.inference_method]
+            is not CapabilityModeStatus.READY
+        ):
+            return EstimateResult.unavailable(observed_at, "inference_method_not_authorized")
+        if inputs.source_video_present or InputReferenceKind.VIDEO in inputs.reference_kinds:
+            return EstimateResult.unavailable(
+                observed_at, "video_input_pricing_semantics_ambiguous"
+            )
+        if InputReferenceKind.AUDIO in inputs.reference_kinds:
+            return EstimateResult.unavailable(
+                observed_at, "audio_input_pricing_semantics_ambiguous"
+            )
         evidence = capabilities.pricing_evidence
         if evidence is None or not evidence.skus:
             return EstimateResult.unavailable(observed_at, "pricing_evidence_unavailable")
@@ -160,5 +160,4 @@ __all__ = (
     "EstimateAvailability",
     "EstimateResult",
     "PreflightCostEstimator",
-    "ReferenceMode",
 )

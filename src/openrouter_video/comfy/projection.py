@@ -91,9 +91,7 @@ def project_model(capabilities: ModelCapabilities, observed_at: datetime) -> UiM
         supports_edit=capabilities.supports_edit,
         supports_extend=capabilities.supports_extend,
         supported_inference_methods=tuple(
-            method.value
-            for method in _UI_METHODS
-            if matrix[method] is CapabilityModeStatus.READY
+            method.value for method in _UI_METHODS if matrix[method] is CapabilityModeStatus.READY
         ),
         inference_method_statuses=tuple(
             (method.value, matrix[method].value) for method in _UI_METHODS

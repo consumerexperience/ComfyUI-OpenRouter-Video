@@ -18,6 +18,7 @@ from openrouter_video.capabilities import (
 from openrouter_video.capability_overlays import (
     SEEDANCE_2_5_OVERLAY,
     apply_capability_overlay,
+    preferred_inference_method,
 )
 from openrouter_video.errors import OpenRouterHTTPError, ProductFailureError, TransportError
 from openrouter_video.models import (
@@ -221,6 +222,7 @@ def test_exact_id_overlay_makes_only_proven_reference_modes_ready() -> None:
         ModelCapabilities(
             model_id="bytedance/seedance-2.5",
             canonical_slug="bytedance/seedance-2.5",
+            supported_frame_types=frozenset({FrameType.FIRST, FrameType.LAST}),
         )
     )
     references = model.input_reference_capabilities
@@ -234,16 +236,9 @@ def test_exact_id_overlay_makes_only_proven_reference_modes_ready() -> None:
     assert not references.conflicts
     assert apply_capability_overlay(model) == model
     matrix = inference_method_matrix(model)
-    for method in (
-        InferenceMethod.IR2V,
-        InferenceMethod.MI2V,
-        InferenceMethod.VR2V,
-        InferenceMethod.AR2V,
-        InferenceMethod.MMR2V,
-        InferenceMethod.V2V_EDIT,
-        InferenceMethod.V2V_EXTEND,
-    ):
+    for method in InferenceMethod:
         assert matrix[method] is CapabilityModeStatus.READY
+    assert preferred_inference_method(model.model_id) is InferenceMethod.MI2V
 
 
 def test_overlay_is_exact_id_data_not_provider_family_inference() -> None:
@@ -392,8 +387,18 @@ def test_method_topologies_and_legacy_migration_preserve_intent() -> None:
     image = InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png")
     video = InputReference(InputReferenceKind.VIDEO, "https://assets.example/a.mp4")
     audio = InputReference(InputReferenceKind.AUDIO, "https://assets.example/a.mp3")
+    first = FrameReference(FrameType.FIRST, "https://assets.example/first.png")
+    last = FrameReference(FrameType.LAST, "https://assets.example/last.png")
     valid = (
         GenerationRequest("vendor/model", "prompt", InferenceMethod.T2V),
+        GenerationRequest("vendor/model", "prompt", InferenceMethod.I2V, first_frame=first),
+        GenerationRequest(
+            "vendor/model",
+            "prompt",
+            InferenceMethod.FLF2V,
+            first_frame=first,
+            last_frame=last,
+        ),
         GenerationRequest(
             "vendor/model",
             "prompt",
@@ -409,6 +414,18 @@ def test_method_topologies_and_legacy_migration_preserve_intent() -> None:
         GenerationRequest(
             "vendor/model",
             "prompt",
+            InferenceMethod.VR2V,
+            input_references=InputReferenceCollection((video,)),
+        ),
+        GenerationRequest(
+            "vendor/model",
+            "prompt",
+            InferenceMethod.AR2V,
+            input_references=InputReferenceCollection((audio,)),
+        ),
+        GenerationRequest(
+            "vendor/model",
+            "prompt",
             InferenceMethod.MMR2V,
             input_references=InputReferenceCollection((image, audio, video)),
         ),
@@ -419,16 +436,25 @@ def test_method_topologies_and_legacy_migration_preserve_intent() -> None:
             source_video=video,
             input_references=InputReferenceCollection((audio, image)),
         ),
+        GenerationRequest(
+            "vendor/model",
+            "prompt",
+            InferenceMethod.V2V_EXTEND,
+            source_video=video,
+        ),
     )
     for request in valid:
         validator.validate_shape(request)
 
-    assert infer_legacy_inference_method(
-        first_frame=None, last_frame=None, references=(video,)
-    ) is InferenceMethod.VR2V
-    assert infer_legacy_inference_method(
-        first_frame=None, last_frame=None, references=(image,)
-    ) is InferenceMethod.IR2V
-    assert infer_legacy_inference_method(
-        first_frame=None, last_frame=None, references=(image, audio)
-    ) is InferenceMethod.MMR2V
+    assert (
+        infer_legacy_inference_method(first_frame=None, last_frame=None, references=(video,))
+        is InferenceMethod.VR2V
+    )
+    assert (
+        infer_legacy_inference_method(first_frame=None, last_frame=None, references=(image,))
+        is InferenceMethod.IR2V
+    )
+    assert (
+        infer_legacy_inference_method(first_frame=None, last_frame=None, references=(image, audio))
+        is InferenceMethod.MMR2V
+    )

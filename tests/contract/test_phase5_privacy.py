@@ -11,7 +11,13 @@ from openrouter_video.application import GenerateService
 from openrouter_video.capabilities import CapabilityService, RequestValidator
 from openrouter_video.client import OpenRouterVideoClient
 from openrouter_video.media import DownloadService
-from openrouter_video.models import FrameReference, FrameType, GenerationRequest, GenerationResult
+from openrouter_video.models import (
+    FrameReference,
+    FrameType,
+    GenerationRequest,
+    GenerationResult,
+    InferenceMethod,
+)
 from openrouter_video.persistence import JobStore
 from openrouter_video.request_policy import OpenRouterRequestPolicy
 from openrouter_video.transport import HttpxTransport
@@ -115,6 +121,7 @@ def test_sensitive_generation_data_never_persists_or_leaks_to_diagnostics(
             request = GenerationRequest(
                 "vendor/model",
                 PROMPT_CANARY,
+                inference_method=InferenceMethod.FLF2V,
                 first_frame=FrameReference(FrameType.FIRST, FIRST_URL_CANARY),
                 last_frame=FrameReference(FrameType.LAST, LAST_URL_CANARY),
             )

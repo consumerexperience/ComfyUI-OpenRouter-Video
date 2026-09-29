@@ -41,7 +41,7 @@ def _model_a() -> ModelCapabilities:
         input_reference_capabilities=InputReferenceCapabilities(
             reference_kinds=frozenset({InputReferenceKind.IMAGE, InputReferenceKind.VIDEO}),
             max_reference_count=3,
-            mixed_image_video_references=True,
+            mixed_reference_kinds=True,
         ),
         pricing_evidence=PricingEvidence((PricingSku("generate", Decimal("0.14")),)),
     )
@@ -61,7 +61,7 @@ def _model_b() -> ModelCapabilities:
         input_reference_capabilities=InputReferenceCapabilities(
             reference_kinds=frozenset(),
             max_reference_count=0,
-            mixed_image_video_references=False,
+            mixed_reference_kinds=False,
         ),
         pricing_evidence=PricingEvidence((PricingSku("generate", Decimal("0.42")),)),
     )
@@ -81,7 +81,7 @@ def _fixture_models() -> tuple[ModelCapabilities, ...]:
             input_reference_capabilities=InputReferenceCapabilities(
                 reference_kinds=frozenset(),
                 max_reference_count=0,
-                mixed_image_video_references=False,
+                mixed_reference_kinds=False,
             ),
         )
         for index in range(3, 31)

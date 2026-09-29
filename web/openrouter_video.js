@@ -5,12 +5,12 @@ const EXTENSION = "openrouter-video.capability-driven-ui";
 const GENERATE_NODE = "OpenRouterVideoGenerate";
 const SELECT_MODEL = "SELECT MODEL";
 const AUTO = "AUTO / MODEL DEFAULT";
-const GEOMETRY_AUTO = "AUTO / MODEL DEFAULT";
-const GEOMETRY_RESOLUTION = "RESOLUTION + ASPECT RATIO";
-const GEOMETRY_SIZE = "EXACT SIZE";
-const DURATION_AUTO = "AUTO / MODEL DEFAULT";
-const DURATION_EXPLICIT = "EXPLICIT DURATION";
-const UI_CONTRACT_VERSION = 3;
+const UI_CONTRACT_VERSION = 4;
+const SELECT_METHOD = "Select model first";
+const METHODS = [
+    "T2V", "I2V", "FLF2V", "IR2V", "MI2V", "VR2V", "AR2V", "MMR2V",
+    "V2V_EDIT", "V2V_EXTEND",
+];
 
 let capabilityPromise;
 
@@ -101,6 +101,40 @@ function restorePhase8RemoteOptionsValues(node, serializedValues) {
     return true;
 }
 
+function restorePhase9Values(node, serializedValues) {
+    if (!Array.isArray(serializedValues) || METHODS.includes(serializedValues[1])) return false;
+    const fields = [
+        ["model", 0], ["duration", 2], ["resolution", 3], ["aspect_ratio", 4],
+        ["size", 5], ["seed", 6], ["generate_audio", 7], ["first_frame_url", 8],
+        ["last_frame_url", 9],
+    ];
+    for (const [name, index] of fields) {
+        const item = widget(node, name);
+        if (item && index < serializedValues.length) item.value = serializedValues[index];
+    }
+    const multiline = node.widgets?.find((item) => item.options?.multiline === true);
+    if (multiline && serializedValues.length > 1) multiline.value = serializedValues[1];
+    return true;
+}
+
+function inferLegacyMethodFromNode(node) {
+    const first = inputByName(node, "first_frame")?.link != null ||
+        normalizedValue(widget(node, "first_frame_url")) !== null;
+    const last = inputByName(node, "last_frame")?.link != null ||
+        normalizedValue(widget(node, "last_frame_url")) !== null;
+    if (first && last) return "FLF2V";
+    if (first) return "I2V";
+    const connected = directReferenceInputs(node).filter((item) => item.link != null);
+    const kinds = connected.map(connectedReferenceKind).filter(Boolean);
+    if (kinds.length === 0) return "T2V";
+    const distinct = new Set(kinds);
+    if (distinct.size > 1) return "MMR2V";
+    if (distinct.has("image")) return kinds.length === 1 ? "IR2V" : "MI2V";
+    if (distinct.has("video")) return "VR2V";
+    if (distinct.has("audio")) return "AR2V";
+    return "T2V";
+}
+
 async function loadCapabilities(force = false) {
     if (!capabilityPromise || force) {
         capabilityPromise = api.fetchApi("/openrouter-video/v1/ui-capabilities", {
@@ -129,6 +163,7 @@ function disclose(node, message) {
         current.startsWith("CATALOGUE ");
     if (replacesTransient) status.value = message;
     else if (!current.split("; ").includes(message)) status.value = `${current}; ${message}`;
+    setVisible(status, true);
     node.setDirtyCanvas?.(true, true);
 }
 
@@ -144,8 +179,8 @@ function configureEnum(node, item, supported, label) {
     }
     item.options.values = [AUTO, ...supported];
     if (current !== null && !supported.includes(current)) {
-        item.value = AUTO;
-        disclose(node, `${label}: unsupported saved value reset to AUTO`);
+        item.options.values.push(current);
+        disclose(node, `${label}: incompatible saved value preserved; Generate blocked`);
     } else if (current === null) {
         item.value = AUTO;
     }
@@ -166,14 +201,7 @@ function configureDuration(node, supported) {
     if (!item) return;
     node.__orvDurationValues = supported;
     const current = Number(item.value || 0);
-    const mode = node.__orvDurationMode;
-    if (current > 0) mode.value = DURATION_EXPLICIT;
     item.options = item.options || {};
-    if (mode.value === DURATION_AUTO) {
-        item.value = 0;
-        setVisible(item, false);
-        return;
-    }
     setVisible(item, true);
     if (supported === null) {
         item.type = "combo";
@@ -183,10 +211,9 @@ function configureDuration(node, supported) {
     }
     const values = [...supported].sort((left, right) => left - right);
     if (current > 0 && !values.includes(current)) {
-        item.value = 0;
-        mode.value = DURATION_AUTO;
-        setVisible(item, false);
-        disclose(node, "DURATION: unsupported saved value reset to AUTO");
+        item.type = "combo";
+        item.options.values = [0, ...values, current];
+        disclose(node, "DURATION: incompatible saved value preserved; Generate blocked");
         return;
     }
     const step = arithmeticStep(values);
@@ -207,12 +234,9 @@ function configureDuration(node, supported) {
     }
 }
 
-function supportedReference(capability, mode) {
-    return capability.normalized_reference_modes?.find((item) => item.mode === mode)?.status;
-}
-
 function isDirectReferenceInput(item) {
-    return item?.type === "OPENROUTER_VIDEO_INPUT_REFERENCE";
+    return item?.type === "OPENROUTER_VIDEO_INPUT_REFERENCE" &&
+        String(item?.name || "").startsWith("direct_references.reference_");
 }
 
 function directReferenceInputs(node) {
@@ -224,11 +248,72 @@ function referenceInputSuffix(item) {
     return match ? Number(match[1]) : -1;
 }
 
-function referenceKindsLabel(capability) {
-    const kinds = capability.supported_reference_kinds;
-    if (kinds === null) return "KINDS UNKNOWN";
-    if (!kinds?.length) return "NO REFERENCE KINDS";
-    return kinds.map((kind) => kind.toUpperCase()).join(" + ");
+function inputByName(node, name) {
+    return node.inputs?.find((item) => item.name === name);
+}
+
+function connectedReferenceKind(input) {
+    if (input?.link == null) return null;
+    const link = app.graph?.links?.[input.link];
+    const origin = link ? app.graph?.getNodeById?.(link.origin_id) : null;
+    const type = String(origin?.type || origin?.comfyClass || "");
+    if (type.includes("ImageReference")) return "image";
+    if (type.includes("VideoReference")) return "video";
+    if (type.includes("AudioReference")) return "audio";
+    return null;
+}
+
+function fixedRolesForMethod(method) {
+    if (method === "I2V") return ["first_frame"];
+    if (method === "FLF2V") return ["first_frame", "last_frame"];
+    if (method === "V2V_EDIT" || method === "V2V_EXTEND") return ["source_video"];
+    return [];
+}
+
+function methodUsesReferences(method) {
+    return ["IR2V", "MI2V", "VR2V", "AR2V", "MMR2V", "V2V_EDIT", "V2V_EXTEND"].includes(method);
+}
+
+function referencePrefix(method, input) {
+    if (method === "IR2V" || method === "MI2V") return "image";
+    if (method === "VR2V") return "video";
+    if (method === "AR2V") return "audio";
+    return connectedReferenceKind(input) || "reference";
+}
+
+function connectedRoles(node) {
+    return (node.inputs || [])
+        .filter((input) => input.link != null)
+        .map((input) =>
+            isDirectReferenceInput(input) || input.name === "input_references"
+                ? "references"
+                : input.name,
+        );
+}
+
+function switchWouldOrphan(node, method) {
+    const allowed = new Set([...fixedRolesForMethod(method)]);
+    if (methodUsesReferences(method)) allowed.add("references");
+    return connectedRoles(node).some((role) =>
+        ["first_frame", "last_frame", "source_video", "references"].includes(role) &&
+        !allowed.has(role),
+    );
+}
+
+function ensureFixedInput(node, name) {
+    if (!inputByName(node, name)) node.addInput?.(name, "OPENROUTER_VIDEO_INPUT_REFERENCE");
+    const input = inputByName(node, name);
+    if (input) input.label = name;
+}
+
+function removeUnusedFixedInputs(node, keep) {
+    const fixed = new Set(["first_frame", "last_frame", "source_video"]);
+    const removable = (node.inputs || [])
+        .map((input, index) => ({ input, index }))
+        .filter(({ input }) => fixed.has(input.name) && !keep.has(input.name) && input.link == null)
+        .map(({ index }) => index)
+        .sort((left, right) => right - left);
+    for (const index of removable) node.removeInput?.(index);
 }
 
 function addTrailingReferenceInput(node, current) {
@@ -248,20 +333,27 @@ function addTrailingReferenceInput(node, current) {
     node.addInput(name, last.type);
 }
 
-function configureReferenceTopology(node, capability) {
+function configureReferenceTopology(node, capability, method) {
+    const keepFixed = new Set(fixedRolesForMethod(method));
+    for (const name of keepFixed) ensureFixedInput(node, name);
+    removeUnusedFixedInputs(node, keepFixed);
+    const legacy = inputByName(node, "input_references");
+    if (legacy && legacy.link == null) {
+        const legacyIndex = node.inputs.indexOf(legacy);
+        if (legacyIndex >= 0) node.removeInput?.(legacyIndex);
+    }
+
     const inputs = directReferenceInputs(node);
     const linked = inputs.filter((item) => item.link != null);
     const unlinked = inputs.filter((item) => item.link == null);
     const limit = capability.max_reference_count;
-    const allowedKinds = referenceKindsLabel(capability);
-    const mixed = capability.mixed_image_video_references;
-    const support = [
-        "MULTI_IMAGE_REFERENCE",
-        "VIDEO_REFERENCE",
-        "IMAGE_PLUS_VIDEO_REFERENCE",
-    ].some((mode) => supportedReference(capability, mode) === "READY");
     const effectiveLimit = Number.isInteger(limit) && limit >= 0 ? limit : null;
-    const keepTrailing = support && (effectiveLimit === null || linked.length < effectiveLimit);
+    const sourceCount = inputByName(node, "source_video")?.link != null ? 1 : 0;
+    const usesReferences = methodUsesReferences(method);
+    const exactOne = method === "IR2V";
+    const keepTrailing = usesReferences &&
+        (effectiveLimit === null || linked.length + sourceCount < effectiveLimit) &&
+        (!exactOne || linked.length === 0);
 
     if (node.removeInput && unlinked.length > (keepTrailing ? 1 : 0)) {
         const keep = keepTrailing ? unlinked[0] : null;
@@ -280,19 +372,83 @@ function configureReferenceTopology(node, capability) {
         (left, right) => referenceInputSuffix(left) - referenceInputSuffix(right),
     );
     for (let index = 0; index < finalInputs.length; index += 1) {
-        finalInputs[index].label = `REFERENCE ${index + 1} · ${allowedKinds} · PUBLIC URL`;
+        finalInputs[index].label = `${referencePrefix(method, finalInputs[index])}_${index + 1}`;
     }
 
     const currentCount = finalInputs.filter((item) => item.link != null).length;
-    const limitText = effectiveLimit === null ? "?" : String(effectiveLimit);
-    const mixedText = mixed === true ? "MIXED ORDER ALLOWED" : mixed === false ? "MIXED ORDER OFF" : "MIXED UNKNOWN";
-    node.__orvReferenceStatus.value = `${currentCount}/${limitText} · ${allowedKinds} · ${mixedText} · PUBLIC HTTPS URL`;
-    node.__orvReferenceInvalid = effectiveLimit !== null && currentCount > effectiveLimit;
+    node.__orvReferenceInvalid = effectiveLimit !== null && currentCount + sourceCount > effectiveLimit;
     if (node.__orvReferenceInvalid) {
-        disclose(node, `REFERENCES ${currentCount}/${effectiveLimit}: preserve links; reduce explicitly before Generate`);
-    } else if (!support) {
-        disclose(node, "INPUT REFERENCES: not positively authorized for selected model");
+        disclose(node, `REFERENCES ${currentCount + sourceCount}/${effectiveLimit}: preserve links; reduce explicitly before Generate`);
     }
+}
+
+function methodStatus(capability, method) {
+    return capability.inference_method_statuses?.find((item) => item.method === method)?.status;
+}
+
+function configureInferenceMethod(node, capability) {
+    const item = widget(node, "inference_method");
+    if (!item) return null;
+    const supported = capability?.supported_inference_methods || [];
+    const current = METHODS.includes(item.value) ? item.value : null;
+    item.options = item.options || {};
+    if (!capability) {
+        item.disabled = true;
+        item.options.values = [SELECT_METHOD];
+        item.value = SELECT_METHOD;
+        return null;
+    }
+    item.disabled = false;
+    let selected = current;
+    const hasConnections = connectedRoles(node).some((role) =>
+        ["first_frame", "last_frame", "source_video", "references"].includes(role),
+    );
+    if (
+        !selected ||
+        (
+            node.__orvIsNewNode &&
+            !node.__orvMethodInitialized &&
+            !node.__orvMethodExplicit &&
+            !hasConnections
+        )
+    ) {
+        selected = capability.preferred_inference_method || supported[0] || null;
+    }
+    item.options.values = selected && !supported.includes(selected)
+        ? [...supported, selected]
+        : [...supported];
+    if (selected) item.value = selected;
+    if (selected && methodStatus(capability, selected) !== "READY") {
+        node.__orvMethodBlocked = true;
+        disclose(node, `${selected}: incompatible with selected model; links and intent preserved`);
+    } else {
+        node.__orvMethodBlocked = false;
+    }
+    node.__orvLastMethod = selected;
+    if (selected) node.__orvMethodInitialized = true;
+    return selected;
+}
+
+function bindInferenceMethod(node) {
+    const item = widget(node, "inference_method");
+    if (!item) return;
+    const previous = item.callback;
+    item.callback = function (...args) {
+        const next = item.value;
+        const prior = node.__orvLastMethod;
+        if (METHODS.includes(next) && switchWouldOrphan(node, next)) {
+            item.value = prior;
+            disclose(node, "Disconnect incompatible media before changing Inference Method");
+            node.setDirtyCanvas?.(true, true);
+            return;
+        }
+        previous?.apply(this, args);
+        node.__orvMethodExplicit = true;
+        node.__orvLastMethod = next;
+        if (node.__orvCapability) configureReferenceTopology(node, node.__orvCapability, next);
+        refreshEstimate(node);
+        node.setSize?.(node.computeSize?.());
+    };
 }
 
 function configureGeometry(node, capability) {
@@ -305,48 +461,20 @@ function configureGeometry(node, capability) {
     );
     configureEnum(node, widget(node, "size"), capability.supported_sizes, "EXACT SIZE");
 
-    const mode = node.__orvGeometryMode;
-    const resolution = normalizedValue(widget(node, "resolution"));
-    const aspect = normalizedValue(widget(node, "aspect_ratio"));
-    const size = normalizedValue(widget(node, "size"));
-    if (size !== null) mode.value = GEOMETRY_SIZE;
-    else if (resolution !== null || aspect !== null) mode.value = GEOMETRY_RESOLUTION;
-    else if (![GEOMETRY_AUTO, GEOMETRY_RESOLUTION, GEOMETRY_SIZE].includes(mode.value)) {
-        mode.value = GEOMETRY_AUTO;
-    }
-    applyGeometryMode(node);
-}
-
-function applyGeometryMode(node) {
-    const mode = node.__orvGeometryMode?.value || GEOMETRY_AUTO;
     const resolution = widget(node, "resolution");
     const aspect = widget(node, "aspect_ratio");
     const size = widget(node, "size");
-    setVisible(resolution, mode === GEOMETRY_RESOLUTION);
-    setVisible(aspect, mode === GEOMETRY_RESOLUTION);
-    setVisible(size, mode === GEOMETRY_SIZE);
-    if (mode === GEOMETRY_AUTO) {
-        if (resolution) resolution.value = AUTO;
-        if (aspect) aspect.value = AUTO;
-        if (size) size.value = AUTO;
-    } else if (mode === GEOMETRY_RESOLUTION && size) {
-        size.value = AUTO;
-    } else if (mode === GEOMETRY_SIZE) {
-        if (resolution) resolution.value = AUTO;
-        if (aspect) aspect.value = AUTO;
-    }
+    setVisible(resolution, true);
+    setVisible(aspect, true);
+    setVisible(size, normalizedValue(size) !== null);
 }
 
-function selectedReferenceMode(node) {
-    const first = normalizedValue(widget(node, "first_frame_url"));
-    const last = normalizedValue(widget(node, "last_frame_url"));
-    const referenceInput = node.inputs?.find((item) => item.name === "input_references");
-    if (referenceInput?.link != null || directReferenceInputs(node).some((item) => item.link != null)) {
-        return null;
-    }
-    if (first !== null && last !== null) return "first_plus_last";
-    if (first !== null) return "first_frame";
-    return "none";
+function selectedReferenceKinds(node) {
+    const legacy = inputByName(node, "input_references");
+    if (legacy?.link != null) return null;
+    const connected = directReferenceInputs(node).filter((item) => item.link != null);
+    const kinds = connected.map(connectedReferenceKind);
+    return kinds.some((kind) => kind === null) ? null : kinds;
 }
 
 async function refreshEstimate(node) {
@@ -355,8 +483,8 @@ async function refreshEstimate(node) {
         node.__orvEstimate.value = "ESTIMATE UNAVAILABLE — SELECT MODEL";
         return;
     }
-    const referenceMode = selectedReferenceMode(node);
-    if (referenceMode === null) {
+    const referenceKinds = selectedReferenceKinds(node);
+    if (referenceKinds === null) {
         node.__orvEstimate.value = "ESTIMATE UNAVAILABLE — REFERENCE SHAPE RESOLVES AT EXECUTION";
         return;
     }
@@ -367,7 +495,10 @@ async function refreshEstimate(node) {
         aspect_ratio: normalizedValue(widget(node, "aspect_ratio")),
         size: normalizedValue(widget(node, "size")),
         generate_audio: Boolean(widget(node, "generate_audio")?.value),
-        reference_mode: referenceMode,
+        inference_method: widget(node, "inference_method")?.value,
+        reference_kinds: referenceKinds,
+        reference_count: referenceKinds.length,
+        source_video_present: inputByName(node, "source_video")?.link != null,
     };
     try {
         const response = await api.fetchApi("/openrouter-video/v1/cost-estimate", {
@@ -389,7 +520,7 @@ async function refreshEstimate(node) {
 
 function bindEstimateRefresh(node) {
     for (const item of node.widgets || []) {
-        if (["CAPABILITY STATUS", "ESTIMATED COST"].includes(item.name)) continue;
+        if (item.name === "COST") continue;
         const previous = item.callback;
         item.callback = function (...args) {
             previous?.apply(this, args);
@@ -406,8 +537,31 @@ function bindEstimateRefresh(node) {
     }
 }
 
+function setLifecycleState(nodeId, state) {
+    const node = app.graph?.getNodeById?.(nodeId);
+    if (
+        !node ||
+        ![node.comfyClass, node.type].includes(GENERATE_NODE) ||
+        !node.__orvCapabilityStatus
+    ) return;
+    node.__orvCapabilityStatus.value = state;
+    setVisible(node.__orvCapabilityStatus, Boolean(state));
+    node.setDirtyCanvas?.(true, true);
+}
+
+function presentationPhase(detail) {
+    const value = Number(detail?.value);
+    if (value === 1) return "VALIDATING";
+    if (value === 2) return "SUBMITTING";
+    if (value === 3 || value === 4) return "GENERATING";
+    if (value === 5 || value === 6) return "DOWNLOADING";
+    if (value === 7) return "DONE";
+    return null;
+}
+
 async function projectSelectedModel(node, force = false) {
-    node.__orvCapabilityStatus.value = "LOADING CAPABILITIES";
+    node.__orvCapabilityStatus.value = "";
+    setVisible(node.__orvCapabilityStatus, false);
     try {
         const projection = await loadCapabilities(force);
         if (projection.ui_contract_version !== UI_CONTRACT_VERSION) {
@@ -430,8 +584,8 @@ async function projectSelectedModel(node, force = false) {
         }
         const model = canonicalModel(node);
         if (!model) {
-            node.__orvCapabilityStatus.value = "SELECT MODEL";
             node.__orvEstimate.value = "ESTIMATE UNAVAILABLE — SELECT MODEL";
+            configureInferenceMethod(node, null);
             return;
         }
         const capability = projection.models.find((item) => item.model_id === model);
@@ -440,39 +594,30 @@ async function projectSelectedModel(node, force = false) {
             disclose(node, "SAVED MODEL IS NOT PRESENT IN CURRENT CATALOGUE");
             return;
         }
-        node.__orvCapabilityStatus.value = `CATALOGUE ${capability.observed_at}`;
+        node.__orvCapabilityStatus.value = "";
+        setVisible(node.__orvCapabilityStatus, false);
         configureDuration(node, capability.supported_durations);
         configureGeometry(node, capability);
         const seed = widget(node, "seed");
         setVisible(seed, capability.supports_seed === true);
         if (capability.supports_seed === true) {
             seed.options.min = 0;
-            if (Number(seed.value) < 0) seed.value = 0;
-        } else {
-            seed.value = -1;
+        } else if (Number(seed.value) >= 0) {
+            disclose(node, "SEED: saved value is incompatible; intent preserved and Generate blocked");
         }
         setVisible(widget(node, "generate_audio"), capability.generate_audio === true);
-        if (capability.generate_audio !== true) widget(node, "generate_audio").value = false;
-        const frames = capability.supported_frame_types;
-        const firstFrame = widget(node, "first_frame_url");
-        const lastFrame = widget(node, "last_frame_url");
-        const firstSupported = frames?.includes("first_frame") === true;
-        const lastSupported = frames?.includes("last_frame") === true;
-        if (!firstSupported && normalizedValue(firstFrame) !== null) {
-            firstFrame.value = "";
-            disclose(node, "FIRST FRAME: unsupported saved value reset to omission");
+        if (capability.generate_audio !== true && widget(node, "generate_audio")?.value === true) {
+            disclose(node, "GENERATE AUDIO: incompatible saved value preserved; Generate blocked");
         }
-        if (!lastSupported && normalizedValue(lastFrame) !== null) {
-            lastFrame.value = "";
-            disclose(node, "LAST FRAME: unsupported saved value reset to omission");
-        }
-        setVisible(firstFrame, firstSupported);
-        setVisible(lastFrame, lastSupported);
+        setVisible(widget(node, "first_frame_url"), false);
+        setVisible(widget(node, "last_frame_url"), false);
         node.__orvCapability = capability;
-        configureReferenceTopology(node, capability);
+        const method = configureInferenceMethod(node, capability);
+        if (method) configureReferenceTopology(node, capability, method);
         await refreshEstimate(node);
     } catch {
-        node.__orvCapabilityStatus.value = "CAPABILITY PROJECTION UNAVAILABLE — SUBMIT BLOCKED BY CORE";
+        node.__orvCapabilityStatus.value = "ERROR — CAPABILITIES UNAVAILABLE";
+        setVisible(node.__orvCapabilityStatus, true);
         node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
     }
     node.setSize?.(node.computeSize?.());
@@ -481,6 +626,17 @@ async function projectSelectedModel(node, force = false) {
 
 app.registerExtension({
     name: EXTENSION,
+    setup() {
+        api.addEventListener("progress", (event) => {
+            const detail = event.detail || {};
+            const phase = presentationPhase(detail);
+            if (phase) setLifecycleState(detail.node, phase);
+        });
+        api.addEventListener("execution_error", (event) => {
+            const detail = event.detail || {};
+            setLifecycleState(detail.node_id ?? detail.node, "ERROR");
+        });
+    },
     async beforeRegisterNodeDef(nodeType, nodeData) {
         if (nodeData?.name !== GENERATE_NODE) return;
         const previousConnectionsChange = nodeType.prototype.onConnectionsChange;
@@ -492,7 +648,13 @@ app.registerExtension({
             if (hasReferences) {
                 clearTimeout(this.__orvEstimateTimer);
                 this.__orvEstimateTimer = setTimeout(() => {
-                    if (this.__orvCapability) configureReferenceTopology(this, this.__orvCapability);
+                    if (this.__orvCapability) {
+                        configureReferenceTopology(
+                            this,
+                            this.__orvCapability,
+                            widget(this, "inference_method")?.value,
+                        );
+                    }
                     refreshEstimate(this);
                 }, 120);
             }
@@ -501,61 +663,50 @@ app.registerExtension({
         const previousCreated = nodeType.prototype.onNodeCreated;
         nodeType.prototype.onNodeCreated = function (...args) {
             const result = previousCreated?.apply(this, args);
-            this.__orvCapabilityStatus = addReadOnlyWidget(this, "CAPABILITY STATUS", "SELECT MODEL");
+            this.__orvIsNewNode = true;
+            this.__orvCapabilityStatus = addReadOnlyWidget(this, "STATE", "");
+            setVisible(this.__orvCapabilityStatus, false);
             this.__orvEstimate = addReadOnlyWidget(
                 this,
-                "ESTIMATED COST",
+                "COST",
                 "ESTIMATE UNAVAILABLE — SELECT MODEL",
-            );
-            this.__orvReferenceStatus = addReadOnlyWidget(
-                this,
-                "REFERENCE INPUTS",
-                "SELECT MODEL · PUBLIC HTTPS URL TRANSPORT",
-            );
-            this.__orvGeometryMode = this.addWidget(
-                "combo",
-                "OUTPUT GEOMETRY",
-                GEOMETRY_AUTO,
-                () => {
-                    applyGeometryMode(this);
-                    refreshEstimate(this);
-                },
-                { values: [GEOMETRY_AUTO, GEOMETRY_RESOLUTION, GEOMETRY_SIZE] },
-            );
-            this.__orvDurationMode = this.addWidget(
-                "combo",
-                "DURATION MODE",
-                DURATION_AUTO,
-                () => {
-                    if (this.__orvDurationMode.value === DURATION_AUTO) {
-                        widget(this, "duration").value = 0;
-                    }
-                    configureDuration(this, this.__orvDurationValues ?? null);
-                    refreshEstimate(this);
-                },
-                { values: [DURATION_AUTO, DURATION_EXPLICIT] },
             );
             migratePhase8Values(this);
             bindEstimateRefresh(this);
+            bindInferenceMethod(this);
+            setVisible(widget(this, "first_frame_url"), false);
+            setVisible(widget(this, "last_frame_url"), false);
             setTimeout(() => projectSelectedModel(this), 0);
             return result;
         };
 
         const previousConfigure = nodeType.prototype.onConfigure;
         nodeType.prototype.onConfigure = function (...args) {
+            this.__orvIsNewNode = false;
+            this.__orvMethodExplicit = true;
             const serializedValues = args[0]?.widgets_values;
             const modelIndex = this.widgets?.findIndex((item) => item.name === "model") ?? -1;
             const serializedModel = serializedValues?.[modelIndex];
+            const persistedMethod = METHODS.includes(serializedValues?.[1])
+                ? serializedValues[1]
+                : null;
             const configuredModel =
                 typeof serializedModel === "string" && serializedModel !== SELECT_MODEL
                     ? serializedModel
                     : widget(this, "model")?.value;
             const result = previousConfigure?.apply(this, args);
-            restorePhase8RemoteOptionsValues(this, serializedValues);
+            const restoredRemote = restorePhase8RemoteOptionsValues(this, serializedValues);
+            const restoredPhase9 = !restoredRemote && restorePhase9Values(this, serializedValues);
             migratePhase8Values(this);
             setTimeout(() => {
                 if (configuredModel && configuredModel !== SELECT_MODEL) {
                     widget(this, "model").value = configuredModel;
+                }
+                const method = persistedMethod ||
+                    (restoredRemote || restoredPhase9 ? inferLegacyMethodFromNode(this) : null);
+                if (method) {
+                    widget(this, "inference_method").value = method;
+                    this.__orvLastMethod = method;
                 }
                 projectSelectedModel(this);
             }, 200);

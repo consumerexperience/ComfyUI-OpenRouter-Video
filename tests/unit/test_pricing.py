@@ -3,7 +3,14 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from openrouter_video.models import ModelCapabilities, PricingEvidence, PricingSku
+from openrouter_video.models import (
+    InferenceMethod,
+    InputReferenceCapabilities,
+    InputReferenceKind,
+    ModelCapabilities,
+    PricingEvidence,
+    PricingSku,
+)
 from openrouter_video.pricing import (
     CostEstimateInputs,
     EstimateAvailability,
@@ -122,3 +129,42 @@ def test_estimator_never_prices_unsupported_or_conflicting_configuration() -> No
     assert unsupported.reason == "configuration_not_authorized"
     assert conflicting.availability is EstimateAvailability.UNAVAILABLE
     assert conflicting.reason == "geometry_intent_conflict"
+
+
+def test_estimator_refuses_video_and_audio_reference_pricing_by_analogy() -> None:
+    model = ModelCapabilities(
+        "vendor/model",
+        input_reference_capabilities=InputReferenceCapabilities(
+            reference_kinds=frozenset(
+                {InputReferenceKind.IMAGE, InputReferenceKind.VIDEO, InputReferenceKind.AUDIO}
+            ),
+            max_reference_count=50,
+            mixed_reference_kinds=True,
+        ),
+        pricing_evidence=PricingEvidence((PricingSku("generate", Decimal("0.42")),)),
+    )
+    estimator = PreflightCostEstimator()
+
+    video = estimator.estimate(
+        model,
+        CostEstimateInputs(
+            "vendor/model",
+            inference_method=InferenceMethod.VR2V,
+            reference_kinds=(InputReferenceKind.VIDEO,),
+            reference_count=1,
+        ),
+        observed_at=OBSERVED,
+    )
+    audio = estimator.estimate(
+        model,
+        CostEstimateInputs(
+            "vendor/model",
+            inference_method=InferenceMethod.AR2V,
+            reference_kinds=(InputReferenceKind.AUDIO,),
+            reference_count=1,
+        ),
+        observed_at=OBSERVED,
+    )
+
+    assert video.reason == "video_input_pricing_semantics_ambiguous"
+    assert audio.reason == "audio_input_pricing_semantics_ambiguous"

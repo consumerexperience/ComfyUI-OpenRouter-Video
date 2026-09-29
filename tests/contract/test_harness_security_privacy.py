@@ -12,6 +12,7 @@ from openrouter_video.models import (
     FrameReference,
     FrameType,
     GenerationRequest,
+    InferenceMethod,
     InputReference,
     InputReferenceCollection,
     InputReferenceKind,
@@ -35,6 +36,7 @@ def test_secret_prompt_and_frame_canaries_never_persist_or_render(tmp_path: Path
     request = GenerationRequest(
         "test/video-beta",
         prompt,
+        inference_method=InferenceMethod.FLF2V,
         duration=6,
         resolution="1080p",
         generate_audio=True,
@@ -127,6 +129,8 @@ def test_invalid_shape_is_rejected_before_discovery_or_submit(
         GenerationRequest(
             "test/video-alpha",
             "prompt",
+            inference_method=InferenceMethod.FLF2V,
+            first_frame=FrameReference(FrameType.FIRST, "https://assets.example/first.png"),
             last_frame=FrameReference(FrameType.LAST, "https://assets.example/frame.png"),
         ),
         GenerationRequest("test/video-alpha", "prompt", duration=6),
@@ -166,6 +170,7 @@ def test_reference_canaries_never_persist_and_signal_gap_issues_zero_posts(
     request = GenerationRequest(
         "test/video-alpha",
         "REFERENCE_PROMPT_CANARY",
+        inference_method=InferenceMethod.MMR2V,
         input_references=InputReferenceCollection(
             (
                 InputReference(InputReferenceKind.IMAGE, first),

@@ -157,14 +157,16 @@ def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
         "model",
         "inference_method",
         "prompt",
-        "duration",
         "resolution",
         "aspect_ratio",
+        "duration",
         "size",
         "seed",
         "generate_audio",
         "first_frame_url",
         "last_frame_url",
+        "first_frame",
+        "last_frame",
         "source_video",
         "direct_references",
         "input_references",
@@ -358,8 +360,12 @@ def test_generate_bridges_typed_reference_collection(monkeypatch: pytest.MonkeyP
 
 
 def test_audio_helper_and_v2v_source_role_bridge_to_core(monkeypatch: pytest.MonkeyPatch) -> None:
-    source = nodes.OpenRouterVideoVideoReference.execute("https://assets.example/source.mp4").values[0]
-    audio = nodes.OpenRouterVideoAudioReference.execute("https://assets.example/guide.mp3").values[0]
+    source = nodes.OpenRouterVideoVideoReference.execute(
+        "https://assets.example/source.mp4"
+    ).values[0]
+    audio = nodes.OpenRouterVideoAudioReference.execute("https://assets.example/guide.mp3").values[
+        0
+    ]
     captured: list[object] = []
 
     class Runtime:
@@ -672,7 +678,14 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
     assert projected["supported_reference_kinds"] == ("image", "video")
     assert projected["max_reference_count"] == 50
     assert projected["mixed_reference_kinds"] is True
-    assert projected["supported_inference_methods"] == ("T2V", "I2V", "IR2V", "MI2V", "VR2V", "MMR2V")
+    assert projected["supported_inference_methods"] == (
+        "T2V",
+        "I2V",
+        "IR2V",
+        "MI2V",
+        "VR2V",
+        "MMR2V",
+    )
     serialized = repr(payload).lower()
     assert "pricing" not in serialized
     assert "0.42" not in serialized
@@ -759,7 +772,10 @@ def test_cost_estimate_route_returns_prepared_result_only(
                 "resolution": "480p",
                 "aspect_ratio": "16:9",
                 "generate_audio": False,
-                "reference_mode": "first_frame",
+                "inference_method": "I2V",
+                "reference_kinds": [],
+                "reference_count": 0,
+                "source_video_present": False,
             }
 
     class Runtime:
@@ -784,6 +800,7 @@ def test_cost_estimate_route_returns_prepared_result_only(
 
     assert status == 200
     assert captured[0].model_id == "vendor/model"
+    assert captured[0].inference_method.value == "I2V"
     assert payload == {
         "availability": "AVAILABLE",
         "observed_at": observed.isoformat(),
