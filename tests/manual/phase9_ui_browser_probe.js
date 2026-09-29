@@ -5,10 +5,14 @@ async (page) => {
     const hostVersion = configuration.host || "unknown";
     const helperMode = configuration.helper || "enabled";
     const port = configuration.port || "8189";
+    const serverFixture = helperMode.startsWith("server-fixture");
+    const helperEnabled = !helperMode.endsWith("disabled");
 
     const observedAt = "2026-09-27T00:00:00Z";
     const projection = {
         observed_at: observedAt,
+        ui_contract_version: 3,
+        catalogue_revision: "phase9-synthetic-revision",
         models: [
             {
                 model_id: "phase9/model-a",
@@ -24,9 +28,9 @@ async (page) => {
                 max_reference_count: 3,
                 mixed_image_video_references: true,
                 normalized_reference_modes: [
-                    { mode: "multi_image_reference", status: "ENFORCED" },
-                    { mode: "video_reference", status: "ENFORCED" },
-                    { mode: "image_plus_video_reference", status: "ENFORCED" },
+                    { mode: "MULTI_IMAGE_REFERENCE", status: "READY" },
+                    { mode: "VIDEO_REFERENCE", status: "READY" },
+                    { mode: "IMAGE_PLUS_VIDEO_REFERENCE", status: "READY" },
                 ],
                 observed_at: observedAt,
             },
@@ -44,57 +48,77 @@ async (page) => {
                 max_reference_count: 0,
                 mixed_image_video_references: false,
                 normalized_reference_modes: [
-                    { mode: "multi_image_reference", status: "UNSUPPORTED" },
-                    { mode: "video_reference", status: "UNSUPPORTED" },
-                    { mode: "image_plus_video_reference", status: "UNSUPPORTED" },
+                    { mode: "MULTI_IMAGE_REFERENCE", status: "UNSUPPORTED" },
+                    { mode: "VIDEO_REFERENCE", status: "UNSUPPORTED" },
+                    { mode: "IMAGE_PLUS_VIDEO_REFERENCE", status: "UNSUPPORTED" },
                 ],
                 observed_at: observedAt,
             },
         ],
     };
 
-    if (helperMode === "disabled") {
+    let modelRouteRequests = 0;
+    let capabilityRouteRequests = 0;
+    if (!helperEnabled) {
         await page.route("**/extensions/**/openrouter_video.js", async (route) => {
             await route.fulfill({ status: 200, contentType: "text/javascript", body: "" });
         });
     }
-    await page.route("**/openrouter-video/v1/ui-capabilities", async (route) => {
-        await route.fulfill({
-            status: 200,
-            contentType: "application/json",
-            body: JSON.stringify(projection),
+    if (serverFixture) {
+        page.on("request", (request) => {
+            const url = request.url();
+            if (url.endsWith("/openrouter-video/v1/models")) modelRouteRequests += 1;
+            if (url.endsWith("/openrouter-video/v1/ui-capabilities")) {
+                capabilityRouteRequests += 1;
+            }
         });
-    });
-    await page.route("**/openrouter-video/v1/models", async (route) => {
-        await route.fulfill({
-            status: 200,
-            contentType: "application/json",
-            body: JSON.stringify(["SELECT MODEL", "phase9/model-a", "phase9/model-b"]),
+    } else {
+        await page.route("**/openrouter-video/v1/ui-capabilities", async (route) => {
+            capabilityRouteRequests += 1;
+            await route.fulfill({
+                status: 200,
+                contentType: "application/json",
+                body: JSON.stringify(projection),
+            });
         });
-    });
-    await page.route("**/openrouter-video/v1/cost-estimate", async (route) => {
-        const request = JSON.parse(route.request().postData() || "{}");
-        const amount = request.model_id === "phase9/model-b" ? "0.4200" : "0.1400";
-        await route.fulfill({
-            status: 200,
-            contentType: "application/json",
-            body: JSON.stringify({
-                availability: "AVAILABLE",
-                estimated_cost_usd: amount,
-                observed_at: observedAt,
-                provenance: "synthetic-loopback-ui-probe",
-                applied_skus: ["probe-only"],
-            }),
+        await page.route("**/openrouter-video/v1/models", async (route) => {
+            modelRouteRequests += 1;
+            await route.fulfill({
+                status: 200,
+                contentType: "application/json",
+                body: JSON.stringify(["SELECT MODEL", "phase9/model-a", "phase9/model-b"]),
+            });
         });
-    });
+        await page.route("**/openrouter-video/v1/cost-estimate", async (route) => {
+            const request = JSON.parse(route.request().postData() || "{}");
+            const amount = request.model_id === "phase9/model-b" ? "0.4200" : "0.1400";
+            await route.fulfill({
+                status: 200,
+                contentType: "application/json",
+                body: JSON.stringify({
+                    availability: "AVAILABLE",
+                    estimated_cost_usd: amount,
+                    observed_at: observedAt,
+                    provenance: "synthetic-loopback-ui-probe",
+                    applied_skus: ["probe-only"],
+                }),
+            });
+        });
+    }
 
     await page.goto(`http://127.0.0.1:${port}`);
     await page.waitForFunction(() => document.title.includes("ComfyUI"));
     await page.waitForFunction(() => Boolean(window.comfyAPI?.app?.app?.graph));
     await page.waitForFunction(() => window.comfyAPI?.app?.app?.vueAppReady === true);
     await page.waitForTimeout(500);
+    const backendProjection = await page.evaluate(async () => {
+        const response = await fetch("/openrouter-video/v1/ui-capabilities", { cache: "no-store" });
+        if (!response.ok) throw new Error(`backend projection failed: ${response.status}`);
+        return response.json();
+    });
+    const backendModelCount = backendProjection.models?.length ?? 0;
 
-    const evidence = await page.evaluate(async ({ hostVersion, helperMode }) => {
+    const evidence = await page.evaluate(async ({ hostVersion, helperEnabled, backendModelCount }) => {
         const { app } = await import("/scripts/app.js");
         const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
         const getWidget = (node, name) => node.widgets?.find((item) => item.name === name);
@@ -113,6 +137,10 @@ async (page) => {
                 },
             ]),
         );
+        const estimatedAmount = (text) => {
+            const match = String(text || "").match(/\$([0-9]+(?:\.[0-9]+)?)/);
+            return match ? Number(match[1]) : null;
+        };
         const createNode = async () => {
             const node = globalThis.LiteGraph.createNode("OpenRouterVideoGenerate");
             if (!node) throw new Error("OpenRouterVideoGenerate is not registered");
@@ -125,15 +153,25 @@ async (page) => {
         const node = await createNode();
         const initial = snapshot(node);
 
-        if (helperMode === "disabled") {
+        const classifyCoherence = (count, modelWidget) => {
+            if (count === 0) return "CATALOGUE_EMPTY";
+            const selectable = (modelWidget?.options?.values || []).filter(
+                (value) => value !== "SELECT MODEL",
+            ).length;
+            return selectable === count ? "COHERENT" : "CATALOG_UI_DESYNC";
+        };
+
+        if (!helperEnabled) {
             const model = getWidget(node, "model");
             model.value = "phase9/model-a";
             model.callback?.(model.value);
             await wait(500);
             const nativeOnly = {
                 host_version: hostVersion,
-                helper_mode: helperMode,
+                helper_mode: "disabled",
                 initial,
+                backend_model_count: backendModelCount,
+                ui_state: classifyCoherence(backendModelCount, model),
                 after_model_switch: snapshot(node),
                 helper_controls_present: Boolean(getWidget(node, "CAPABILITY STATUS")),
                 dependent_resolution_type: getWidget(node, "resolution")?.type ?? null,
@@ -142,6 +180,8 @@ async (page) => {
             nativeOnly.checks = {
                 unresolved_model_is_native: initial.model?.value === "SELECT MODEL",
                 helper_is_absent: nativeOnly.helper_controls_present === false,
+                backend_nonempty_without_writer_is_desync:
+                    backendModelCount > 0 && nativeOnly.ui_state === "CATALOG_UI_DESYNC",
                 resolution_remains_free_text:
                     nativeOnly.dependent_resolution_type === "text" &&
                     nativeOnly.dependent_resolution_values === null,
@@ -149,7 +189,11 @@ async (page) => {
             const failures = Object.entries(nativeOnly.checks)
                 .filter(([, passed]) => !passed)
                 .map(([name]) => name);
-            if (failures.length) throw new Error(`native-only checks failed: ${failures.join(", ")}`);
+            if (failures.length) {
+                throw new Error(
+                    `native-only checks failed: ${failures.join(", ")}; evidence=${JSON.stringify(nativeOnly)}`,
+                );
+            }
             return nativeOnly;
         }
 
@@ -187,6 +231,11 @@ async (page) => {
         await wait(500);
         const modelB = snapshot(restoredModelA);
 
+        // Reference topology belongs to the reference-capable model-A fixture.
+        restoredModel.value = "phase9/model-a";
+        restoredModel.callback?.(restoredModel.value);
+        await wait(500);
+
         const imageReference = globalThis.LiteGraph.createNode(
             "OpenRouterVideoImageReference",
         );
@@ -201,7 +250,11 @@ async (page) => {
         const firstReferenceIndex = restoredModelA.inputs.findIndex(
             (item) => item.type === "OPENROUTER_VIDEO_INPUT_REFERENCE",
         );
-        if (firstReferenceIndex < 0) throw new Error("direct reference input is absent");
+        if (firstReferenceIndex < 0) {
+            throw new Error(
+                `direct reference input is absent; capability=${JSON.stringify(restoredModelA.__orvCapability ?? null)}; inputs=${JSON.stringify(restoredModelA.inputs ?? [])}`,
+            );
+        }
         imageReference.connect(0, restoredModelA, firstReferenceIndex);
         await wait(300);
         const secondReferenceIndex = restoredModelA.inputs.findIndex(
@@ -296,8 +349,8 @@ async (page) => {
                 modelA.first_frame_url?.hidden === false &&
                 modelA.last_frame_url?.hidden === false,
             estimate_updates_for_model:
-                modelA["ESTIMATED COST"]?.value === "≈ $0.1400 EST." &&
-                modelB["ESTIMATED COST"]?.value === "≈ $0.4200 EST.",
+                estimatedAmount(modelA["ESTIMATED COST"]?.value) === 0.14 &&
+                estimatedAmount(modelB["ESTIMATED COST"]?.value) === 0.42,
             valid_paid_intent_survives_reload:
                 modelAReloaded.model?.value === "phase9/model-a" &&
                 modelAReloaded.duration?.value === 4 &&
@@ -338,11 +391,17 @@ async (page) => {
         const failures = Object.entries(checks)
             .filter(([, passed]) => !passed)
             .map(([name]) => name);
-        if (failures.length) throw new Error(`helper checks failed: ${failures.join(", ")}`);
+        if (failures.length) {
+            throw new Error(
+                `helper checks failed: ${failures.join(", ")}; migrated=${JSON.stringify(migrated)}`,
+            );
+        }
 
         return {
             host_version: hostVersion,
-            helper_mode: helperMode,
+            helper_mode: "enabled",
+            backend_model_count: backendModelCount,
+            ui_state: classifyCoherence(backendModelCount, getWidget(node, "model")),
             initial,
             model_a: modelA,
             paid_intent_before_switch: paidIntentBeforeSwitch,
@@ -357,7 +416,17 @@ async (page) => {
             input_names: node.inputs?.map((item) => item.name) ?? [],
             output_types: node.outputs?.map((item) => item.type) ?? [],
         };
-    }, { hostVersion, helperMode });
+    }, { hostVersion, helperEnabled, backendModelCount });
 
+    evidence.route_requests = {
+        models: modelRouteRequests,
+        ui_capabilities: capabilityRouteRequests,
+    };
+    if (helperEnabled && modelRouteRequests !== 0) {
+        throw new Error("production model picker has more than one authoritative writer");
+    }
+    if (helperEnabled && evidence.ui_state !== "COHERENT") {
+        throw new Error(`catalogue/UI state is ${evidence.ui_state}`);
+    }
     return evidence;
 }

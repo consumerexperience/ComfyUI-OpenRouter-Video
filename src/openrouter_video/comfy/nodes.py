@@ -304,6 +304,21 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         return compat.next_cache_token()
 
     @classmethod
+    def validate_inputs(cls, model: str) -> bool | str:
+        """Let Core, not a stale Comfy combo copy, authorize model availability."""
+
+        if (
+            not isinstance(model, str)
+            or not model
+            or model == compat.MODEL_UNRESOLVED
+            or model != model.strip()
+            or len(model) > 512
+            or any(ord(character) < 32 or ord(character) == 127 for character in model)
+        ):
+            return "Select a current OpenRouter video model before queueing."
+        return True
+
+    @classmethod
     async def execute(
         cls,
         model: str,

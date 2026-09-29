@@ -10,6 +10,7 @@ const GEOMETRY_RESOLUTION = "RESOLUTION + ASPECT RATIO";
 const GEOMETRY_SIZE = "EXACT SIZE";
 const DURATION_AUTO = "AUTO / MODEL DEFAULT";
 const DURATION_EXPLICIT = "EXPLICIT DURATION";
+const UI_CONTRACT_VERSION = 3;
 
 let capabilityPromise;
 
@@ -80,6 +81,24 @@ function migratePhase8Values(node) {
     if (typeof duration?.value === "string" && /^\d+$/.test(duration.value.trim())) {
         duration.value = Number(duration.value);
     }
+}
+
+function restorePhase8RemoteOptionsValues(node, serializedValues) {
+    if (
+        !Array.isArray(serializedValues) ||
+        serializedValues.length < 13 ||
+        typeof serializedValues[1] !== "boolean" ||
+        serializedValues[2] !== "refresh"
+    ) {
+        return false;
+    }
+    const persistedWidgets = (node.widgets || []).filter((item) => item.serialize !== false);
+    const legacyIndexes = [0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    for (let position = 0; position < legacyIndexes.length; position += 1) {
+        const item = persistedWidgets[position];
+        if (item) item.value = serializedValues[legacyIndexes[position]];
+    }
+    return true;
 }
 
 async function loadCapabilities(force = false) {
@@ -237,10 +256,10 @@ function configureReferenceTopology(node, capability) {
     const allowedKinds = referenceKindsLabel(capability);
     const mixed = capability.mixed_image_video_references;
     const support = [
-        "multi_image_reference",
-        "video_reference",
-        "image_plus_video_reference",
-    ].some((mode) => supportedReference(capability, mode) === "ENFORCED");
+        "MULTI_IMAGE_REFERENCE",
+        "VIDEO_REFERENCE",
+        "IMAGE_PLUS_VIDEO_REFERENCE",
+    ].some((mode) => supportedReference(capability, mode) === "READY");
     const effectiveLimit = Number.isInteger(limit) && limit >= 0 ? limit : null;
     const keepTrailing = support && (effectiveLimit === null || linked.length < effectiveLimit);
 
@@ -391,7 +410,18 @@ async function projectSelectedModel(node, force = false) {
     node.__orvCapabilityStatus.value = "LOADING CAPABILITIES";
     try {
         const projection = await loadCapabilities(force);
+        if (projection.ui_contract_version !== UI_CONTRACT_VERSION) {
+            node.__orvCapabilityStatus.value =
+                `FRONTEND/BACKEND CONTRACT MISMATCH: UI ${UI_CONTRACT_VERSION} / BACKEND ${projection.ui_contract_version ?? "UNKNOWN"}`;
+            node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
+            return;
+        }
         const missingSavedModel = configureModelPicker(node, projection);
+        if ((projection.models || []).length === 0) {
+            node.__orvCapabilityStatus.value = "CATALOGUE EMPTY — NO SELECTABLE MODELS";
+            node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
+            return;
+        }
         if (missingSavedModel) {
             node.__orvCapabilityStatus.value =
                 `SAVED MODEL NOT IN CURRENT CATALOGUE: ${missingSavedModel} — SELECT MODEL`;
@@ -513,13 +543,15 @@ app.registerExtension({
 
         const previousConfigure = nodeType.prototype.onConfigure;
         nodeType.prototype.onConfigure = function (...args) {
+            const serializedValues = args[0]?.widgets_values;
             const modelIndex = this.widgets?.findIndex((item) => item.name === "model") ?? -1;
-            const serializedModel = args[0]?.widgets_values?.[modelIndex];
+            const serializedModel = serializedValues?.[modelIndex];
             const configuredModel =
                 typeof serializedModel === "string" && serializedModel !== SELECT_MODEL
                     ? serializedModel
                     : widget(this, "model")?.value;
             const result = previousConfigure?.apply(this, args);
+            restorePhase8RemoteOptionsValues(this, serializedValues);
             migratePhase8Values(this);
             setTimeout(() => {
                 if (configuredModel && configuredModel !== SELECT_MODEL) {

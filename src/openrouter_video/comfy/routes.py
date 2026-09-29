@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import threading
+from importlib.metadata import PackageNotFoundError, version
 from typing import Any, Final
 
 from openrouter_video.errors import ProductFailureError, RequestPolicyError
 from openrouter_video.pricing import CostEstimateInputs, ReferenceMode
+from openrouter_video.secrets import openrouter_credential_state
 
 from . import compat
 from .projection import project_model
-from .runtime import get_runtime
+from .runtime import get_runtime, local_runtime_health
 
 _REGISTRY_ATTRIBUTE: Final = "_openrouter_video_registered_routes"
 _LOCK_ATTRIBUTE: Final = "_openrouter_video_route_registration_lock"
@@ -21,6 +23,7 @@ async def _models_handler(_: Any) -> Any:
     try:
         observation = await get_runtime().catalog()
     except (ProductFailureError, RequestPolicyError):
+        compat.mark_catalogue_unavailable()
         return compat.json_response({"error": "model_catalog_unavailable"}, status=503)
     except Exception:
         return compat.json_response({"error": "model_catalog_internal_error"}, status=500)
@@ -35,7 +38,6 @@ async def _models_handler(_: Any) -> Any:
     ):
         return compat.json_response({"error": "model_catalog_internal_error"}, status=500)
     sorted_model_ids = tuple(sorted(model_ids))
-    compat.cache_model_options(sorted_model_ids)
     return compat.json_response([compat.MODEL_UNRESOLVED, *sorted_model_ids], status=200)
 
 
@@ -46,15 +48,40 @@ async def _ui_capabilities_handler(_: Any) -> Any:
             project_model(model, observation.observed_at) for model in observation.models
         )
     except (ProductFailureError, RequestPolicyError):
+        compat.mark_catalogue_unavailable()
         return compat.json_response({"error": "model_catalog_unavailable"}, status=503)
     except Exception:
         return compat.json_response({"error": "model_catalog_internal_error"}, status=500)
+    sorted_projected = tuple(sorted(projected, key=lambda item: item.model_id))
+    model_ids = tuple(item.model_id for item in sorted_projected)
+    revision = compat.cache_catalogue_health(model_ids, observation.observed_at.isoformat())
     return compat.json_response(
         {
             "observed_at": observation.observed_at.isoformat(),
-            "models": [
-                item.as_dict() for item in sorted(projected, key=lambda item: item.model_id)
-            ],
+            "catalogue_revision": revision,
+            "ui_contract_version": compat.UI_CONTRACT_VERSION,
+            "models": [item.as_dict() for item in sorted_projected],
+        },
+        status=200,
+    )
+
+
+async def _health_handler(_: Any) -> Any:
+    """Return pure local sanitized state; never perform upstream or paid work."""
+
+    try:
+        plugin_version = version("openrouter-video")
+    except PackageNotFoundError:
+        plugin_version = "0.1.0"
+    return compat.json_response(
+        {
+            "schema_version": 1,
+            "plugin_loaded": True,
+            **local_runtime_health(),
+            "credential_state": openrouter_credential_state(),
+            **compat.catalogue_health_snapshot(),
+            "plugin_version": plugin_version,
+            "ui_contract_version": compat.UI_CONTRACT_VERSION,
         },
         status=200,
     )
@@ -154,6 +181,7 @@ def register_routes() -> None:
             registered = set()
             setattr(server, _REGISTRY_ATTRIBUTE, registered)
         routes = (
+            ("get", compat.HEALTH_ROUTE, _health_handler),
             ("get", compat.MODEL_ROUTE, _models_handler),
             ("get", compat.UI_CAPABILITIES_ROUTE, _ui_capabilities_handler),
             ("post", compat.COST_ESTIMATE_ROUTE, _cost_estimate_handler),

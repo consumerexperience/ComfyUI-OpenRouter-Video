@@ -312,6 +312,21 @@ def get_runtime() -> ProcessRuntime:
         return _runtime
 
 
+def local_runtime_health() -> dict[str, str]:
+    """Observe local runtime readiness without initializing resources or doing I/O."""
+
+    with _runtime_lock:
+        runtime = _runtime
+        if runtime is None:
+            return {"runtime_state": "NOT_INITIALIZED", "database_state": "NOT_INITIALIZED"}
+        resources_ready = runtime._resources is not None and runtime._startup_error is None
+        closing = runtime._closing or runtime._closed
+    if closing:
+        return {"runtime_state": "UNAVAILABLE", "database_state": "UNAVAILABLE"}
+    state = "READY" if resources_ready else "UNAVAILABLE"
+    return {"runtime_state": state, "database_state": state}
+
+
 async def close_runtime() -> None:
     """Close and forget the process runtime; intended for controlled host/test shutdown."""
 
@@ -332,4 +347,5 @@ __all__ = (
     "SHUTDOWN_TIMEOUT_SECONDS",
     "close_runtime",
     "get_runtime",
+    "local_runtime_health",
 )

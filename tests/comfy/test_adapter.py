@@ -178,10 +178,7 @@ def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
     fields = _schema_inputs(generate)
     assert fields["model"].options["options"] == ["SELECT MODEL"]
     assert fields["model"].options["default"] == "SELECT MODEL"
-    remote = fields["model"].options["remote"]
-    assert remote.route == "/openrouter-video/v1/models"
-    assert remote.refresh_button is True
-    assert remote.control_after_refresh == "first"
+    assert "remote" not in fields["model"].options
     assert fields["prompt"].options["multiline"] is True
     assert fields["duration"].options["default"] == 0
     assert fields["seed"].options["default"] == -1
@@ -432,6 +429,9 @@ def test_unresolved_model_is_rejected_before_runtime_and_seed_omission_migrates(
     assert nodes._seed(-1) is None
     assert nodes._seed(42) == 42
     assert nodes._seed("42") == 42
+    result = nodes.OpenRouterVideoGenerate.validate_inputs("SELECT MODEL")
+    assert isinstance(result, str)
+    assert nodes.OpenRouterVideoGenerate.validate_inputs("vendor/model") is True
 
 
 def test_resume_strips_job_id_and_has_no_submit_surface(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -527,6 +527,7 @@ def test_route_registration_is_thread_safe_lazy_and_idempotent(
         thread.join()
 
     assert registered == [
+        ("GET /openrouter-video/v1/health", routes._health_handler),
         ("GET /openrouter-video/v1/models", routes._models_handler),
         ("GET /openrouter-video/v1/ui-capabilities", routes._ui_capabilities_handler),
         ("POST /openrouter-video/v1/cost-estimate", routes._cost_estimate_handler),
@@ -537,7 +538,6 @@ def test_models_route_returns_only_sorted_valid_ids_and_sanitized_errors(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     responses: list[tuple[object, int]] = []
-    monkeypatch.setattr(compat, "_model_options", ())
 
     def response(payload: object, *, status: int) -> tuple[object, int]:
         responses.append((payload, status))
@@ -559,11 +559,7 @@ def test_models_route_returns_only_sorted_valid_ids_and_sanitized_errors(
         200,
     )
     generate = nodes.OpenRouterVideoGenerate.define_schema()
-    assert _schema_inputs(generate)["model"].options["options"] == [
-        "SELECT MODEL",
-        "a/model",
-        "z/model",
-    ]
+    assert _schema_inputs(generate)["model"].options["options"] == ["SELECT MODEL"]
 
     class InvalidRuntime:
         async def catalog(self) -> object:
@@ -631,6 +627,10 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
 
     assert status == 200
     assert payload["observed_at"] == observed.isoformat()
+    assert payload["ui_contract_version"] == 3
+    assert len(payload["catalogue_revision"]) == 64
+    generate = nodes.OpenRouterVideoGenerate.define_schema()
+    assert _schema_inputs(generate)["model"].options["options"] == ["SELECT MODEL"]
     projected = payload["models"][0]
     assert projected["supported_resolutions"] == ("480p", "768p")
     assert projected["supported_aspect_ratios"] == ("16:9", "5:4")
@@ -641,6 +641,73 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
     serialized = repr(payload).lower()
     assert "pricing" not in serialized
     assert "0.42" not in serialized
+
+
+def test_empty_catalogue_is_not_misclassified_as_ui_desync(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    observed = datetime(2026, 9, 26, 19, 54, 44, tzinfo=timezone.utc)
+
+    class Runtime:
+        async def effective_catalog(self) -> object:
+            return types.SimpleNamespace(observed_at=observed, models=())
+
+    monkeypatch.setattr(routes, "get_runtime", Runtime)
+    monkeypatch.setattr(
+        compat,
+        "json_response",
+        lambda payload, *, status: (payload, status),
+    )
+
+    payload, status = asyncio.run(routes._ui_capabilities_handler(None))
+
+    assert status == 200
+    assert payload["models"] == []
+    assert compat.catalogue_health_snapshot()["catalogue_state"] == "EMPTY"
+
+
+def test_health_route_is_pure_local_sanitized_observation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        routes,
+        "get_runtime",
+        lambda: pytest.fail("health must not initialize runtime or perform upstream work"),
+    )
+    monkeypatch.setattr(
+        routes,
+        "local_runtime_health",
+        lambda: {"runtime_state": "READY", "database_state": "READY"},
+    )
+    monkeypatch.setattr(routes, "openrouter_credential_state", lambda: "PRESENT")
+    monkeypatch.setattr(
+        compat,
+        "catalogue_health_snapshot",
+        lambda: {
+            "catalogue_state": "FRESH",
+            "catalogue_model_count": 30,
+            "catalogue_revision": "a" * 64,
+        },
+    )
+    monkeypatch.setattr(compat, "json_response", lambda payload, *, status: (payload, status))
+
+    payload, status = asyncio.run(routes._health_handler(None))
+
+    assert status == 200
+    assert payload == {
+        "schema_version": 1,
+        "plugin_loaded": True,
+        "runtime_state": "READY",
+        "database_state": "READY",
+        "credential_state": "PRESENT",
+        "catalogue_state": "FRESH",
+        "catalogue_model_count": 30,
+        "catalogue_revision": "a" * 64,
+        "plugin_version": "0.1.0",
+        "ui_contract_version": 3,
+    }
+    assert "key" not in repr(payload).lower()
+    assert "authorization" not in repr(payload).lower()
 
 
 def test_cost_estimate_route_returns_prepared_result_only(

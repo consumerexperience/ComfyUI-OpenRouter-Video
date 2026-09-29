@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from hashlib import sha256
 from pathlib import Path
 from typing import Any, Final, NoReturn
 
@@ -13,7 +14,9 @@ from openrouter_video.execution_hooks import ExecutionPhase
 EXPECTED_API_VERSION: Final = "0.0.2"
 MODEL_ROUTE: Final = "/openrouter-video/v1/models"
 UI_CAPABILITIES_ROUTE: Final = "/openrouter-video/v1/ui-capabilities"
+HEALTH_ROUTE: Final = "/openrouter-video/v1/health"
 COST_ESTIMATE_ROUTE: Final = "/openrouter-video/v1/cost-estimate"
+UI_CONTRACT_VERSION: Final = 3
 MODEL_UNRESOLVED: Final = "SELECT MODEL"
 AUTO_MODEL_DEFAULT: Final = "AUTO / MODEL DEFAULT"
 _CUSTOM_FACTORY = getattr(IO, "Custom", None)
@@ -34,8 +37,12 @@ _PHASE_ORDINAL: Final = {
 }
 _CACHE_TOKEN_LOCK = threading.Lock()
 _cache_token = 0
-_MODEL_OPTIONS_LOCK = threading.Lock()
-_model_options: tuple[str, ...] = ()
+_CATALOGUE_HEALTH_LOCK = threading.Lock()
+_catalogue_health: dict[str, object] = {
+    "catalogue_state": "UNKNOWN",
+    "catalogue_model_count": 0,
+    "catalogue_revision": None,
+}
 
 
 class UnsupportedComfyError(RuntimeError):
@@ -66,31 +73,39 @@ def validate_host_api() -> None:
 
 
 def model_input() -> Any:
-    """Build the remote combo with the last catalogue proven by the local route."""
+    """Build a sentinel-only combo owned by the frontend catalogue controller."""
 
     validate_host_api()
-    with _MODEL_OPTIONS_LOCK:
-        options = [MODEL_UNRESOLVED, *_model_options]
-    remote = IO.RemoteOptions(
-        route=MODEL_ROUTE,
-        refresh_button=True,
-        control_after_refresh="first",
-    )
     return IO.Combo.Input(
         "model",
-        options=options,
+        options=[MODEL_UNRESOLVED],
         default=MODEL_UNRESOLVED,
         tooltip="Select a current OpenRouter video model. No model is selected by default.",
-        remote=remote,
     )
 
 
-def cache_model_options(model_ids: tuple[str, ...]) -> None:
-    """Mirror one successful remote response into Comfy's backend validator."""
+def cache_catalogue_health(model_ids: tuple[str, ...], observed_at: str) -> str:
+    """Record a sanitized local catalogue snapshot without upstream work."""
 
-    global _model_options
-    with _MODEL_OPTIONS_LOCK:
-        _model_options = model_ids
+    manifest = f"{observed_at}\n" + "\n".join(sorted(model_ids))
+    revision = sha256(manifest.encode("utf-8")).hexdigest()
+    with _CATALOGUE_HEALTH_LOCK:
+        _catalogue_health.update(
+            catalogue_state="FRESH" if model_ids else "EMPTY",
+            catalogue_model_count=len(model_ids),
+            catalogue_revision=revision,
+        )
+    return revision
+
+
+def mark_catalogue_unavailable() -> None:
+    with _CATALOGUE_HEALTH_LOCK:
+        _catalogue_health["catalogue_state"] = "UNAVAILABLE"
+
+
+def catalogue_health_snapshot() -> dict[str, object]:
+    with _CATALOGUE_HEALTH_LOCK:
+        return dict(_catalogue_health)
 
 
 def next_cache_token() -> int:
@@ -188,14 +203,18 @@ __all__ = (
     "INPUT_REFERENCE_COLLECTION_IO",
     "INPUT_REFERENCE_IO",
     "COST_ESTIMATE_ROUTE",
+    "HEALTH_ROUTE",
     "MODEL_ROUTE",
     "MODEL_UNRESOLVED",
     "UI_CAPABILITIES_ROUTE",
+    "UI_CONTRACT_VERSION",
     "UnsupportedComfyError",
-    "cache_model_options",
+    "cache_catalogue_health",
+    "catalogue_health_snapshot",
     "current_node_id",
     "host_interrupted",
     "json_response",
+    "mark_catalogue_unavailable",
     "model_input",
     "next_cache_token",
     "output_directory",

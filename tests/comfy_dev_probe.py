@@ -174,10 +174,12 @@ def main() -> None:
             "last_frame_url": "",
         },
     )
-    invalid = asyncio.run(execution.validate_inputs("validation-empty", validation_prompt, "1", {}))
+    unresolved_prompt = _prompt(
+        "OpenRouterVideoGenerate",
+        {**validation_prompt["1"]["inputs"], "model": "SELECT MODEL"},
+    )
+    invalid = asyncio.run(execution.validate_inputs("validation-empty", unresolved_prompt, "1", {}))
     assert invalid[0] is False
-    assert any(error["type"] == "value_not_in_list" for error in invalid[1])
-    compat.cache_model_options(("vendor/model",))
     valid = asyncio.run(
         execution.validate_inputs("validation-catalogue", validation_prompt, "1", {})
     )

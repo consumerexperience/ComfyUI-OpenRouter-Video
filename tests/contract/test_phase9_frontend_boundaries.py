@@ -12,6 +12,9 @@ def test_frontend_helper_is_projection_only_and_model_agnostic() -> None:
 
     assert "/openrouter-video/v1/ui-capabilities" in text
     assert "/openrouter-video/v1/cost-estimate" in text
+    assert "const UI_CONTRACT_VERSION = 3" in text
+    assert "FRONTEND/BACKEND CONTRACT MISMATCH" in text
+    assert "CATALOGUE EMPTY — NO SELECTABLE MODELS" in text
     assert "estimated_cost_usd" in text
     assert "pricing_skus" not in text
     assert "per-video-second" not in text
