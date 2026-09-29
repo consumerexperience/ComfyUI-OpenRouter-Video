@@ -139,7 +139,7 @@ class _FixtureRuntime:
 
 
 _RUNTIME = _FixtureRuntime()
-routes.get_runtime = lambda: _RUNTIME
+routes.__dict__["get_runtime"] = lambda: _RUNTIME
 
 NODE_CLASS_MAPPINGS: dict[str, object] = {}
 NODE_DISPLAY_NAME_MAPPINGS: dict[str, str] = {}
