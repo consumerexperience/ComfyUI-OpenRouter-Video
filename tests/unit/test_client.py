@@ -43,6 +43,11 @@ def test_client_maps_exact_endpoints_and_tolerates_additive_fields() -> None:
                             "supported_durations": [5, 8],
                             "supported_frame_images": ["first_frame", "future_frame"],
                             "generate_audio": True,
+                            "seed": True,
+                            "pricing_skus": {
+                                "per-video-second-720p": "0.03125",
+                                "per-video-second": 0.02,
+                            },
                             "input_modalities": ["text", "image", "video"],
                             "future_additive_field": {"ignored": True},
                         }
@@ -80,6 +85,12 @@ def test_client_maps_exact_endpoints_and_tolerates_additive_fields() -> None:
             client = OpenRouterVideoClient(request_policy=_policy(), transport=transport)
             models = await client.list_video_models()
             assert models[0].supported_frame_types == frozenset({FrameType.FIRST})
+            assert models[0].supports_seed is True
+            assert models[0].pricing_evidence is not None
+            assert {sku.key: sku.rate_usd for sku in models[0].pricing_evidence.skus} == {
+                "per-video-second": Decimal("0.02"),
+                "per-video-second-720p": Decimal("0.03125"),
+            }
             assert not hasattr(models[0], "input_modalities")
             request = GenerationRequest(
                 model="vendor/model",

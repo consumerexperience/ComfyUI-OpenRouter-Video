@@ -1,88 +1,105 @@
 # Active execution checkpoint
 
-## Canonical baseline
+## Authority and baseline
 
-- Stage: `PHASE 8 MULTIMODAL EXPANSION — IMPLEMENTED AND ZERO-COST VERIFIED, DELIVERY PENDING`
-- Branch: `phase-8/multimodal-expansion`
-- Canonical starting main: `e4b116a88147d19fa69e376a8b1873593fe784b8`
-- Last known suite before Phase 8: `183 passed`
-- Contract drift: `PRESENT — typed frame media shape`
-- Upstream expansion: `PRESENT — typed image/video references`
+- Stage: `PHASE 9 — CORRECTED UX READY FOR KEYED WINDOWS PORTABLE ACCEPTANCE`
+- Branch: `phase-9/release-hardening-live-validation`
+- Canonical starting main: `d0d200f54b629d1298546274ebc91b8f3004dde7`
+- Rejected UX checkpoint: `432f0bcd0f1df0bc4cffadfef11cfb638cd22b51`
+- Phase 8: `COMPLETE`
+- Paid Phase-9 submits: `0`
+- Paid live execution: `NOT AUTHORIZED`
+- Production ComfyUI `8188`: `NOT TOUCHED`
+- Human-keyed ComfyUI `8189`: `NOT RESTARTED BY CODEX`
+- Local Zero-Cost RC Gate: `REOPENED — REAL KEYED ACCEPTANCE PENDING`
+- RC UX: `NOT FROZEN`
+- Local fixture corpus: `UNCHANGED`
+- PR `#16`: `DRAFT — CORRECTED COMMIT NOT PUSHED`
+- Pre-Live Remote Gate: `NOT STARTED FOR CORRECTED COMMIT`
 
-## Phase-8.0 evidence result
+## Corrective UX implementation
 
-- Sanitized credential-free `GET /api/v1/videos/models`: `200`, 29 models
-- Observation: `2026-09-26T09:52:56.128152+00:00`
-- Level A exposes `supported_frame_images` per model.
-- Level A exposes no `input_modalities`, direct reference capability, reference kind/count/mix, or
-  prompt-requirement field.
-- T2V: `READY`
-- First frame / first+last: `READY` only when the selected model's Level-A frame set proves it;
-  otherwise `UNSUPPORTED`.
-- ADR-030 exact-ID overlay: `ACCEPTED` by Product Owner on 2026-09-26.
-- Multi-image / video / mixed references: `READY` for `bytedance/seedance-2.5`; unresolved models
-  remain scoped `CAPABILITY_SIGNAL_GAP` or `UNSUPPORTED`.
-- Prompt-optional reference generation: `DEFERRED`; prompt remains required for all v0.1 Generate.
-- No provider, family, name, pattern, or cross-model inference is implemented.
+- The model combo keeps the canonical model ID as its serialized value and renders the catalogue
+  display name. Duplicate display names are disambiguated with the model ID.
+- The sanitized UI projection now carries effective reference kinds, effective maximum reference
+  count, mixed image/video support and the existing normalized mode evidence.
+- New workflows connect ordered Public Image URL and Public Video URL nodes directly to Generate.
+  The Phase-8 collection node remains available only as an advanced compatibility input.
+- Direct reference sockets grow to the selected model's effective limit, preserve heterogeneous
+  order and duplicates, and never discard already-linked references after a model-limit change.
+- A limit reduction is disclosed visibly and blocks normal submit intent until the user explicitly
+  resolves it; the helper never silently removes or substitutes paid intent.
+- First/Last Frame inputs and reference nodes now state the proven public-HTTPS URL transport.
+  Native local IMAGE/VIDEO transport is not claimed without an authoritative Video API contract.
+- Capability status, estimate result and reference status are visibly rendered. The frontend still
+  contains no capability table, price formula, credential handling, billing authority or submit
+  authority.
+- Core `RequestValidator` remains the final paid-submit authority.
 
-## Implemented product delta
+## Why the presentation helper remains necessary
 
-- Immutable image/video input-reference domain contracts and ordered collection
-- Exact occurrence preservation: repeated links are not deduplicated
-- Typed nested frame serialization and typed image/video reference serialization
-- Frame/reference mutual exclusion before discovery or submit authority
-- Video reference remains Generate transport only; no Edit/Extend semantics
-- Independent mode-level enforcement matrix with scoped blocking
-- Generic Level-A-plus-overlay resolver with exact-ID data, field provenance, conflict blocking,
-  fresh-catalog requirement, and initial Seedance 2.5 limit of 50
-- Fingerprint v2 for new Generate operations; v1 rows remain unchanged
-- Database schema v3 separated from JobRecord schema v2
-- Transactional v1-to-v2-to-v3 and v2-to-v3 paths; cache truth is destroyed, not migrated
-- Five pinned V3 nodes: image reference, video reference, Autogrow collection, Generate, Resume
-- Existing Generate lifecycle, native VIDEO, and submit-incapable Resume preserved
+Native V3 supplies the node schema, DynamicCombo, Autogrow, VIDEO output, SaveVideo bridge and
+ControlAfterGenerate primitives. Across the two release-blocking hosts, native schema alone does not
+provide the complete selected-model dependent presentation required here: readable catalogue names,
+dependent enum refresh, exact paid-intent invalidation, reference-limit topology and prepared estimate
+display. The retained helper is limited to those presentation duties and consumes only sanitized local
+projection/estimate results.
 
-## Verification snapshot
+## Deterministic verification completed
 
-- Repository pytest: `206 passed`
-- Ruff lint: `PASS`
-- Ruff format check: `PASS`
-- Strict mypy: `PASS — 57 source files`
-- Required reference modes: `PASS — exact payload + complete mock Generate lifecycle`
-- Level-A precedence/conflict, exact-ID-only resolution, stale-LKG block, and count limit: `PASS`
-- Pinned V3 Autogrow/custom-link probe: `PASS`
-- Autogrow zero/one/many, order, repeated occurrence: `PASS`
-- Repeated PromptExecutor Queue executions: `PASS`
-- Pinned native MP4/WebM VIDEO regression: `PASS`
-- sdist and wheel build: `PASS`
-- Clean-wheel install/import: `PASS`
-- pip-audit: `No known vulnerabilities found`; unpublished local package name is unauditable
-- pip check: `PASS`
-- Pinned Comfy CPU quick-test with isolated in-memory database: `PASS`
+| Host | Exact Comfy commit | Classification | Corrected runtime probe | Corrected browser interaction |
+| --- | --- | --- | --- | --- |
+| `v0.34.3` | `87465b8f1f64a27a46f16f22b13b410494dca66d` | release-blocking anchor | `PASS` | `PASS — isolated keyless 8190` |
+| `v0.37.0` | `73c9bad4d21e7addbe1d13bc92eee0f1431b017d` | release-blocking current | `PASS` | `PASS — isolated keyless 8191` |
 
-## Security and billing state
+The browser interaction used real mouse input against ComfyUI rather than assigning widget values:
 
-- Paid generation submits: `0`
-- Credits spent: `$0`
-- Production credential access: `NO`
-- Credential-bearing subprocesses: `0`
-- Read-only catalog GET observations: `2`
-- COMFY PROD touched: `NO`
-- Project telemetry: `NONE`
-- Canonical AppIdentity: unchanged
+- opened the model combo and selected readable `Phase 9 Model A` / `Phase 9 Model B` labels;
+- opened a typed reference socket by dragging it to empty canvas;
+- selected Public Image URL and Public Video URL nodes from the actual Comfy node chooser;
+- observed direct sockets grow from one to three and stop at the effective limit of three;
+- switched to a model with an effective reference maximum of zero;
+- observed all three links preserved with an explicit `3/0` invalidation;
+- serialized/reloaded the workflow and observed the canonical model ID plus all three ordered links
+  preserved.
 
-## Delivery state
+The loopback browser routes used sanitized synthetic capability/estimate payloads. They prove host and
+presentation behavior only; they are not the required real authenticated catalogue acceptance.
 
-- Local implementation: `COMPLETE AND ZERO-COST VERIFIED`
-- Verified ADR-030 implementation commit: `8ceb23ff3a06cbbe53184269156b2e32e0e06fbe`
-- Feature branch: `PUSHED THROUGH 9508f03a9533575daa83fbe435417506a27f2586`
-- PR: `#15 — https://github.com/consumerexperience/ComfyUI-OpenRouter-Video/pull/15`
-- PR base/head: `main <- phase-8/multimodal-expansion`
-- Required CI / CodeQL: `7/7 PASS on 9508f03a9533575daa83fbe435417506a27f2586`;
-  every later checkpoint-only head still requires live GitHub read-back before merge
-- Release: not published
-- Merge: `HUMAN ONLY — NOT AUTHORIZED`
+Current repository verification:
 
-## Open gate and next exact action
+```text
+pytest                                      222 passed
+focused adapter/frontend contract tests      22 passed
+ruff check                                  PASS
+ruff format --check                         PASS after the recorded formatting fix
+mypy --strict src                           PASS
+node --check web/openrouter_video.js         PASS
+git diff --check                            PASS
+Comfy v0.34.3 corrected runtime probe        PASS
+Comfy v0.37.0 corrected runtime probe        PASS
+```
 
-Obtain human review and merge for PR #15 after confirming required CI and CodeQL on its exact current
-head. Read back canonical `origin/main` after the human merge before declaring Phase 8 `DONE`.
+Previously completed and unaffected evidence remains valid for schema-v4 migration/reinstall
+idempotence, five-case manifest/runbook consistency, local fixture validation, packaging, dependency
+audit, AppIdentity and same-job recovery. The corrective tranche does not change persistence,
+fixtures, exact paid configuration, AppIdentity, billing or recovery semantics.
+
+## Open local gate item
+
+The next required check is an actual Windows Portable acceptance on human-restarted keyed `8189`
+without route mocks for `/openrouter-video/v1/models` or
+`/openrouter-video/v1/ui-capabilities`. It must confirm the real catalogue display names, real
+selected-model dependent options and the same interaction/save-reload behavior.
+
+Codex must not restart that key-bearing process, inspect its environment or access its credential.
+The Product Owner performs the restart after receiving the corrected local commit identity.
+
+Until that acceptance passes:
+
+```text
+LOCAL ZERO-COST RC GATE = OPEN
+RC UX = NOT FROZEN
+PUSH OF CORRECTED COMMIT = NOT AUTHORIZED BY THIS CHECKPOINT
+PAID EXECUTION = NOT AUTHORIZED
+```

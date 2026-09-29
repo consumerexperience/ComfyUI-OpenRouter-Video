@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from openrouter_video.application import OperationInterrupted
+from openrouter_video.execution_hooks import ExecutionPhase
 from openrouter_video.models import (
     FrameReference,
     FrameType,
@@ -25,6 +26,8 @@ class AdapterExecutionError(RuntimeError):
 
 def _optional_text(value: str) -> str | None:
     normalized = value.strip()
+    if normalized == compat.AUTO_MODEL_DEFAULT:
+        return None
     return normalized or None
 
 
@@ -36,14 +39,40 @@ def _duration(value: int) -> int | None:
     return value or None
 
 
-def _seed(value: str) -> int | None:
+def _model(value: object) -> str:
+    if not isinstance(value, str):
+        raise AdapterExecutionError("UNSUPPORTED_PARAMETER: select a model before Generate.")
+    normalized = value.strip()
+    if not normalized or normalized == compat.MODEL_UNRESOLVED:
+        raise AdapterExecutionError("UNSUPPORTED_PARAMETER: select a model before Generate.")
+    return normalized
+
+
+def _seed(value: object) -> int | None:
+    if value is None or value == "":
+        return None
+    if isinstance(value, bool):
+        raise AdapterExecutionError("UNSUPPORTED_PARAMETER: seed must be an integer.")
+    if isinstance(value, int):
+        if value == -1:
+            return None
+        if value < -1:
+            raise AdapterExecutionError("UNSUPPORTED_PARAMETER: seed must be non-negative.")
+        return value
+    if not isinstance(value, str):
+        raise AdapterExecutionError("UNSUPPORTED_PARAMETER: seed must be an integer.")
     normalized = value.strip()
     if not normalized:
         return None
     try:
-        return int(normalized, 10)
+        parsed = int(normalized, 10)
     except ValueError:
         raise AdapterExecutionError("UNSUPPORTED_PARAMETER: seed must be an integer.") from None
+    if parsed == -1:
+        return None
+    if parsed < -1:
+        raise AdapterExecutionError("UNSUPPORTED_PARAMETER: seed must be non-negative.")
+    return parsed
 
 
 def _safe_job_id(value: str | None) -> str | None:
@@ -67,24 +96,27 @@ def _raise_product_error(result: GenerationResult) -> None:
     raise AdapterExecutionError(message)
 
 
-def _node_output(result: GenerationResult) -> object:
+async def _node_output(result: GenerationResult, node_id: str | None) -> object:
     _raise_product_error(result)
     if result.artifact is None:
         raise AdapterExecutionError(
             "INVALID_VIDEO_RESPONSE: no durable video artifact is available."
         )
     try:
+        await compat.report_phase(ExecutionPhase.NATIVE_VIDEO, node_id)
         video = to_native_video(result.artifact)
     except VideoBridgeError as exc:
         raise AdapterExecutionError(str(exc)) from None
     cost = format(result.actual_cost_usd, "f") if result.actual_cost_usd is not None else ""
-    return compat.IO.NodeOutput(
+    output = compat.IO.NodeOutput(
         video,
         result.job_id or "",
         result.model or "",
         cost,
         result.state.value,
     )
+    await compat.report_phase(ExecutionPhase.DONE, node_id)
+    return output
 
 
 def _outputs() -> list[object]:
@@ -104,9 +136,20 @@ class OpenRouterVideoImageReference(compat.IO.ComfyNode):
     def define_schema(cls) -> object:
         return compat.IO.Schema(
             node_id="OpenRouterVideoImageReference",
-            display_name="OpenRouter Video Image Reference",
+            display_name="OpenRouter Video · Public Image URL",
             category="OpenRouter/Video/References",
-            inputs=[compat.IO.String.Input("url", default="")],
+            description=(
+                "Creates an ordered image reference from a public HTTPS URL. "
+                "Local IMAGE upload is not claimed by the current OpenRouter Video contract."
+            ),
+            inputs=[
+                compat.IO.String.Input(
+                    "url",
+                    display_name="PUBLIC HTTPS IMAGE URL",
+                    default="",
+                    tooltip="Publicly retrievable HTTPS image URL.",
+                )
+            ],
             outputs=[compat.INPUT_REFERENCE_IO.Output("REFERENCE")],
         )
 
@@ -122,9 +165,20 @@ class OpenRouterVideoVideoReference(compat.IO.ComfyNode):
     def define_schema(cls) -> object:
         return compat.IO.Schema(
             node_id="OpenRouterVideoVideoReference",
-            display_name="OpenRouter Video Video Reference",
+            display_name="OpenRouter Video · Public Video URL",
             category="OpenRouter/Video/References",
-            inputs=[compat.IO.String.Input("url", default="")],
+            description=(
+                "Creates an ordered video reference from a public HTTPS URL. "
+                "Local VIDEO upload is not claimed by the current OpenRouter Video contract."
+            ),
+            inputs=[
+                compat.IO.String.Input(
+                    "url",
+                    display_name="PUBLIC HTTPS VIDEO URL",
+                    default="",
+                    tooltip="Publicly retrievable HTTPS video URL.",
+                )
+            ],
             outputs=[compat.INPUT_REFERENCE_IO.Output("REFERENCE")],
         )
 
@@ -134,7 +188,7 @@ class OpenRouterVideoVideoReference(compat.IO.ComfyNode):
 
 
 class OpenRouterVideoReferenceCollection(compat.IO.ComfyNode):
-    """Preserve structural Autogrow positions, occurrences, and order exactly."""
+    """Legacy Phase-8 collection node retained only for workflow compatibility."""
 
     @classmethod
     def define_schema(cls) -> object:
@@ -146,23 +200,34 @@ class OpenRouterVideoReferenceCollection(compat.IO.ComfyNode):
         )
         return compat.IO.Schema(
             node_id="OpenRouterVideoReferenceCollection",
-            display_name="OpenRouter Video Reference Collection",
+            display_name="OpenRouter Video · Legacy Reference Collection",
             category="OpenRouter/Video/References",
+            description=(
+                "Phase-8 compatibility node. New workflows connect ordered URL reference "
+                "nodes directly to OpenRouter Video Generate."
+            ),
             inputs=[compat.IO.Autogrow.Input("references", template=template, optional=True)],
             outputs=[compat.INPUT_REFERENCE_COLLECTION_IO.Output("INPUT_REFERENCES")],
         )
 
     @classmethod
     def execute(cls, references: dict[str, InputReference] | None = None) -> object:
-        indexed: list[tuple[int, InputReference]] = []
-        for name, reference in (references or {}).items():
-            prefix, separator, suffix = name.rpartition("_")
-            if prefix != "reference" or not separator or not suffix.isdigit():
-                raise AdapterExecutionError("UNSUPPORTED_PARAMETER: invalid reference position.")
-            indexed.append((int(suffix), reference))
-        indexed.sort(key=lambda item: item[0])
-        collection = InputReferenceCollection(tuple(reference for _, reference in indexed))
-        return compat.IO.NodeOutput(collection)
+        return compat.IO.NodeOutput(_reference_collection(references))
+
+
+def _reference_collection(
+    references: dict[str, InputReference] | None,
+) -> InputReferenceCollection:
+    """Preserve autogrow positions, duplicates and heterogeneous order exactly."""
+
+    indexed: list[tuple[int, InputReference]] = []
+    for name, reference in (references or {}).items():
+        prefix, separator, suffix = name.rpartition("_")
+        if prefix != "reference" or not separator or not suffix.isdigit():
+            raise AdapterExecutionError("UNSUPPORTED_PARAMETER: invalid reference position.")
+        indexed.append((int(suffix), reference))
+    indexed.sort(key=lambda item: item[0])
+    return InputReferenceCollection(tuple(reference for _, reference in indexed))
 
 
 class OpenRouterVideoGenerate(compat.IO.ComfyNode):
@@ -182,11 +247,51 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                 compat.IO.String.Input("resolution", default="", advanced=True),
                 compat.IO.String.Input("aspect_ratio", default="", advanced=True),
                 compat.IO.String.Input("size", default="", advanced=True),
-                compat.IO.String.Input("seed", default="", advanced=True),
+                compat.IO.Int.Input(
+                    "seed",
+                    default=-1,
+                    min=-1,
+                    max=(1 << 63) - 1,
+                    step=1,
+                    control_after_generate=compat.IO.ControlAfterGenerate.randomize,
+                    display_mode=compat.IO.NumberDisplay.number,
+                    advanced=True,
+                ),
                 compat.IO.Boolean.Input("generate_audio", default=False, advanced=True),
-                compat.IO.String.Input("first_frame_url", default="", advanced=True),
-                compat.IO.String.Input("last_frame_url", default="", advanced=True),
-                compat.INPUT_REFERENCE_COLLECTION_IO.Input("input_references", optional=True),
+                compat.IO.String.Input(
+                    "first_frame_url",
+                    display_name="FIRST FRAME · PUBLIC HTTPS URL",
+                    default="",
+                    advanced=True,
+                ),
+                compat.IO.String.Input(
+                    "last_frame_url",
+                    display_name="LAST FRAME · PUBLIC HTTPS URL",
+                    default="",
+                    advanced=True,
+                ),
+                compat.IO.Autogrow.Input(
+                    "direct_references",
+                    display_name="ORDERED REFERENCES",
+                    template=compat.IO.Autogrow.TemplatePrefix(
+                        input=compat.INPUT_REFERENCE_IO.Input("reference"),
+                        prefix="reference_",
+                        min=0,
+                        max=100,
+                    ),
+                    optional=True,
+                    tooltip=(
+                        "Connect Public Image URL / Public Video URL nodes in order. "
+                        "The UI enforces the selected model's effective count and kinds; "
+                        "Core validates again before submit."
+                    ),
+                ),
+                compat.INPUT_REFERENCE_COLLECTION_IO.Input(
+                    "input_references",
+                    display_name="LEGACY PHASE-8 REFERENCES",
+                    optional=True,
+                    advanced=True,
+                ),
             ],
             outputs=_outputs(),
             hidden=[compat.IO.Hidden.unique_id],
@@ -199,6 +304,21 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         return compat.next_cache_token()
 
     @classmethod
+    def validate_inputs(cls, model: str) -> bool | str:
+        """Let Core, not a stale Comfy combo copy, authorize model availability."""
+
+        if (
+            not isinstance(model, str)
+            or not model
+            or model == compat.MODEL_UNRESOLVED
+            or model != model.strip()
+            or len(model) > 512
+            or any(ord(character) < 32 or ord(character) == 127 for character in model)
+        ):
+            return "Select a current OpenRouter video model before queueing."
+        return True
+
+    @classmethod
     async def execute(
         cls,
         model: str,
@@ -207,16 +327,26 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         resolution: str = "",
         aspect_ratio: str = "",
         size: str = "",
-        seed: str = "",
+        seed: int | str | None = -1,
         generate_audio: bool = False,
         first_frame_url: str = "",
         last_frame_url: str = "",
+        direct_references: dict[str, InputReference] | None = None,
         input_references: InputReferenceCollection | None = None,
     ) -> object:
+        if direct_references and input_references is not None:
+            raise AdapterExecutionError(
+                "UNSUPPORTED_PARAMETER: use direct ordered references or the legacy "
+                "Phase-8 collection, not both."
+            )
+        direct_collection = _reference_collection(direct_references)
+        effective_references = (
+            direct_collection if direct_collection.references else input_references
+        )
         first = _optional_text(first_frame_url)
         last = _optional_text(last_frame_url)
         request = GenerationRequest(
-            model=model.strip(),
+            model=_model(model),
             prompt=prompt if prompt.strip() else None,
             duration=_duration(duration),
             resolution=_optional_text(resolution),
@@ -226,13 +356,14 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
             generate_audio=generate_audio,
             first_frame=FrameReference(FrameType.FIRST, first) if first is not None else None,
             last_frame=FrameReference(FrameType.LAST, last) if last is not None else None,
-            input_references=input_references,
+            input_references=effective_references,
         )
+        node_id = compat.current_node_id(cls)
         try:
-            result = await get_runtime().generate(request, compat.current_node_id(cls))
+            result = await get_runtime().generate(request, node_id)
         except OperationInterrupted:
             compat.raise_host_interrupt()
-        return _node_output(result)
+        return await _node_output(result, node_id)
 
 
 class OpenRouterVideoResume(compat.IO.ComfyNode):
@@ -261,11 +392,12 @@ class OpenRouterVideoResume(compat.IO.ComfyNode):
         normalized = job_id.strip()
         if not normalized:
             raise AdapterExecutionError("JOB_NOT_FOUND: job_id must not be empty.")
+        node_id = compat.current_node_id(cls)
         try:
-            result = await get_runtime().resume(normalized, compat.current_node_id(cls))
+            result = await get_runtime().resume(normalized, node_id)
         except OperationInterrupted:
             compat.raise_host_interrupt()
-        return _node_output(result)
+        return await _node_output(result, node_id)
 
 
 __all__ = (

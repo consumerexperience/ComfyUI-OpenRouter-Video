@@ -31,4 +31,14 @@ class EnvironmentSecretProvider:
         return value.strip()
 
 
-__all__ = ("EnvironmentSecretProvider", "SecretProvider")
+def openrouter_credential_state() -> str:
+    """Return only whether this process has a non-empty credential value."""
+
+    try:
+        value = os.environ.get(_OPENROUTER_API_KEY)
+    except Exception:
+        return "UNAVAILABLE"
+    return "PRESENT" if isinstance(value, str) and bool(value.strip()) else "MISSING"
+
+
+__all__ = ("EnvironmentSecretProvider", "SecretProvider", "openrouter_credential_state")

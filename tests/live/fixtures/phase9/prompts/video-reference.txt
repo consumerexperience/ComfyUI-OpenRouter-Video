@@ -1,0 +1,1 @@
+Create a four-second abstract geometric video guided by the supplied motion-reference video. Preserve its obvious lateral motion and test-pattern character while producing a new synthetic composition. Keep it silent and free of text, logos, people, and copyrighted characters.

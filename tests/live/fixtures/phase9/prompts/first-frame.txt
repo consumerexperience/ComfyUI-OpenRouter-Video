@@ -1,0 +1,1 @@
+Animate the supplied first frame into a simple four-second camera move. Preserve the dark blue field, the red square on the left, and the tall white outline on the right. Keep the composition synthetic, geometric, silent, and free of text, logos, people, and copyrighted characters.

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Added Phase-9 capability-only UI projection, unresolved initial model, complete catalogue-driven
+  controls, native seed semantics, truthful adapter progress, and a presentation-only reactive
+  helper with no model/provider tables.
+- Added typed Core-only pricing evidence plus a conservative model-agnostic preflight estimator;
+  ambiguous pricing remains explicitly unavailable.
+- Advanced the database to schema v4 while preserving JobRecord schema v2 and durable jobs; v3
+  external capability/pricing cache truth is invalidated.
+- Added four-version Comfy capability probes, Phase-8 workflow-value migration, exact AppIdentity
+  regression coverage, the synthetic five-case live fixture corpus, and controlled evidence docs.
 - Added Phase-8 typed image/video input-reference contracts with structural order and duplicate
   preservation, while failing closed before submit where runtime capability evidence is absent.
 - Updated `frame_images` to the current typed nested media protocol.

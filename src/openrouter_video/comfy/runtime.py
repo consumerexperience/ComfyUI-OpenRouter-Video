@@ -21,6 +21,7 @@ from openrouter_video.execution_hooks import ExecutionControl, ExecutionPhase
 from openrouter_video.media import DownloadService
 from openrouter_video.models import GenerationRequest, GenerationResult
 from openrouter_video.persistence import JobStore
+from openrouter_video.pricing import CostEstimateInputs, EstimateResult, PreflightCostEstimator
 from openrouter_video.request_policy import OpenRouterRequestPolicy
 from openrouter_video.secrets import EnvironmentSecretProvider
 from openrouter_video.transport import HttpxTransport
@@ -165,12 +166,42 @@ class ProcessRuntime:
 
         return await self._dispatch(run)
 
+    async def effective_catalog(self) -> CapabilityObservation:
+        """Return the same fresh effective capability truth used before submit."""
+
+        async def run(control: ExecutionControl) -> CapabilityObservation:
+            control.raise_if_interrupted()
+            return await self._require_resources().capabilities.effective_catalog()
+
+        return await self._dispatch(run)
+
+    async def estimate_cost(self, inputs: CostEstimateInputs) -> EstimateResult:
+        """Return a side-effect-free estimate without acquiring submit authority."""
+
+        async def run(control: ExecutionControl) -> EstimateResult:
+            control.raise_if_interrupted()
+            capabilities = self._require_resources().capabilities
+            observation = await capabilities.effective_catalog()
+            if not capabilities.is_fresh(observation):
+                return EstimateResult.unavailable(observation.observed_at, "pricing_evidence_stale")
+            for model in observation.models:
+                if inputs.model_id in {model.model_id, model.canonical_slug}:
+                    return PreflightCostEstimator().estimate(
+                        model,
+                        inputs,
+                        observed_at=observation.observed_at,
+                    )
+            return EstimateResult.unavailable(observation.observed_at, "model_unavailable")
+
+        return await self._dispatch(run)
+
     async def generate(self, request: GenerationRequest, node_id: str | None) -> GenerationResult:
         async def run(control: ExecutionControl) -> GenerationResult:
             resources = self._require_resources()
 
             async def progress(phase: ExecutionPhase) -> None:
-                await compat.report_phase(phase, node_id)
+                if phase is not ExecutionPhase.DONE:
+                    await compat.report_phase(phase, node_id)
 
             async def sleep(seconds: float) -> None:
                 await self._cooperative_sleep(control, seconds)
@@ -207,7 +238,8 @@ class ProcessRuntime:
             resources = self._require_resources()
 
             async def progress(phase: ExecutionPhase) -> None:
-                await compat.report_phase(phase, node_id)
+                if phase is not ExecutionPhase.DONE:
+                    await compat.report_phase(phase, node_id)
 
             async def sleep(seconds: float) -> None:
                 await self._cooperative_sleep(control, seconds)
@@ -280,6 +312,21 @@ def get_runtime() -> ProcessRuntime:
         return _runtime
 
 
+def local_runtime_health() -> dict[str, str]:
+    """Observe local runtime readiness without initializing resources or doing I/O."""
+
+    with _runtime_lock:
+        runtime = _runtime
+        if runtime is None:
+            return {"runtime_state": "NOT_INITIALIZED", "database_state": "NOT_INITIALIZED"}
+        resources_ready = runtime._resources is not None and runtime._startup_error is None
+        closing = runtime._closing or runtime._closed
+    if closing:
+        return {"runtime_state": "UNAVAILABLE", "database_state": "UNAVAILABLE"}
+    state = "READY" if resources_ready else "UNAVAILABLE"
+    return {"runtime_state": state, "database_state": state}
+
+
 async def close_runtime() -> None:
     """Close and forget the process runtime; intended for controlled host/test shutdown."""
 
@@ -300,4 +347,5 @@ __all__ = (
     "SHUTDOWN_TIMEOUT_SECONDS",
     "close_runtime",
     "get_runtime",
+    "local_runtime_health",
 )

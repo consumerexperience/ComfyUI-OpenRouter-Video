@@ -4,19 +4,24 @@ Open-source BYOK model-agnostic OpenRouter Video gateway for ComfyUI.
 
 ## Status
 
-**PRE-ALPHA — Phase 8: required multimodal modes implemented with evidence-gated enforcement.**
+**PRE-ALPHA — Phase 9 zero-cost release hardening in progress; paid validation is not authorized.**
 
 The headless core now contains typed Video API contracts, capability discovery and bounded cache,
 pre-submit validation, a durable SQLite lifecycle, one-attempt Generate, submit-incapable Resume,
 bounded polling, and durable MP4/WebM download. The Phase-4 origin-bound request policy still owns
 all authentication, attribution, destination, redirect, TLS, and zero-transport-retry controls.
 
-The pinned ComfyUI extension exposes Generate, submit-incapable Resume, typed image/video reference
-nodes, and an ordered Autogrow reference collection. T2V and model-proven first/last-frame modes
-remain available. The exact-ID evidence overlay accepted in ADR-030 enables multi-image, video, and
-mixed image/video reference modes for `bytedance/seedance-2.5`; unresolved models still fail with
-`CAPABILITY_SIGNAL_GAP` before submit authority. Prompt remains required for every Generate call.
-See [Phase 8 evidence](docs/phase-8-capability-evidence.md).
+The pinned ComfyUI extension exposes Generate, submit-incapable Resume, public-HTTPS image/video
+reference nodes, direct ordered Autogrow reference inputs, and a legacy Phase-8 collection node.
+T2V and model-proven first/last-frame modes remain available. The exact-ID evidence overlay accepted
+in ADR-030 enables multi-image, video, and mixed image/video reference modes for
+`bytedance/seedance-2.5`; unresolved models still fail with `CAPABILITY_SIGNAL_GAP` before submit
+authority. Prompt remains required for every Generate call.
+Phase 9 adds a catalogue-driven RC interface: the selected model's normalized durations,
+resolutions, aspect ratios, sizes, frame support, seed support, audio support, and approved
+reference modes are projected from the same Core truth used by pre-submit validation. There are no
+model/provider option tables. See [Phase 8 evidence](docs/phase-8-capability-evidence.md) and the
+[active Phase-9 checkpoint](docs/active-execution-checkpoint.md).
 
 ## Product principles
 
@@ -52,10 +57,12 @@ See [Headless Core II](docs/headless-core-ii.md),
 
 ## ComfyUI compatibility
 
-Phase 8 supports exactly ComfyUI `v0.34.3` at commit
-`87465b8f1f64a27a46f16f22b13b410494dca66d` through `comfy_api.v0_0_2`. Other versions are
-unsupported and API mismatches fail closed; there is no fallback to `comfy_api.latest`. See the
-[adapter contract](docs/comfyui-adapter.md).
+Phase 9 uses capability-first host compatibility. `v0.34.3` is the release-blocking historical
+anchor and `v0.37.0` is the frozen release-blocking current target; `v0.35.0` and `v0.36.0` are
+intermediate regression probes, not unconditional support commitments. Missing required V3 host
+capabilities fail visibly. Production imports only `comfy_api.v0_0_2`; because that adapter
+delegates into mutable `comfy_api.latest`, the numbered import alone is not treated as a stable
+contract. See the [adapter contract](docs/comfyui-adapter.md).
 
 ## Security warning
 

@@ -9,6 +9,7 @@ import copy
 import json
 import tempfile
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 
@@ -50,9 +51,10 @@ def main() -> None:
     comfy.options.enable_args_parsing()
 
     import execution
+    import folder_paths
     import nodes as comfy_nodes
-    from comfy_api.v0_0_2 import ComfyAPI, InputImpl
-    from comfy_extras.nodes_video import GetVideoComponents
+    from comfy_api.v0_0_2 import IO, ComfyAPI, InputImpl
+    from comfy_extras.nodes_video import GetVideoComponents, SaveVideo
 
     from openrouter_video.comfy import compat
     from openrouter_video.comfy import nodes as adapter_nodes
@@ -83,6 +85,15 @@ def main() -> None:
         "ACTUAL_COST_USD",
         "STATUS",
     ]
+    assert {item.value for item in IO.ControlAfterGenerate} == {
+        "fixed",
+        "increment",
+        "decrement",
+        "randomize",
+    }
+    seed_input = next(value for value in generate_schema.inputs if value.id == "seed")
+    assert seed_input.control_after_generate is IO.ControlAfterGenerate.randomize
+    assert seed_input.display_mode is IO.NumberDisplay.number
 
     metadata = json.dumps(
         {
@@ -157,16 +168,18 @@ def main() -> None:
             "resolution": "",
             "aspect_ratio": "",
             "size": "",
-            "seed": "",
+            "seed": -1,
             "generate_audio": False,
             "first_frame_url": "",
             "last_frame_url": "",
         },
     )
-    invalid = asyncio.run(execution.validate_inputs("validation-empty", validation_prompt, "1", {}))
+    unresolved_prompt = _prompt(
+        "OpenRouterVideoGenerate",
+        {**validation_prompt["1"]["inputs"], "model": "SELECT MODEL"},
+    )
+    invalid = asyncio.run(execution.validate_inputs("validation-empty", unresolved_prompt, "1", {}))
     assert invalid[0] is False
-    assert any(error["type"] == "value_not_in_list" for error in invalid[1])
-    compat.cache_model_options(("vendor/model",))
     valid = asyncio.run(
         execution.validate_inputs("validation-catalogue", validation_prompt, "1", {})
     )
@@ -198,14 +211,6 @@ def main() -> None:
             "class_type": "OpenRouterVideoVideoReference",
             "inputs": {"url": "https://assets.example/b.mp4"},
         },
-        "3": {
-            "class_type": "OpenRouterVideoReferenceCollection",
-            "inputs": {
-                "references.reference_2": ["2", 0],
-                "references.reference_0": ["1", 0],
-                "references.reference_1": ["1", 0],
-            },
-        },
         "4": {
             "class_type": "OpenRouterVideoGenerate",
             "inputs": {
@@ -215,11 +220,13 @@ def main() -> None:
                 "resolution": "",
                 "aspect_ratio": "",
                 "size": "",
-                "seed": "",
+                "seed": -1,
                 "generate_audio": False,
                 "first_frame_url": "",
                 "last_frame_url": "",
-                "input_references": ["3", 0],
+                "direct_references.reference_2": ["2", 0],
+                "direct_references.reference_0": ["1", 0],
+                "direct_references.reference_1": ["1", 0],
             },
         },
     }
@@ -243,7 +250,14 @@ def main() -> None:
 
     one_reference_prompt = copy.deepcopy(reference_prompt)
     del one_reference_prompt["1"]
-    one_reference_prompt["3"]["inputs"] = {"references.reference_0": ["2", 0]}
+    one_reference_prompt["4"]["inputs"] = {
+        **{
+            name: value
+            for name, value in one_reference_prompt["4"]["inputs"].items()
+            if not name.startswith("direct_references.")
+        },
+        "direct_references.reference_0": ["2", 0],
+    }
     one_valid = asyncio.run(
         execution.validate_inputs(
             "validation-one-reference", copy.deepcopy(one_reference_prompt), "4", {}
@@ -270,7 +284,7 @@ def main() -> None:
                 "resolution": "",
                 "aspect_ratio": "",
                 "size": "",
-                "seed": "",
+                "seed": -1,
                 "generate_audio": False,
                 "first_frame_url": "",
                 "last_frame_url": "",
@@ -301,24 +315,37 @@ def main() -> None:
     with tempfile.TemporaryDirectory() as temporary:
         root = Path(temporary)
         compat.output_directory = lambda: root
-        for name, container_format, codec, media_type in (
-            ("tiny.mp4", "mp4", "mpeg4", "video/mp4"),
-            ("tiny.webm", "webm", "libvpx", "video/webm"),
-        ):
-            path = root / name
-            _write_video(path, container_format=container_format, codec=codec)
-            artifact = VideoArtifact(path, media_type, path.stat().st_size)
-            native = to_native_video(artifact)
-            assert isinstance(native, InputImpl.VideoFromFile)
-            components = GetVideoComponents.execute(native).result
-            assert components[0].shape == (1, 16, 16, 3)
-            path.unlink()
-            try:
-                to_native_video(artifact)
-            except VideoBridgeError as error:
-                assert str(error) == "Generated video artifact is unavailable."
-            else:
-                raise AssertionError("deleted artifact must fail closed")
+        original_output = folder_paths.get_output_directory()
+        original_hidden = SaveVideo.hidden
+        folder_paths.set_output_directory(str(root))
+        SaveVideo.hidden = SimpleNamespace(extra_pnginfo=None, prompt=None)
+        try:
+            for name, container_format, codec, media_type in (
+                ("tiny.mp4", "mp4", "mpeg4", "video/mp4"),
+                ("tiny.webm", "webm", "libvpx", "video/webm"),
+            ):
+                path = root / name
+                _write_video(path, container_format=container_format, codec=codec)
+                artifact = VideoArtifact(path, media_type, path.stat().st_size)
+                native = to_native_video(artifact)
+                assert isinstance(native, InputImpl.VideoFromFile)
+                components = GetVideoComponents.execute(native).result
+                assert components[0].shape == (1, 16, 16, 3)
+                before = set(root.rglob("phase9-probe-*"))
+                saved = SaveVideo.execute(native, f"phase9-probe-{path.stem}", "auto")
+                after = set(root.rglob("phase9-probe-*"))
+                assert saved.result[0] is native
+                assert after - before
+                path.unlink()
+                try:
+                    to_native_video(artifact)
+                except VideoBridgeError as error:
+                    assert str(error) == "Generated video artifact is unavailable."
+                else:
+                    raise AssertionError("deleted artifact must fail closed")
+        finally:
+            SaveVideo.hidden = original_hidden
+            folder_paths.set_output_directory(original_output)
 
 
 if __name__ == "__main__":

@@ -36,9 +36,10 @@ def _install() -> None:
         return
 
     class RemoteOptions:
-        def __init__(self, *, route: str, refresh_button: bool) -> None:
+        def __init__(self, *, route: str, refresh_button: bool, control_after_refresh: str) -> None:
             self.route = route
             self.refresh_button = refresh_button
+            self.control_after_refresh = control_after_refresh
 
     class ComfyNode:
         hidden: object | None = None
@@ -71,6 +72,10 @@ def _install() -> None:
         Combo=types.SimpleNamespace(Input=_Field),
         String=types.SimpleNamespace(Input=_Field, Output=_Field),
         Int=types.SimpleNamespace(Input=_Field),
+        ControlAfterGenerate=types.SimpleNamespace(
+            fixed="fixed", increment="increment", decrement="decrement", randomize="randomize"
+        ),
+        NumberDisplay=types.SimpleNamespace(number="number", slider="slider"),
         Boolean=types.SimpleNamespace(Input=_Field),
         Video=types.SimpleNamespace(Output=_Field),
         Autogrow=Autogrow,

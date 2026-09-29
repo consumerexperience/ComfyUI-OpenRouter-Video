@@ -2,6 +2,8 @@
 
 from typing import Any
 
+WEB_DIRECTORY = "./web"
+
 
 async def comfy_entrypoint() -> Any:
     """Load the V3 extension only when ComfyUI invokes the entry point."""
@@ -10,4 +12,4 @@ async def comfy_entrypoint() -> Any:
     return await load_extension()
 
 
-__all__ = ("comfy_entrypoint",)
+__all__ = ("WEB_DIRECTORY", "comfy_entrypoint")

@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "fixture_policy": "synthetic-public-nonsensitive",
+  "paid_configuration": {
+    "duration_seconds": 4,
+    "resolution": "480p",
+    "aspect_ratio": "16:9",
+    "generate_audio": false
+  },
+  "files": {
+    "first-frame.png": {
+      "media_type": "image/png",
+      "sha256": "0fb8ec7859841b8eace77de5d3ae9bdfae14dbb83dec600562514490a473767f",
+      "size_bytes": 2406,
+      "width": 854,
+      "height": 480
+    },
+    "last-frame.png": {
+      "media_type": "image/png",
+      "sha256": "3e7d351b3ca7d1aa03edcb63f1b1e0d8691a90eeec57f87f88e82f10156852d6",
+      "size_bytes": 2411,
+      "width": 854,
+      "height": 480
+    },
+    "style-marker.png": {
+      "media_type": "image/png",
+      "sha256": "a3ab1502565328b8cd4c22ca4646b0ebf23b032bf039eedd3b9201d231670e11",
+      "size_bytes": 2442,
+      "width": 854,
+      "height": 480
+    },
+    "motion-reference.mp4": {
+      "media_type": "video/mp4",
+      "sha256": "e6009ff03feb01893c4dcc5a77d564e6af23066c4305dea1460d48696f8f448b",
+      "size_bytes": 394950,
+      "width": 854,
+      "height": 480,
+      "duration_seconds": 2,
+      "frame_rate": "24/1",
+      "video_codec": "h264",
+      "audio_streams": 0
+    },
+    "prompts/first-frame.txt": {
+      "media_type": "text/plain",
+      "sha256": "4378f1e1737fd5df2028022bb7a08b1fc6f61b3704da043227d381fcd3a7ace6",
+      "size_bytes": 283
+    },
+    "prompts/first-last-frame.txt": {
+      "media_type": "text/plain",
+      "sha256": "f330dfd89b0a3b2a4fc9fa6ebb398890c7ffe05c34729ba95643c0cdcd4b72a2",
+      "size_bytes": 336
+    },
+    "prompts/multi-image-reference.txt": {
+      "media_type": "text/plain",
+      "sha256": "8df826608ebf4a51ca8c50d02c5d5dd620fe8fdd104d9755420d7f917b3833e9",
+      "size_bytes": 293
+    },
+    "prompts/video-reference.txt": {
+      "media_type": "text/plain",
+      "sha256": "3ba07d4f36cb4ba7a1b75d0b9367a7e61c623aea20a94d7d420ed28bd1083181",
+      "size_bytes": 277
+    },
+    "prompts/mixed-image-video-reference.txt": {
+      "media_type": "text/plain",
+      "sha256": "9cc1008178af29bf852fbed26480216dc430156c983f87226a00ebc5d8ac2047",
+      "size_bytes": 293
+    }
+  },
+  "cases": {
+    "first_frame": {
+      "model_id": "bytedance/seedance-2.0-mini",
+      "reference_mode": "first_frame",
+      "assets": ["first-frame.png"],
+      "prompt": "prompts/first-frame.txt"
+    },
+    "first_plus_last": {
+      "model_id": "bytedance/seedance-2.0-mini",
+      "reference_mode": "first_plus_last",
+      "assets": ["first-frame.png", "last-frame.png"],
+      "prompt": "prompts/first-last-frame.txt"
+    },
+    "multi_image_reference": {
+      "model_id": "bytedance/seedance-2.5",
+      "reference_mode": "multi_image_reference",
+      "assets": ["first-frame.png", "style-marker.png"],
+      "prompt": "prompts/multi-image-reference.txt"
+    },
+    "video_reference": {
+      "model_id": "bytedance/seedance-2.5",
+      "reference_mode": "video_reference",
+      "assets": ["motion-reference.mp4"],
+      "prompt": "prompts/video-reference.txt"
+    },
+    "image_plus_video_reference": {
+      "model_id": "bytedance/seedance-2.5",
+      "reference_mode": "image_plus_video_reference",
+      "assets": ["style-marker.png", "motion-reference.mp4"],
+      "prompt": "prompts/mixed-image-video-reference.txt"
+    }
+  }
+}
