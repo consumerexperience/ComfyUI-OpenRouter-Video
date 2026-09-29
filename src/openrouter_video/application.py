@@ -43,7 +43,7 @@ from openrouter_video.models import (
     ProductErrorCode,
     RemoteJobSnapshot,
     VideoArtifact,
-    request_fingerprint_v2,
+    request_fingerprint_v3,
 )
 from openrouter_video.persistence import JOB_RECORD_SCHEMA_VERSION, JobStore
 
@@ -526,7 +526,7 @@ class GenerateService:
             self._validator.validate_shape(request)
         except ProductFailureError as exc:
             return GenerationResult(LocalLifecycleState.NOT_SUBMITTED, None, error=exc.error)
-        fingerprint = request_fingerprint_v2(request)
+        fingerprint = request_fingerprint_v3(request)
         try:
             existing = self._store.get_by_operation_id(operation_id)
         except PersistenceError:

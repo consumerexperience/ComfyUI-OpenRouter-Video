@@ -6,11 +6,13 @@ from openrouter_video.models import (
     FrameReference,
     FrameType,
     GenerationRequest,
+    InferenceMethod,
     InputReference,
     InputReferenceCollection,
     InputReferenceKind,
     request_fingerprint_v1,
     request_fingerprint_v2,
+    request_fingerprint_v3,
 )
 
 
@@ -157,3 +159,52 @@ def test_request_fingerprint_v2_is_structural_ordered_and_secret_free() -> None:
     assert fingerprint.startswith("v2:") and len(fingerprint) == 67
     assert "PRIVATE" not in fingerprint and "https" not in fingerprint
     assert request_fingerprint_v2(replace(first, prompt=None)) != fingerprint
+
+
+def test_phase10_payload_keeps_local_intent_out_and_serializes_audio_exactly() -> None:
+    source = InputReference(InputReferenceKind.VIDEO, "https://assets.example/source.mp4")
+    audio = InputReference(InputReferenceKind.AUDIO, "https://assets.example/guide.mp3")
+    request = GenerationRequest(
+        "vendor/model",
+        "prompt",
+        InferenceMethod.V2V_EXTEND,
+        source_video=source,
+        input_references=InputReferenceCollection((audio,)),
+    )
+
+    payload = request.to_openrouter_payload()
+
+    assert payload["input_references"] == [
+        {"type": "video_url", "video_url": {"url": source.url}},
+        {"type": "audio_url", "audio_url": {"url": audio.url}},
+    ]
+    assert "inference_method" not in payload
+    assert "method" not in payload
+    assert "source_video" not in payload
+    assert "source_role" not in payload
+
+
+def test_request_fingerprint_v3_captures_structural_intent_only() -> None:
+    reference = InputReference(InputReferenceKind.AUDIO, "https://secret.example/a.mp3")
+    first = GenerationRequest(
+        "vendor/model",
+        "PRIVATE_PROMPT_A",
+        InferenceMethod.AR2V,
+        input_references=InputReferenceCollection((reference,)),
+    )
+    same_shape = replace(
+        first,
+        prompt="PRIVATE_PROMPT_B",
+        input_references=InputReferenceCollection(
+            (InputReference(InputReferenceKind.AUDIO, "https://other.example/b.mp3"),)
+        ),
+    )
+
+    fingerprint = request_fingerprint_v3(first)
+
+    assert fingerprint == request_fingerprint_v3(same_shape)
+    assert fingerprint != request_fingerprint_v3(
+        replace(first, inference_method=InferenceMethod.MMR2V)
+    )
+    assert fingerprint.startswith("v3:") and len(fingerprint) == 67
+    assert "PRIVATE" not in fingerprint and "https" not in fingerprint

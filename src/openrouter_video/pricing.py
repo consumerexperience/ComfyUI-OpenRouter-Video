@@ -11,10 +11,9 @@ from typing import Final
 
 from openrouter_video.capabilities import (
     CapabilityModeStatus,
-    GenerationMode,
     mode_enforcement_matrix,
 )
-from openrouter_video.models import ModelCapabilities, PricingEvidence
+from openrouter_video.models import InferenceMethod, ModelCapabilities, PricingEvidence
 
 _PER_SECOND: Final = "per-video-second"
 _RESOLUTION_SKU = re.compile(r"^per-video-second-(?P<resolution>[a-z0-9]+)$")
@@ -39,11 +38,11 @@ class ReferenceMode(str, Enum):
 
 
 _REFERENCE_MODES: Final = {
-    ReferenceMode.FIRST_FRAME: GenerationMode.FIRST_FRAME,
-    ReferenceMode.FIRST_PLUS_LAST: GenerationMode.FIRST_PLUS_LAST,
-    ReferenceMode.MULTI_IMAGE_REFERENCE: GenerationMode.MULTI_IMAGE_REFERENCE,
-    ReferenceMode.VIDEO_REFERENCE: GenerationMode.VIDEO_REFERENCE,
-    ReferenceMode.IMAGE_PLUS_VIDEO_REFERENCE: GenerationMode.IMAGE_PLUS_VIDEO_REFERENCE,
+    ReferenceMode.FIRST_FRAME: InferenceMethod.I2V,
+    ReferenceMode.FIRST_PLUS_LAST: InferenceMethod.FLF2V,
+    ReferenceMode.MULTI_IMAGE_REFERENCE: InferenceMethod.MI2V,
+    ReferenceMode.VIDEO_REFERENCE: InferenceMethod.VR2V,
+    ReferenceMode.IMAGE_PLUS_VIDEO_REFERENCE: InferenceMethod.MMR2V,
 }
 
 
@@ -107,7 +106,7 @@ class PreflightCostEstimator:
             return EstimateResult.unavailable(observed_at, "configuration_not_authorized")
         if inputs.generate_audio and capabilities.generate_audio is not True:
             return EstimateResult.unavailable(observed_at, "configuration_not_authorized")
-        mode = _REFERENCE_MODES.get(inputs.reference_mode, GenerationMode.T2V)
+        mode = _REFERENCE_MODES.get(inputs.reference_mode, InferenceMethod.T2V)
         if mode_enforcement_matrix(capabilities)[mode] is not CapabilityModeStatus.READY:
             return EstimateResult.unavailable(observed_at, "reference_mode_not_authorized")
         evidence = capabilities.pricing_evidence
