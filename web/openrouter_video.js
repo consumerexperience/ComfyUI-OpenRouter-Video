@@ -11,6 +11,18 @@ const METHODS = [
     "T2V", "I2V", "FLF2V", "IR2V", "MI2V", "VR2V", "AR2V", "MMR2V",
     "V2V_EDIT", "V2V_EXTEND",
 ];
+const METHOD_LABELS = {
+    T2V: "T2V — Text → Video",
+    I2V: "I2V — First Frame → Video",
+    FLF2V: "FLF2V — First + Last Frame → Video",
+    IR2V: "IR2V — Single Image Reference → Video",
+    MI2V: "MI2V — Multiple Image References → Video",
+    VR2V: "VR2V — Video Reference → Video",
+    AR2V: "AR2V — Audio Reference → Video",
+    MMR2V: "MMR2V — Mixed Multimodal References → Video",
+    V2V_EDIT: "V2V_EDIT — Source Video → Edited Video",
+    V2V_EXTEND: "V2V_EXTEND — Source Video → Extended Video",
+};
 
 let capabilityPromise;
 
@@ -30,6 +42,66 @@ function addReadOnlyWidget(node, name, initial) {
     item.options = item.options || {};
     item.options.readOnly = true;
     return item;
+}
+
+function applyPresentation(node) {
+    node.color = "#173c33";
+    node.bgcolor = "#1b2024";
+    node.boxcolor = "#45dca5";
+    const labels = {
+        model: "Model", inference_method: "Inference Method",
+        resolution: "Resolution", aspect_ratio: "Aspect Ratio", duration: "Duration",
+        seed: "Seed", generate_audio: "Generate Audio",
+    };
+    for (const item of node.widgets || []) {
+        if (labels[item.name]) item.label = labels[item.name];
+    }
+    syncAdvancedControls(node);
+    setVisible(node.__orvEstimate, false);
+    if (node.__orvCapabilityStatus) node.__orvCapabilityStatus.label = " ";
+    if (node.__orvPresentationDrawInstalled) return;
+    node.__orvPresentationDrawInstalled = true;
+    const previousDraw = node.onDrawForeground;
+    node.onDrawForeground = function (ctx, ...args) {
+        if (syncAdvancedControls(this)) fitPresentationWidth(this);
+        previousDraw?.call(this, ctx, ...args);
+        if (this.flags?.collapsed) return;
+        const width = this.size?.[0] || 460;
+        const badge = String(this.__orvEstimate?.value || "ESTIMATE UNAVAILABLE");
+        const available = badge.startsWith("≈ $");
+        ctx.save();
+        ctx.font = "12px sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillStyle = available ? "#73e9b8" : "#aeb8b6";
+        ctx.fillText(badge, width - 12, -9, 210);
+        ctx.restore();
+    };
+}
+
+function syncAdvancedControls(node) {
+    let changed = false;
+    const show = Boolean(node.__orvAdvancedOpen && canonicalModel(node));
+    for (const item of node.widgets || []) {
+        const identity = `${item.name || ""} ${item.label || ""}`;
+        if (/control[ _]?after[ _]?generate/i.test(identity) && Boolean(item.hidden) === show) {
+            setVisible(item, show);
+            changed = true;
+        }
+    }
+    const size = widget(node, "size");
+    const sizeVerified = Array.isArray(node.__orvCapability?.supported_sizes) &&
+        node.__orvCapability.supported_sizes.length > 0;
+    const showSize = show && (sizeVerified || normalizedValue(size) !== null);
+    if (size && Boolean(size.hidden) === showSize) {
+        setVisible(size, showSize);
+        changed = true;
+    }
+    return changed;
+}
+
+function fitPresentationWidth(node) {
+    const measured = node.computeSize?.();
+    if (measured) node.setSize?.([Math.max(460, measured[0]), measured[1]]);
 }
 
 function canonicalModel(node) {
@@ -294,9 +366,17 @@ function connectedRoles(node) {
 function switchWouldOrphan(node, method) {
     const allowed = new Set([...fixedRolesForMethod(method)]);
     if (methodUsesReferences(method)) allowed.add("references");
-    return connectedRoles(node).some((role) =>
+    if (connectedRoles(node).some((role) =>
         ["first_frame", "last_frame", "source_video", "references"].includes(role) &&
         !allowed.has(role),
+    )) return true;
+    const references = directReferenceInputs(node).filter((input) => input.link != null);
+    if (method === "IR2V" && references.length > 1) return true;
+    const requiredKind = {
+        IR2V: "image", MI2V: "image", VR2V: "video", AR2V: "audio",
+    }[method];
+    return Boolean(requiredKind) && references.some(
+        (input) => connectedReferenceKind(input) !== requiredKind,
     );
 }
 
@@ -304,6 +384,18 @@ function ensureFixedInput(node, name) {
     if (!inputByName(node, name)) node.addInput?.(name, "OPENROUTER_VIDEO_INPUT_REFERENCE");
     const input = inputByName(node, name);
     if (input) input.label = name;
+}
+
+function moveInputToFrontPreservingLinks(node, name) {
+    const index = node.inputs?.findIndex((input) => input.name === name) ?? -1;
+    if (index <= 0) return;
+    const [input] = node.inputs.splice(index, 1);
+    node.inputs.unshift(input);
+    for (let slot = 0; slot < node.inputs.length; slot += 1) {
+        const linkId = node.inputs[slot].link;
+        const link = linkId == null ? null : app.graph?.links?.[linkId];
+        if (link && link.target_id === node.id) link.target_slot = slot;
+    }
 }
 
 function removeUnusedFixedInputs(node, keep) {
@@ -337,6 +429,7 @@ function configureReferenceTopology(node, capability, method) {
     const keepFixed = new Set(fixedRolesForMethod(method));
     for (const name of keepFixed) ensureFixedInput(node, name);
     removeUnusedFixedInputs(node, keepFixed);
+    for (const name of [...keepFixed].reverse()) moveInputToFrontPreservingLinks(node, name);
     const legacy = inputByName(node, "input_references");
     if (legacy && legacy.link == null) {
         const legacyIndex = node.inputs.indexOf(legacy);
@@ -349,10 +442,11 @@ function configureReferenceTopology(node, capability, method) {
     const limit = capability.max_reference_count;
     const effectiveLimit = Number.isInteger(limit) && limit >= 0 ? limit : null;
     const sourceCount = inputByName(node, "source_video")?.link != null ? 1 : 0;
+    const reservedSourceCount = keepFixed.has("source_video") ? 1 : 0;
     const usesReferences = methodUsesReferences(method);
     const exactOne = method === "IR2V";
     const keepTrailing = usesReferences &&
-        (effectiveLimit === null || linked.length + sourceCount < effectiveLimit) &&
+        (effectiveLimit === null || linked.length + reservedSourceCount < effectiveLimit) &&
         (!exactOne || linked.length === 0);
 
     if (node.removeInput && unlinked.length > (keepTrailing ? 1 : 0)) {
@@ -376,7 +470,34 @@ function configureReferenceTopology(node, capability, method) {
     }
 
     const currentCount = finalInputs.filter((item) => item.link != null).length;
-    node.__orvReferenceInvalid = effectiveLimit !== null && currentCount + sourceCount > effectiveLimit;
+    node.__orvReferenceSummary = usesReferences && effectiveLimit !== null
+        ? `${currentCount + sourceCount} connected · ${
+            currentCount + sourceCount >= effectiveLimit
+                ? "maximum reached"
+                : `${effectiveLimit - currentCount - sourceCount} remaining`
+        }`
+        : "";
+    if (node.__orvSummary) {
+        node.__orvSummary.value = node.__orvReferenceSummary;
+        setVisible(node.__orvSummary, Boolean(node.__orvReferenceSummary));
+    }
+    const expectedKind = {
+        IR2V: "image", MI2V: "image", VR2V: "video", AR2V: "audio",
+    }[method];
+    const wrongReferenceKind = Boolean(expectedKind) && linked.some(
+        (input) => connectedReferenceKind(input) !== expectedKind,
+    );
+    const wrongFixedKind = ["first_frame", "last_frame", "source_video"].some((name) => {
+        const input = inputByName(node, name);
+        return input?.link != null && connectedReferenceKind(input) !==
+            (name === "source_video" ? "video" : "image");
+    });
+    node.__orvReferenceInvalid = wrongReferenceKind || wrongFixedKind ||
+        (effectiveLimit !== null && currentCount + sourceCount > effectiveLimit);
+    if ((wrongReferenceKind || wrongFixedKind) && !node.__orvMethodBlocked) {
+        node.__orvCapabilityStatus.value = "INCOMPATIBLE · media kind · links preserved";
+        setVisible(node.__orvCapabilityStatus, true);
+    }
     if (node.__orvReferenceInvalid) {
         disclose(node, `REFERENCES ${currentCount + sourceCount}/${effectiveLimit}: preserve links; reduce explicitly before Generate`);
     }
@@ -392,13 +513,16 @@ function configureInferenceMethod(node, capability) {
     const supported = capability?.supported_inference_methods || [];
     const current = METHODS.includes(item.value) ? item.value : null;
     item.options = item.options || {};
+    item.options.getOptionLabel = (value) => METHOD_LABELS[value] || value;
     if (!capability) {
         item.disabled = true;
         item.options.values = [SELECT_METHOD];
         item.value = SELECT_METHOD;
+        item.label = `Inference Method · ${SELECT_METHOD}`;
         return null;
     }
     item.disabled = false;
+    item.label = "Inference Method";
     let selected = current;
     const hasConnections = connectedRoles(node).some((role) =>
         ["first_frame", "last_frame", "source_video", "references"].includes(role),
@@ -420,7 +544,8 @@ function configureInferenceMethod(node, capability) {
     if (selected) item.value = selected;
     if (selected && methodStatus(capability, selected) !== "READY") {
         node.__orvMethodBlocked = true;
-        disclose(node, `${selected}: incompatible with selected model; links and intent preserved`);
+        node.__orvCapabilityStatus.value = `INCOMPATIBLE · ${selected} · links preserved`;
+        setVisible(node.__orvCapabilityStatus, true);
     } else {
         node.__orvMethodBlocked = false;
     }
@@ -446,8 +571,7 @@ function bindInferenceMethod(node) {
         node.__orvMethodExplicit = true;
         node.__orvLastMethod = next;
         if (node.__orvCapability) configureReferenceTopology(node, node.__orvCapability, next);
-        refreshEstimate(node);
-        node.setSize?.(node.computeSize?.());
+        fitPresentationWidth(node);
     };
 }
 
@@ -520,7 +644,7 @@ async function refreshEstimate(node) {
 
 function bindEstimateRefresh(node) {
     for (const item of node.widgets || []) {
-        if (item.name === "COST") continue;
+        if (item.name === "COST" || item.name === "Advanced") continue;
         const previous = item.callback;
         item.callback = function (...args) {
             previous?.apply(this, args);
@@ -532,7 +656,7 @@ function bindEstimateRefresh(node) {
                 configureDuration(node, node.__orvDurationValues);
             }
             clearTimeout(node.__orvEstimateTimer);
-            node.__orvEstimateTimer = setTimeout(() => refreshEstimate(node), 120);
+            node.__orvEstimateTimer = setTimeout(() => projectSelectedModel(node), 120);
         };
     }
 }
@@ -586,6 +710,17 @@ async function projectSelectedModel(node, force = false) {
         if (!model) {
             node.__orvEstimate.value = "ESTIMATE UNAVAILABLE — SELECT MODEL";
             configureInferenceMethod(node, null);
+            configureReferenceTopology(node, { max_reference_count: 0 }, "T2V");
+            for (const name of [
+                "resolution", "aspect_ratio", "duration", "size", "seed",
+                "generate_audio", "first_frame_url", "last_frame_url",
+            ]) {
+                setVisible(widget(node, name), false);
+            }
+            setVisible(node.__orvAdvanced, false);
+            syncAdvancedControls(node);
+            fitPresentationWidth(node);
+            node.setDirtyCanvas?.(true, true);
             return;
         }
         const capability = projection.models.find((item) => item.model_id === model);
@@ -620,7 +755,9 @@ async function projectSelectedModel(node, force = false) {
         setVisible(node.__orvCapabilityStatus, true);
         node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
     }
-    node.setSize?.(node.computeSize?.());
+    setVisible(node.__orvAdvanced, Boolean(canonicalModel(node)));
+    syncAdvancedControls(node);
+    fitPresentationWidth(node);
     node.setDirtyCanvas?.(true, true);
 }
 
@@ -655,7 +792,7 @@ app.registerExtension({
                             widget(this, "inference_method")?.value,
                         );
                     }
-                    refreshEstimate(this);
+                    projectSelectedModel(this);
                 }, 120);
             }
             return result;
@@ -664,6 +801,18 @@ app.registerExtension({
         nodeType.prototype.onNodeCreated = function (...args) {
             const result = previousCreated?.apply(this, args);
             this.__orvIsNewNode = true;
+            this.__orvAdvancedOpen = false;
+            this.__orvAdvanced = this.addWidget("button", "Advanced", "›", () => {
+                this.__orvAdvancedOpen = !this.__orvAdvancedOpen;
+                this.__orvAdvanced.value = this.__orvAdvancedOpen ? "⌄" : "›";
+                syncAdvancedControls(this);
+                fitPresentationWidth(this);
+                this.setDirtyCanvas?.(true, true);
+            });
+            this.__orvAdvanced.serialize = false;
+            this.__orvSummary = addReadOnlyWidget(this, "REFERENCES", "");
+            this.__orvSummary.label = " ";
+            setVisible(this.__orvSummary, false);
             this.__orvCapabilityStatus = addReadOnlyWidget(this, "STATE", "");
             setVisible(this.__orvCapabilityStatus, false);
             this.__orvEstimate = addReadOnlyWidget(
@@ -671,6 +820,7 @@ app.registerExtension({
                 "COST",
                 "ESTIMATE UNAVAILABLE — SELECT MODEL",
             );
+            applyPresentation(this);
             migratePhase8Values(this);
             bindEstimateRefresh(this);
             bindInferenceMethod(this);
@@ -695,6 +845,7 @@ app.registerExtension({
                     ? serializedModel
                     : widget(this, "model")?.value;
             const result = previousConfigure?.apply(this, args);
+            applyPresentation(this);
             const restoredRemote = restorePhase8RemoteOptionsValues(this, serializedValues);
             const restoredPhase9 = !restoredRemote && restorePhase9Values(this, serializedValues);
             migratePhase8Values(this);
