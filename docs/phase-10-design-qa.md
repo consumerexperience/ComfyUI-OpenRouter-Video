@@ -53,6 +53,20 @@ save/reload migration check. The unrelated `Unsaved Workflow` tab was left untou
 widget-order code is absent from the feature branch; the external Yandex Browser session was not
 touched or verified.
 
+A subsequent isolated QA pass tried non-positional summary placement and Advanced display proxies
+on a new temporary node. Real-canvas inspection showed an unacceptable blank-height regression
+after model selection, so both trial changes were reverted. The temporary QA workflow was closed
+without saving. The canonical DEV supervisor reloaded the original source fingerprint
+`4e500183b3ca5f16bb1b6e7432b68659b37c5e521e19c61d754cdda5c9f7d2f5` and returned
+`RUNNING_HEALTHY`. Design gaps 1–2 therefore remain open; no experimental UI code is in HEAD.
+
+A later draw-only summary trial was also reverted without commit. During its validation, the
+scheduled DEV supervisor was observed in `Ready` rather than `Running`; two governed `Ensure`
+attempts timed out at `RUNNING_STALE` because no supervisor processed their restart requests.
+Restoring the original source returned the existing PID 20520 to `RUNNING_HEALTHY` with the same
+original fingerprint. The listener was not stopped, adopted, or replaced. Future runtime-source
+changes require resolving this exact supervisor/orphan-child condition before live browser QA.
+
 Verdict: **Design QA not passed**. Continue the approved Direction 3 implementation; do not
 claim RC UX freeze or open a protected-delivery PR as a verified feature yet. Core and deterministic
 test passes are separate from this visual verdict.
