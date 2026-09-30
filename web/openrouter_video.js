@@ -164,11 +164,26 @@ function restorePhase8RemoteOptionsValues(node, serializedValues) {
     ) {
         return false;
     }
-    const persistedWidgets = (node.widgets || []).filter((item) => item.serialize !== false);
-    const legacyIndexes = [0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-    for (let position = 0; position < legacyIndexes.length; position += 1) {
-        const item = persistedWidgets[position];
-        if (item) item.value = serializedValues[legacyIndexes[position]];
+    // Phase 8 serialized these fields in a different order. Restore by field
+    // identity so Phase 10's inserted method and reordered geometry controls
+    // cannot turn a saved duration into prompt text or seed into audio state.
+    const legacyFields = [
+        ["model", 0], ["prompt", 3], ["duration", 4], ["resolution", 5],
+        ["aspect_ratio", 6], ["size", 7], ["seed", 8],
+        ["generate_audio", 10], ["first_frame_url", 11], ["last_frame_url", 12],
+    ];
+    for (const [name, index] of legacyFields) {
+        const item = widget(node, name);
+        if (item && index < serializedValues.length &&
+            (name !== "model" || typeof serializedValues[index] === "string")) {
+            item.value = serializedValues[index];
+        }
+    }
+    const seedMode = (node.widgets || []).find((item) =>
+        /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`),
+    );
+    if (seedMode && typeof serializedValues[9] === "string") {
+        seedMode.value = serializedValues[9];
     }
     return true;
 }

@@ -23,7 +23,8 @@ def test_frontend_helper_is_projection_only_and_model_agnostic() -> None:
     assert "google/" not in lowered
     assert "authorization" not in lowered
     assert "api_key" not in lowered
-    assert "prompt" not in lowered
+    # The UI must name the prompt field, but must not log its contents.
+    assert "console." not in lowered
 
 
 def test_frontend_helper_keeps_unresolved_and_auto_semantics_local() -> None:

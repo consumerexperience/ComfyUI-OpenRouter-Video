@@ -64,8 +64,30 @@ A later draw-only summary trial was also reverted without commit. During its val
 scheduled DEV supervisor was observed in `Ready` rather than `Running`; two governed `Ensure`
 attempts timed out at `RUNNING_STALE` because no supervisor processed their restart requests.
 Restoring the original source returned the existing PID 20520 to `RUNNING_HEALTHY` with the same
-original fingerprint. The listener was not stopped, adopted, or replaced. Future runtime-source
-changes require resolving this exact supervisor/orphan-child condition before live browser QA.
+original fingerprint. At that point the listener was not stopped, adopted, or replaced, and the
+supervisor/orphan-child condition blocked further live browser QA.
+
+With explicit Owner authorization, PID 20520 was revalidated as the sole listener on `8189`
+with full restart identity proof and an empty queue, then stopped. The canonical scheduled task
+`\OpenRouterVideoBuilder\ComfyUI-DEV-8189` was started and remains `Running`; its new listener
+PID 30060 passed governed `Ensure` as `RUNNING_HEALTHY` with the same original source fingerprint,
+29 fresh catalogue models, UI capabilities route 200, and zero queued jobs. The saved
+`02_OPENROUTER_Video_Test` file remains unchanged at 23,786 bytes and the same modification time.
+The browser tab is still marked dirty and displays an invalid duration/resolution warning and an
+unavailable cost estimate. Those values belong to the browser autosession and are not evidence of
+the unchanged saved file's migration result. Restart alone did not resolve the layout gaps above.
+No paid generation or workflow save occurred. Port `8188` and the personal ComfyUI on `C:\` were
+not operated.
+
+A focused migration check then reopened the unchanged saved workflow in a fresh browser tab.
+It exposed a separate Phase-8 positional restore defect: its saved Prompt was projected as the
+numeric Duration. The frontend now restores that legacy remote-options shape by named fields,
+including the seed behavior control, while leaving a numeric legacy model selection unresolved
+rather than guessing an exact model ID. Two focused Node regression tests pass. On the real
+v0.34.3 canvas, reopening the exact saved file after the fix shows its original Prompt text
+instead of `5`, and `SELECT MODEL` blocks generation until the user makes an explicit model choice.
+The saved file was not overwritten; the temporary migration diagnostic logging was removed.
+This improves migration evidence but does not close design gaps 1–5.
 
 Verdict: **Design QA not passed**. Continue the approved Direction 3 implementation; do not
 claim RC UX freeze or open a protected-delivery PR as a verified feature yet. Core and deterministic
