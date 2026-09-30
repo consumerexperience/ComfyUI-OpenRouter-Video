@@ -43,10 +43,15 @@ no paid Video POST was authorized or sent.
    is pinned to v0.34.3; creating a second runtime or changing that pin is outside this pass.
 
 The positional experiment affected the temporary in-app browser autosession for
-`02_OPENROUTER_Video_Test`; its original unsaved browser values cannot be reconstructed with
-confidence. The exact on-disk saved workflow was not written (last modified 2026-09-27). The
-trial code is absent from the feature branch. Do not save the altered in-app autosession over
-the saved file; the external Yandex Browser session was not touched or verified.
+`02_OPENROUTER_Video_Test`. On explicit Owner approval, the changed named tab and the agent-created
+`Unsaved Workflow (2)` QA tab were closed with **Close anyway**; their unsaved values were discarded.
+`02_OPENROUTER_Video_Test` was then reopened from ComfyUI's Workflows list at its saved workflow
+URL. The exact on-disk file remained unchanged (23,786 bytes, last modified
+2026-09-27T14:39:36.9427345Z; 17 nodes and 5 links). ComfyUI marks the reopened legacy workflow
+dirty as its current UI projects it, so it must not be saved over the file without a separate
+save/reload migration check. The unrelated `Unsaved Workflow` tab was left untouched. The trial
+widget-order code is absent from the feature branch; the external Yandex Browser session was not
+touched or verified.
 
 Verdict: **Design QA not passed**. Continue the approved Direction 3 implementation; do not
 claim RC UX freeze or open a protected-delivery PR as a verified feature yet. Core and deterministic
