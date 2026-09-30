@@ -1,6 +1,6 @@
 # Phase 10 — Capability-Driven Inference Methods & Multimodal Expansion
 
-- Status: `IMPLEMENTATION READY — PRODUCT OWNER VISUAL ACCEPTANCE COMPLETE`
+- Status: `LOCAL IMPLEMENTATION PRESENT — DESIGN QA PARTIAL; DELIVERY OPEN`
 - Canonical baseline: `main@b492184f41492d37677a2dde9afdbe88666717a2`
 - Feature branch: `phase-10/capability-driven-inference-methods`
 - Product direction: `Direction 3 — APPROVED`
@@ -162,19 +162,20 @@ slug-pattern pricing branch is allowed.
 | 7 | Define Seedance 2.5 preference `MI2V` | `COMPLETE — PRODUCT POLICY` |
 | 8 | Consolidate canonical Phase-10 plan | `COMPLETE` |
 | 9 | Refine Direction 3 visual specification | `COMPLETE` |
-| 10 | Product Owner visual acceptance | `COMPLETE — short socket labels accepted` |
-| 11 | Implement Core domain, validation, AUDIO, V2V roles, fingerprint v3, migration | `READY — NOT STARTED` |
-| 12 | Update Comfy adapter | `NOT STARTED` |
-| 13 | Update frontend projection and dynamic sockets | `NOT STARTED` |
-| 14 | Update pricing estimator | `NOT STARTED` |
-| 15 | Product Design QA | `NOT STARTED` |
-| 16 | Technical verifier | `NOT STARTED` |
-| 17 | Browser matrix on ComfyUI v0.34.3 and v0.37.0 | `NOT STARTED` |
-| 18 | Canonical 8189 zero-cost acceptance, no mocks/queue/POST | `NOT STARTED` |
+| 10 | Product Owner visual acceptance | `COMPLETE — "Direction 3 Phase 10 visual accepted"` |
+| 11 | Implement Core domain, validation, AUDIO, V2V roles, fingerprint v3, migration | `COMPLETE` |
+| 12 | Update Comfy adapter | `COMPLETE` |
+| 13 | Update frontend projection and dynamic sockets | `COMPLETE` |
+| 14 | Update pricing estimator | `COMPLETE` |
+| 15 | Product Design QA | `PARTIAL — see phase-10-design-qa.md; visual QA not passed` |
+| 16 | Technical verifier | `PARTIAL — 229 tests, lint, types, syntax pass; delivery not verified` |
+| 17 | Browser matrix on ComfyUI v0.34.3 and v0.37.0 | `PARTIAL — v0.34.3 exercised; v0.37.0 not run` |
+| 18 | Canonical 8189 zero-cost acceptance, no mocks/queue/POST | `PARTIAL — 29 real models and UI contract 4; full state matrix open` |
 | 19 | Open new Phase-10 draft PR | `NOT STARTED` |
 | 20 | Human-only review and merge | `NOT STARTED` |
 
-Visual acceptance is complete. Step 11 is now the first unfinished action; later steps remain ordered.
+Local implementation exists. Step 15 Product Design QA remains the first unfinished gate; later
+technical and delivery evidence does not replace it.
 
 ## Acceptance matrix
 

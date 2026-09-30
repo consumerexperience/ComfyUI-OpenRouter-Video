@@ -32,6 +32,9 @@ source worktree clean before branch creation
 - One self-contained Phase-10 plan and refined Direction 3 visual specification produced.
 - Product Owner final correction applied: compact `image_N`, `video_N`, `audio_N` socket labels.
 - Direction 3 visual acceptance: `COMPLETE`.
+- Formal acceptance: `Direction 3 Phase 10 visual accepted`.
+- Core, Comfy adapter, frontend projection/dynamic sockets, and structural pricing implementation:
+  `LOCAL CODE PRESENT — DESIGN QA OPEN`.
 
 ## Historical completion preserved
 
@@ -48,14 +51,14 @@ OPENROUTER KEY VALUE EXPOSED TO CODEX = NO
 PRODUCTION COMFYUI 8188 CONTACTED = NO
 C:\ COMFYUI ENVIRONMENTS CONTACTED = NO
 ALTERNATE DEV PORT CREATED = NO
-PRODUCT SOURCE IMPLEMENTATION STARTED = NO
+PRODUCT SOURCE IMPLEMENTATION STARTED = YES
 ```
 
 ## Current stop
 
 ```text
-PHASE 10 PRE-IMPLEMENTATION PACKAGE = COMPLETE
+PHASE 10 IMPLEMENTATION = LOCAL CODE PRESENT — DESIGN QA NOT PASSED
 PHASE 10 DIRECTION 3 VISUAL ACCEPTANCE = COMPLETE
-NEXT EXACT ACTION = IMPLEMENT CORE DOMAIN / VALIDATION / AUDIO / V2V ROLES / FINGERPRINT V3 / MIGRATION
-LATER ADAPTER / FRONTEND / PRICING STEPS REMAIN ORDERED
+NEXT EXACT ACTION = RESOLVE PHASE-10 DESIGN-QA GAPS WITHOUT CHANGING APPROVED DIRECTION
+TECHNICAL VERIFIER / V0.37.0 BROWSER MATRIX / DELIVERY REMAIN ORDERED
 ```

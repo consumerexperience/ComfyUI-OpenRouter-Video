@@ -4,7 +4,7 @@
 - Visual direction: `Direction 3 — balanced native/polished ComfyUI`
 - Primary model state: `bytedance/seedance-2.5`
 - Primary method state: `MI2V`
-- Implementation authorization: `GRANTED — PRODUCT CODE NOT YET STARTED`
+- Implementation authorization: `GRANTED — LOCAL IMPLEMENTATION PRESENT; DESIGN QA NOT PASSED`
 
 Raster mockups are visual targets. This document is the exact semantic source if generated text in a
 mockup ever differs from the specification.
@@ -146,3 +146,7 @@ The Product Owner accepted Direction 3 with one final correction: replace long t
 with the compact `image_N`, `video_N`, and `audio_N` convention. The updated primary and dropdown
 assets satisfy that condition. The Phase-10 visual gate is closed and implementation may proceed
 without reopening design direction.
+
+Formal Product Owner acceptance, recorded verbatim on 2026-09-30:
+
+> Direction 3 Phase 10 visual accepted

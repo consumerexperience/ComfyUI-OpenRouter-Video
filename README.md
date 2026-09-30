@@ -4,7 +4,7 @@ Open-source BYOK model-agnostic OpenRouter Video gateway for ComfyUI.
 
 ## Status
 
-**PRE-ALPHA — Phase 10 implementation ready after visual acceptance; paid validation is not authorized.**
+**PRE-ALPHA — Phase 10 local implementation; Design QA and protected delivery remain open; paid validation is not authorized.**
 
 The headless core now contains typed Video API contracts, capability discovery and bounded cache,
 pre-submit validation, a durable SQLite lifecycle, one-attempt Generate, submit-incapable Resume,
@@ -18,9 +18,9 @@ in ADR-030 enables multi-image, video, and mixed image/video reference modes for
 `bytedance/seedance-2.5`; unresolved models still fail with `CAPABILITY_SIGNAL_GAP` before submit
 authority. Prompt remains required for every Generate call.
 
-Phase 10 is approved for capability-driven local inference methods and Seedance 2.5 AUDIO/Edit/Extend
+Phase 10 implements capability-driven local inference methods and Seedance 2.5 AUDIO/Edit/Extend
 expansion. The refined Direction 3 specification is Product Owner accepted with compact dynamic socket
-labels (`image_N`, `video_N`, `audio_N`); Core implementation is the next ordered step. See the
+labels (`image_N`, `video_N`, `audio_N`); [Design QA](docs/phase-10-design-qa.md) remains open. See the
 [canonical Phase-10 plan](docs/phase-10-capability-driven-inference-methods-plan.md),
 [ADR-031](docs/adr/ADR-031-capability-driven-inference-methods-and-multimodal-references.md), and the
 [active checkpoint](docs/active-execution-checkpoint.md).
