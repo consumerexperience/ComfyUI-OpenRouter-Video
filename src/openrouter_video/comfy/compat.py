@@ -23,6 +23,11 @@ _CUSTOM_FACTORY = getattr(IO, "Custom", None)
 INPUT_REFERENCE_IO: Any = (
     _CUSTOM_FACTORY("OPENROUTER_VIDEO_INPUT_REFERENCE") if _CUSTOM_FACTORY is not None else None
 )
+IMAGE_OR_REFERENCE_IO: Any = (
+    _CUSTOM_FACTORY("IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE")
+    if _CUSTOM_FACTORY is not None
+    else None
+)
 INPUT_REFERENCE_COLLECTION_IO: Any = (
     _CUSTOM_FACTORY("OPENROUTER_VIDEO_INPUT_REFERENCES") if _CUSTOM_FACTORY is not None else None
 )
@@ -63,6 +68,7 @@ def validate_host_api() -> None:
         getattr(getattr(IO, "Autogrow", None), "Input", None),
         getattr(IO, "Custom", None),
         INPUT_REFERENCE_IO,
+        IMAGE_OR_REFERENCE_IO,
         INPUT_REFERENCE_COLLECTION_IO,
         getattr(InputImpl, "VideoFromFile", None),
     )
@@ -202,6 +208,7 @@ __all__ = (
     "IO",
     "INPUT_REFERENCE_COLLECTION_IO",
     "INPUT_REFERENCE_IO",
+    "IMAGE_OR_REFERENCE_IO",
     "COST_ESTIMATE_ROUTE",
     "HEALTH_ROUTE",
     "MODEL_ROUTE",

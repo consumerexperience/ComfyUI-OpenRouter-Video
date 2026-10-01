@@ -177,3 +177,25 @@ test("visible reference sockets lead hidden widget inputs and preserve link slot
     assert.equal(context.app.graph.links[7].target_slot, 0);
     assert.equal(context.app.graph.links[8].target_slot, 1);
 });
+
+test("native Load Image is recognized as IMAGE while existing URL helper remains valid", () => {
+    const target = {
+        id: 43,
+        inputs: [],
+        addInput(name, type) { this.inputs.push({ name, type, link: null }); },
+        removeInput(index) { this.inputs.splice(index, 1); },
+    };
+    context.app.graph = {
+        links: { 11: { target_id: 43, origin_id: 12, origin_slot: 0, type: "IMAGE" } },
+        getNodeById(id) {
+            return id === 12 ? { type: "LoadImage", outputs: [{ type: "IMAGE" }] } : null;
+        },
+    };
+    context.configureReferenceTopology(target, { max_reference_count: 2 }, "MI2V");
+    assert.equal(target.inputs[0].type, "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE");
+    target.inputs[0].link = 11;
+    context.configureReferenceTopology(target, { max_reference_count: 2 }, "MI2V");
+    assert.equal(context.connectedReferenceKind(target.inputs[0]), "image");
+    assert.equal(target.__orvReferenceInvalid, false);
+    assert.equal(target.inputs[1].label, "image_2");
+});

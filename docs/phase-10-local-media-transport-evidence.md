@@ -1,6 +1,14 @@
 # Native local media transport evidence gate — 2026-10-01
 
-Status: **CONTRACT SIGNAL GAP / NO PRODUCT IMPLEMENTATION AUTHORIZED BY THIS RECORD**.
+Status: **IMAGE FIRST-PARTY IMPLEMENTATION EVIDENCE ACCEPTED FOR A1 BY PRODUCT OWNER**.
+
+Product Owner decision (2026-10-01): the official Multimedia Explorer's IMAGE data-URL
+submission path is sufficient to implement a bounded native Comfy IMAGE bridge. This is an
+implementation authorization for IMAGE only, including the existing IMAGE reference/frame
+representations. It is not evidence of an observed provider-accepted paid job. The stricter
+historical HTTPS-only transport assumption is superseded for this narrow IMAGE path only.
+VIDEO and AUDIO remain probe-gated; storage is not approved and is only a potential fallback
+after a separate decision if direct transport fails.
 
 ## Product request
 
@@ -8,12 +16,12 @@ Connect local ComfyUI `Load Image`, `Load Video`, and `Load Audio` outputs to th
 Generate media inputs without asking the user to publish or paste a URL. This is a new transport
 architecture request, separate from Phase 10's approved public-HTTPS helper-node path.
 
-## Current boundary
+## Boundary before A1
 
-ADR-031 currently permits Public HTTPS URL helpers and explicitly does not claim native local
-IMAGE/VIDEO/AUDIO transport without a separate contract. Core validation rejects non-public-HTTPS
-reference URLs before submit. The Comfy adapter currently produces transient typed references
-from URL helper nodes only. No local media bytes, prompt, URL, or credential may be persisted in a
+ADR-031 permitted Public HTTPS URL helpers and did not claim native local IMAGE/VIDEO/AUDIO
+transport without a separate contract. Before A1, Core validation rejected non-public-HTTPS
+reference URLs and the Comfy adapter produced typed references from URL helpers only. No local
+media bytes, prompt, URL, or credential may be persisted in a
 workflow, operation record, fixture, or log. One paid Video POST maximum and zero implicit resubmit
 remain unchanged.
 
@@ -33,19 +41,20 @@ are corroborating at most, never a replacement for the missing exact Video contr
 
 ## Disposition
 
-- Local Comfy IMAGE/VIDEO/AUDIO decoding and type adaptation are technically feasible, but the
-  upstream source form for a complete no-manual-URL implementation is **UNKNOWN**.
-- IMAGE data-URL support has conflicting first-party signals; VIDEO and AUDIO data-URL support
-  remain **UNKNOWN**. OpenRouter Files API compatibility is **UNKNOWN**.
-- Do not send local media bytes to any external service, persist them, or relax Core's HTTPS
-  validation based on the string-only schema or another endpoint's behavior.
-- A bounded, explicitly authorized Video contract probe would be paid; this request did not grant
-  paid-submit authority. Alternatively, Product Owner can choose a public object-storage publisher
+- Local Comfy IMAGE decoding and bounded data-URL adaptation are approved for A1. The upstream
+  source form for native VIDEO/AUDIO remains **UNKNOWN**.
+- IMAGE data-URL support has conflicting first-party signals; the Product Owner has accepted
+  the official implementation path as sufficient for A1. VIDEO and AUDIO data-URL support
+  remain **UNKNOWN / PROBE-GATED**. OpenRouter Files API compatibility is **UNKNOWN**.
+- A1 may transiently encode native Comfy IMAGE as a bounded PNG data URL for the existing
+  IMAGE request fields. Never persist or log it. Do not relax VIDEO/AUDIO HTTPS validation.
+- A bounded, explicitly authorized Video contract probe would be paid; A1 grants no paid-submit
+  authority. Alternatively, Product Owner can choose a public object-storage publisher
   with explicit storage, credentials, access, retention, and failure policy. Neither route is an
   implementation detail that can be silently selected.
 
-`CONTRACT_DRIFT`: **UNKNOWN / CONFLICTING FIRST-PARTY SIGNALS** for IMAGE data-URL guidance versus
-the current HTTPS-only project contract; no accepted Video behavior has been demonstrated.
+`CONTRACT_DRIFT`: **FIRST-PARTY IMAGE SIGNAL CONFLICT RECORDED; A1 IMPLEMENTATION DECISION ACCEPTED**.
+No accepted Video job has been demonstrated; paid validation remains separately gated.
 `UPSTREAM_EXPANSION`: **UNKNOWN** for VIDEO/AUDIO native
 transport and Files API attachment. Affected scope is native local media only; existing HTTPS
 helpers, capability-driven methods, billing, recovery, and presentation remain valid.

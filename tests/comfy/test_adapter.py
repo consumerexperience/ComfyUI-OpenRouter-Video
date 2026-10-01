@@ -436,6 +436,62 @@ def test_generate_bridges_direct_ordered_references_and_rejects_mixed_topologies
         )
 
 
+def test_native_image_normalizes_into_existing_frame_and_ordered_reference_roles(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    native = object()
+    data_url = "data:image/png;base64,private-image-canary"
+    monkeypatch.setattr(
+        nodes, "to_image_data_url", lambda value: data_url if value is native else ""
+    )
+    captured: list[object] = []
+
+    class Runtime:
+        async def generate(self, request: object, _: str | None) -> GenerationResult:
+            captured.append(request)
+            return GenerationResult(LocalLifecycleState.DONE, "job-native-image")
+
+    monkeypatch.setattr(nodes, "get_runtime", Runtime)
+    with pytest.raises(nodes.AdapterExecutionError):
+        asyncio.run(
+            nodes.OpenRouterVideoGenerate.execute(
+                "vendor/model",
+                "prompt",
+                inference_method="FLF2V",
+                first_frame=native,
+                last_frame=InputReference(
+                    InputReferenceKind.IMAGE, "https://assets.example/last.png"
+                ),
+            )
+        )
+    assert captured[0].first_frame.url == data_url
+    assert captured[0].last_frame.url == "https://assets.example/last.png"
+
+    with pytest.raises(nodes.AdapterExecutionError):
+        asyncio.run(
+            nodes.OpenRouterVideoGenerate.execute(
+                "vendor/model",
+                "prompt",
+                inference_method="MI2V",
+                direct_references={
+                    "reference_2": native,
+                    "reference_0": InputReference(
+                        InputReferenceKind.IMAGE, "https://assets.example/first.png"
+                    ),
+                    "reference_1": native,
+                },
+            )
+        )
+    assert [item.url for item in captured[1].input_references.references] == [
+        "https://assets.example/first.png",
+        data_url,
+        data_url,
+    ]
+    assert data_url not in caplog.text
+    assert "api_key" not in caplog.text.lower()
+
+
 @pytest.mark.parametrize("duration", (-1, True, 1.5))
 def test_generate_rejects_invalid_duration_without_runtime_call(
     duration: object, monkeypatch: pytest.MonkeyPatch

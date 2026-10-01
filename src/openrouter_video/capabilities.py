@@ -21,6 +21,7 @@ from openrouter_video.errors import (
     ProductFailureError,
     TransportError,
 )
+from openrouter_video.image_transport import is_supported_image_data_url
 from openrouter_video.models import (
     BillingContext,
     FrameReference,
@@ -500,10 +501,10 @@ class RequestValidator:
     def _validate_frame(frame: FrameReference | None, expected: FrameType) -> None:
         if frame is None:
             return
-        if frame.frame_type is not expected or not _is_public_https_url(frame.url):
+        if frame.frame_type is not expected or not _is_image_source(frame.url):
             RequestValidator._fail(
                 ProductErrorCode.INVALID_MEDIA_URL,
-                "Frame images require a direct public HTTPS URL.",
+                "Frame images require a valid IMAGE source.",
             )
 
     @staticmethod
@@ -515,7 +516,14 @@ class RequestValidator:
                 ProductErrorCode.UNSUPPORTED_PARAMETER,
                 "Input references require a supported typed media kind.",
             )
-        if not _is_public_https_url(reference.url):
+        if reference.kind is InputReferenceKind.IMAGE and not _is_image_source(reference.url):
+            RequestValidator._fail(
+                ProductErrorCode.INVALID_MEDIA_URL,
+                "IMAGE references require a public HTTPS URL or valid PNG data URL.",
+            )
+        if reference.kind is not InputReferenceKind.IMAGE and not _is_public_https_url(
+            reference.url
+        ):
             RequestValidator._fail(
                 ProductErrorCode.INVALID_MEDIA_URL,
                 "Input references require a direct public HTTPS URL.",
@@ -589,6 +597,10 @@ class RequestValidator:
     @staticmethod
     def _fail(code: ProductErrorCode, message: str) -> NoReturn:
         raise ProductFailureError(ProductError(code, message, BillingContext.NO_SUBMIT))
+
+
+def _is_image_source(value: str) -> bool:
+    return _is_public_https_url(value) or is_supported_image_data_url(value)
 
 
 def _is_public_https_url(value: str) -> bool:

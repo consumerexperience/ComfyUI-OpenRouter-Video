@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from openrouter_video.application import OperationInterrupted
 from openrouter_video.capabilities import infer_legacy_inference_method
 from openrouter_video.execution_hooks import ExecutionPhase
@@ -18,6 +20,7 @@ from openrouter_video.models import (
 )
 
 from . import compat
+from .image import ImageBridgeError, to_image_data_url
 from .runtime import get_runtime
 from .video import VideoBridgeError, to_native_video
 
@@ -86,7 +89,7 @@ def _safe_job_id(value: str | None) -> str | None:
 
 
 def _frame_reference(
-    reference: InputReference | None,
+    reference: InputReference | object | None,
     legacy_url: str,
     frame_type: FrameType,
 ) -> FrameReference | None:
@@ -96,9 +99,11 @@ def _frame_reference(
             "UNSUPPORTED_PARAMETER: use the typed frame socket or the legacy URL, not both."
         )
     if reference is not None:
+        if not isinstance(reference, InputReference):
+            reference = _image_or_reference(reference)
         if reference.kind is not InputReferenceKind.IMAGE:
             raise AdapterExecutionError(
-                "UNSUPPORTED_PARAMETER: First and Last Frame require Public Image URL inputs."
+                "UNSUPPORTED_PARAMETER: First and Last Frame require IMAGE inputs."
             )
         normalized_url = reference.url
     return FrameReference(frame_type, normalized_url) if normalized_url is not None else None
@@ -266,7 +271,7 @@ class OpenRouterVideoReferenceCollection(compat.IO.ComfyNode):
 
 
 def _reference_collection(
-    references: dict[str, InputReference] | None,
+    references: Mapping[str, object] | None,
 ) -> InputReferenceCollection:
     """Preserve autogrow positions, duplicates and heterogeneous order exactly."""
 
@@ -275,9 +280,18 @@ def _reference_collection(
         prefix, separator, suffix = name.rpartition("_")
         if prefix != "reference" or not separator or not suffix.isdigit():
             raise AdapterExecutionError("UNSUPPORTED_PARAMETER: invalid reference position.")
-        indexed.append((int(suffix), reference))
+        indexed.append((int(suffix), _image_or_reference(reference)))
     indexed.sort(key=lambda item: item[0])
     return InputReferenceCollection(tuple(reference for _, reference in indexed))
+
+
+def _image_or_reference(value: InputReference | object) -> InputReference:
+    if isinstance(value, InputReference):
+        return value
+    try:
+        return InputReference(InputReferenceKind.IMAGE, to_image_data_url(value))
+    except ImageBridgeError as exc:
+        raise AdapterExecutionError(str(exc)) from None
 
 
 class OpenRouterVideoGenerate(compat.IO.ComfyNode):
@@ -325,12 +339,12 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                     default="",
                     advanced=True,
                 ),
-                compat.INPUT_REFERENCE_IO.Input(
+                compat.IMAGE_OR_REFERENCE_IO.Input(
                     "first_frame",
                     display_name="first_frame",
                     optional=True,
                 ),
-                compat.INPUT_REFERENCE_IO.Input(
+                compat.IMAGE_OR_REFERENCE_IO.Input(
                     "last_frame",
                     display_name="last_frame",
                     optional=True,
@@ -345,14 +359,14 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                     "direct_references",
                     display_name="ORDERED REFERENCES",
                     template=compat.IO.Autogrow.TemplatePrefix(
-                        input=compat.INPUT_REFERENCE_IO.Input("reference"),
+                        input=compat.IMAGE_OR_REFERENCE_IO.Input("reference"),
                         prefix="reference_",
                         min=0,
                         max=100,
                     ),
                     optional=True,
                     tooltip=(
-                        "Connect Public Image URL / Public Video URL nodes in order. "
+                        "Connect Load Image, Public Image URL, or typed references in order. "
                         "The UI enforces the selected model's effective count and kinds; "
                         "Core validates again before submit."
                     ),
@@ -402,10 +416,10 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         generate_audio: bool = False,
         first_frame_url: str = "",
         last_frame_url: str = "",
-        first_frame: InputReference | None = None,
-        last_frame: InputReference | None = None,
+        first_frame: InputReference | object | None = None,
+        last_frame: InputReference | object | None = None,
         source_video: InputReference | None = None,
-        direct_references: dict[str, InputReference] | None = None,
+        direct_references: Mapping[str, object] | None = None,
         input_references: InputReferenceCollection | None = None,
         inference_method: str = "",
     ) -> object:

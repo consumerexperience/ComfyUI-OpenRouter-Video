@@ -453,7 +453,7 @@ function configureDuration(node, supported) {
 }
 
 function isDirectReferenceInput(item) {
-    return item?.type === "OPENROUTER_VIDEO_INPUT_REFERENCE" &&
+    return ["OPENROUTER_VIDEO_INPUT_REFERENCE", "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE"].includes(item?.type) &&
         String(item?.name || "").startsWith("direct_references.reference_");
 }
 
@@ -474,6 +474,8 @@ function connectedReferenceKind(input) {
     if (input?.link == null) return null;
     const link = app.graph?.links?.[input.link];
     const origin = link ? app.graph?.getNodeById?.(link.origin_id) : null;
+    const outputType = origin?.outputs?.[link?.origin_slot]?.type || link?.type;
+    if (outputType === "IMAGE") return "image";
     const type = String(origin?.type || origin?.comfyClass || "");
     if (type.includes("ImageReference")) return "image";
     if (type.includes("VideoReference")) return "video";
@@ -527,9 +529,17 @@ function switchWouldOrphan(node, method) {
 }
 
 function ensureFixedInput(node, name) {
-    if (!inputByName(node, name)) node.addInput?.(name, "OPENROUTER_VIDEO_INPUT_REFERENCE");
+    if (!inputByName(node, name)) node.addInput?.(
+        name,
+        name === "source_video"
+            ? "OPENROUTER_VIDEO_INPUT_REFERENCE"
+            : "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE",
+    );
     const input = inputByName(node, name);
-    if (input) input.label = name;
+    if (input) {
+        if (name !== "source_video") input.type = "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE";
+        input.label = name;
+    }
 }
 
 function moveInputToFrontPreservingLinks(node, name) {
@@ -559,7 +569,7 @@ function addTrailingReferenceInput(node, current) {
     if (current.length === 0) {
         node.addInput(
             "direct_references.reference_0",
-            "OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE",
         );
         return;
     }
@@ -583,6 +593,7 @@ function configureReferenceTopology(node, capability, method) {
     }
 
     const inputs = directReferenceInputs(node);
+    for (const input of inputs) input.type = "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE";
     const linked = inputs.filter((item) => item.link != null);
     const unlinked = inputs.filter((item) => item.link == null);
     const limit = capability.max_reference_count;
