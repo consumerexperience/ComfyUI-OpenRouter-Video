@@ -298,7 +298,7 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                     default=InferenceMethod.T2V.value,
                     tooltip="Local product intent. Never sent as an OpenRouter field.",
                 ),
-                compat.IO.String.Input("prompt", default="", multiline=True),
+                compat.IO.String.Input("prompt", display_name="Prompt", default="", multiline=True),
                 compat.IO.String.Input("resolution", default=""),
                 compat.IO.String.Input("aspect_ratio", default=""),
                 compat.IO.Int.Input("duration", default=0, min=0, step=1),

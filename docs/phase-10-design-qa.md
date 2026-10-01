@@ -92,3 +92,40 @@ This improves migration evidence but does not close design gaps 1–5.
 Verdict: **Design QA not passed**. Continue the approved Direction 3 implementation; do not
 claim RC UX freeze or open a protected-delivery PR as a verified feature yet. Core and deterministic
 test passes are separate from this visual verdict.
+
+## Focused continuation — 2026-10-01
+
+This section supersedes the status of gaps 1–3 above without erasing the prior observations.
+On canonical v0.34.3 DEV at `127.0.0.1:8189`, the current source fingerprint
+`29041798a5da9cf1795986a682b60a8635aaef83056e9ed8b1819bfbd44a735c`
+was confirmed `RUNNING_HEALTHY` with a fresh 30-model catalogue and the real
+`/openrouter-video/v1/ui-capabilities` route returning 200. No Run/queue action or paid
+Video POST occurred.
+
+- Gap 1 is closed in the real canvas: the compact reference summary is directly below the
+  sockets, before Model. Named and old positional widget-value migration keep saved intent
+  stable after the in-place presentation reorder.
+- Gap 2 is closed in the real canvas: Advanced appears after Generate Audio, and its
+  advanced-only widgets are below the disclosure when expanded. The primary control rows
+  have deliberate spacing; the Prompt has its own dark field treatment. A thin green border
+  and a rounded, fail-closed cost badge now match the accepted visual hierarchy.
+- The reference socket hit-test defect is closed: a drag from visible `image_1` now offers
+  `OPENROUTER_VIDEO_INPUT_REFERENCE`, not a hidden `STRING` widget. Three Public Image URL
+  helpers were placed and connected through the real mouse path. The node autogrew to
+  `image_4` and showed `3 connected · 47 remaining`. The separate agent-owned
+  `ORV_Phase10_QA_20261001` workflow saved and reloaded those three links; the original
+  `02_OPENROUTER_Video_Test` file was not overwritten.
+- Exact 50-reference browser saturation remains untested. The max-capacity rule has
+  deterministic coverage, but that is not a substitute for the specified visual state.
+- Live lifecycle/Resume remains blocked by the zero-paid-POST boundary. v0.37.0 browser
+  verification remains unrun because the governed DEV runtime is pinned to v0.34.3.
+
+The approved target uses an illustrative price. The real Seedance topology still displays
+`ESTIMATE UNAVAILABLE`, correctly following the pricing contract rather than fabricating
+the target's example number. The target's decorative `READY` idle footer is omitted per
+the semantic visual specification, which explicitly hides idle lifecycle.
+
+Current verdict: **PARTIAL / BLOCKED for full Design QA**. The primary MI2V presentation
+and save/reload of three connected references were visually verified; max-reached, real
+lifecycle/Resume, second-version browser matrix, and Product Owner implementation acceptance
+remain open. This is not RC UX freeze or release readiness.

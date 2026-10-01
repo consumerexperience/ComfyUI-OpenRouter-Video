@@ -33,7 +33,7 @@ function widget(node, name) {
 function setVisible(item, visible) {
     if (!item) return;
     item.hidden = !visible;
-    item.computeSize = visible ? undefined : () => [0, -4];
+    item.computeSize = visible ? item.__orvComputeSize : () => [0, -4];
 }
 
 function addReadOnlyWidget(node, name, initial) {
@@ -42,6 +42,64 @@ function addReadOnlyWidget(node, name, initial) {
     item.options = item.options || {};
     item.options.readOnly = true;
     return item;
+}
+
+function setMinimumWidgetHeight(item, minimum) {
+    if (!item || item.__orvSized) return;
+    item.__orvSized = true;
+    const original = item.computeSize;
+    item.__orvComputeSize = (...args) => {
+        const measured = original?.apply(item, args) || [0, 20];
+        return [measured[0], Math.max(Number(measured[1]) || 0, minimum)];
+    };
+    setVisible(item, !item.hidden);
+}
+
+function sizePrimaryControls(node) {
+    for (const name of [
+        "model", "inference_method", "resolution", "aspect_ratio",
+        "duration", "seed", "generate_audio",
+    ]) setMinimumWidgetHeight(widget(node, name), 38);
+    setMinimumWidgetHeight(widget(node, "prompt"), 92);
+    setMinimumWidgetHeight(node.__orvAdvanced, 40);
+}
+
+function stylePrompt(node) {
+    const element = widget(node, "prompt")?.element;
+    if (!element?.style) return;
+    element.placeholder = "Prompt";
+    element.style.background = "#20272a";
+    element.style.border = "1px solid #354540";
+    element.style.borderRadius = "9px";
+    element.style.color = "#e4ece9";
+    element.style.fontSize = "14px";
+    element.style.padding = "9px 11px";
+}
+
+function orderPresentationWidgets(node) {
+    // LiteGraph paints widgets in array order. Keep the summary directly below
+    // sockets and place advanced-only controls below their disclosure. Saved
+    // positional values from the prior order are restored by name on configure.
+    const control = (node.widgets || []).find((item) =>
+        /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`),
+    );
+    const leading = [
+        node.__orvSummary,
+        widget(node, "model"), widget(node, "inference_method"), widget(node, "prompt"),
+        widget(node, "resolution"), widget(node, "aspect_ratio"),
+        widget(node, "duration"), widget(node, "seed"),
+        widget(node, "generate_audio"), node.__orvAdvanced,
+        widget(node, "size"), control,
+    ].filter(Boolean);
+    const used = new Set(leading);
+    const ordered = [...leading, ...(node.widgets || []).filter((item) => !used.has(item))];
+    if (ordered.some((item, index) => item !== node.widgets[index])) {
+        // Keep the array identity: Comfy's widget layer may retain the
+        // original array while the node definition is being configured.
+        node.widgets.splice(0, node.widgets.length, ...ordered);
+        return true;
+    }
+    return false;
 }
 
 function applyPresentation(node) {
@@ -56,6 +114,8 @@ function applyPresentation(node) {
     for (const item of node.widgets || []) {
         if (labels[item.name]) item.label = labels[item.name];
     }
+    sizePrimaryControls(node);
+    stylePrompt(node);
     syncAdvancedControls(node);
     setVisible(node.__orvEstimate, false);
     if (node.__orvCapabilityStatus) node.__orvCapabilityStatus.label = " ";
@@ -63,17 +123,35 @@ function applyPresentation(node) {
     node.__orvPresentationDrawInstalled = true;
     const previousDraw = node.onDrawForeground;
     node.onDrawForeground = function (ctx, ...args) {
-        if (syncAdvancedControls(this)) fitPresentationWidth(this);
+        const reordered = orderPresentationWidgets(this);
+        const advancedChanged = syncAdvancedControls(this);
+        if (reordered || advancedChanged) {
+            fitPresentationWidth(this);
+        }
         previousDraw?.call(this, ctx, ...args);
         if (this.flags?.collapsed) return;
         const width = this.size?.[0] || 460;
         const badge = String(this.__orvEstimate?.value || "ESTIMATE UNAVAILABLE");
         const available = badge.startsWith("≈ $");
         ctx.save();
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(0.75, -29, width - 1.5, (this.size?.[1] || 0) + 28, 10);
+        else ctx.rect(0.75, -29, width - 1.5, (this.size?.[1] || 0) + 28);
+        ctx.strokeStyle = "#328761";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
         ctx.font = "12px sans-serif";
+        const badgeWidth = Math.min(230, ctx.measureText(badge).width + 24);
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(width - badgeWidth - 10, -27, badgeWidth, 21, 9);
+        else ctx.rect(width - badgeWidth - 10, -27, badgeWidth, 21);
+        ctx.fillStyle = available ? "#133c30" : "#27302f";
+        ctx.strokeStyle = available ? "#45dca5" : "#60706c";
+        ctx.fill();
+        ctx.stroke();
         ctx.textAlign = "right";
         ctx.fillStyle = available ? "#73e9b8" : "#aeb8b6";
-        ctx.fillText(badge, width - 12, -9, 210);
+        ctx.fillText(badge, width - 22, -12, badgeWidth - 18);
         ctx.restore();
     };
 }
@@ -101,7 +179,7 @@ function syncAdvancedControls(node) {
 
 function fitPresentationWidth(node) {
     const measured = node.computeSize?.();
-    if (measured) node.setSize?.([Math.max(460, measured[0]), measured[1]]);
+    if (measured) node.setSize?.([Math.max(560, measured[0]), measured[1]]);
 }
 
 function canonicalModel(node) {
@@ -189,7 +267,8 @@ function restorePhase8RemoteOptionsValues(node, serializedValues) {
 }
 
 function restorePhase9Values(node, serializedValues) {
-    if (!Array.isArray(serializedValues) || METHODS.includes(serializedValues[1])) return false;
+    if (!Array.isArray(serializedValues) ||
+        METHODS.includes(serializedValues[1]) || METHODS.includes(serializedValues[2])) return false;
     const fields = [
         ["model", 0], ["duration", 2], ["resolution", 3], ["aspect_ratio", 4],
         ["size", 5], ["seed", 6], ["generate_audio", 7], ["first_frame_url", 8],
@@ -201,6 +280,58 @@ function restorePhase9Values(node, serializedValues) {
     }
     const multiline = node.widgets?.find((item) => item.options?.multiline === true);
     if (multiline && serializedValues.length > 1) multiline.value = serializedValues[1];
+    return true;
+}
+
+function restorePhase10Values(node, serializedValues) {
+    if (!Array.isArray(serializedValues)) return false;
+    const previousOrder = METHODS.includes(serializedValues[1]);
+    const presentationOrder = !previousOrder && METHODS.includes(serializedValues[2]);
+    if (!previousOrder && !presentationOrder) return false;
+    const fields = previousOrder ? [
+        ["model", 0], ["inference_method", 1], ["prompt", 2],
+        ["resolution", 3], ["aspect_ratio", 4], ["duration", 5],
+        ["size", 6], ["seed", 7], ["generate_audio", 9],
+        ["first_frame_url", 10], ["last_frame_url", 11],
+    ] : [
+        ["model", 1], ["inference_method", 2], ["prompt", 3],
+        ["resolution", 4], ["aspect_ratio", 5], ["duration", 6],
+        ["seed", 7], ["generate_audio", 8], ["size", 10],
+        ["first_frame_url", 12], ["last_frame_url", 13],
+    ];
+    for (const [name, index] of fields) {
+        const item = widget(node, name);
+        if (item && index < serializedValues.length) item.value = serializedValues[index];
+    }
+    const control = (node.widgets || []).find((item) =>
+        /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`),
+    );
+    const controlIndex = previousOrder ? 8 : 11;
+    if (control && controlIndex < serializedValues.length) {
+        control.value = serializedValues[controlIndex];
+    }
+    return true;
+}
+
+function restorePhase10NamedValues(node, namedValues) {
+    if (!namedValues || typeof namedValues !== "object" ||
+        !METHODS.includes(namedValues.inference_method)) return false;
+    for (const name of [
+        "model", "inference_method", "prompt", "resolution", "aspect_ratio",
+        "duration", "size", "seed", "generate_audio", "first_frame_url",
+        "last_frame_url",
+    ]) {
+        if (Object.hasOwn(namedValues, name)) {
+            const item = widget(node, name);
+            if (item) item.value = namedValues[name];
+        }
+    }
+    const control = (node.widgets || []).find((item) =>
+        /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`),
+    );
+    if (control && Object.hasOwn(namedValues, control.name)) {
+        control.value = namedValues[control.name];
+    }
     return true;
 }
 
@@ -480,6 +611,19 @@ function configureReferenceTopology(node, capability, method) {
     const finalInputs = directReferenceInputs(node).sort(
         (left, right) => referenceInputSuffix(left) - referenceInputSuffix(right),
     );
+    // Comfy uses slot indexes for canvas hit-testing. Widget-backed inputs are
+    // hidden from the socket drawing, so media sockets must lead the actual
+    // inputs array as well as the visual order. Otherwise dragging image_1 can
+    // select a hidden STRING widget instead of the visible reference socket.
+    const fixedNames = [
+        ...keepFixed,
+        ...["first_frame", "last_frame", "source_video"].filter(
+            (name) => !keepFixed.has(name) && inputByName(node, name),
+        ),
+    ];
+    const legacyNames = legacy?.link != null ? ["input_references"] : [];
+    const mediaNames = [...fixedNames, ...legacyNames, ...finalInputs.map((item) => item.name)];
+    for (const name of mediaNames.reverse()) moveInputToFrontPreservingLinks(node, name);
     for (let index = 0; index < finalInputs.length; index += 1) {
         finalInputs[index].label = `${referencePrefix(method, finalInputs[index])}_${index + 1}`;
     }
@@ -699,6 +843,7 @@ function presentationPhase(detail) {
 }
 
 async function projectSelectedModel(node, force = false) {
+    orderPresentationWidgets(node);
     node.__orvCapabilityStatus.value = "";
     setVisible(node.__orvCapabilityStatus, false);
     try {
@@ -827,6 +972,15 @@ app.registerExtension({
             this.__orvAdvanced.serialize = false;
             this.__orvSummary = addReadOnlyWidget(this, "REFERENCES", "");
             this.__orvSummary.label = " ";
+            this.__orvSummary.__orvComputeSize = () => [0, 22];
+            this.__orvSummary.draw = (ctx, node, width, y) => {
+                ctx.save();
+                ctx.font = "12px sans-serif";
+                ctx.fillStyle = "#b8c8c4";
+                ctx.textAlign = "left";
+                ctx.fillText(String(node.__orvReferenceSummary || ""), 12, y + 15, width - 24);
+                ctx.restore();
+            };
             setVisible(this.__orvSummary, false);
             this.__orvCapabilityStatus = addReadOnlyWidget(this, "STATE", "");
             setVisible(this.__orvCapabilityStatus, false);
@@ -835,6 +989,7 @@ app.registerExtension({
                 "COST",
                 "ESTIMATE UNAVAILABLE — SELECT MODEL",
             );
+            orderPresentationWidgets(this);
             applyPresentation(this);
             migratePhase8Values(this);
             bindEstimateRefresh(this);
@@ -850,19 +1005,35 @@ app.registerExtension({
             this.__orvIsNewNode = false;
             this.__orvMethodExplicit = true;
             const serializedValues = args[0]?.widgets_values;
+            const namedValues = args[0]?.widgets_values_named;
             const modelIndex = this.widgets?.findIndex((item) => item.name === "model") ?? -1;
-            const serializedModel = serializedValues?.[modelIndex];
-            const persistedMethod = METHODS.includes(serializedValues?.[1])
+            const previousPhase10Order = METHODS.includes(serializedValues?.[1]);
+            const serializedModel = typeof namedValues?.model === "string"
+                ? namedValues.model
+                : previousPhase10Order
+                    ? serializedValues?.[0]
+                    : serializedValues?.[modelIndex];
+            const persistedMethod = METHODS.includes(namedValues?.inference_method)
+                ? namedValues.inference_method
+                : METHODS.includes(serializedValues?.[1])
                 ? serializedValues[1]
+                : METHODS.includes(serializedValues?.[2])
+                    ? serializedValues[2]
                 : null;
             const configuredModel =
                 typeof serializedModel === "string" && serializedModel !== SELECT_MODEL
                     ? serializedModel
                     : widget(this, "model")?.value;
             const result = previousConfigure?.apply(this, args);
+            orderPresentationWidgets(this);
             applyPresentation(this);
-            const restoredRemote = restorePhase8RemoteOptionsValues(this, serializedValues);
-            const restoredPhase9 = !restoredRemote && restorePhase9Values(this, serializedValues);
+            const restoredNamed = restorePhase10NamedValues(this, namedValues);
+            const restoredRemote = !restoredNamed &&
+                restorePhase8RemoteOptionsValues(this, serializedValues);
+            const restoredPhase10 = !restoredNamed && !restoredRemote &&
+                restorePhase10Values(this, serializedValues);
+            const restoredPhase9 = !restoredNamed && !restoredRemote && !restoredPhase10 &&
+                restorePhase9Values(this, serializedValues);
             migratePhase8Values(this);
             setTimeout(() => {
                 if (configuredModel && configuredModel !== SELECT_MODEL) {

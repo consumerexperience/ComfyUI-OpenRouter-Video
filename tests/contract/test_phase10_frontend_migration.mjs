@@ -54,3 +54,126 @@ test("unresolved numeric legacy model stays unresolved", () => {
     assert.equal(values.seed, 791669044);
     assert.equal(values.generate_audio, true);
 });
+
+test("presentation order keeps reference summary above Model and Advanced above its controls", () => {
+    const target = node();
+    target.__orvSummary = { name: "REFERENCES" };
+    target.__orvAdvanced = { name: "Advanced" };
+    target.widgets.push(target.__orvAdvanced, target.__orvSummary);
+    const originalArray = target.widgets;
+    context.orderPresentationWidgets(target);
+    assert.equal(target.widgets, originalArray);
+    assert.deepEqual(
+        Array.from(target.widgets, (item) => item.name),
+        [
+            "REFERENCES", "model", "inference_method", "prompt", "resolution",
+            "aspect_ratio", "duration", "seed", "generate_audio", "Advanced",
+            "size", "control after generate", "first_frame_url", "last_frame_url",
+        ],
+    );
+});
+
+test("primary control sizing preserves original widget measurement and visibility", () => {
+    const prompt = { name: "prompt", hidden: false, computeSize: () => [320, 42] };
+    context.setMinimumWidgetHeight(prompt, 92);
+    assert.deepEqual(Array.from(prompt.computeSize()), [320, 92]);
+    context.setVisible(prompt, false);
+    assert.deepEqual(Array.from(prompt.computeSize()), [0, -4]);
+    context.setVisible(prompt, true);
+    assert.deepEqual(Array.from(prompt.computeSize()), [320, 92]);
+});
+
+test("Prompt styling is scoped to this Generate widget", () => {
+    const target = node();
+    const prompt = target.widgets.find((item) => item.name === "prompt");
+    prompt.element = { placeholder: "prompt", style: {} };
+    context.stylePrompt(target);
+    assert.equal(prompt.element.placeholder, "Prompt");
+    assert.equal(prompt.element.style.borderRadius, "9px");
+    assert.equal(target.widgets.find((item) => item.name === "model").element, undefined);
+});
+
+test("named Phase 10 values win over presentation positions", () => {
+    const target = node();
+    const named = {
+        model: "exact/model-id", inference_method: "MI2V", prompt: "saved prompt",
+        resolution: "720p", aspect_ratio: "16:9", duration: 5,
+        seed: 77, generate_audio: true, "control after generate": "fixed",
+    };
+    assert.equal(context.restorePhase10NamedValues(target, named), true);
+    const values = Object.fromEntries(target.widgets.map(({ name, value }) => [name, value]));
+    assert.equal(values.model, "exact/model-id");
+    assert.equal(values.inference_method, "MI2V");
+    assert.equal(values.prompt, "saved prompt");
+    assert.equal(values.duration, 5);
+    assert.equal(values["control after generate"], "fixed");
+});
+
+test("prior Phase 10 positional values restore by field after presentation reorder", () => {
+    const target = node();
+    const saved = [
+        "exact/model-id", "MI2V", "saved prompt", "720p", "16:9", 5,
+        "", 77, "fixed", true, "", "",
+    ];
+    assert.equal(context.restorePhase10Values(target, saved), true);
+    const values = Object.fromEntries(target.widgets.map(({ name, value }) => [name, value]));
+    assert.equal(values.model, "exact/model-id");
+    assert.equal(values.inference_method, "MI2V");
+    assert.equal(values.prompt, "saved prompt");
+    assert.equal(values.duration, 5);
+    assert.equal(values.seed, 77);
+    assert.equal(values["control after generate"], "fixed");
+    assert.equal(values.generate_audio, true);
+});
+
+test("new presentation order restores the same intent on reload", () => {
+    const target = node();
+    const saved = [
+        "2 connected · 48 remaining", "exact/model-id", "MI2V", "saved prompt",
+        "720p", "16:9", 5, 77, true, "›", "", "fixed", "", "",
+    ];
+    assert.equal(context.restorePhase10Values(target, saved), true);
+    const values = Object.fromEntries(target.widgets.map(({ name, value }) => [name, value]));
+    assert.equal(values.model, "exact/model-id");
+    assert.equal(values.inference_method, "MI2V");
+    assert.equal(values.prompt, "saved prompt");
+    assert.equal(values.duration, 5);
+    assert.equal(values.seed, 77);
+    assert.equal(values["control after generate"], "fixed");
+    assert.equal(values.generate_audio, true);
+});
+
+test("visible reference sockets lead hidden widget inputs and preserve link slots", () => {
+    const target = {
+        id: 42,
+        inputs: [
+            { name: "model", type: "COMBO", link: null },
+            { name: "prompt", type: "STRING", link: null },
+            { name: "direct_references.reference_0", type: "OPENROUTER_VIDEO_INPUT_REFERENCE", link: 7 },
+        ],
+        addInput(name, type) { this.inputs.push({ name, type, link: null }); },
+        removeInput(index) { this.inputs.splice(index, 1); },
+    };
+    context.app.graph = {
+        links: { 7: { target_id: 42, target_slot: 2, origin_id: 9 } },
+        getNodeById(id) { return id === 9 ? { type: "OpenRouterVideoImageReference" } : null; },
+    };
+    context.configureReferenceTopology(target, { max_reference_count: 2 }, "MI2V");
+    assert.deepEqual(
+        Array.from(target.inputs.slice(0, 2), ({ name, label }) => [name, label]),
+        [
+            ["direct_references.reference_0", "image_1"],
+            ["direct_references.reference_1", "image_2"],
+        ],
+    );
+    assert.equal(context.app.graph.links[7].target_slot, 0);
+    assert.equal(target.__orvReferenceSummary, "1 connected · 1 remaining");
+
+    target.inputs[1].link = 8;
+    context.app.graph.links[8] = { target_id: 42, target_slot: 1, origin_id: 9 };
+    context.configureReferenceTopology(target, { max_reference_count: 2 }, "MI2V");
+    assert.equal(target.inputs.filter((item) => item.name.startsWith("direct_references.")).length, 2);
+    assert.equal(target.__orvReferenceSummary, "2 connected · maximum reached");
+    assert.equal(context.app.graph.links[7].target_slot, 0);
+    assert.equal(context.app.graph.links[8].target_slot, 1);
+});
