@@ -125,7 +125,16 @@ The approved target uses an illustrative price. The real Seedance topology still
 the target's example number. The target's decorative `READY` idle footer is omitted per
 the semantic visual specification, which explicitly hides idle lifecycle.
 
-Current verdict: **PARTIAL / BLOCKED for full Design QA**. The primary MI2V presentation
-and save/reload of three connected references were visually verified; max-reached, real
-lifecycle/Resume, second-version browser matrix, and Product Owner implementation acceptance
-remain open. This is not RC UX freeze or release readiness.
+The model-limit state was subsequently exercised with a separate agent-owned
+`ORV_Phase10_Max_QA_20261001` workflow mechanically expanded from the three-link QA file.
+On the real canvas, 50 connected `image_N` sockets rendered with
+`50 connected · maximum reached` and no free `image_51`. Save wrote 50 links, 50 connected
+reference inputs, and `image_50` as the last label; a new browser tab reloaded the same
+maximum-reached state. This is real rendered max-state and persistence evidence, not a claim
+that 47 additional links were individually attached by mouse. The earlier 1→2→3 autogrow
+path was separately exercised through real mouse interactions.
+
+Current verdict: **PARTIAL / BLOCKED for full Design QA**. Primary MI2V and max-reached
+presentation plus their save/reload states were visually verified; real lifecycle/Resume,
+second-version browser matrix, and Product Owner implementation acceptance remain open.
+This is not RC UX freeze or release readiness.
