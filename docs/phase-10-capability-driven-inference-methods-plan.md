@@ -167,10 +167,10 @@ slug-pattern pricing branch is allowed.
 | 12 | Update Comfy adapter | `COMPLETE` |
 | 13 | Update frontend projection and dynamic sockets | `COMPLETE` |
 | 14 | Update pricing estimator | `COMPLETE` |
-| 15 | Product Design QA | `PARTIAL — see phase-10-design-qa.md; visual QA not passed` |
-| 16 | Technical verifier | `PARTIAL — 229 tests, lint, types, syntax pass; delivery not verified` |
-| 17 | Browser matrix on ComfyUI v0.34.3 and v0.37.0 | `PARTIAL — v0.34.3 exercised; v0.37.0 not run` |
-| 18 | Canonical 8189 zero-cost acceptance, no mocks/queue/POST | `PARTIAL — 29 real models and UI contract 4; full state matrix open` |
+| 15 | Product Design QA | `PARTIAL — primary MI2V, 1→2→3 autogrow, and 50-link max/save/reload now visually checked; lifecycle, v0.37.0, and Owner acceptance open` |
+| 16 | Technical verifier | `PARTIAL — 229 Python tests previously passed after the backend delta; 9 current frontend regression tests, JS syntax, and diff hygiene pass; delivery not verified` |
+| 17 | Browser matrix on ComfyUI v0.34.3 and v0.37.0 | `PARTIAL — v0.34.3 exercised on real canvas; v0.37.0 not run` |
+| 18 | Canonical 8189 zero-cost acceptance, no mocks/queue/POST | `PARTIAL — 30 real models and UI contract 4; no Run/paid POST; full lifecycle state matrix open` |
 | 19 | Open new Phase-10 draft PR | `NOT STARTED` |
 | 20 | Human-only review and merge | `NOT STARTED` |
 
