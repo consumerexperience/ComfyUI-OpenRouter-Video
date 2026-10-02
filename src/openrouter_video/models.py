@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 from pathlib import Path
 from typing import Any
+
+from openrouter_video.local_media import LocalMedia
 
 
 class FrameType(str, Enum):
@@ -102,6 +104,8 @@ class LocalLifecycleState(str, Enum):
 class ProductErrorCode(str, Enum):
     """Specification-defined product-facing error codes."""
 
+    STORAGE_UPLOAD_FAILED = "STORAGE_UPLOAD_FAILED"
+    NATIVE_MEDIA_INVALID = "NATIVE_MEDIA_INVALID"
     API_KEY_MISSING = "API_KEY_MISSING"
     API_KEY_INVALID = "API_KEY_INVALID"
     DISCOVERY_UNAVAILABLE = "DISCOVERY_UNAVAILABLE"
@@ -148,7 +152,8 @@ class InputReference:
     """One transient typed media reference; never persisted or logged."""
 
     kind: InputReferenceKind
-    url: str
+    url: str = field(default="", repr=False)
+    local_media: LocalMedia | None = field(default=None, repr=False, compare=False)
 
 
 @dataclass(frozen=True, slots=True)
@@ -190,6 +195,11 @@ class GenerationRequest:
     input_references: InputReferenceCollection | None = None
 
     def to_openrouter_payload(self) -> dict[str, object]:
+        references = self.input_references.references if self.input_references else ()
+        if any(item.local_media is not None for item in references) or (
+            self.source_video is not None and self.source_video.local_media is not None
+        ):
+            raise ValueError("Native media must be staged before serialization.")
         """Return only the frozen OpenRouter request fields with no passthrough escape hatch."""
 
         payload: dict[str, object] = {"model": self.model, "generate_audio": self.generate_audio}

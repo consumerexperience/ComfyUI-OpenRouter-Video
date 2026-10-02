@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import struct
 import zlib
+from typing import Any, cast
 
 import pytest
 
@@ -56,8 +57,16 @@ def test_data_url_keeps_frame_and_ordered_reference_semantics() -> None:
         first_frame=FrameReference(FrameType.FIRST, source),
     )
     validator.validate_shape(first)
-    assert first.to_openrouter_payload()["frame_images"][0]["image_url"]["url"] == source
-    assert first.to_openrouter_payload()["frame_images"][0]["frame_type"] == "first_frame"
+    assert (
+        cast(list[dict[str, Any]], first.to_openrouter_payload()["frame_images"])[0]["image_url"][
+            "url"
+        ]
+        == source
+    )
+    assert (
+        cast(list[dict[str, Any]], first.to_openrouter_payload()["frame_images"])[0]["frame_type"]
+        == "first_frame"
+    )
 
     references = (InputReference(InputReferenceKind.IMAGE, source),) * 2
     request = GenerationRequest(
@@ -86,7 +95,9 @@ def test_https_remains_valid_but_video_data_url_fails_without_leaking_payload() 
     )
     validator.validate_shape(https)
     assert (
-        https.to_openrouter_payload()["input_references"][0]["image_url"]["url"]
+        cast(list[dict[str, Any]], https.to_openrouter_payload()["input_references"])[0][
+            "image_url"
+        ]["url"]
         == "https://assets.example/image.png"
     )
 

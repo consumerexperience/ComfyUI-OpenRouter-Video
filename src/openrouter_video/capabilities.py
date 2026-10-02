@@ -516,6 +516,19 @@ class RequestValidator:
                 ProductErrorCode.UNSUPPORTED_PARAMETER,
                 "Input references require a supported typed media kind.",
             )
+        if reference.local_media is not None:
+            expected = {
+                InputReferenceKind.VIDEO: ("video/mp4", ".mp4"),
+                InputReferenceKind.AUDIO: ("audio/wav", ".wav"),
+            }.get(reference.kind)
+            if reference.url or expected != (
+                reference.local_media.content_type,
+                reference.local_media.suffix,
+            ):
+                RequestValidator._fail(
+                    ProductErrorCode.UNSUPPORTED_PARAMETER, "Invalid native media reference."
+                )
+            return
         if reference.kind is InputReferenceKind.IMAGE and not _is_image_source(reference.url):
             RequestValidator._fail(
                 ProductErrorCode.INVALID_MEDIA_URL,

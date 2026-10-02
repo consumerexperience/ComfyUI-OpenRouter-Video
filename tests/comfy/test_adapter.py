@@ -95,6 +95,10 @@ def _install_fake_numbered_api() -> None:
     numbered.ComfyExtension = _ComfyExtension
     numbered.IO = io
     numbered.InputImpl = _InputImpl
+    numbered.Types = types.SimpleNamespace(
+        VideoContainer=types.SimpleNamespace(MP4="mp4"),
+        VideoCodec=types.SimpleNamespace(H264="h264"),
+    )
     package = types.ModuleType("comfy_api")
     package.v0_0_2 = numbered
     sys.modules.setdefault("comfy_api", package)
@@ -864,3 +868,12 @@ def test_cost_estimate_route_returns_prepared_result_only(
         "estimated_cost_usd": "0.140",
         "provenance": "catalogue pricing_skus.per-video-second-480p × duration",
     }
+
+
+def test_model_validation_accepts_reconstructed_native_autogrow() -> None:
+    assert (
+        nodes.OpenRouterVideoGenerate.validate_inputs(
+            "vendor/model", direct_references={"reference_0": ["native-node", 0]}
+        )
+        is True
+    )

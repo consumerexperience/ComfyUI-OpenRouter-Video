@@ -82,3 +82,5 @@ their authority and locations are indexed in [docs/canonical-sources.md](docs/ca
 
 Original project code is licensed under the MIT License. ComfyUI is studied as a GPL-3.0
 reference and host interface; its implementation is not copied into this project.
+
+Native VIDEO/AUDIO and local storage setup: [Native Media Bridge](docs/native-media-bridge.md).

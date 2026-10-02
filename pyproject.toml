@@ -20,6 +20,8 @@ classifiers = [
 ]
 dependencies = [
   "httpx>=0.28.1,<1",
+  "boto3==1.43.107",
+  "urllib3==2.8.0",
 ]
 
 [project.urls]
@@ -69,7 +71,7 @@ files = ["src", "tests"]
 exclude = ["build", "dist"]
 
 [[tool.mypy.overrides]]
-module = ["aiohttp", "comfy.*", "comfy_api.*", "folder_paths", "server"]
+module = ["boto3", "botocore.*", "aiohttp", "comfy.*", "comfy_api.*", "folder_paths", "server"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

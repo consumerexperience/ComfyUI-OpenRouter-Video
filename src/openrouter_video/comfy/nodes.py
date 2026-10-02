@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from openrouter_video.application import OperationInterrupted
 from openrouter_video.capabilities import infer_legacy_inference_method
 from openrouter_video.execution_hooks import ExecutionPhase
+from openrouter_video.local_media import NativeMediaError
 from openrouter_video.models import (
     FrameReference,
     FrameType,
@@ -21,6 +22,7 @@ from openrouter_video.models import (
 
 from . import compat
 from .image import ImageBridgeError, to_image_data_url
+from .native_media import native_reference
 from .runtime import get_runtime
 from .video import VideoBridgeError, to_native_video
 
@@ -280,9 +282,20 @@ def _reference_collection(
         prefix, separator, suffix = name.rpartition("_")
         if prefix != "reference" or not separator or not suffix.isdigit():
             raise AdapterExecutionError("UNSUPPORTED_PARAMETER: invalid reference position.")
-        indexed.append((int(suffix), _image_or_reference(reference)))
+        indexed.append((int(suffix), _media_or_reference(reference)))
     indexed.sort(key=lambda item: item[0])
     return InputReferenceCollection(tuple(reference for _, reference in indexed))
+
+
+def _media_or_reference(value: object) -> InputReference:
+    if isinstance(value, InputReference):
+        return value
+    if isinstance(value, dict) or callable(getattr(value, "save_to", None)):
+        try:
+            return native_reference(value)
+        except NativeMediaError as exc:
+            raise AdapterExecutionError(str(exc)) from None
+    return _image_or_reference(value)
 
 
 def _image_or_reference(value: InputReference | object) -> InputReference:
@@ -349,7 +362,7 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                     display_name="last_frame",
                     optional=True,
                 ),
-                compat.INPUT_REFERENCE_IO.Input(
+                compat.VIDEO_OR_REFERENCE_IO.Input(
                     "source_video",
                     display_name="source_video",
                     optional=True,
@@ -359,14 +372,14 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                     "direct_references",
                     display_name="ORDERED REFERENCES",
                     template=compat.IO.Autogrow.TemplatePrefix(
-                        input=compat.IMAGE_OR_REFERENCE_IO.Input("reference"),
+                        input=compat.MEDIA_OR_REFERENCE_IO.Input("reference"),
                         prefix="reference_",
                         min=0,
                         max=100,
                     ),
                     optional=True,
                     tooltip=(
-                        "Connect Load Image, Public Image URL, or typed references in order. "
+                        "Connect Load Image, Load Video, Load Audio or typed references in order. "
                         "The UI enforces the selected model's effective count and kinds; "
                         "Core validates again before submit."
                     ),
@@ -389,8 +402,12 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         return compat.next_cache_token()
 
     @classmethod
-    def validate_inputs(cls, model: str) -> bool | str:
-        """Let Core, not a stale Comfy combo copy, authorize model availability."""
+    def validate_inputs(
+        cls, model: str, direct_references: Mapping[str, object] | None = None
+    ) -> bool | str:
+        """Let Core authorize availability; accept host-reconstructed Autogrow input."""
+
+        del direct_references
 
         if (
             not isinstance(model, str)
@@ -418,7 +435,7 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         last_frame_url: str = "",
         first_frame: InputReference | object | None = None,
         last_frame: InputReference | object | None = None,
-        source_video: InputReference | None = None,
+        source_video: InputReference | object | None = None,
         direct_references: Mapping[str, object] | None = None,
         input_references: InputReferenceCollection | None = None,
         inference_method: str = "",
@@ -455,7 +472,7 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
             generate_audio=generate_audio,
             first_frame=first_reference,
             last_frame=last_reference,
-            source_video=source_video,
+            source_video=_media_or_reference(source_video) if source_video is not None else None,
             input_references=effective_references,
         )
         node_id = compat.current_node_id(cls)

@@ -192,7 +192,7 @@ test("native Load Image is recognized as IMAGE while existing URL helper remains
         },
     };
     context.configureReferenceTopology(target, { max_reference_count: 2 }, "MI2V");
-    assert.equal(target.inputs[0].type, "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE");
+    assert.equal(target.inputs[0].type, "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE");
     target.inputs[0].link = 11;
     context.configureReferenceTopology(target, { max_reference_count: 2 }, "MI2V");
     assert.equal(context.connectedReferenceKind(target.inputs[0]), "image");

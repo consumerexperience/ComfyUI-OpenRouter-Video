@@ -1,0 +1,73 @@
+{
+  "host": "ComfyUI v0.37.0 fixture",
+  "frontend": "1.52.7",
+  "before": [
+    {
+      "name": "direct_references.reference_0",
+      "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+      "label": "image_1",
+      "origin": "LoadImage"
+    },
+    {
+      "name": "direct_references.reference_1",
+      "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+      "label": "video_2",
+      "origin": "LoadVideo"
+    },
+    {
+      "name": "direct_references.reference_2",
+      "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+      "label": "audio_3",
+      "origin": "LoadAudio"
+    },
+    {
+      "name": "direct_references.reference_3",
+      "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+      "label": "video_4",
+      "origin": "LoadVideo"
+    }
+  ],
+  "after": [
+    {
+      "name": "direct_references.reference_0",
+      "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+      "label": "image_1",
+      "origin": "LoadImage"
+    },
+    {
+      "name": "direct_references.reference_1",
+      "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+      "label": "video_2",
+      "origin": "LoadVideo"
+    },
+    {
+      "name": "direct_references.reference_2",
+      "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+      "label": "audio_3",
+      "origin": "LoadAudio"
+    },
+    {
+      "name": "direct_references.reference_3",
+      "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+      "label": "video_4",
+      "origin": "LoadVideo"
+    }
+  ],
+  "reference_summary": "4 connected \u00b7 46 remaining",
+  "invalid": false,
+  "page_reload": {
+    "method": "MMR2V",
+    "origins": [
+      "LoadImage",
+      "LoadVideo",
+      "LoadAudio",
+      "LoadVideo"
+    ],
+    "invalid": false
+  },
+  "storage_error": "STORAGE_UPLOAD_FAILED: Configure local S3 endpoint, region, bucket and credentials.",
+  "paid_video_posts": 0,
+  "storage_live_smoke": "NOT_RUN",
+  "openrouter_live_smoke": "NOT_RUN",
+  "canonical_dev_state": "RUNNING_STALE; no key-bearing DEV process managed"
+}

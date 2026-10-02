@@ -453,7 +453,7 @@ function configureDuration(node, supported) {
 }
 
 function isDirectReferenceInput(item) {
-    return ["OPENROUTER_VIDEO_INPUT_REFERENCE", "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE"].includes(item?.type) &&
+    return ["OPENROUTER_VIDEO_INPUT_REFERENCE", "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE", "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE"].includes(item?.type) &&
         String(item?.name || "").startsWith("direct_references.reference_");
 }
 
@@ -476,6 +476,8 @@ function connectedReferenceKind(input) {
     const origin = link ? app.graph?.getNodeById?.(link.origin_id) : null;
     const outputType = origin?.outputs?.[link?.origin_slot]?.type || link?.type;
     if (outputType === "IMAGE") return "image";
+    if (outputType === "VIDEO") return "video";
+    if (outputType === "AUDIO") return "audio";
     const type = String(origin?.type || origin?.comfyClass || "");
     if (type.includes("ImageReference")) return "image";
     if (type.includes("VideoReference")) return "video";
@@ -532,12 +534,13 @@ function ensureFixedInput(node, name) {
     if (!inputByName(node, name)) node.addInput?.(
         name,
         name === "source_video"
-            ? "OPENROUTER_VIDEO_INPUT_REFERENCE"
+            ? "VIDEO,OPENROUTER_VIDEO_INPUT_REFERENCE"
             : "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE",
     );
     const input = inputByName(node, name);
     if (input) {
-        if (name !== "source_video") input.type = "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE";
+        input.type = name === "source_video"
+            ? "VIDEO,OPENROUTER_VIDEO_INPUT_REFERENCE" : "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE";
         input.label = name;
     }
 }
@@ -569,7 +572,7 @@ function addTrailingReferenceInput(node, current) {
     if (current.length === 0) {
         node.addInput(
             "direct_references.reference_0",
-            "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
         );
         return;
     }
@@ -593,7 +596,7 @@ function configureReferenceTopology(node, capability, method) {
     }
 
     const inputs = directReferenceInputs(node);
-    for (const input of inputs) input.type = "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE";
+    for (const input of inputs) input.type = "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE";
     const linked = inputs.filter((item) => item.link != null);
     const unlinked = inputs.filter((item) => item.link == null);
     const limit = capability.max_reference_count;

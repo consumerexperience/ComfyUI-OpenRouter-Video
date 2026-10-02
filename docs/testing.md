@@ -68,3 +68,5 @@ ordering, duplicate occurrences, workflow validation, and repeated PromptExecuto
 `tests/manual/phase8_catalog_probe.py` is a separate human-run, read-only harness. It performs one
 credential-free GET, disables ambient proxies and redirects, emits only approved sanitized
 capability observations, and is never collected by pytest or run by CI.
+
+Native Media Bridge adds real botocore loopback HTTP retry counts and ledger/conversion/recovery coverage. See [current verification evidence](native-media-bridge-verification.md); fixture PASS does not establish either live smoke.

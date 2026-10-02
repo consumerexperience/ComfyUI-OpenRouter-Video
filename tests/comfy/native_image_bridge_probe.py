@@ -11,9 +11,11 @@ _REPOSITORY = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_REPOSITORY / "src"))
 sys.path.insert(0, str(_REPOSITORY.parent / "dev" / "ComfyUI-DEV"))
 
-import torch  # noqa: E402
-from comfy_execution.validation import validate_node_input  # noqa: E402
-from PIL import Image  # noqa: E402
+import torch  # type: ignore[import-not-found]  # noqa: E402
+from comfy_execution.validation import (  # type: ignore[import-not-found]  # noqa: E402
+    validate_node_input,
+)
+from PIL import Image  # type: ignore[import-not-found]  # noqa: E402
 
 from openrouter_video.comfy.image import ImageBridgeError, to_image_data_url  # noqa: E402
 from openrouter_video.image_transport import (  # noqa: E402
