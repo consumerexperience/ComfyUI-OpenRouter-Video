@@ -185,16 +185,19 @@ def main() -> int:
         "--post-once", action="store_true", help="one paid POST; requires new Owner approval"
     )
     args = parser.parse_args()
+    stage = "local_request"
     try:
         wire, evidence = build_request()
         if not args.key_preflight and not args.post_once:
             _print_evidence({**evidence, "MODE": "DRY_RUN", "POST_ATTEMPT_COUNT": 0})
             return 0
+        stage = "secure_key_input"
         if not sys.stdin.isatty():
             raise PreflightError("interactive_key_entry_required")
         key = getpass.getpass("Dedicated X2 inference key (hidden): ")
         if not key or "\n" in key or "\r" in key:
             raise PreflightError("key_input_invalid")
+        stage = "http_client_setup"
         transport = httpx.HTTPTransport(retries=0, trust_env=False)
         with httpx.Client(
             transport=transport,
@@ -202,16 +205,20 @@ def main() -> int:
             trust_env=False,
             timeout=httpx.Timeout(30.0),
         ) as client:
+            stage = "key_get"
             key_evidence = check_key(client, key)
             if args.key_preflight:
                 _print_evidence({**key_evidence, "POST_ATTEMPT_COUNT": 0})
                 return 0
+            stage = "post_once"
             result = post_once(client, key, wire)
         _print_evidence({**evidence, **key_evidence, **result})
         return 0 if result["RESULT"] == "ACCEPTED" else 1
-    except (OSError, UnicodeError, PreflightError) as exc:
-        reason = str(exc) if isinstance(exc, PreflightError) else "local_preflight_error"
-        _print_evidence({"RESULT": "PREFLIGHT_BLOCKED", "REASON": reason, "POST_ATTEMPT_COUNT": 0})
+    except (OSError, UnicodeError, EOFError, PreflightError) as exc:
+        reason = str(exc) if isinstance(exc, PreflightError) else f"{stage}_local_error"
+        attempted = 1 if stage == "post_once" else 0
+        status = "SUBMISSION_UNKNOWN" if attempted else "PREFLIGHT_BLOCKED"
+        _print_evidence({"RESULT": status, "REASON": reason, "POST_ATTEMPT_COUNT": attempted})
         return 1
 
 

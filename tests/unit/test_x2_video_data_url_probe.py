@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import sys
+from typing import Any
 
 import httpx
 import pytest
@@ -137,3 +139,21 @@ def test_accepted_job_id_and_network_ambiguity() -> None:
         result = probe.post_once(client, "synthetic-test-key", b"{}")
     assert attempts == 1
     assert result == {"RESULT": "SUBMISSION_UNKNOWN", "POST_ATTEMPT_COUNT": 1}
+
+
+def test_local_error_reports_safe_stage_without_request_body(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(sys, "argv", ["x2_video_data_url_probe.py", "--key-preflight"])
+
+    def broken_request() -> tuple[bytes, dict[str, object]]:
+        raise OSError("private path that must not be printed")
+
+    monkeypatch.setattr(probe, "build_request", broken_request)
+    assert probe.main() == 1
+    output: dict[str, Any] = json.loads(capsys.readouterr().out)
+    assert output == {
+        "POST_ATTEMPT_COUNT": 0,
+        "REASON": "local_request_local_error",
+        "RESULT": "PREFLIGHT_BLOCKED",
+    }
