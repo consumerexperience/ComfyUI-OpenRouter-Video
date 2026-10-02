@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import getpass
 import json
 import sys
 from typing import Any
@@ -92,6 +93,63 @@ def test_http_400_reports_only_safe_response_class() -> None:
     ):
         probe.check_key(client, "synthetic-test-key")
     assert "secret-marker" not in str(exc.value)
+
+
+def test_owner_dashboard_key_identity_is_local_and_redacted() -> None:
+    matching_key = "sk-or-v1-70a" + "a" * 60 + "3a4"
+    evidence = probe._dashboard_x2_evidence(matching_key)
+    assert evidence == {
+        "KEY_GUARDRAIL": "OWNER_DASHBOARD_ATTESTED",
+        "KEY_NAME": "OPENROUTER[Test]",
+        "OWNER_DASHBOARD_LIMIT_USD": "5",
+        "OWNER_DASHBOARD_USAGE_USD": "0.000",
+    }
+    assert matching_key not in json.dumps(evidence)
+    with pytest.raises(probe.PreflightError, match="dashboard_x2_key_identity_mismatch"):
+        probe._dashboard_x2_evidence("sk-or-v1-691" + "a" * 60 + "e31")
+
+
+def test_dashboard_mode_skips_key_get_and_makes_one_post_only(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(
+        sys, "argv", ["x2_video_data_url_probe.py", "--post-once", "--dashboard-attested-5usd"]
+    )
+    monkeypatch.setattr(sys, "stdin", type("FakeStdin", (), {"isatty": lambda self: True})())
+    monkeypatch.setattr(getpass, "getpass", lambda _prompt: "sk-or-v1-70a" + "a" * 60 + "3a4")
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(202, json={"id": "gen-vid-test_123"})
+
+    monkeypatch.setattr(
+        httpx,
+        "HTTPTransport",
+        lambda **_kwargs: httpx.MockTransport(handler),
+    )
+    assert probe.main() == 0
+    output: dict[str, Any] = json.loads(capsys.readouterr().out)
+    assert output["RESULT"] == "ACCEPTED"
+    assert output["POST_ATTEMPT_COUNT"] == 1
+    assert output["KEY_GUARDRAIL"] == "OWNER_DASHBOARD_ATTESTED"
+    assert len(requests) == 1
+    assert requests[0].method == "POST"
+    assert requests[0].url == probe.ENDPOINT
+    assert "sk-or-v1-70a" not in json.dumps(output)
+
+
+def test_paid_mode_without_dashboard_attestation_blocks_before_key_or_network(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(sys, "argv", ["x2_video_data_url_probe.py", "--post-once"])
+    assert probe.main() == 1
+    output: dict[str, Any] = json.loads(capsys.readouterr().out)
+    assert output == {
+        "POST_ATTEMPT_COUNT": 0,
+        "REASON": "dashboard_attestation_required_for_post",
+        "RESULT": "PREFLIGHT_BLOCKED",
+    }
 
 
 @pytest.mark.parametrize(

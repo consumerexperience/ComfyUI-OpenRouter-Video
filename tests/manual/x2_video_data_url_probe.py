@@ -31,6 +31,8 @@ FIXTURE_SHA256 = "e6009ff03feb01893c4dcc5a77d564e6af23066c4305dea1460d48696f8f44
 PROMPT_SHA256 = "3ba07d4f36cb4ba7a1b75d0b9367a7e61c623aea20a94d7d420ed28bd1083181"
 FIXTURE_BYTES = 394_950
 KEY_LIMIT_USD = Decimal("2.00")
+DASHBOARD_X2_KEY_PREFIX = "sk-or-v1-70a"
+DASHBOARD_X2_KEY_SUFFIX = "3a4"
 JOB_ID = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
 
 
@@ -107,6 +109,18 @@ def _validate_key_text(key: str) -> None:
         raise PreflightError("key_input_duplicated")
     if "..." in key or any(ord(char) < 33 or ord(char) > 126 for char in key):
         raise PreflightError("key_input_contains_placeholder_or_whitespace")
+
+
+def _dashboard_x2_evidence(key: str) -> dict[str, object]:
+    """Match the Owner-shown masked X2 key; never claim live balance verification."""
+    if not key.startswith(DASHBOARD_X2_KEY_PREFIX) or not key.endswith(DASHBOARD_X2_KEY_SUFFIX):
+        raise PreflightError("dashboard_x2_key_identity_mismatch")
+    return {
+        "KEY_GUARDRAIL": "OWNER_DASHBOARD_ATTESTED",
+        "KEY_NAME": "OPENROUTER[Test]",
+        "OWNER_DASHBOARD_LIMIT_USD": "5",
+        "OWNER_DASHBOARD_USAGE_USD": "0.000",
+    }
 
 
 def _response_kind(response: httpx.Response) -> str:
@@ -217,9 +231,18 @@ def main() -> int:
     mode.add_argument(
         "--post-once", action="store_true", help="one paid POST; requires new Owner approval"
     )
+    parser.add_argument(
+        "--dashboard-attested-5usd",
+        action="store_true",
+        help="use Owner-confirmed OPENROUTER[Test] $5 TOTAL cap for the one X2 POST",
+    )
     args = parser.parse_args()
     stage = "local_request"
     try:
+        if args.post_once and not args.dashboard_attested_5usd:
+            raise PreflightError("dashboard_attestation_required_for_post")
+        if args.dashboard_attested_5usd and not args.post_once:
+            raise PreflightError("dashboard_attestation_only_for_post")
         wire, evidence = build_request()
         if not args.key_preflight and not args.post_once:
             _print_evidence({**evidence, "MODE": "DRY_RUN", "POST_ATTEMPT_COUNT": 0})
@@ -229,6 +252,7 @@ def main() -> int:
             raise PreflightError("interactive_key_entry_required")
         key = getpass.getpass("Dedicated X2 inference key (hidden): ")
         _validate_key_text(key)
+        key_evidence = _dashboard_x2_evidence(key) if args.dashboard_attested_5usd else {}
         stage = "http_client_setup"
         transport = httpx.HTTPTransport(retries=0, trust_env=False)
         with httpx.Client(
@@ -237,9 +261,9 @@ def main() -> int:
             trust_env=False,
             timeout=httpx.Timeout(30.0),
         ) as client:
-            stage = "key_get"
-            key_evidence = check_key(client, key)
             if args.key_preflight:
+                stage = "key_get"
+                key_evidence = check_key(client, key)
                 _print_evidence({**key_evidence, "POST_ATTEMPT_COUNT": 0})
                 return 0
             stage = "post_once"
