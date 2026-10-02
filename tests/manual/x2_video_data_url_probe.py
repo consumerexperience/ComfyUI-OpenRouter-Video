@@ -14,6 +14,7 @@ import base64
 import getpass
 import hashlib
 import json
+import os
 import re
 import sys
 from decimal import Decimal, InvalidOperation
@@ -242,9 +243,11 @@ def main() -> int:
             _print_evidence({**evidence, "MODE": "DRY_RUN", "POST_ATTEMPT_COUNT": 0})
             return 0
         stage = "secure_key_input"
-        if not sys.stdin.isatty():
-            raise PreflightError("interactive_key_entry_required")
-        key = getpass.getpass("Dedicated X2 inference key (hidden): ")
+        key = os.environ.get("OPENROUTER_X2_KEY")
+        if key is None:
+            if not sys.stdin.isatty():
+                raise PreflightError("interactive_key_entry_required")
+            key = getpass.getpass("Dedicated X2 inference key (hidden): ")
         _validate_key_text(key)
         key_evidence = _dashboard_x2_evidence() if args.dashboard_attested_5usd else {}
         stage = "http_client_setup"

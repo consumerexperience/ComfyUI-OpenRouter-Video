@@ -114,14 +114,21 @@ def test_owner_dashboard_attestation_is_local_and_redacted() -> None:
     assert "sk-or-" not in json.dumps(evidence)
 
 
+@pytest.mark.parametrize("key_source", ["hidden_prompt", "environment"])
 def test_dashboard_mode_skips_key_get_and_makes_one_post_only(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], key_source: str
 ) -> None:
     monkeypatch.setattr(
         sys, "argv", ["x2_video_data_url_probe.py", "--post-once", "--dashboard-attested-5usd"]
     )
-    monkeypatch.setattr(sys, "stdin", type("FakeStdin", (), {"isatty": lambda self: True})())
-    monkeypatch.setattr(getpass, "getpass", lambda _prompt: "sk-or-v1-test")
+    if key_source == "environment":
+        monkeypatch.setenv("OPENROUTER_X2_KEY", "sk-or-v1-test")
+        monkeypatch.setattr(sys, "stdin", type("FakeStdin", (), {"isatty": lambda self: False})())
+        monkeypatch.setattr(getpass, "getpass", lambda _prompt: pytest.fail("prompt was used"))
+    else:
+        monkeypatch.delenv("OPENROUTER_X2_KEY", raising=False)
+        monkeypatch.setattr(sys, "stdin", type("FakeStdin", (), {"isatty": lambda self: True})())
+        monkeypatch.setattr(getpass, "getpass", lambda _prompt: "sk-or-v1-test")
     requests: list[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -141,7 +148,28 @@ def test_dashboard_mode_skips_key_get_and_makes_one_post_only(
     assert len(requests) == 1
     assert requests[0].method == "POST"
     assert requests[0].url == probe.ENDPOINT
+    assert requests[0].headers["authorization"] == "Bearer sk-or-v1-test"
+    assert "sk-or-v1-test" not in json.dumps(output)
     assert "sk-or-v1-70a" not in json.dumps(output)
+
+
+@pytest.mark.parametrize("key", ["", "not-an-openrouter-key"])
+def test_environment_key_shape_blocks_before_network_or_prompt(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], key: str
+) -> None:
+    monkeypatch.setenv("OPENROUTER_X2_KEY", key)
+    monkeypatch.setattr(
+        sys, "argv", ["x2_video_data_url_probe.py", "--post-once", "--dashboard-attested-5usd"]
+    )
+    monkeypatch.setattr(sys, "stdin", type("FakeStdin", (), {"isatty": lambda self: False})())
+    monkeypatch.setattr(getpass, "getpass", lambda _prompt: pytest.fail("prompt was used"))
+    monkeypatch.setattr(httpx, "HTTPTransport", lambda **_kwargs: pytest.fail("network was used"))
+    assert probe.main() == 1
+    assert json.loads(capsys.readouterr().out) == {
+        "POST_ATTEMPT_COUNT": 0,
+        "REASON": "key_input_shape_invalid",
+        "RESULT": "PREFLIGHT_BLOCKED",
+    }
 
 
 def test_paid_mode_without_dashboard_attestation_blocks_before_key_or_network(
