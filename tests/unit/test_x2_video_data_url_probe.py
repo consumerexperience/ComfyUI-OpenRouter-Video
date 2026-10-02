@@ -71,16 +71,24 @@ def test_key_preflight_accepts_only_unused_dedicated_two_dollar_key() -> None:
 @pytest.mark.parametrize(
     "key",
     [
-        "sk-or-v1-6...1",
+        "",
+        "sk-or-",
+        "sk-or-v1-",
         "sk-or-v1-" + "a" * 64 + " ",
         "Bearer sk-or-v1-" + "a" * 64,
         "sk-or-v1-" + "a" * 64 + "\n",
-        ("sk-or-v1-" + "a" * 64) * 2,
+        "sk-or-v1-" + "a" * 64 + "\r",
+        "sk-or-v1-" + "a" * 64 + "\t",
     ],
 )
 def test_key_input_mistakes_block_before_get(key: str) -> None:
     with pytest.raises(probe.PreflightError):
         probe._validate_key_text(key)
+
+
+@pytest.mark.parametrize("key", ["sk-or-v1-x", "sk-or-future-x", "sk-or-v1-6...1"])
+def test_key_validator_does_not_infer_secret_length_or_dashboard_mask(key: str) -> None:
+    probe._validate_key_text(key)
 
 
 def test_http_400_reports_only_safe_response_class() -> None:
@@ -95,18 +103,15 @@ def test_http_400_reports_only_safe_response_class() -> None:
     assert "secret-marker" not in str(exc.value)
 
 
-def test_owner_dashboard_key_identity_is_local_and_redacted() -> None:
-    matching_key = "sk-or-v1-70a" + "a" * 60 + "3a4"
-    evidence = probe._dashboard_x2_evidence(matching_key)
+def test_owner_dashboard_attestation_is_local_and_redacted() -> None:
+    evidence = probe._dashboard_x2_evidence()
     assert evidence == {
         "KEY_GUARDRAIL": "OWNER_DASHBOARD_ATTESTED",
         "KEY_NAME": "OPENROUTER[Test]",
         "OWNER_DASHBOARD_LIMIT_USD": "5",
         "OWNER_DASHBOARD_USAGE_USD": "0.000",
     }
-    assert matching_key not in json.dumps(evidence)
-    with pytest.raises(probe.PreflightError, match="dashboard_x2_key_identity_mismatch"):
-        probe._dashboard_x2_evidence("sk-or-v1-691" + "a" * 60 + "e31")
+    assert "sk-or-" not in json.dumps(evidence)
 
 
 def test_dashboard_mode_skips_key_get_and_makes_one_post_only(
@@ -116,7 +121,7 @@ def test_dashboard_mode_skips_key_get_and_makes_one_post_only(
         sys, "argv", ["x2_video_data_url_probe.py", "--post-once", "--dashboard-attested-5usd"]
     )
     monkeypatch.setattr(sys, "stdin", type("FakeStdin", (), {"isatty": lambda self: True})())
-    monkeypatch.setattr(getpass, "getpass", lambda _prompt: "sk-or-v1-70a" + "a" * 60 + "3a4")
+    monkeypatch.setattr(getpass, "getpass", lambda _prompt: "sk-or-v1-test")
     requests: list[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:

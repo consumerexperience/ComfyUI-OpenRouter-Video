@@ -31,8 +31,6 @@ FIXTURE_SHA256 = "e6009ff03feb01893c4dcc5a77d564e6af23066c4305dea1460d48696f8f44
 PROMPT_SHA256 = "3ba07d4f36cb4ba7a1b75d0b9367a7e61c623aea20a94d7d420ed28bd1083181"
 FIXTURE_BYTES = 394_950
 KEY_LIMIT_USD = Decimal("2.00")
-DASHBOARD_X2_KEY_PREFIX = "sk-or-v1-70a"
-DASHBOARD_X2_KEY_SUFFIX = "3a4"
 JOB_ID = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
 
 
@@ -102,19 +100,15 @@ def _usd(value: Any) -> Decimal:
 
 
 def _validate_key_text(key: str) -> None:
-    # Reject common paste mistakes locally; never report the value or its length.
-    if not key.startswith("sk-or-v1-") or not 40 <= len(key) <= 256:
+    # Check only a recognizable prefix and input corruption, not secret length or mask.
+    if not key.startswith("sk-or-") or key in {"sk-or-", "sk-or-v1-"}:
         raise PreflightError("key_input_shape_invalid")
-    if key.count("sk-or-v1-") != 1:
-        raise PreflightError("key_input_duplicated")
-    if "..." in key or any(ord(char) < 33 or ord(char) > 126 for char in key):
-        raise PreflightError("key_input_contains_placeholder_or_whitespace")
+    if any(char.isspace() or ord(char) < 32 or ord(char) == 127 for char in key):
+        raise PreflightError("key_input_contains_whitespace_or_control")
 
 
-def _dashboard_x2_evidence(key: str) -> dict[str, object]:
-    """Match the Owner-shown masked X2 key; never claim live balance verification."""
-    if not key.startswith(DASHBOARD_X2_KEY_PREFIX) or not key.endswith(DASHBOARD_X2_KEY_SUFFIX):
-        raise PreflightError("dashboard_x2_key_identity_mismatch")
+def _dashboard_x2_evidence() -> dict[str, object]:
+    """Record Owner attestation; never infer key identity from its dashboard mask."""
     return {
         "KEY_GUARDRAIL": "OWNER_DASHBOARD_ATTESTED",
         "KEY_NAME": "OPENROUTER[Test]",
@@ -252,7 +246,7 @@ def main() -> int:
             raise PreflightError("interactive_key_entry_required")
         key = getpass.getpass("Dedicated X2 inference key (hidden): ")
         _validate_key_text(key)
-        key_evidence = _dashboard_x2_evidence(key) if args.dashboard_attested_5usd else {}
+        key_evidence = _dashboard_x2_evidence() if args.dashboard_attested_5usd else {}
         stage = "http_client_setup"
         transport = httpx.HTTPTransport(retries=0, trust_env=False)
         with httpx.Client(
