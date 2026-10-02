@@ -145,3 +145,14 @@ native VIDEO/AUDIO remain probe-gated.
 - Final authorization status: **BLOCKED until the Owner configures and locally checks the
   dedicated key**, then separately authorizes exactly one X2 paid POST. The current prompt
   grants no paid authority. Native VIDEO remains **EVIDENCE GAP / NOT IMPLEMENTED**.
+
+### X2 key-check observation (2026-10-02)
+
+Product Owner's local `--key-preflight` returned `key_get_http_400` with
+`POST_ATTEMPT_COUNT=0`. This is an **OBSERVED, owner-reported** upstream rejection, not proof
+of an invalid key or of a Video transport result. The [current OpenRouter key endpoint
+reference](https://openrouter.ai/docs/api/api-reference/api-keys/get-current-api-key)
+documents the GET path and 200/401/500 responses, but not this 400 case. The isolated runner
+now rejects obvious hidden-input paste mistakes before network I/O and classifies only the
+HTTP error's non-secret response shape; it never prints the key, body, or raw remote message.
+X2 paid authorization remains blocked until a valid, capped key preflight is observed.

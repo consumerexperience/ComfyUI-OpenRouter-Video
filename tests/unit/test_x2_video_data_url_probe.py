@@ -68,6 +68,32 @@ def test_key_preflight_accepts_only_unused_dedicated_two_dollar_key() -> None:
 
 
 @pytest.mark.parametrize(
+    "key",
+    [
+        "sk-or-v1-6...1",
+        "sk-or-v1-" + "a" * 64 + " ",
+        "Bearer sk-or-v1-" + "a" * 64,
+        "sk-or-v1-" + "a" * 64 + "\n",
+    ],
+)
+def test_key_input_mistakes_block_before_get(key: str) -> None:
+    with pytest.raises(probe.PreflightError):
+        probe._validate_key_text(key)
+
+
+def test_http_400_reports_only_safe_response_class() -> None:
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(400, json={"error": {"code": 400, "message": "secret-marker"}})
+
+    with (
+        httpx.Client(transport=httpx.MockTransport(handler)) as client,
+        pytest.raises(probe.PreflightError, match="key_get_http_400_json_error_code_400") as exc,
+    ):
+        probe.check_key(client, "synthetic-test-key")
+    assert "secret-marker" not in str(exc.value)
+
+
+@pytest.mark.parametrize(
     "changes",
     [
         {"limit": None},

@@ -99,13 +99,44 @@ def _usd(value: Any) -> Decimal:
     return result
 
 
+def _validate_key_text(key: str) -> None:
+    # Reject common paste mistakes locally; never report the value or its length.
+    if not key.startswith("sk-or-v1-") or not 40 <= len(key) <= 256:
+        raise PreflightError("key_input_shape_invalid")
+    if "..." in key or any(ord(char) < 33 or ord(char) > 126 for char in key):
+        raise PreflightError("key_input_contains_placeholder_or_whitespace")
+
+
+def _response_kind(response: httpx.Response) -> str:
+    if not response.content:
+        return "empty"
+    if (
+        response.headers.get("content-type", "").split(";", 1)[0].strip().lower()
+        != "application/json"
+    ):
+        return "non_json"
+    try:
+        value = response.json()
+    except ValueError:
+        return "invalid_json"
+    if not isinstance(value, dict):
+        return "json_other"
+    error = value.get("error")
+    if not isinstance(error, dict):
+        return "json_other"
+    code = error.get("code")
+    if type(code) is int and 100 <= code <= 599:
+        return f"json_error_code_{code}"
+    return "json_error_no_numeric_code"
+
+
 def check_key(client: httpx.Client, key: str) -> dict[str, object]:
     try:
         response = client.get(KEY_ENDPOINT, headers={"Authorization": f"Bearer {key}"})
     except httpx.RequestError as exc:
         raise PreflightError("key_get_network_error") from exc
     if response.status_code != 200:
-        raise PreflightError(f"key_get_http_{response.status_code}")
+        raise PreflightError(f"key_get_http_{response.status_code}_{_response_kind(response)}")
     try:
         outer = response.json()
     except ValueError as exc:
@@ -195,8 +226,7 @@ def main() -> int:
         if not sys.stdin.isatty():
             raise PreflightError("interactive_key_entry_required")
         key = getpass.getpass("Dedicated X2 inference key (hidden): ")
-        if not key or "\n" in key or "\r" in key:
-            raise PreflightError("key_input_invalid")
+        _validate_key_text(key)
         stage = "http_client_setup"
         transport = httpx.HTTPTransport(retries=0, trust_env=False)
         with httpx.Client(
