@@ -155,4 +155,7 @@ reference](https://openrouter.ai/docs/api/api-reference/api-keys/get-current-api
 documents the GET path and 200/401/500 responses, but not this 400 case. The isolated runner
 now rejects obvious hidden-input paste mistakes before network I/O and classifies only the
 HTTP error's non-secret response shape; it never prints the key, body, or raw remote message.
+An anonymous control GET returned 401, and a GET with an explicitly synthetic invalid token
+also returned 401; neither reproduced the Owner's 400. The reason for 400 is therefore
+**UNKNOWN**, not a proven invalid-key diagnosis.
 X2 paid authorization remains blocked until a valid, capped key preflight is observed.

@@ -74,6 +74,7 @@ def test_key_preflight_accepts_only_unused_dedicated_two_dollar_key() -> None:
         "sk-or-v1-" + "a" * 64 + " ",
         "Bearer sk-or-v1-" + "a" * 64,
         "sk-or-v1-" + "a" * 64 + "\n",
+        ("sk-or-v1-" + "a" * 64) * 2,
     ],
 )
 def test_key_input_mistakes_block_before_get(key: str) -> None:

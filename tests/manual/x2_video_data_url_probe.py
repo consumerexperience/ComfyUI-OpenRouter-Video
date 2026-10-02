@@ -103,6 +103,8 @@ def _validate_key_text(key: str) -> None:
     # Reject common paste mistakes locally; never report the value or its length.
     if not key.startswith("sk-or-v1-") or not 40 <= len(key) <= 256:
         raise PreflightError("key_input_shape_invalid")
+    if key.count("sk-or-v1-") != 1:
+        raise PreflightError("key_input_duplicated")
     if "..." in key or any(ord(char) < 33 or ord(char) > 126 for char in key):
         raise PreflightError("key_input_contains_placeholder_or_whitespace")
 
