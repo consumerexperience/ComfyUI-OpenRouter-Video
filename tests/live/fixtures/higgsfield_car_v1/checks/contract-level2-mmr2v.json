@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "id": "openrouter_mmr2v_transport_smoke_v1",
+  "level": 2,
+  "duration_seconds": 5,
+  "purpose": "Validate IMAGE + VIDEO + AUDIO multimodal transport only when required.",
+  "required_media_types": ["image", "video", "audio"],
+  "asset_policy": "Use a separately approved transport fixture; Level 1 contains no video/audio media.",
+  "preconditions": [
+    "Live model catalogue confirms support for all three media types.",
+    "Transport path and reference ordering are verified without exposing media payloads in logs.",
+    "Immediate explicit Product Owner approval is recorded before any paid Generate POST."
+  ],
+  "machine_assertions": {
+    "generate_paid_post_count_max": 1,
+    "resume_paid_post_count": 0,
+    "job_id_persisted": true,
+    "output_exists": true,
+    "duration_seconds_tolerance": 0.5,
+    "media_order_preserved": true,
+    "no_payload_in_logs": true
+  },
+  "visual_acceptance": "Not applicable to transport-only validation; evaluate output only if the approved experiment includes generation quality."
+}

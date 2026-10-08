@@ -30,3 +30,7 @@ tmp/
 *.suo
 Thumbs.db
 .DS_Store
+
+# Higgsfield tutorial media is materialized locally for smoke testing only.
+/tests/live/fixtures/higgsfield_car_v1/assets/
+/tests/live/fixtures/higgsfield_car_v1/source/

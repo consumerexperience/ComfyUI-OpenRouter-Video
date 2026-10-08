@@ -70,3 +70,7 @@ credential-free GET, disables ambient proxies and redirects, emits only approved
 capability observations, and is never collected by pytest or run by CI.
 
 Native Media Bridge adds real botocore loopback HTTP retry counts and ledger/conversion/recovery coverage. See [current verification evidence](native-media-bridge-verification.md); fixture PASS does not establish either live smoke.
+
+The default multimodal Golden Pack is a test-only input selected by [`default_golden_pack.json`](../tests/live/fixtures/default_golden_pack.json). Contract/mock multimodal integration reads its ordered references, roles, and transport mapping from the manifest at [`higgsfield_car_multimodal_v1/manifest.json`](../tests/live/fixtures/higgsfield_car_multimodal_v1/manifest.json). Run `python scripts/verify_golden_pack.py` for zero-cost validation; absent ignored media reports `MATERIALIZATION_REQUIRED` and is never downloaded by tests or CI. Run `python scripts/materialize_higgsfield_multimodal_pack.py` only when local materialization is intentionally needed.
+
+`python scripts/resolve_live_smoke_pack.py --golden-pack default` resolves and verifies live-smoke input only. It never contacts OpenRouter or ComfyUI, queues a workflow, or submits a paid request. Any actual live Generate remains separately capability-gated and requires immediate explicit Product Owner approval. The historical image-only pack remains documented at [Creative Golden Pack v1](../tests/live/fixtures/higgsfield_car_v1/README.md) and is no longer the default multimodal fixture.
