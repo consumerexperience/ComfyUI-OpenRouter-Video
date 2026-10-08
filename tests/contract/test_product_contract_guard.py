@@ -7,19 +7,18 @@ import importlib.util
 import json
 import os
 import sys
+from importlib.machinery import SourceFileLoader
 from pathlib import Path
 from types import ModuleType
 from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[2]
-WORKSPACE = ROOT.parent
-BUILDER_ROOT = Path(
-    os.environ.get(
-        "OPENROUTER_VIDEO_BUILDER_RC",
-        WORKSPACE / "plugins" / "openrouter-video-builder",
-    )
+BUILDER_OVERRIDE = os.environ.get("OPENROUTER_VIDEO_BUILDER_RC")
+GUARD_PATH = (
+    Path(BUILDER_OVERRIDE) / "scripts" / "product_contract_guard.py"
+    if BUILDER_OVERRIDE
+    else ROOT / "tests" / "tooling" / "product_contract_guard.py.fixture"
 )
-GUARD_PATH = BUILDER_ROOT / "scripts" / "product_contract_guard.py"
 EXPORTER_PATH = ROOT / "scripts" / "export_product_contract.py"
 BASELINE_SHA = "b492184f41492d37677a2dde9afdbe88666717a2"
 CURRENT_SHA = "08838ab93df2abe370d69dcc0375db3b135aa3fa"
@@ -36,7 +35,9 @@ CANDIDATE_PATH = (
 def _module(name: str, path: Path) -> ModuleType:
     if not path.is_file():
         raise RuntimeError(f"Required side-by-side Builder RC file is absent: {path}")
-    spec = importlib.util.spec_from_file_location(name, path)
+    spec = importlib.util.spec_from_file_location(
+        name, path, loader=SourceFileLoader(name, str(path))
+    )
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module

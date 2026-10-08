@@ -46,3 +46,4 @@ tests/fixtures/native_media_protected_baseline.json -text
 tests/manual/canonical_native_media_error_probe.js -text
 tests/manual/canonical_native_media_probe.js -text
 tests/unit/test_native_storage_smoke.py -text
+tests/tooling/product_contract_guard.py.fixture -text

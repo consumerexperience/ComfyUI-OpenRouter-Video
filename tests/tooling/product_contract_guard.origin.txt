@@ -1,0 +1,8 @@
+Pinned CI tooling artifact; not product code or an independent Builder implementation.
+Source Builder: 0.5.0-rc.3.hotfix.1+codex.20261008
+Approved package SHA-256: 76eb0390cef7690500e4403f838fac8a09b27c53598ce73f018e5a8caf80cf03
+product_contract_guard.py SHA-256: 6c64f150ffec30a4ac221d135aba159e27eb81485753fdd1a2d0dfaf4199ee94
+Copied byte-for-byte from the verified installed package. Do not edit independently.
+Contract tests execute this exact guard by default; OPENROUTER_VIDEO_BUILDER_RC is an explicit local override.
+The .fixture extension preserves upstream bytes outside project source formatting.
+Full CI checkout history is required to verify exact accepted Git revisions.
