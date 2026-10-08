@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import ast
 import hashlib
+import inspect
 import json
 from pathlib import Path
 
@@ -26,10 +27,11 @@ def _digest(path: str, selected: list[str] | None) -> str:
     )
     if selected is not None:
         assert len(nodes) == len(selected)
+    dump_options = {"include_attributes": False}
+    if "show_empty" in inspect.signature(ast.dump).parameters:
+        dump_options["show_empty"] = True
     # Normalize fields introduced by later Python versions (e.g. type_params).
-    records = [
-        ast.dump(node, include_attributes=False).replace(", type_params=[]", "") for node in nodes
-    ]
+    records = [ast.dump(node, **dump_options).replace(", type_params=[]", "") for node in nodes]
     return hashlib.sha256("\n".join(records).encode()).hexdigest()
 
 
