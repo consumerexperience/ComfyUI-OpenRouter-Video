@@ -1,0 +1,1499 @@
+{
+  "git_status": " M tests/comfy/native_media_bridge_probe.py\n M tests/manual/native_media_storage_smoke.py\n?? contracts/product/README.md\n?? contracts/product/acceptance-index.json\n?? contracts/product/accepted/phase9-runtime-reliability-b492184.product-contract.json\n?? contracts/product/candidates/phase10-native-media-08838ab.acceptance-record.json\n?? contracts/product/current/phase10-native-media-08838ab.product-contract.json\n?? contracts/product/deltas/phase10-native-media.contract-delta.json\n?? contracts/product/evidence/phase10-08838ab.json\n?? contracts/product/evidence/phase9-b492184.json\n?? docs/assets/native-media-bridge/canonical-after-restart.png\n?? docs/assets/native-media-bridge/canonical-browser-proof.json\n?? docs/assets/native-media-bridge/canonical-full-model-picker.png\n?? docs/assets/native-media-bridge/canonical-reloaded.png\n?? docs/assets/native-media-bridge/canonical-runtime-health.json\n?? docs/assets/native-media-bridge/canonical-storage-error-details.png\n?? docs/assets/native-media-bridge/canonical-storage-error-proof.json\n?? docs/assets/native-media-bridge/canonical-workflow.json\n?? docs/assets/product-contract/phase10-canonical-browser-proof.json\n?? docs/native-media-canonical-verification.md\n?? scripts/export_product_contract.py\n?? tests/contract/test_native_media_non_regression.py\n?? tests/contract/test_product_contract_guard.py\n?? tests/fixtures/native_media_protected_baseline.json\n?? tests/manual/canonical_native_media_error_probe.js\n?? tests/manual/canonical_native_media_probe.js\n?? tests/unit/test_native_storage_smoke.py\n",
+  "inventory": [
+    {
+      "bytes": 380,
+      "mtime_ns": 1788385970724848400,
+      "path": ".agents/skills/README.md",
+      "sha256": "41afa991a7aea1e0e8d1a0994a777f2af37c60e88e0f158c0e73f7fc7204d535"
+    },
+    {
+      "bytes": 101,
+      "mtime_ns": 1790668473391290300,
+      "path": ".comfyignore",
+      "sha256": "e8161c2af1dced86776734542917ca3d3e8616056ec4485ec6f5b596cdc337b3"
+    },
+    {
+      "bytes": 252,
+      "mtime_ns": 1788385970724848400,
+      "path": ".editorconfig",
+      "sha256": "921353d9d6be57ed977a38047c02757ba0ec0a0d526e37a6c476f2006fa4fe58"
+    },
+    {
+      "bytes": 159,
+      "mtime_ns": 1788385970725848200,
+      "path": ".gitattributes",
+      "sha256": "2a05bf9500ca5ecf8e18d547bf2d5f6da0de8a1bf64beb89750c57d26545db72"
+    },
+    {
+      "bytes": 22,
+      "mtime_ns": 1788452661686525000,
+      "path": ".github/CODEOWNERS",
+      "sha256": "8d859cccad286e9440a26d3341ea6159aa43c085c029d87540a0bc9ee212c656"
+    },
+    {
+      "bytes": 261,
+      "mtime_ns": 1788385970725848200,
+      "path": ".github/dependabot.yml",
+      "sha256": "0cc189950ab019ee91ef79c70c423935f283275c3986c4dc8036f64f772b839c"
+    },
+    {
+      "bytes": 1649,
+      "mtime_ns": 1788384502967854800,
+      "path": ".github/workflows/ci.yml",
+      "sha256": "89c66a08b1890594e88972a020e26d3001ea733ec5a87a19a833239fcdff4c8e"
+    },
+    {
+      "bytes": 630,
+      "mtime_ns": 1788385970726848400,
+      "path": ".github/workflows/codeql.yml",
+      "sha256": "3f44699a0fb445e2dbfffb66550182862e91ff15973af230f0272be1a6c226b4"
+    },
+    {
+      "bytes": 306,
+      "mtime_ns": 1790668473392289300,
+      "path": ".gitignore",
+      "sha256": "0c70e359106c3c26cbf16ff1089a40204b8a0b5d74b9c59caf6daa4a1fe05a2b"
+    },
+    {
+      "bytes": 8,
+      "mtime_ns": 1788385604603521800,
+      "path": ".python-version",
+      "sha256": "5b703ca38d3fd391f3e889f7ba893f94b921ff9e7b7e5d8d6622d5f7daca7049"
+    },
+    {
+      "bytes": 2455,
+      "mtime_ns": 1788989670969752700,
+      "path": "AGENTS.md",
+      "sha256": "32eb7f50c37ea78498c50afa0dc19fdaad6dc27821d2ce7ac136587ed165d6cf"
+    },
+    {
+      "bytes": 3090,
+      "mtime_ns": 1790668473392289300,
+      "path": "CHANGELOG.md",
+      "sha256": "65355500ea23cf48e34958e5be51ae8ebb5f473301dab5dc9ad594f5ee7862e2"
+    },
+    {
+      "bytes": 1800,
+      "mtime_ns": 1788385970728848300,
+      "path": "CONTRIBUTING.md",
+      "sha256": "d2ebad4c2faf77f550720f0ce0e0651d987a1a85f5e928f5a287c265d5774f37"
+    },
+    {
+      "bytes": 1070,
+      "mtime_ns": 1788385970729849200,
+      "path": "LICENSE",
+      "sha256": "64b33c9a1e64a11d4f2adb9d5a2528e334b0546b48485382f48ab501cbc95842"
+    },
+    {
+      "bytes": 4732,
+      "mtime_ns": 1790967925347128200,
+      "path": "README.md",
+      "sha256": "66cbe627a44db4ab35f098b67135d0cc8f999370c05c1651abc8714f2d7d87ff"
+    },
+    {
+      "bytes": 2254,
+      "mtime_ns": 1788524492913225700,
+      "path": "SECURITY.md",
+      "sha256": "a50f4a48293876c86b967fb76d551ec75a90b8f798249a70ba458c7c820dc36b"
+    },
+    {
+      "bytes": 408,
+      "mtime_ns": 1790668473393289500,
+      "path": "__init__.py",
+      "sha256": "f19e131c1a34fab241562d32f3b5ded27f322f04f425fed816776697e1cdc5a1"
+    },
+    {
+      "bytes": 874,
+      "mtime_ns": 1791455106279531300,
+      "path": "contracts/product/README.md",
+      "sha256": "524021698e6c67941dad927ef06a248ab23af215909c6656f3bfbc8cd7e162e0"
+    },
+    {
+      "bytes": 559,
+      "mtime_ns": 1791454644226478900,
+      "path": "contracts/product/acceptance-index.json",
+      "sha256": "a8f8e2f601d8c33d1e4c9139f3292776ea406ebb0e6e6006da41f48ba9f95db3"
+    },
+    {
+      "bytes": 4156,
+      "mtime_ns": 1791454651276710300,
+      "path": "contracts/product/accepted/phase9-runtime-reliability-b492184.product-contract.json",
+      "sha256": "84fef378d0ce21e6fc1617947e8d18f281f3b7f750f467f09bd6276ed1290635"
+    },
+    {
+      "bytes": 1296,
+      "mtime_ns": 1791455106279531300,
+      "path": "contracts/product/candidates/phase10-native-media-08838ab.acceptance-record.json",
+      "sha256": "1839426fee04cb54034bfe85d55a4f59ed30dc5fdf150d35c825b8a0cb171a3e"
+    },
+    {
+      "bytes": 5932,
+      "mtime_ns": 1791455000368585300,
+      "path": "contracts/product/current/phase10-native-media-08838ab.product-contract.json",
+      "sha256": "49fec1c0eeb2e1eb1042b2525e97f35879bdee48bf8d5c04718180229ff484d9"
+    },
+    {
+      "bytes": 3674,
+      "mtime_ns": 1791454661409922000,
+      "path": "contracts/product/deltas/phase10-native-media.contract-delta.json",
+      "sha256": "53acb0836b2852bcebd944bb04777c5e146693dc22ea9d4e6f3f387f7f9143b5"
+    },
+    {
+      "bytes": 372,
+      "mtime_ns": 1791454994408392700,
+      "path": "contracts/product/evidence/phase10-08838ab.json",
+      "sha256": "4dba3449303b79eb77b31e48197ca86702b82ab45b5027befd9d93845cad9dc7"
+    },
+    {
+      "bytes": 321,
+      "mtime_ns": 1791454644224869600,
+      "path": "contracts/product/evidence/phase9-b492184.json",
+      "sha256": "e0447d6836b91bf1818498b536b7fcafe42a3e89e2c341ac8191637cb004b5b4"
+    },
+    {
+      "bytes": 1259,
+      "mtime_ns": 1790864554648474600,
+      "path": "design-qa.md",
+      "sha256": "053bc477e4298e9d8f68a04599090209c00cfed4f9cd3c2264b023b6ef76fa2a"
+    },
+    {
+      "bytes": 2734,
+      "mtime_ns": 1790780798768568500,
+      "path": "docs/active-execution-checkpoint.md",
+      "sha256": "ed83d3b64eb1ab4623db02f6c4849ff0a728961d23ff99dd5440f6b644868675"
+    },
+    {
+      "bytes": 6442,
+      "mtime_ns": 1790441743308979300,
+      "path": "docs/adr/ADR-028-local-recovery-identity-and-request-fingerprint.md",
+      "sha256": "7dc1d1ec0e3dd61186ec045ac483e87f593eebeaba3b2b296302bf4c9fcaa2d3"
+    },
+    {
+      "bytes": 2454,
+      "mtime_ns": 1788534141499079700,
+      "path": "docs/adr/ADR-029-durable-definite-submit-rejection.md",
+      "sha256": "23e32d01d3188a58a5d4773cd80f6575a2e03d4ff1df4444ade7a4886768470b"
+    },
+    {
+      "bytes": 3543,
+      "mtime_ns": 1790441743309509000,
+      "path": "docs/adr/ADR-030-evidence-backed-capability-overlay.md",
+      "sha256": "829e870e3d0b3cbd816985cc8ccb51175096867911177e29864de81aa7e13c39"
+    },
+    {
+      "bytes": 6784,
+      "mtime_ns": 1790716218338077900,
+      "path": "docs/adr/ADR-031-capability-driven-inference-methods-and-multimodal-references.md",
+      "sha256": "bc6419452c31bec89a4f5f4ab46fdf935b44e34a8dc57c394315cff8b0091953"
+    },
+    {
+      "bytes": 4072,
+      "mtime_ns": 1790969281973409100,
+      "path": "docs/adr/ADR-032-native-media-s3-staging.md",
+      "sha256": "785ea6e8bb25fbd18ab347a732f201ee7e6c73661211803ac5320675fc8a1bd8"
+    },
+    {
+      "bytes": 706,
+      "mtime_ns": 1790716112977790100,
+      "path": "docs/adr/README.md",
+      "sha256": "645cc544fe98c86d72d587034deb722a1fd76799dafa5efb5f40043d1896e26c"
+    },
+    {
+      "bytes": 209,
+      "mtime_ns": 1788385970732848900,
+      "path": "docs/architecture/README.md",
+      "sha256": "886aaf4f18b48ee1e025d5a7953675aac265e5e21d409b8fec82e4cc816b2910"
+    },
+    {
+      "bytes": 220332,
+      "mtime_ns": 1791455191890127000,
+      "path": "docs/assets/native-media-bridge/canonical-after-restart.png",
+      "sha256": "8bf3afc502b4421f045579ef3c19830c537226dd63bb3106cae7d407d889e8db"
+    },
+    {
+      "bytes": 116027,
+      "mtime_ns": 1791455191881283100,
+      "path": "docs/assets/native-media-bridge/canonical-browser-proof.json",
+      "sha256": "86e3a95d82a7f00bf689d86696a4d9a1163b68a707f12202432c1d51e0802036"
+    },
+    {
+      "bytes": 243867,
+      "mtime_ns": 1791455191883125300,
+      "path": "docs/assets/native-media-bridge/canonical-full-model-picker.png",
+      "sha256": "3553b871086c965633f7ba025ff9bb130e350caf06d288db36c74308192f6765"
+    },
+    {
+      "bytes": 179528,
+      "mtime_ns": 1791455191888124500,
+      "path": "docs/assets/native-media-bridge/canonical-reloaded.png",
+      "sha256": "1659618993342a042e448a38ba074ea7c6022f997fdea92cfd3287a8c481d162"
+    },
+    {
+      "bytes": 1248,
+      "mtime_ns": 1791455258981756400,
+      "path": "docs/assets/native-media-bridge/canonical-runtime-health.json",
+      "sha256": "f1279972f9b23c92d2087f226e9ff3fe666f089b14e3543a3d07c26cfe4b0901"
+    },
+    {
+      "bytes": 216876,
+      "mtime_ns": 1791455191889123800,
+      "path": "docs/assets/native-media-bridge/canonical-storage-error-details.png",
+      "sha256": "5b56174cfb625a0d42d4cc87044b72f22d301e55f413b9d626cc4d20f9437894"
+    },
+    {
+      "bytes": 348,
+      "mtime_ns": 1791455191883125300,
+      "path": "docs/assets/native-media-bridge/canonical-storage-error-proof.json",
+      "sha256": "634c814dad261538f558ae0352f649efc8e341a5f2983845b418c0c76b17e93a"
+    },
+    {
+      "bytes": 12439,
+      "mtime_ns": 1791455191882133700,
+      "path": "docs/assets/native-media-bridge/canonical-workflow.json",
+      "sha256": "c8e5bbb890b6857e31d4493b22abfcfa3ed680f8964046a0018a6cf6b5edd6e2"
+    },
+    {
+      "bytes": 2153,
+      "mtime_ns": 1790969440748433400,
+      "path": "docs/assets/native-media-bridge/native-media-browser-proof.json",
+      "sha256": "12820288df83cbe0cd9d0e6a7fb44ee071273881362b400537173cd4d3f33421"
+    },
+    {
+      "bytes": 132756,
+      "mtime_ns": 1790969440737045700,
+      "path": "docs/assets/native-media-bridge/native-media-connections.png",
+      "sha256": "4e73ab92c75c285b9da39e33094fa42762f09bd2a0a4d78d18b49757c633cc5e"
+    },
+    {
+      "bytes": 192890,
+      "mtime_ns": 1790969440737617800,
+      "path": "docs/assets/native-media-bridge/native-media-storage-error.png",
+      "sha256": "3f9712030b1fc498bf1da2550484e70865d45183073dc2871cd717ab1c9fb5cd"
+    },
+    {
+      "bytes": 12897,
+      "mtime_ns": 1790969440743654200,
+      "path": "docs/assets/native-media-bridge/native-media-workflow.json",
+      "sha256": "fafa35456aaa6c5cfa2e2a075e9be1066381fd72f25e1ea06ef9829994952f0b"
+    },
+    {
+      "bytes": 1319860,
+      "mtime_ns": 1790716839266787000,
+      "path": "docs/assets/phase-10/direction-3-inference-method-dropdown.png",
+      "sha256": "b59deff2241606549399e32b5a5a31c32b54677c97133df381bf81dc0a2000d9"
+    },
+    {
+      "bytes": 1180235,
+      "mtime_ns": 1790716774047275800,
+      "path": "docs/assets/phase-10/direction-3-mi2v-primary.png",
+      "sha256": "78c94e007bb33a6520868ca5e740daefc7e37638fdfc750c24850f5eb7bee57f"
+    },
+    {
+      "bytes": 1443292,
+      "mtime_ns": 1790715736953617100,
+      "path": "docs/assets/phase-10/direction-3-state-board.png",
+      "sha256": "8a932fa73dc8552eb075c25259eeccf4d60f52082d9fe1c5f98a189d42898677"
+    },
+    {
+      "bytes": 1453,
+      "mtime_ns": 1791454994410305500,
+      "path": "docs/assets/product-contract/phase10-canonical-browser-proof.json",
+      "sha256": "a9cf0e202ce1b4531ca1f72582cc4a79577d0c0e3ccedf36fc9ba7b1f866fa50"
+    },
+    {
+      "bytes": 1425,
+      "mtime_ns": 1788385970732848900,
+      "path": "docs/canonical-sources.md",
+      "sha256": "afdfb62b4dc051674240530f0ff6dfd8b8a7a2f54c2a0cffc0a0596b5dd28b05"
+    },
+    {
+      "bytes": 6769,
+      "mtime_ns": 1790668473395287000,
+      "path": "docs/comfyui-adapter.md",
+      "sha256": "f7dffd9fba1a6290fc42d0618a86de1398b17a942fe8074e27daea78321ced05"
+    },
+    {
+      "bytes": 4082,
+      "mtime_ns": 1790668473396289500,
+      "path": "docs/development.md",
+      "sha256": "d3503107e2bdfb51a154a0e88d86fcd09829e30664bf465077140962f00ec126"
+    },
+    {
+      "bytes": 6084,
+      "mtime_ns": 1790668473396289500,
+      "path": "docs/headless-core-ii.md",
+      "sha256": "4c9419a63d9d528256ea96a3355d823861b4f98316b8976c215944a71394bf90"
+    },
+    {
+      "bytes": 4201,
+      "mtime_ns": 1790969800896277200,
+      "path": "docs/native-media-bridge-verification.md",
+      "sha256": "76eb92be3817536509dfd23bb76dce9be4e54fac8a7bf6b4fa440e5e7b4c2731"
+    },
+    {
+      "bytes": 5471,
+      "mtime_ns": 1790969440729010800,
+      "path": "docs/native-media-bridge.md",
+      "sha256": "15c27291a0d8ced68899ce46bd0d0fd75419349f5c6ca79a5e1331f0dcdce35e"
+    },
+    {
+      "bytes": 8340,
+      "mtime_ns": 1791455294262542600,
+      "path": "docs/native-media-canonical-verification.md",
+      "sha256": "b9ad806f73d9d47bf25b9005c120583ebc10bf35ad06aedd6d4d68288c9b787b"
+    },
+    {
+      "bytes": 9681,
+      "mtime_ns": 1790864702775343100,
+      "path": "docs/phase-10-capability-driven-inference-methods-plan.md",
+      "sha256": "de98211ee90fd8c2c7fb822910d6cbcc23ecdcef3ecb0db9843b692173f15837"
+    },
+    {
+      "bytes": 10142,
+      "mtime_ns": 1790864554647478300,
+      "path": "docs/phase-10-design-qa.md",
+      "sha256": "8d501eaeb36abcac3a51ed79889ee1ec6b040ea433e3c16b6f7cac5048b53a29"
+    },
+    {
+      "bytes": 6381,
+      "mtime_ns": 1790780798769570600,
+      "path": "docs/phase-10-direction-3-visual-spec.md",
+      "sha256": "ab0c524d76770b94c2a36128fe4d474ff23187a8ccf82d785e605a1c74d8ccdf"
+    },
+    {
+      "bytes": 6824,
+      "mtime_ns": 1790716218341077500,
+      "path": "docs/phase-10-evidence-gate.md",
+      "sha256": "b915ff726f2146680a39fde524f4569e268e1665adf18eca92da1d70cd69daee"
+    },
+    {
+      "bytes": 13129,
+      "mtime_ns": 1790900007024214700,
+      "path": "docs/phase-10-local-media-transport-evidence.md",
+      "sha256": "daee8cf1d155848dcbd74881b3b57ca0de8e76e6cf7096e2895c10e55fd5efff"
+    },
+    {
+      "bytes": 3007,
+      "mtime_ns": 1788534141501080100,
+      "path": "docs/phase-5-contract-evidence.md",
+      "sha256": "ef344c9832bb68ecadf0145a42bf67c17bdbf0e216bd07d5993257040b58c502"
+    },
+    {
+      "bytes": 1608,
+      "mtime_ns": 1790668473397290400,
+      "path": "docs/phase-7-t2v-retrospective.md",
+      "sha256": "fad90f657357bf01a786521547bd65b3ed352643d37a345946fe02dbc29f14d2"
+    },
+    {
+      "bytes": 6644,
+      "mtime_ns": 1790668473397290400,
+      "path": "docs/phase-8-capability-evidence.md",
+      "sha256": "4492e58d55cde1cee82f1db31592cb59e1b3471cac8bed5ca80d0d16756ced1e"
+    },
+    {
+      "bytes": 1636,
+      "mtime_ns": 1790668473398289000,
+      "path": "docs/phase-9-live-evidence-schema.md",
+      "sha256": "d7b9a9f52de451ca5145c80c4a9765da10decd8a5e4392d694856e256d2806f0"
+    },
+    {
+      "bytes": 3796,
+      "mtime_ns": 1790668473398289000,
+      "path": "docs/phase-9-live-runbook.md",
+      "sha256": "5b4f598f922770d1ab30b06d6c29749ddedff0fa60f1106fe0ebe5dbaa84f3e9"
+    },
+    {
+      "bytes": 1655,
+      "mtime_ns": 1790668473399287100,
+      "path": "docs/phase-9-local-media-transport-contract.md",
+      "sha256": "a6fcef657d10951601d683dad5efcded277f2771a8a5ee993adac0dd583d65f9"
+    },
+    {
+      "bytes": 4463,
+      "mtime_ns": 1790668473399287100,
+      "path": "docs/phase-9-local-zero-cost-rc-evidence.md",
+      "sha256": "5a1a017370065815fc906bed296b36bbe4217d4ecc18e881e52b41c04147213b"
+    },
+    {
+      "bytes": 1448,
+      "mtime_ns": 1790668473399287100,
+      "path": "docs/phase-9-pricing-planning.md",
+      "sha256": "c7f3009b6bf2cc246438ecb7a939bc68c4df22edba895b49b52543f1db7909de"
+    },
+    {
+      "bytes": 5021,
+      "mtime_ns": 1790716112978790100,
+      "path": "docs/project-delta-ledger.md",
+      "sha256": "d4f8286fe883ed0bb9195a8efec4187b8f0a86a3484fa6cdb4912041d0830216"
+    },
+    {
+      "bytes": 527,
+      "mtime_ns": 1788385970733851700,
+      "path": "docs/security/development-boundaries.md",
+      "sha256": "8869b8d68147c2a37327624f6e4da5df81e837061fbdedb4e73069042f830efb"
+    },
+    {
+      "bytes": 151,
+      "mtime_ns": 1788385970733851700,
+      "path": "docs/specification/README.md",
+      "sha256": "1cc9aa516a97eb668d47958f4c40967a5a7cdcd96bf214b1c9091ceff67892ed"
+    },
+    {
+      "bytes": 4701,
+      "mtime_ns": 1790969800897275600,
+      "path": "docs/testing.md",
+      "sha256": "efd73f5b4ae90304544500e210e4e610206207849be6a3e58ecb3aa352317656"
+    },
+    {
+      "bytes": 5510,
+      "mtime_ns": 1788989670970774700,
+      "path": "docs/testing/mock-contract-harness.md",
+      "sha256": "71c0a63161931c0a6ca9cb1442ba34338237ec5f0b0d69d6ac140d0f24a3666f"
+    },
+    {
+      "bytes": 115,
+      "mtime_ns": 1788385970735848400,
+      "path": "example_workflows/README.md",
+      "sha256": "bd2c6faa50a37413e0c16755800aebd54cafcfcbac09bc030f46b6affaacebb6"
+    },
+    {
+      "bytes": 2027,
+      "mtime_ns": 1790969138203678200,
+      "path": "pyproject.toml",
+      "sha256": "cef74f019b2ac82fa50bbff4b1919f35d0f82b6704ef5ef916927a099615d430"
+    },
+    {
+      "bytes": 1053,
+      "mtime_ns": 1790969138202678200,
+      "path": "requirements-dev.lock",
+      "sha256": "2045ae7e4f1bdb65a708a0f36c4eb518286b7fbb2cfe6c069c09c40ed901d2ec"
+    },
+    {
+      "bytes": 12191,
+      "mtime_ns": 1791454770901610500,
+      "path": "scripts/export_product_contract.py",
+      "sha256": "e963634564eaa163df01039ce8eee9a396866f4a934e22f0fce53463a67a9a49"
+    },
+    {
+      "bytes": 244,
+      "mtime_ns": 1789157931602308700,
+      "path": "src/openrouter_video/__init__.py",
+      "sha256": "29609578652107b9020a259f63a9076e7128ac40d8638935b40f7d475417287b"
+    },
+    {
+      "bytes": 870,
+      "mtime_ns": 1788524492916226500,
+      "path": "src/openrouter_video/app_identity.py",
+      "sha256": "94fc446b83ddd707ca4d6463b280dd0fa210e4f106ec08a059bf4abd260e7ed7"
+    },
+    {
+      "bytes": 35672,
+      "mtime_ns": 1790966336604027200,
+      "path": "src/openrouter_video/application.py",
+      "sha256": "d415c1dc7f5534165a24b7ff69568ead45a581b8ac3c8337591e0789c16ad967"
+    },
+    {
+      "bytes": 25372,
+      "mtime_ns": 1790966336604027200,
+      "path": "src/openrouter_video/capabilities.py",
+      "sha256": "3f0cac577d29410a9acb00e28be1cb22bae4c812358493275a3ef959671c2760"
+    },
+    {
+      "bytes": 5875,
+      "mtime_ns": 1790717489353802300,
+      "path": "src/openrouter_video/capability_overlays.py",
+      "sha256": "dd938dfa92c465d91f76bc66d8ea14c258429787884beceeb5dcdee6096af7a5"
+    },
+    {
+      "bytes": 9790,
+      "mtime_ns": 1790668473402290800,
+      "path": "src/openrouter_video/client.py",
+      "sha256": "5eaf53b7f3dcf294322b0ce72ed4a6b41758f3cb7c1167b0a890c13016374d40"
+    },
+    {
+      "bytes": 91,
+      "mtime_ns": 1789157931603308700,
+      "path": "src/openrouter_video/comfy/__init__.py",
+      "sha256": "53c1674848551aacdf94a06520af63ff90947add1e69af174b3d983367958654"
+    },
+    {
+      "bytes": 7891,
+      "mtime_ns": 1790966578206171500,
+      "path": "src/openrouter_video/comfy/compat.py",
+      "sha256": "f06a8359ca5125d7e6f2c316b7e77d1a832326054ec8932adb00e5a196b8a57d"
+    },
+    {
+      "bytes": 1286,
+      "mtime_ns": 1790966323095601500,
+      "path": "src/openrouter_video/comfy/extension.py",
+      "sha256": "6ee07e2f03164f5e9589af15969beba46410e53c6f5394e73acf83b250be8165"
+    },
+    {
+      "bytes": 2039,
+      "mtime_ns": 1790886456178550100,
+      "path": "src/openrouter_video/comfy/image.py",
+      "sha256": "ad04516d799f093ce6dfa65ecf0dc193970408119338c4da329dd9da4a88ba50"
+    },
+    {
+      "bytes": 2564,
+      "mtime_ns": 1790966578206171500,
+      "path": "src/openrouter_video/comfy/native_media.py",
+      "sha256": "3e7e41cfd8a40b45cfbad3e611bc7a3c852e7bbefe8ab31fa241884db8a6e794"
+    },
+    {
+      "bytes": 20588,
+      "mtime_ns": 1790968549127222100,
+      "path": "src/openrouter_video/comfy/nodes.py",
+      "sha256": "89b2e272473fd30d818fbe84d352c805fd6198154582ae62df6640c6e55e41d4"
+    },
+    {
+      "bytes": 4725,
+      "mtime_ns": 1790718305913507800,
+      "path": "src/openrouter_video/comfy/projection.py",
+      "sha256": "81dc6c31b6d17dfac50b5bff3694d6982d345c8f9384a54e05d3c46b96a0f953"
+    },
+    {
+      "bytes": 8483,
+      "mtime_ns": 1790718126232809600,
+      "path": "src/openrouter_video/comfy/routes.py",
+      "sha256": "e3be56634c60447a526402c510e829a575b9d20e7dc58ee29fb890048d27b3ee"
+    },
+    {
+      "bytes": 14319,
+      "mtime_ns": 1790969138300922300,
+      "path": "src/openrouter_video/comfy/runtime.py",
+      "sha256": "8d80a188eb5614d6969cc899608404e1009b970624cb2102eb2984f7062996c6"
+    },
+    {
+      "bytes": 1007,
+      "mtime_ns": 1789157931606305100,
+      "path": "src/openrouter_video/comfy/video.py",
+      "sha256": "4a68b60806cfce1e06712f0dcee3e0adef07d96ab553ce070d9c25bbfcf3aae4"
+    },
+    {
+      "bytes": 2184,
+      "mtime_ns": 1788534141505079900,
+      "path": "src/openrouter_video/errors.py",
+      "sha256": "2ee7cc10ae9e353b28539b82810b8a7bf54ed1c33f6373daab2d71c3dd50642f"
+    },
+    {
+      "bytes": 2150,
+      "mtime_ns": 1790668473405476400,
+      "path": "src/openrouter_video/execution_hooks.py",
+      "sha256": "459c6370f1b987ee5214139172e910fa2af0884869b8fed2a328d0cb4cf47da7"
+    },
+    {
+      "bytes": 1421,
+      "mtime_ns": 1790886528963944000,
+      "path": "src/openrouter_video/image_transport.py",
+      "sha256": "b855df55ecf95d08d0aae6972a8f31ddb09945ea4686888ba28c9bef660761f0"
+    },
+    {
+      "bytes": 4570,
+      "mtime_ns": 1789157931607308500,
+      "path": "src/openrouter_video/lifecycle.py",
+      "sha256": "5a8a124025bfdfdddba5c6d5714a02c061f81d7544a5e0e2ac033ee3adfbdc75"
+    },
+    {
+      "bytes": 1631,
+      "mtime_ns": 1790969281972363700,
+      "path": "src/openrouter_video/local_media.py",
+      "sha256": "37a426024de3d881574013e3983f9d1dac50052e7cd07af5aa89686e5a29fc39"
+    },
+    {
+      "bytes": 8264,
+      "mtime_ns": 1789157931607308500,
+      "path": "src/openrouter_video/media.py",
+      "sha256": "28f4680749b6ae634f0df6781c292aec0ed9e479a7fd305930a3fa4362a895bc"
+    },
+    {
+      "bytes": 15142,
+      "mtime_ns": 1790966323212414300,
+      "path": "src/openrouter_video/models.py",
+      "sha256": "698f9bb7e654b6369f15571d25af245c99a0b3e35f0866d05deddb032f5147a7"
+    },
+    {
+      "bytes": 947,
+      "mtime_ns": 1788524492917228000,
+      "path": "src/openrouter_video/observability.py",
+      "sha256": "b4c97e23d1bfbffa4553c6af9064a695ead6a7fd8e66b1c23f682a55c2305f7b"
+    },
+    {
+      "bytes": 28071,
+      "mtime_ns": 1790966578207171500,
+      "path": "src/openrouter_video/persistence.py",
+      "sha256": "93b3df6af5665b26ef5d8c88529eae4f5f2d87069d935246bbbc865406291961"
+    },
+    {
+      "bytes": 3106,
+      "mtime_ns": 1788524492918227600,
+      "path": "src/openrouter_video/policy.py",
+      "sha256": "86429367bd0a510502a114b085263bb21472e42b403e49fb1d3ec945aa8dbf39"
+    },
+    {
+      "bytes": 6138,
+      "mtime_ns": 1790718305913507800,
+      "path": "src/openrouter_video/pricing.py",
+      "sha256": "92eddbca295a2d2c910b53ba246b384e84c02a22e9e8f55cecf48c3710feca1d"
+    },
+    {
+      "bytes": 1,
+      "mtime_ns": 1788384459426530200,
+      "path": "src/openrouter_video/py.typed",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "bytes": 9634,
+      "mtime_ns": 1788524492919227800,
+      "path": "src/openrouter_video/request_policy.py",
+      "sha256": "df34611e8fcf10b280d3c6d94bafc48be4feeff7879e0380d7f417e8ff43a141"
+    },
+    {
+      "bytes": 9050,
+      "mtime_ns": 1790967154729941700,
+      "path": "src/openrouter_video/s3_upload.py",
+      "sha256": "e7c809f0cb3d789c0702dc050a581960b3a0a2646d06ef2f285c3f016ce2e9e6"
+    },
+    {
+      "bytes": 1380,
+      "mtime_ns": 1790668473408652100,
+      "path": "src/openrouter_video/secrets.py",
+      "sha256": "9cd779b0340bbe9ce3a39fa8cb410142980b922cbebc14774a3eaf07ada2c5b9"
+    },
+    {
+      "bytes": 7946,
+      "mtime_ns": 1790969678044780600,
+      "path": "src/openrouter_video/staging.py",
+      "sha256": "ecf5b31cb39fd99713e6ea2a045a1e8eeb24ab244e714e88a44e56c3b15db577"
+    },
+    {
+      "bytes": 4158,
+      "mtime_ns": 1788534141508079800,
+      "path": "src/openrouter_video/transport.py",
+      "sha256": "be05e33cc8ee5561185bb804848d2c2aba61f3229b622a035bb2f8d82a560a96"
+    },
+    {
+      "bytes": 3009,
+      "mtime_ns": 1790967470546999000,
+      "path": "tests/comfy/conftest.py",
+      "sha256": "a0a34f6a5d429fbd296d387b52e09b75e8583e1f9819756b7253459da72cdc09"
+    },
+    {
+      "bytes": 1932,
+      "mtime_ns": 1790967154730467200,
+      "path": "tests/comfy/native_image_bridge_probe.py",
+      "sha256": "c54a3e63bbb92db7881d524c9d8946b9fa582870576c3366516d44c148feaf0f"
+    },
+    {
+      "bytes": 7859,
+      "mtime_ns": 1791454627604339600,
+      "path": "tests/comfy/native_media_bridge_probe.py",
+      "sha256": "2e10cce1bf516c73173ec7f06c43761445d84dcdd08f50f674f30a5cfb76ede6"
+    },
+    {
+      "bytes": 31691,
+      "mtime_ns": 1790968549214933600,
+      "path": "tests/comfy/test_adapter.py",
+      "sha256": "b163ede204950d7e7cb3f2145120fa8c66af91841413f4cebbdf4c86e50a3e85"
+    },
+    {
+      "bytes": 7148,
+      "mtime_ns": 1790969138143275500,
+      "path": "tests/comfy/test_runtime.py",
+      "sha256": "ac42ebcb062a40ae91ca9d924220d5bb6aa62ca49b725d7f5fbae929b49c4b9e"
+    },
+    {
+      "bytes": 13523,
+      "mtime_ns": 1790968850928629400,
+      "path": "tests/comfy_dev_probe.py",
+      "sha256": "b82e0abac3a0e2bfa1fb13b4f458d845398bf6022cc7682155f470dc252dd91f"
+    },
+    {
+      "bytes": 1911,
+      "mtime_ns": 1788989670971285000,
+      "path": "tests/conftest.py",
+      "sha256": "00ab44822d2f5b3b6705fee493c3bbcdd3a4411453ce30e88253077e25778ccc"
+    },
+    {
+      "bytes": 5700,
+      "mtime_ns": 1789157931611308500,
+      "path": "tests/contract/test_architecture_boundaries.py",
+      "sha256": "3e17cb47e1e5dfb593b8a579d3117b3ade08d50f2abbc2a441b559bc6cd5fa10"
+    },
+    {
+      "bytes": 7103,
+      "mtime_ns": 1790718305913507800,
+      "path": "tests/contract/test_harness_security_privacy.py",
+      "sha256": "f2f85279ed410b557da36f13e0ccb6cdc26aa90d241bfe366bde4e5816d08ffb"
+    },
+    {
+      "bytes": 2925,
+      "mtime_ns": 1791453939745402200,
+      "path": "tests/contract/test_native_media_non_regression.py",
+      "sha256": "43b34af82687b5ec4660455b2e062a0bf7a2a8c353f5615c22c9119d5d3bf300"
+    },
+    {
+      "bytes": 7992,
+      "mtime_ns": 1788989670972827500,
+      "path": "tests/contract/test_openrouter_video_corpus.py",
+      "sha256": "85869d9cf83591e78dbe17973bdbb66116e8adb1787d4b1f353f665c5addd26e"
+    },
+    {
+      "bytes": 9553,
+      "mtime_ns": 1790966578209173300,
+      "path": "tests/contract/test_phase10_frontend_migration.mjs",
+      "sha256": "bc62f42521eda5a03f834c659a64787c23ca2690c175b4d6cc3302aa39907836"
+    },
+    {
+      "bytes": 5495,
+      "mtime_ns": 1790718257085790500,
+      "path": "tests/contract/test_phase5_privacy.py",
+      "sha256": "9cf884a92b2169c73512af27c93ce2aa28db301b751998812df5ff0117933e1f"
+    },
+    {
+      "bytes": 3267,
+      "mtime_ns": 1790668473410745400,
+      "path": "tests/contract/test_phase9_assets.py",
+      "sha256": "3b2796317a7927ccc415914dca7d919f2f079dd1022324d9fede21f6e751490b"
+    },
+    {
+      "bytes": 1782,
+      "mtime_ns": 1790799054760714300,
+      "path": "tests/contract/test_phase9_frontend_boundaries.py",
+      "sha256": "7e7b7a8c9dd9d6767ef9271b58d4b7ce6f55e0b66c2d7af6b79a4ba9b2bcc883"
+    },
+    {
+      "bytes": 4389,
+      "mtime_ns": 1791455109960443500,
+      "path": "tests/contract/test_product_contract_guard.py",
+      "sha256": "1e69f6b33a7c30c3274321202d42d1b714dd67c560f64a9c75e79c10da713110"
+    },
+    {
+      "bytes": 7799,
+      "mtime_ns": 1790668473411784900,
+      "path": "tests/contract/test_request_policy.py",
+      "sha256": "5d2f6f7f0734a9cbb2e163a1bedf40df83a3bbe1d4c612f2603d8109f3d76ce7"
+    },
+    {
+      "bytes": 109,
+      "mtime_ns": 1788385970735848400,
+      "path": "tests/fault/README.md",
+      "sha256": "a906f237601574fe1f8280d2773285a34ff162c51bdd8cf4caa6128a3d858139"
+    },
+    {
+      "bytes": 21248,
+      "mtime_ns": 1788989670973343900,
+      "path": "tests/fault/test_billing_fitness.py",
+      "sha256": "1695b6b9dec7d12120ffaa6aa909b07372e8f78e8e9a34ee1a4f2e436d930ab4"
+    },
+    {
+      "bytes": 82,
+      "mtime_ns": 1788385970736850000,
+      "path": "tests/fixtures/README.md",
+      "sha256": "04477eae20d5bedc9aef3127cd72f2f1e812dff8861c61f499ca66129386b724"
+    },
+    {
+      "bytes": 61,
+      "mtime_ns": 1788524492921224500,
+      "path": "tests/fixtures/__init__.py",
+      "sha256": "4be9fd31070b01fc6f82217018ad3e9e0275fdb4e192a5a26fb49da593cb44f6"
+    },
+    {
+      "bytes": 556,
+      "mtime_ns": 1788524492922224400,
+      "path": "tests/fixtures/identity.py",
+      "sha256": "cbf1456c13136920b1584db639168702cc1df1a0ecb63d89c4e6e6d4de0b9110"
+    },
+    {
+      "bytes": 1874,
+      "mtime_ns": 1791453871500364400,
+      "path": "tests/fixtures/native_media_protected_baseline.json",
+      "sha256": "f587e48c131ad77c1ac7c27a7d0fa6dddf7f0d5ea1107da885c450ffb8263480"
+    },
+    {
+      "bytes": 3467,
+      "mtime_ns": 1788989670973866000,
+      "path": "tests/fixtures/openrouter_video/MANIFEST.md",
+      "sha256": "7b550e6472645eca710e051b2fdc86ab3cd8df2027f33817e1424a304202692d"
+    },
+    {
+      "bytes": 913,
+      "mtime_ns": 1788989670974396900,
+      "path": "tests/fixtures/openrouter_video/discovery/catalog.json",
+      "sha256": "6c992d36695005c401e210d6fb56d3256ca0f0402d8bc18484534fd22c7af742"
+    },
+    {
+      "bytes": 13,
+      "mtime_ns": 1788989670974916600,
+      "path": "tests/fixtures/openrouter_video/discovery/empty.json",
+      "sha256": "0345797eb7c9a8572a37748670cd59d03232674f0df8b9bdb5ae61d77a1c07eb"
+    },
+    {
+      "bytes": 23,
+      "mtime_ns": 1788989670974916600,
+      "path": "tests/fixtures/openrouter_video/discovery/malformed_data_type.json",
+      "sha256": "4a6915a7a306ff8f556c3d2ac0713caa21e4fec9b2128ba941d5d35c22ded5ed"
+    },
+    {
+      "bytes": 52,
+      "mtime_ns": 1788989670975439000,
+      "path": "tests/fixtures/openrouter_video/discovery/malformed_missing_id.json",
+      "sha256": "5ceba5d6168c89e3ae80a69894679bf12bc0719abd2c06fc10df074f3ade5843"
+    },
+    {
+      "bytes": 685,
+      "mtime_ns": 1788989670975948900,
+      "path": "tests/fixtures/openrouter_video/errors/response_cases.json",
+      "sha256": "10919e622874496fc992255870c7132a34fdfe254fb7c0acf14753d917c8b87f"
+    },
+    {
+      "bytes": 36,
+      "mtime_ns": 1788989670975948900,
+      "path": "tests/fixtures/openrouter_video/malformed/invalid.json.txt",
+      "sha256": "47ea075572e438135e30f1eef68f8c54a20f03e0e1fd89b280855949abe6a3ca"
+    },
+    {
+      "bytes": 83,
+      "mtime_ns": 1788989670976917200,
+      "path": "tests/fixtures/openrouter_video/poll/cancelled.json",
+      "sha256": "6f136038cfe83898caff952b2df12f5842d997178b020b942323003f8b48fc65"
+    },
+    {
+      "bytes": 242,
+      "mtime_ns": 1788989670977437800,
+      "path": "tests/fixtures/openrouter_video/poll/completed_cost.json",
+      "sha256": "c75bd84dacbe2a83859ba1c4e1c8bbf15c223d48aa5afdf5768709d8efeec743"
+    },
+    {
+      "bytes": 70,
+      "mtime_ns": 1788989670977437800,
+      "path": "tests/fixtures/openrouter_video/poll/completed_no_cost.json",
+      "sha256": "f08bc7d169d138b2c57f8dceb08472176b65058d4b56072f7383c68122e900bc"
+    },
+    {
+      "bytes": 75,
+      "mtime_ns": 1788989670977952400,
+      "path": "tests/fixtures/openrouter_video/poll/expired.json",
+      "sha256": "e6df3ca042b7721156188327f20a5d3cf9a4d0e8cc1a8e3578b6d9b1634b4b1d"
+    },
+    {
+      "bytes": 75,
+      "mtime_ns": 1788989670978502800,
+      "path": "tests/fixtures/openrouter_video/poll/failed.json",
+      "sha256": "8da36cf9d3bce9618ae1478cbfe77a9dcdc6b7ee6fd8de61b9f056eaf47fe612"
+    },
+    {
+      "bytes": 69,
+      "mtime_ns": 1788989670979038300,
+      "path": "tests/fixtures/openrouter_video/poll/future_unknown.json",
+      "sha256": "47c9b86ed3a669378a16709d8f8a7167e7e7f66de7f4ab25de6d6e0ae577f225"
+    },
+    {
+      "bytes": 71,
+      "mtime_ns": 1788989670979562800,
+      "path": "tests/fixtures/openrouter_video/poll/in_progress.json",
+      "sha256": "03300b3dee370d44383803b043e7c10267a8b7f51044b256c0f01f98a42f092b"
+    },
+    {
+      "bytes": 39,
+      "mtime_ns": 1788989670980077600,
+      "path": "tests/fixtures/openrouter_video/poll/pending.json",
+      "sha256": "4acca3ddb3831b84b232de170fbc8dcae95172a1a159eca2b149bbb6161d3dd4"
+    },
+    {
+      "bytes": 240,
+      "mtime_ns": 1788989670980595600,
+      "path": "tests/fixtures/openrouter_video/submit/accepted.json",
+      "sha256": "d7735fca63e02699e184db409b0787e5cbd0807f7daa5c3aad5cb1826d452bdc"
+    },
+    {
+      "bytes": 213,
+      "mtime_ns": 1788384417719397400,
+      "path": "tests/harness/__init__.py",
+      "sha256": "5679c26cf99745a40f09029ff075036cc5c68e17c07307c2907aa51b61896959"
+    },
+    {
+      "bytes": 3987,
+      "mtime_ns": 1788989670981108600,
+      "path": "tests/harness/core.py",
+      "sha256": "606002d603460275f632c134b7c0534370a1e047aa27543e394ef066fac7e12a"
+    },
+    {
+      "bytes": 7217,
+      "mtime_ns": 1788989670981623500,
+      "path": "tests/harness/mock_server.py",
+      "sha256": "cbdb194afb812177a61533ac9f27c82bbb2012497e7c4a8f8c879efb8f1c06d1"
+    },
+    {
+      "bytes": 8920,
+      "mtime_ns": 1788989670982138000,
+      "path": "tests/harness/scenario.py",
+      "sha256": "cf31b41bf4f00c79764676d57441535ecd8bd0bf272c85e1f76bf03641ef09d1"
+    },
+    {
+      "bytes": 7143,
+      "mtime_ns": 1788989670982652300,
+      "path": "tests/harness/test_mock_server.py",
+      "sha256": "05e8ce718acee314ad406bfa9a771841953a2bf8b91222ccf2a1ccbd883c7ff5"
+    },
+    {
+      "bytes": 97,
+      "mtime_ns": 1788385970736850000,
+      "path": "tests/integration/README.md",
+      "sha256": "e1d753aae6e6266579c3ff38ecac13462749adc256aa58d9c47af68826e0c8e2"
+    },
+    {
+      "bytes": 6413,
+      "mtime_ns": 1790718272877495000,
+      "path": "tests/integration/test_mock_contract_core.py",
+      "sha256": "ba032b47c1dfed8ff55a035c2c601c0ef2dbec809a8dcc30f7eea63fbf72a7f2"
+    },
+    {
+      "bytes": 8047,
+      "mtime_ns": 1788534141509079300,
+      "path": "tests/integration/test_transport.py",
+      "sha256": "361f9244b4bd9d12917c1eb90a9131c49ab29c9f4fdbe8aa9e96fe001f79294e"
+    },
+    {
+      "bytes": 202,
+      "mtime_ns": 1788385970737849400,
+      "path": "tests/live/README.md",
+      "sha256": "9c4f81ca08157033cce597c5949a5ba3005125b247609cc62eb536e376d37fcc"
+    },
+    {
+      "bytes": 2406,
+      "mtime_ns": 1790668473412302200,
+      "path": "tests/live/fixtures/phase9/first-frame.png",
+      "sha256": "0fb8ec7859841b8eace77de5d3ae9bdfae14dbb83dec600562514490a473767f"
+    },
+    {
+      "bytes": 2411,
+      "mtime_ns": 1790668473412822900,
+      "path": "tests/live/fixtures/phase9/last-frame.png",
+      "sha256": "3e7d351b3ca7d1aa03edcb63f1b1e0d8691a90eeec57f87f88e82f10156852d6"
+    },
+    {
+      "bytes": 3306,
+      "mtime_ns": 1790668473413914700,
+      "path": "tests/live/fixtures/phase9/manifest.json",
+      "sha256": "a37801d126486630709d88e77fe4b23891dd46ee4f4226ba42446d35f662fc4f"
+    },
+    {
+      "bytes": 394950,
+      "mtime_ns": 1790668473414985200,
+      "path": "tests/live/fixtures/phase9/motion-reference.mp4",
+      "sha256": "e6009ff03feb01893c4dcc5a77d564e6af23066c4305dea1460d48696f8f448b"
+    },
+    {
+      "bytes": 283,
+      "mtime_ns": 1790668473415492700,
+      "path": "tests/live/fixtures/phase9/prompts/first-frame.txt",
+      "sha256": "4378f1e1737fd5df2028022bb7a08b1fc6f61b3704da043227d381fcd3a7ace6"
+    },
+    {
+      "bytes": 336,
+      "mtime_ns": 1790668473415492700,
+      "path": "tests/live/fixtures/phase9/prompts/first-last-frame.txt",
+      "sha256": "f330dfd89b0a3b2a4fc9fa6ebb398890c7ffe05c34729ba95643c0cdcd4b72a2"
+    },
+    {
+      "bytes": 293,
+      "mtime_ns": 1790668473416500300,
+      "path": "tests/live/fixtures/phase9/prompts/mixed-image-video-reference.txt",
+      "sha256": "9cc1008178af29bf852fbed26480216dc430156c983f87226a00ebc5d8ac2047"
+    },
+    {
+      "bytes": 293,
+      "mtime_ns": 1790668473416500300,
+      "path": "tests/live/fixtures/phase9/prompts/multi-image-reference.txt",
+      "sha256": "8df826608ebf4a51ca8c50d02c5d5dd620fe8fdd104d9755420d7f917b3833e9"
+    },
+    {
+      "bytes": 277,
+      "mtime_ns": 1790668473416500300,
+      "path": "tests/live/fixtures/phase9/prompts/video-reference.txt",
+      "sha256": "3ba07d4f36cb4ba7a1b75d0b9367a7e61c623aea20a94d7d420ed28bd1083181"
+    },
+    {
+      "bytes": 2442,
+      "mtime_ns": 1790668473417503500,
+      "path": "tests/live/fixtures/phase9/style-marker.png",
+      "sha256": "a3ab1502565328b8cd4c22ca4646b0ebf23b032bf039eedd3b9201d231670e11"
+    },
+    {
+      "bytes": 2749,
+      "mtime_ns": 1791453935263349400,
+      "path": "tests/manual/canonical_native_media_error_probe.js",
+      "sha256": "f9a81953adb0902167da076acd9b5832ac7a5a2e41192c7f3394cf3afe2a6cec"
+    },
+    {
+      "bytes": 8150,
+      "mtime_ns": 1791453666465628900,
+      "path": "tests/manual/canonical_native_media_probe.js",
+      "sha256": "e142a3ea8392592f7b3c35d51e916e9d96aee7adfc80f39d8f530ebc2be75030"
+    },
+    {
+      "bytes": 6054,
+      "mtime_ns": 1790969440927399100,
+      "path": "tests/manual/native_media_browser_host.py",
+      "sha256": "0d81d793d73dd4db4985e5bc35437e6f4298e20a7d7d5b53e183662479da339e"
+    },
+    {
+      "bytes": 2915,
+      "mtime_ns": 1791454630505801700,
+      "path": "tests/manual/native_media_storage_smoke.py",
+      "sha256": "db9ea56e71989f04d96ad1cda8b515268fb712c6c5764c62c850aba6a23f126c"
+    },
+    {
+      "bytes": 3662,
+      "mtime_ns": 1790969557805030900,
+      "path": "tests/manual/native_media_ui_browser_probe.js",
+      "sha256": "c9a888684be11a2bdd0b39ac7c8ff525724f6d71b2ac0feac0cfa899a172a132"
+    },
+    {
+      "bytes": 4207,
+      "mtime_ns": 1790441743322787500,
+      "path": "tests/manual/phase8_catalog_probe.py",
+      "sha256": "332bef0683f7bdcd2905dee37fc8097ce5c01dfaa3249f46634f9a750a0fc5a2"
+    },
+    {
+      "bytes": 4535,
+      "mtime_ns": 1790668473417503500,
+      "path": "tests/manual/phase9_asset_validator.py",
+      "sha256": "7fed2921a8847931e98ff1c40991f36e81962e95d325dd3eabd2848dbf756981"
+    },
+    {
+      "bytes": 5106,
+      "mtime_ns": 1790718218179764900,
+      "path": "tests/manual/phase9_fixture_custom_node/__init__.py",
+      "sha256": "27964512aa43f6fb3bf330612ff3cd3ef9ddcfe949c5188e8e0e7ef91d69c015"
+    },
+    {
+      "bytes": 4273,
+      "mtime_ns": 1790668473419500700,
+      "path": "tests/manual/phase9_live_dev_probe.spec.js",
+      "sha256": "e4b5d99053d2405988aa24c4e367f1ec7d6de3a9834475290ec4f1f90c387b73"
+    },
+    {
+      "bytes": 19992,
+      "mtime_ns": 1790668473419500700,
+      "path": "tests/manual/phase9_ui_browser_probe.js",
+      "sha256": "ab502d0e5adfd2863a11c59f4b114c1a98f3ab506e65021e7023a93627db6d98"
+    },
+    {
+      "bytes": 10817,
+      "mtime_ns": 1790957670289698800,
+      "path": "tests/manual/x2_video_data_url_probe.py",
+      "sha256": "728d40a8283f382b19066b4e07166a4bbaeebe3af12c6683efc9fa3428562db9"
+    },
+    {
+      "bytes": 1819,
+      "mtime_ns": 1788524492923228000,
+      "path": "tests/unit/test_app_identity.py",
+      "sha256": "631ce403cbead89a3de5d3d05f4b1a448e703e470bbd8f4028c9b8e729835812"
+    },
+    {
+      "bytes": 22900,
+      "mtime_ns": 1790717741651747800,
+      "path": "tests/unit/test_application.py",
+      "sha256": "d3999670356ca5a1ad7aa2268ea6c4a309fb3c73dae95733725ef97b9335f924"
+    },
+    {
+      "bytes": 16699,
+      "mtime_ns": 1790718472601713500,
+      "path": "tests/unit/test_capabilities.py",
+      "sha256": "a432bb9ebff8ef65743397738a0174e5de85f3f3436bad0f9b0c3cde67fdcd91"
+    },
+    {
+      "bytes": 8409,
+      "mtime_ns": 1790668473420501200,
+      "path": "tests/unit/test_client.py",
+      "sha256": "3c48580a79d383dbce03b1df7c9eb517f41b698754f0bdfaf6d627616e870417"
+    },
+    {
+      "bytes": 3905,
+      "mtime_ns": 1790967123697642900,
+      "path": "tests/unit/test_image_transport.py",
+      "sha256": "289587e20705946f5df93bf96abcc87e5f0ca2da0b75321a6be28672f0dc306f"
+    },
+    {
+      "bytes": 1798,
+      "mtime_ns": 1790441743324787800,
+      "path": "tests/unit/test_lifecycle.py",
+      "sha256": "2b42b296460346ee0139d73224ce03afd2bcd2f60f8dbf44462b084df1807e4e"
+    },
+    {
+      "bytes": 5081,
+      "mtime_ns": 1789157931613308600,
+      "path": "tests/unit/test_media.py",
+      "sha256": "c1352cda4a6a3e981f0263b12bad1501858b28a8e547014226f95f0dfc48f8b8"
+    },
+    {
+      "bytes": 7466,
+      "mtime_ns": 1790717727511583100,
+      "path": "tests/unit/test_models.py",
+      "sha256": "f5bd159a66185f81ca70fbaa2852bd6eb630f136eb2ae974ef2f3505c7d01dc3"
+    },
+    {
+      "bytes": 18865,
+      "mtime_ns": 1790969281972880700,
+      "path": "tests/unit/test_native_staging.py",
+      "sha256": "ef32a76237d477918319d727325c6297ff2150536456fd21f1a92bffa3dde42d"
+    },
+    {
+      "bytes": 2277,
+      "mtime_ns": 1791454770902610200,
+      "path": "tests/unit/test_native_storage_smoke.py",
+      "sha256": "d402393dae9ba8a505e5c5d738563a71408a102c16b317fc2502ca9822347ec9"
+    },
+    {
+      "bytes": 1171,
+      "mtime_ns": 1788524492923228000,
+      "path": "tests/unit/test_observability.py",
+      "sha256": "88f624ddc090d1bb0118fc4766efbd7288f72887338ec93d3d482c6c07c5c900"
+    },
+    {
+      "bytes": 742,
+      "mtime_ns": 1788384417711261400,
+      "path": "tests/unit/test_package_scaffold.py",
+      "sha256": "1602f836aa4ac5546623c96d655ab44a28771ed3a36fc198a80529477f013bf7"
+    },
+    {
+      "bytes": 14113,
+      "mtime_ns": 1790966578208171700,
+      "path": "tests/unit/test_persistence.py",
+      "sha256": "e5c259afdf301eed7237d735333d21915af96ba1422371671052cf6acd29392d"
+    },
+    {
+      "bytes": 5529,
+      "mtime_ns": 1790718173639257900,
+      "path": "tests/unit/test_pricing.py",
+      "sha256": "94873a07522bed3f5b794c7663f5d212a6c96cd5a8fb2e0705dd80cfab458a58"
+    },
+    {
+      "bytes": 1169,
+      "mtime_ns": 1788524492923228000,
+      "path": "tests/unit/test_runtime_policy.py",
+      "sha256": "db4c249ef2441c8690e37f892d13c339704b9fb0fcbf6299992fb2f55d7813cd"
+    },
+    {
+      "bytes": 6081,
+      "mtime_ns": 1790967123698640300,
+      "path": "tests/unit/test_s3_upload.py",
+      "sha256": "fa93e2043989935dec9487996f8c9659728346309a1dd4584c71472621345184"
+    },
+    {
+      "bytes": 1164,
+      "mtime_ns": 1788524492924228100,
+      "path": "tests/unit/test_secrets.py",
+      "sha256": "3a2c5e6a6cb5720e954bd47f84f5ba35ab4f9c5830032623aaa9a51e8d039b77"
+    },
+    {
+      "bytes": 10045,
+      "mtime_ns": 1790957705136601400,
+      "path": "tests/unit/test_x2_video_data_url_probe.py",
+      "sha256": "0558d39bdba941af66c1d84c7abeb5c670f934a06f0e4a1c9fad356d9b0e279a"
+    },
+    {
+      "bytes": 45821,
+      "mtime_ns": 1790966263434916200,
+      "path": "web/openrouter_video.js",
+      "sha256": "6ce1f1648b0bba17eced926760476b27f2c7997f73afd52223580bcca99991f0"
+    }
+  ],
+  "lease": {
+    "base_contract_digest": "sha256:eb1eb2991f468c04385fddb541b2da58b3e7ae1e337480f545089e28169d53e7",
+    "base_delta_digest": "sha256:8f29333989fc0b46cf1cd48c3d97473c967da39d5942074155eefb62ef9955a6",
+    "branch": "phase-10/capability-driven-inference-methods",
+    "builder_package_digest": "sha256:bb6c5fb125749fe0c6bffac2bf9045c38b294f4c538749d0cba8239de9a79c95",
+    "builder_tree": {
+      ".codex-plugin/plugin.json": "f666623ff4f3fbd7d3eae60fe2f8ec95eff1077aa359dea5a9e5407435938f57",
+      ".pytest_cache/.gitignore": "3ed731b65d06150c138e2dadb0be0697550888a6b47eb8c45ecc9adba8b8e9bd",
+      ".pytest_cache/CACHEDIR.TAG": "37dc88ef9a0abeddbe81053a6dd8fdfb13afb613045ea1eb4a5c815a74a3bde4",
+      ".pytest_cache/README.md": "73fd6fccdd802c419a6b2d983d6c3173b7da97558ac4b589edec2dfe443db9ad",
+      ".pytest_cache/v/cache/nodeids": "64cc60bca250afae2d304d3868fe2f10eec897674655cd8774c448254b6c046b",
+      "docs/ACCEPTANCE_LEASE.md": "ca4b87cab4dedca0446813dc3372ccb928696d90255568e16a95e9bf28e14dfd",
+      "docs/OPERATING_MODEL.md": "05da80e888abb2a913951972f4be748f6021cdf7aa2e5226cac07880fc390718",
+      "docs/PLATFORM_PREFLIGHT.md": "9b4c41571b5138459b3884c83055ee95ec2f7d3a59b81fd92747ffd457a48a89",
+      "docs/PRODUCT_CONTRACT_GUARD.md": "c2d6b2e41ea175a63b190dd87286b2888b2fec4e23448bf28721046c95e5246d",
+      "docs/VALIDATION_REPORT.md": "f8b9fc24fcc8bed6a4e24931e95c7e21f445a8e5c333074723b15b292850f935",
+      "evals/rubric.md": "391f08d836f7b6709a59a2f0ad632a70495f51b1e1f0b81a4428d40cd6e36298",
+      "evals/scenarios.yaml": "2e31a82dabac5755cb362c77e2a5d52c68834070199f4e3c31b53049036780ad",
+      "protocols/version.json": "8b819bae843d47a94ad75d2cea70dc94179d5415b550b483ccb501ff320568c5",
+      "schemas/acceptance-record.schema.json": "e443895faf86a928cdd41b1b47556b640a5d6ff9f9a17949f52254403215e388",
+      "schemas/contract-delta.schema.json": "f0645d844978aac3fdf50e3358d71c9e06d8325aec7c1661a884da80b64aeda4",
+      "schemas/product-contract.schema.json": "458200b71cd10746a511b8e2681f59b8bc5a386b8a744a7c2efa9669fd44b481",
+      "scripts/acceptance_lease.py": "45ce59ed6fdda13f8f77401a9492b9bff364204500278c8667e26a719591eb94",
+      "scripts/inspect_repository_state.py": "7fac37684605f587a640220b8a5e39d464a886bdd6a8b70921f196080cb85a52",
+      "scripts/product_contract_guard.py": "6c64f150ffec30a4ac221d135aba159e27eb81485753fdd1a2d0dfaf4199ee94",
+      "scripts/resolve_project_baseline.py": "61c34343bf311016921a2a6e32bf7a6143b15dbe2f864f63285d905321f54611",
+      "scripts/validate_eval_pack.py": "ead15c4ba5ec2db82227a1f18e1e5e94ab6286673308bf42796ca74fafcee329",
+      "scripts/validate_package.py": "5a5759f2cd7b0de714993349546f282363aadf9ed245ddb70f14269531419ae0",
+      "skills/openrouter-video-dev-session/SKILL.md": "7bc9783241bae20ed00f2a0336d39003c4777b3d43d2b80c5a5b72a6072110be",
+      "skills/openrouter-video-dev-session/agents/openai.yaml": "f2892ffa8626f4e9dc132c72f670891af851b8a283b7a805e6b9a250d2289209",
+      "skills/openrouter-video-dev-session/references/session-contract.md": "1ae4703829ab12058b35b37b9b55bdfb0592ff33aeb8c582dfda96b440ca4924",
+      "skills/openrouter-video-dev-session/scripts/DevSupervisor.Common.ps1": "a70570f03c1890ad69a5a28a42d1e5e1e62d03c4a87154a0ca2681cf1f9c9309",
+      "skills/openrouter-video-dev-session/scripts/Ensure-OpenRouterVideoDev.ps1": "b541a417f627bcfb57984e846517417ad476964879e31d7418a91548abafb62a",
+      "skills/openrouter-video-dev-session/scripts/Install-OpenRouterVideoDevSupervisor.ps1": "317c827a60460c5f4106cf98d642ca07bb622d48164c91b9566466e5a732c085",
+      "skills/openrouter-video-dev-session/scripts/Promote-OpenRouterVideoDevCredential.ps1": "ca8c86ff05d32786ca22d2df30ec4287fde11e83182a0644f3695785ae47ff92",
+      "skills/openrouter-video-dev-session/scripts/Restart-OpenRouterVideoDev.ps1": "d48959bc0ccf74b15f22d0283eff09a670adda824bb4fb3e7cdbeaecc005778b",
+      "skills/openrouter-video-dev-session/scripts/Run-OpenRouterVideoDevSupervisor.ps1": "fe281643890a67d4c087be15e971d035e92bc4d1476ed65c4aa1f4300b786425",
+      "skills/openrouter-video-dev-session/scripts/Set-OpenRouterVideoDevCredential.ps1": "f3aae68edd1a6ae51b37bb2ad056c86c4db2059cd6b08b52dc638d8e6edc0360",
+      "skills/openrouter-video-dev-session/scripts/Start-OpenRouterVideoDev.ps1": "643c7a3fd6ab35c424567c996c0071e4ec0cc9869b8296485d476454dda1d691",
+      "skills/openrouter-video-dev-session/scripts/Uninstall-OpenRouterVideoDevSupervisor.ps1": "fd577cf216f97c88bea48ee06b41043f4bab39d612ab6adf30a2bcab8f60073d",
+      "skills/openrouter-video-dev-session/scripts/dev_session.py": "f6f11348ac0b421d128dfa6aa7d99b50750f9486f4f1feaef0ccdafacd262c3b",
+      "skills/openrouter-video-evidence-gate/SKILL.md": "0c40131e0ced0c5e0ea76ba37fb904b488db46ef63241d3072c9222de6749fbb",
+      "skills/openrouter-video-evidence-gate/agents/openai.yaml": "d5dd1263b4c08fcd830dac1d61943bf52aaee4c379352c859054cb562e3fd97f",
+      "skills/openrouter-video-evidence-gate/references/contract-drift.md": "e47824e1fbdac2f20fc583cbaa7232b438ab883d9d42c91300a8fe2f1686e36b",
+      "skills/openrouter-video-implementation/SKILL.md": "c80da1dc71e8a242050ac0cf6cfa651ae26a33d2202f899db5050d7c23e31a30",
+      "skills/openrouter-video-implementation/agents/openai.yaml": "9537249fa1edeef26dc40ee62c49e61119e6921f0a15d60b32aec1738c96380f",
+      "skills/openrouter-video-implementation/references/implementation-boundaries.md": "0fab4df01f22d2457a8e27f0f7d1bfd9f510c771986691cb5db6002244beccb3",
+      "skills/openrouter-video-orchestrator/SKILL.md": "7bfcec310310dbf0453a67ceb480dd665025a3f0132929f9fca370776e180455",
+      "skills/openrouter-video-orchestrator/agents/openai.yaml": "6df932c99129c3962e2e522d848aa1490ddb503a4b5cc1df4b0e8d8ebe005038",
+      "skills/openrouter-video-orchestrator/references/routing-contract.md": "9d49754be17e992cb0613d8e680b5a34203998c4a5286991aa076950b94bca07",
+      "skills/openrouter-video-protected-delivery/SKILL.md": "99eb36e476dfc2a6cd8829181d4d67dea30bee27c6d61ec1e09a33eeffc7c803",
+      "skills/openrouter-video-protected-delivery/agents/openai.yaml": "719e9d407c63cf12ef8fd1b26f56a537a9f134bba61f1b2399f153931f7f57f7",
+      "skills/openrouter-video-protected-delivery/references/protected-delivery-contract.md": "caae7354580e1012b365b6fd0582331afce4c525f598b066eca313471d36cfc1",
+      "skills/openrouter-video-recovery/SKILL.md": "ccfc31c64c8d65e3f5b31e6ee06dd70f989ad6eef06a5192757a5621011bbc46",
+      "skills/openrouter-video-recovery/agents/openai.yaml": "1f524b7bfed3c9968e180cea69ff8bbe9352b01bb065b1df4c616ba251fc31f2",
+      "skills/openrouter-video-recovery/references/recovery-contract.md": "68c4b46f51fee3a9c46a4f48159fd6d774584ad3362cdd4d785ea6da8b129ce8",
+      "skills/openrouter-video-verifier/SKILL.md": "ae5b9558b81e685c112a9be4eafd4aa67b8b4d21f7466e8c69f461a920386c30",
+      "skills/openrouter-video-verifier/agents/openai.yaml": "49244471bb2923bc7cd9f4b2fe94694b18dd1d81ad2e9cef4ae0d54253ef3eaa",
+      "skills/openrouter-video-verifier/references/verification-levels.md": "39137fc11344e9d025768939956f15dbfd0cfd7d0265cb864e20492098192395",
+      "templates/acceptance-record.template.json": "a86fb6f1b3ac201f60d57453822fa3ef543adde2e142a014e61752ab0d071aa3",
+      "templates/contract-delta.template.json": "7319d65e1c3c7a6ba75bffccc538fc0c1a64e28921cf133367dff7803fae8feb",
+      "templates/product-contract.template.json": "bdc95f2cc61eea349d989774a48c0fcb736d1c719ecfb70f295626cce1b84561",
+      "tests/test_acceptance_lease.py": "cec34a6027a8448455cbbe53abf57858669a3dd41b4c23146c0fddf84c999cb7",
+      "tests/test_dev_session.py": "b75ac1518f356a88afad9f51dead900dbc500fa621b9fab569a046672662ca31",
+      "tests/test_inspect_repository_state.py": "ed8764b0ed62590382845d3a5c60a7b9e978ad70fd5ed285e12274eb9d20245e",
+      "tests/test_package_validation.py": "0ef6e0afd2a83896156c0457e3b843e2d1d78c4611c1126e952cee20353269e3",
+      "tests/test_product_contract_guard.py": "20444b45e0c5777348f9895dfdf45f6a21dee25e89c9716f38ec510eac499963",
+      "tests/test_resolve_project_baseline.py": "a3246aae5be25654834cbe7c636045b0a90f396030514c141036d8f7b4d6eba7",
+      "tests/test_version_consistency.py": "51741695b7992b09f522634124bd77d9ba392a9f4651dc47d227fed740cde814"
+    },
+    "builder_version": "0.5.0-rc.3+codex.202610081830",
+    "events": [
+      {
+        "event": "ACQUIRE",
+        "time": "2026-10-08T19:10:46.662187+00:00"
+      }
+    ],
+    "owner": "HARNESS",
+    "owner_creation": 134359246215694335,
+    "owner_pid": 14388,
+    "pending": null,
+    "product_owner_exclusive_confirmation": "attachment:4d630cfd-d8e8-4aac-a613-1137e7c3e58d",
+    "repository": "E:\\_ARENAS_lab\\Bizdev\\AI\\OPENROUTER\\ComfyUI-OpenRouter-Video",
+    "run_id": "phase10-exclusive-20261008-7ae68eb9",
+    "session": "01a06e75-b9b8-7380-9427-145b67a17c6f",
+    "snapshot": {
+      "files": {
+        ".agents/skills/README.md": "41afa991a7aea1e0e8d1a0994a777f2af37c60e88e0f158c0e73f7fc7204d535",
+        ".comfyignore": "e8161c2af1dced86776734542917ca3d3e8616056ec4485ec6f5b596cdc337b3",
+        ".editorconfig": "921353d9d6be57ed977a38047c02757ba0ec0a0d526e37a6c476f2006fa4fe58",
+        ".gitattributes": "2a05bf9500ca5ecf8e18d547bf2d5f6da0de8a1bf64beb89750c57d26545db72",
+        ".github/CODEOWNERS": "8d859cccad286e9440a26d3341ea6159aa43c085c029d87540a0bc9ee212c656",
+        ".github/dependabot.yml": "0cc189950ab019ee91ef79c70c423935f283275c3986c4dc8036f64f772b839c",
+        ".github/workflows/ci.yml": "89c66a08b1890594e88972a020e26d3001ea733ec5a87a19a833239fcdff4c8e",
+        ".github/workflows/codeql.yml": "3f44699a0fb445e2dbfffb66550182862e91ff15973af230f0272be1a6c226b4",
+        ".gitignore": "0c70e359106c3c26cbf16ff1089a40204b8a0b5d74b9c59caf6daa4a1fe05a2b",
+        ".python-version": "5b703ca38d3fd391f3e889f7ba893f94b921ff9e7b7e5d8d6622d5f7daca7049",
+        "AGENTS.md": "32eb7f50c37ea78498c50afa0dc19fdaad6dc27821d2ce7ac136587ed165d6cf",
+        "CHANGELOG.md": "65355500ea23cf48e34958e5be51ae8ebb5f473301dab5dc9ad594f5ee7862e2",
+        "CONTRIBUTING.md": "d2ebad4c2faf77f550720f0ce0e0651d987a1a85f5e928f5a287c265d5774f37",
+        "LICENSE": "64b33c9a1e64a11d4f2adb9d5a2528e334b0546b48485382f48ab501cbc95842",
+        "README.md": "66cbe627a44db4ab35f098b67135d0cc8f999370c05c1651abc8714f2d7d87ff",
+        "SECURITY.md": "a50f4a48293876c86b967fb76d551ec75a90b8f798249a70ba458c7c820dc36b",
+        "__init__.py": "f19e131c1a34fab241562d32f3b5ded27f322f04f425fed816776697e1cdc5a1",
+        "contracts/product/README.md": "524021698e6c67941dad927ef06a248ab23af215909c6656f3bfbc8cd7e162e0",
+        "contracts/product/acceptance-index.json": "a8f8e2f601d8c33d1e4c9139f3292776ea406ebb0e6e6006da41f48ba9f95db3",
+        "contracts/product/accepted/phase9-runtime-reliability-b492184.product-contract.json": "84fef378d0ce21e6fc1617947e8d18f281f3b7f750f467f09bd6276ed1290635",
+        "contracts/product/candidates/phase10-native-media-08838ab.acceptance-record.json": "1839426fee04cb54034bfe85d55a4f59ed30dc5fdf150d35c825b8a0cb171a3e",
+        "contracts/product/current/phase10-native-media-08838ab.product-contract.json": "49fec1c0eeb2e1eb1042b2525e97f35879bdee48bf8d5c04718180229ff484d9",
+        "contracts/product/deltas/phase10-native-media.contract-delta.json": "53acb0836b2852bcebd944bb04777c5e146693dc22ea9d4e6f3f387f7f9143b5",
+        "contracts/product/evidence/phase10-08838ab.json": "4dba3449303b79eb77b31e48197ca86702b82ab45b5027befd9d93845cad9dc7",
+        "contracts/product/evidence/phase9-b492184.json": "e0447d6836b91bf1818498b536b7fcafe42a3e89e2c341ac8191637cb004b5b4",
+        "design-qa.md": "053bc477e4298e9d8f68a04599090209c00cfed4f9cd3c2264b023b6ef76fa2a",
+        "docs/active-execution-checkpoint.md": "ed83d3b64eb1ab4623db02f6c4849ff0a728961d23ff99dd5440f6b644868675",
+        "docs/adr/ADR-028-local-recovery-identity-and-request-fingerprint.md": "7dc1d1ec0e3dd61186ec045ac483e87f593eebeaba3b2b296302bf4c9fcaa2d3",
+        "docs/adr/ADR-029-durable-definite-submit-rejection.md": "23e32d01d3188a58a5d4773cd80f6575a2e03d4ff1df4444ade7a4886768470b",
+        "docs/adr/ADR-030-evidence-backed-capability-overlay.md": "829e870e3d0b3cbd816985cc8ccb51175096867911177e29864de81aa7e13c39",
+        "docs/adr/ADR-031-capability-driven-inference-methods-and-multimodal-references.md": "bc6419452c31bec89a4f5f4ab46fdf935b44e34a8dc57c394315cff8b0091953",
+        "docs/adr/ADR-032-native-media-s3-staging.md": "785ea6e8bb25fbd18ab347a732f201ee7e6c73661211803ac5320675fc8a1bd8",
+        "docs/adr/README.md": "645cc544fe98c86d72d587034deb722a1fd76799dafa5efb5f40043d1896e26c",
+        "docs/architecture/README.md": "886aaf4f18b48ee1e025d5a7953675aac265e5e21d409b8fec82e4cc816b2910",
+        "docs/assets/native-media-bridge/canonical-after-restart.png": "8bf3afc502b4421f045579ef3c19830c537226dd63bb3106cae7d407d889e8db",
+        "docs/assets/native-media-bridge/canonical-browser-proof.json": "86e3a95d82a7f00bf689d86696a4d9a1163b68a707f12202432c1d51e0802036",
+        "docs/assets/native-media-bridge/canonical-full-model-picker.png": "3553b871086c965633f7ba025ff9bb130e350caf06d288db36c74308192f6765",
+        "docs/assets/native-media-bridge/canonical-reloaded.png": "1659618993342a042e448a38ba074ea7c6022f997fdea92cfd3287a8c481d162",
+        "docs/assets/native-media-bridge/canonical-runtime-health.json": "f1279972f9b23c92d2087f226e9ff3fe666f089b14e3543a3d07c26cfe4b0901",
+        "docs/assets/native-media-bridge/canonical-storage-error-details.png": "5b56174cfb625a0d42d4cc87044b72f22d301e55f413b9d626cc4d20f9437894",
+        "docs/assets/native-media-bridge/canonical-storage-error-proof.json": "634c814dad261538f558ae0352f649efc8e341a5f2983845b418c0c76b17e93a",
+        "docs/assets/native-media-bridge/canonical-workflow.json": "c8e5bbb890b6857e31d4493b22abfcfa3ed680f8964046a0018a6cf6b5edd6e2",
+        "docs/assets/native-media-bridge/native-media-browser-proof.json": "12820288df83cbe0cd9d0e6a7fb44ee071273881362b400537173cd4d3f33421",
+        "docs/assets/native-media-bridge/native-media-connections.png": "4e73ab92c75c285b9da39e33094fa42762f09bd2a0a4d78d18b49757c633cc5e",
+        "docs/assets/native-media-bridge/native-media-storage-error.png": "3f9712030b1fc498bf1da2550484e70865d45183073dc2871cd717ab1c9fb5cd",
+        "docs/assets/native-media-bridge/native-media-workflow.json": "fafa35456aaa6c5cfa2e2a075e9be1066381fd72f25e1ea06ef9829994952f0b",
+        "docs/assets/phase-10/direction-3-inference-method-dropdown.png": "b59deff2241606549399e32b5a5a31c32b54677c97133df381bf81dc0a2000d9",
+        "docs/assets/phase-10/direction-3-mi2v-primary.png": "78c94e007bb33a6520868ca5e740daefc7e37638fdfc750c24850f5eb7bee57f",
+        "docs/assets/phase-10/direction-3-state-board.png": "8a932fa73dc8552eb075c25259eeccf4d60f52082d9fe1c5f98a189d42898677",
+        "docs/assets/product-contract/phase10-canonical-browser-proof.json": "a9cf0e202ce1b4531ca1f72582cc4a79577d0c0e3ccedf36fc9ba7b1f866fa50",
+        "docs/canonical-sources.md": "afdfb62b4dc051674240530f0ff6dfd8b8a7a2f54c2a0cffc0a0596b5dd28b05",
+        "docs/comfyui-adapter.md": "f7dffd9fba1a6290fc42d0618a86de1398b17a942fe8074e27daea78321ced05",
+        "docs/development.md": "d3503107e2bdfb51a154a0e88d86fcd09829e30664bf465077140962f00ec126",
+        "docs/headless-core-ii.md": "4c9419a63d9d528256ea96a3355d823861b4f98316b8976c215944a71394bf90",
+        "docs/native-media-bridge-verification.md": "76eb92be3817536509dfd23bb76dce9be4e54fac8a7bf6b4fa440e5e7b4c2731",
+        "docs/native-media-bridge.md": "15c27291a0d8ced68899ce46bd0d0fd75419349f5c6ca79a5e1331f0dcdce35e",
+        "docs/native-media-canonical-verification.md": "b9ad806f73d9d47bf25b9005c120583ebc10bf35ad06aedd6d4d68288c9b787b",
+        "docs/phase-10-capability-driven-inference-methods-plan.md": "de98211ee90fd8c2c7fb822910d6cbcc23ecdcef3ecb0db9843b692173f15837",
+        "docs/phase-10-design-qa.md": "8d501eaeb36abcac3a51ed79889ee1ec6b040ea433e3c16b6f7cac5048b53a29",
+        "docs/phase-10-direction-3-visual-spec.md": "ab0c524d76770b94c2a36128fe4d474ff23187a8ccf82d785e605a1c74d8ccdf",
+        "docs/phase-10-evidence-gate.md": "b915ff726f2146680a39fde524f4569e268e1665adf18eca92da1d70cd69daee",
+        "docs/phase-10-local-media-transport-evidence.md": "daee8cf1d155848dcbd74881b3b57ca0de8e76e6cf7096e2895c10e55fd5efff",
+        "docs/phase-5-contract-evidence.md": "ef344c9832bb68ecadf0145a42bf67c17bdbf0e216bd07d5993257040b58c502",
+        "docs/phase-7-t2v-retrospective.md": "fad90f657357bf01a786521547bd65b3ed352643d37a345946fe02dbc29f14d2",
+        "docs/phase-8-capability-evidence.md": "4492e58d55cde1cee82f1db31592cb59e1b3471cac8bed5ca80d0d16756ced1e",
+        "docs/phase-9-live-evidence-schema.md": "d7b9a9f52de451ca5145c80c4a9765da10decd8a5e4392d694856e256d2806f0",
+        "docs/phase-9-live-runbook.md": "5b4f598f922770d1ab30b06d6c29749ddedff0fa60f1106fe0ebe5dbaa84f3e9",
+        "docs/phase-9-local-media-transport-contract.md": "a6fcef657d10951601d683dad5efcded277f2771a8a5ee993adac0dd583d65f9",
+        "docs/phase-9-local-zero-cost-rc-evidence.md": "5a1a017370065815fc906bed296b36bbe4217d4ecc18e881e52b41c04147213b",
+        "docs/phase-9-pricing-planning.md": "c7f3009b6bf2cc246438ecb7a939bc68c4df22edba895b49b52543f1db7909de",
+        "docs/project-delta-ledger.md": "d4f8286fe883ed0bb9195a8efec4187b8f0a86a3484fa6cdb4912041d0830216",
+        "docs/security/development-boundaries.md": "8869b8d68147c2a37327624f6e4da5df81e837061fbdedb4e73069042f830efb",
+        "docs/specification/README.md": "1cc9aa516a97eb668d47958f4c40967a5a7cdcd96bf214b1c9091ceff67892ed",
+        "docs/testing.md": "efd73f5b4ae90304544500e210e4e610206207849be6a3e58ecb3aa352317656",
+        "docs/testing/mock-contract-harness.md": "71c0a63161931c0a6ca9cb1442ba34338237ec5f0b0d69d6ac140d0f24a3666f",
+        "example_workflows/README.md": "bd2c6faa50a37413e0c16755800aebd54cafcfcbac09bc030f46b6affaacebb6",
+        "pyproject.toml": "cef74f019b2ac82fa50bbff4b1919f35d0f82b6704ef5ef916927a099615d430",
+        "requirements-dev.lock": "2045ae7e4f1bdb65a708a0f36c4eb518286b7fbb2cfe6c069c09c40ed901d2ec",
+        "scripts/export_product_contract.py": "e963634564eaa163df01039ce8eee9a396866f4a934e22f0fce53463a67a9a49",
+        "src/openrouter_video/__init__.py": "29609578652107b9020a259f63a9076e7128ac40d8638935b40f7d475417287b",
+        "src/openrouter_video/app_identity.py": "94fc446b83ddd707ca4d6463b280dd0fa210e4f106ec08a059bf4abd260e7ed7",
+        "src/openrouter_video/application.py": "d415c1dc7f5534165a24b7ff69568ead45a581b8ac3c8337591e0789c16ad967",
+        "src/openrouter_video/capabilities.py": "3f0cac577d29410a9acb00e28be1cb22bae4c812358493275a3ef959671c2760",
+        "src/openrouter_video/capability_overlays.py": "dd938dfa92c465d91f76bc66d8ea14c258429787884beceeb5dcdee6096af7a5",
+        "src/openrouter_video/client.py": "5eaf53b7f3dcf294322b0ce72ed4a6b41758f3cb7c1167b0a890c13016374d40",
+        "src/openrouter_video/comfy/__init__.py": "53c1674848551aacdf94a06520af63ff90947add1e69af174b3d983367958654",
+        "src/openrouter_video/comfy/compat.py": "f06a8359ca5125d7e6f2c316b7e77d1a832326054ec8932adb00e5a196b8a57d",
+        "src/openrouter_video/comfy/extension.py": "6ee07e2f03164f5e9589af15969beba46410e53c6f5394e73acf83b250be8165",
+        "src/openrouter_video/comfy/image.py": "ad04516d799f093ce6dfa65ecf0dc193970408119338c4da329dd9da4a88ba50",
+        "src/openrouter_video/comfy/native_media.py": "3e7e41cfd8a40b45cfbad3e611bc7a3c852e7bbefe8ab31fa241884db8a6e794",
+        "src/openrouter_video/comfy/nodes.py": "89b2e272473fd30d818fbe84d352c805fd6198154582ae62df6640c6e55e41d4",
+        "src/openrouter_video/comfy/projection.py": "81dc6c31b6d17dfac50b5bff3694d6982d345c8f9384a54e05d3c46b96a0f953",
+        "src/openrouter_video/comfy/routes.py": "e3be56634c60447a526402c510e829a575b9d20e7dc58ee29fb890048d27b3ee",
+        "src/openrouter_video/comfy/runtime.py": "8d80a188eb5614d6969cc899608404e1009b970624cb2102eb2984f7062996c6",
+        "src/openrouter_video/comfy/video.py": "4a68b60806cfce1e06712f0dcee3e0adef07d96ab553ce070d9c25bbfcf3aae4",
+        "src/openrouter_video/errors.py": "2ee7cc10ae9e353b28539b82810b8a7bf54ed1c33f6373daab2d71c3dd50642f",
+        "src/openrouter_video/execution_hooks.py": "459c6370f1b987ee5214139172e910fa2af0884869b8fed2a328d0cb4cf47da7",
+        "src/openrouter_video/image_transport.py": "b855df55ecf95d08d0aae6972a8f31ddb09945ea4686888ba28c9bef660761f0",
+        "src/openrouter_video/lifecycle.py": "5a8a124025bfdfdddba5c6d5714a02c061f81d7544a5e0e2ac033ee3adfbdc75",
+        "src/openrouter_video/local_media.py": "37a426024de3d881574013e3983f9d1dac50052e7cd07af5aa89686e5a29fc39",
+        "src/openrouter_video/media.py": "28f4680749b6ae634f0df6781c292aec0ed9e479a7fd305930a3fa4362a895bc",
+        "src/openrouter_video/models.py": "698f9bb7e654b6369f15571d25af245c99a0b3e35f0866d05deddb032f5147a7",
+        "src/openrouter_video/observability.py": "b4c97e23d1bfbffa4553c6af9064a695ead6a7fd8e66b1c23f682a55c2305f7b",
+        "src/openrouter_video/persistence.py": "93b3df6af5665b26ef5d8c88529eae4f5f2d87069d935246bbbc865406291961",
+        "src/openrouter_video/policy.py": "86429367bd0a510502a114b085263bb21472e42b403e49fb1d3ec945aa8dbf39",
+        "src/openrouter_video/pricing.py": "92eddbca295a2d2c910b53ba246b384e84c02a22e9e8f55cecf48c3710feca1d",
+        "src/openrouter_video/py.typed": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "src/openrouter_video/request_policy.py": "df34611e8fcf10b280d3c6d94bafc48be4feeff7879e0380d7f417e8ff43a141",
+        "src/openrouter_video/s3_upload.py": "e7c809f0cb3d789c0702dc050a581960b3a0a2646d06ef2f285c3f016ce2e9e6",
+        "src/openrouter_video/secrets.py": "9cd779b0340bbe9ce3a39fa8cb410142980b922cbebc14774a3eaf07ada2c5b9",
+        "src/openrouter_video/staging.py": "ecf5b31cb39fd99713e6ea2a045a1e8eeb24ab244e714e88a44e56c3b15db577",
+        "src/openrouter_video/transport.py": "be05e33cc8ee5561185bb804848d2c2aba61f3229b622a035bb2f8d82a560a96",
+        "tests/comfy/conftest.py": "a0a34f6a5d429fbd296d387b52e09b75e8583e1f9819756b7253459da72cdc09",
+        "tests/comfy/native_image_bridge_probe.py": "c54a3e63bbb92db7881d524c9d8946b9fa582870576c3366516d44c148feaf0f",
+        "tests/comfy/native_media_bridge_probe.py": "2e10cce1bf516c73173ec7f06c43761445d84dcdd08f50f674f30a5cfb76ede6",
+        "tests/comfy/test_adapter.py": "b163ede204950d7e7cb3f2145120fa8c66af91841413f4cebbdf4c86e50a3e85",
+        "tests/comfy/test_runtime.py": "ac42ebcb062a40ae91ca9d924220d5bb6aa62ca49b725d7f5fbae929b49c4b9e",
+        "tests/comfy_dev_probe.py": "b82e0abac3a0e2bfa1fb13b4f458d845398bf6022cc7682155f470dc252dd91f",
+        "tests/conftest.py": "00ab44822d2f5b3b6705fee493c3bbcdd3a4411453ce30e88253077e25778ccc",
+        "tests/contract/test_architecture_boundaries.py": "3e17cb47e1e5dfb593b8a579d3117b3ade08d50f2abbc2a441b559bc6cd5fa10",
+        "tests/contract/test_harness_security_privacy.py": "f2f85279ed410b557da36f13e0ccb6cdc26aa90d241bfe366bde4e5816d08ffb",
+        "tests/contract/test_native_media_non_regression.py": "43b34af82687b5ec4660455b2e062a0bf7a2a8c353f5615c22c9119d5d3bf300",
+        "tests/contract/test_openrouter_video_corpus.py": "85869d9cf83591e78dbe17973bdbb66116e8adb1787d4b1f353f665c5addd26e",
+        "tests/contract/test_phase10_frontend_migration.mjs": "bc62f42521eda5a03f834c659a64787c23ca2690c175b4d6cc3302aa39907836",
+        "tests/contract/test_phase5_privacy.py": "9cf884a92b2169c73512af27c93ce2aa28db301b751998812df5ff0117933e1f",
+        "tests/contract/test_phase9_assets.py": "3b2796317a7927ccc415914dca7d919f2f079dd1022324d9fede21f6e751490b",
+        "tests/contract/test_phase9_frontend_boundaries.py": "7e7b7a8c9dd9d6767ef9271b58d4b7ce6f55e0b66c2d7af6b79a4ba9b2bcc883",
+        "tests/contract/test_product_contract_guard.py": "1e69f6b33a7c30c3274321202d42d1b714dd67c560f64a9c75e79c10da713110",
+        "tests/contract/test_request_policy.py": "5d2f6f7f0734a9cbb2e163a1bedf40df83a3bbe1d4c612f2603d8109f3d76ce7",
+        "tests/fault/README.md": "a906f237601574fe1f8280d2773285a34ff162c51bdd8cf4caa6128a3d858139",
+        "tests/fault/test_billing_fitness.py": "1695b6b9dec7d12120ffaa6aa909b07372e8f78e8e9a34ee1a4f2e436d930ab4",
+        "tests/fixtures/README.md": "04477eae20d5bedc9aef3127cd72f2f1e812dff8861c61f499ca66129386b724",
+        "tests/fixtures/__init__.py": "4be9fd31070b01fc6f82217018ad3e9e0275fdb4e192a5a26fb49da593cb44f6",
+        "tests/fixtures/identity.py": "cbf1456c13136920b1584db639168702cc1df1a0ecb63d89c4e6e6d4de0b9110",
+        "tests/fixtures/native_media_protected_baseline.json": "f587e48c131ad77c1ac7c27a7d0fa6dddf7f0d5ea1107da885c450ffb8263480",
+        "tests/fixtures/openrouter_video/MANIFEST.md": "7b550e6472645eca710e051b2fdc86ab3cd8df2027f33817e1424a304202692d",
+        "tests/fixtures/openrouter_video/discovery/catalog.json": "6c992d36695005c401e210d6fb56d3256ca0f0402d8bc18484534fd22c7af742",
+        "tests/fixtures/openrouter_video/discovery/empty.json": "0345797eb7c9a8572a37748670cd59d03232674f0df8b9bdb5ae61d77a1c07eb",
+        "tests/fixtures/openrouter_video/discovery/malformed_data_type.json": "4a6915a7a306ff8f556c3d2ac0713caa21e4fec9b2128ba941d5d35c22ded5ed",
+        "tests/fixtures/openrouter_video/discovery/malformed_missing_id.json": "5ceba5d6168c89e3ae80a69894679bf12bc0719abd2c06fc10df074f3ade5843",
+        "tests/fixtures/openrouter_video/errors/response_cases.json": "10919e622874496fc992255870c7132a34fdfe254fb7c0acf14753d917c8b87f",
+        "tests/fixtures/openrouter_video/malformed/invalid.json.txt": "47ea075572e438135e30f1eef68f8c54a20f03e0e1fd89b280855949abe6a3ca",
+        "tests/fixtures/openrouter_video/poll/cancelled.json": "6f136038cfe83898caff952b2df12f5842d997178b020b942323003f8b48fc65",
+        "tests/fixtures/openrouter_video/poll/completed_cost.json": "c75bd84dacbe2a83859ba1c4e1c8bbf15c223d48aa5afdf5768709d8efeec743",
+        "tests/fixtures/openrouter_video/poll/completed_no_cost.json": "f08bc7d169d138b2c57f8dceb08472176b65058d4b56072f7383c68122e900bc",
+        "tests/fixtures/openrouter_video/poll/expired.json": "e6df3ca042b7721156188327f20a5d3cf9a4d0e8cc1a8e3578b6d9b1634b4b1d",
+        "tests/fixtures/openrouter_video/poll/failed.json": "8da36cf9d3bce9618ae1478cbfe77a9dcdc6b7ee6fd8de61b9f056eaf47fe612",
+        "tests/fixtures/openrouter_video/poll/future_unknown.json": "47c9b86ed3a669378a16709d8f8a7167e7e7f66de7f4ab25de6d6e0ae577f225",
+        "tests/fixtures/openrouter_video/poll/in_progress.json": "03300b3dee370d44383803b043e7c10267a8b7f51044b256c0f01f98a42f092b",
+        "tests/fixtures/openrouter_video/poll/pending.json": "4acca3ddb3831b84b232de170fbc8dcae95172a1a159eca2b149bbb6161d3dd4",
+        "tests/fixtures/openrouter_video/submit/accepted.json": "d7735fca63e02699e184db409b0787e5cbd0807f7daa5c3aad5cb1826d452bdc",
+        "tests/harness/__init__.py": "5679c26cf99745a40f09029ff075036cc5c68e17c07307c2907aa51b61896959",
+        "tests/harness/core.py": "606002d603460275f632c134b7c0534370a1e047aa27543e394ef066fac7e12a",
+        "tests/harness/mock_server.py": "cbdb194afb812177a61533ac9f27c82bbb2012497e7c4a8f8c879efb8f1c06d1",
+        "tests/harness/scenario.py": "cf31b41bf4f00c79764676d57441535ecd8bd0bf272c85e1f76bf03641ef09d1",
+        "tests/harness/test_mock_server.py": "05e8ce718acee314ad406bfa9a771841953a2bf8b91222ccf2a1ccbd883c7ff5",
+        "tests/integration/README.md": "e1d753aae6e6266579c3ff38ecac13462749adc256aa58d9c47af68826e0c8e2",
+        "tests/integration/test_mock_contract_core.py": "ba032b47c1dfed8ff55a035c2c601c0ef2dbec809a8dcc30f7eea63fbf72a7f2",
+        "tests/integration/test_transport.py": "361f9244b4bd9d12917c1eb90a9131c49ab29c9f4fdbe8aa9e96fe001f79294e",
+        "tests/live/README.md": "9c4f81ca08157033cce597c5949a5ba3005125b247609cc62eb536e376d37fcc",
+        "tests/live/fixtures/phase9/first-frame.png": "0fb8ec7859841b8eace77de5d3ae9bdfae14dbb83dec600562514490a473767f",
+        "tests/live/fixtures/phase9/last-frame.png": "3e7d351b3ca7d1aa03edcb63f1b1e0d8691a90eeec57f87f88e82f10156852d6",
+        "tests/live/fixtures/phase9/manifest.json": "a37801d126486630709d88e77fe4b23891dd46ee4f4226ba42446d35f662fc4f",
+        "tests/live/fixtures/phase9/motion-reference.mp4": "e6009ff03feb01893c4dcc5a77d564e6af23066c4305dea1460d48696f8f448b",
+        "tests/live/fixtures/phase9/prompts/first-frame.txt": "4378f1e1737fd5df2028022bb7a08b1fc6f61b3704da043227d381fcd3a7ace6",
+        "tests/live/fixtures/phase9/prompts/first-last-frame.txt": "f330dfd89b0a3b2a4fc9fa6ebb398890c7ffe05c34729ba95643c0cdcd4b72a2",
+        "tests/live/fixtures/phase9/prompts/mixed-image-video-reference.txt": "9cc1008178af29bf852fbed26480216dc430156c983f87226a00ebc5d8ac2047",
+        "tests/live/fixtures/phase9/prompts/multi-image-reference.txt": "8df826608ebf4a51ca8c50d02c5d5dd620fe8fdd104d9755420d7f917b3833e9",
+        "tests/live/fixtures/phase9/prompts/video-reference.txt": "3ba07d4f36cb4ba7a1b75d0b9367a7e61c623aea20a94d7d420ed28bd1083181",
+        "tests/live/fixtures/phase9/style-marker.png": "a3ab1502565328b8cd4c22ca4646b0ebf23b032bf039eedd3b9201d231670e11",
+        "tests/manual/canonical_native_media_error_probe.js": "f9a81953adb0902167da076acd9b5832ac7a5a2e41192c7f3394cf3afe2a6cec",
+        "tests/manual/canonical_native_media_probe.js": "e142a3ea8392592f7b3c35d51e916e9d96aee7adfc80f39d8f530ebc2be75030",
+        "tests/manual/native_media_browser_host.py": "0d81d793d73dd4db4985e5bc35437e6f4298e20a7d7d5b53e183662479da339e",
+        "tests/manual/native_media_storage_smoke.py": "db9ea56e71989f04d96ad1cda8b515268fb712c6c5764c62c850aba6a23f126c",
+        "tests/manual/native_media_ui_browser_probe.js": "c9a888684be11a2bdd0b39ac7c8ff525724f6d71b2ac0feac0cfa899a172a132",
+        "tests/manual/phase8_catalog_probe.py": "332bef0683f7bdcd2905dee37fc8097ce5c01dfaa3249f46634f9a750a0fc5a2",
+        "tests/manual/phase9_asset_validator.py": "7fed2921a8847931e98ff1c40991f36e81962e95d325dd3eabd2848dbf756981",
+        "tests/manual/phase9_fixture_custom_node/__init__.py": "27964512aa43f6fb3bf330612ff3cd3ef9ddcfe949c5188e8e0e7ef91d69c015",
+        "tests/manual/phase9_live_dev_probe.spec.js": "e4b5d99053d2405988aa24c4e367f1ec7d6de3a9834475290ec4f1f90c387b73",
+        "tests/manual/phase9_ui_browser_probe.js": "ab502d0e5adfd2863a11c59f4b114c1a98f3ab506e65021e7023a93627db6d98",
+        "tests/manual/x2_video_data_url_probe.py": "728d40a8283f382b19066b4e07166a4bbaeebe3af12c6683efc9fa3428562db9",
+        "tests/unit/test_app_identity.py": "631ce403cbead89a3de5d3d05f4b1a448e703e470bbd8f4028c9b8e729835812",
+        "tests/unit/test_application.py": "d3999670356ca5a1ad7aa2268ea6c4a309fb3c73dae95733725ef97b9335f924",
+        "tests/unit/test_capabilities.py": "a432bb9ebff8ef65743397738a0174e5de85f3f3436bad0f9b0c3cde67fdcd91",
+        "tests/unit/test_client.py": "3c48580a79d383dbce03b1df7c9eb517f41b698754f0bdfaf6d627616e870417",
+        "tests/unit/test_image_transport.py": "289587e20705946f5df93bf96abcc87e5f0ca2da0b75321a6be28672f0dc306f",
+        "tests/unit/test_lifecycle.py": "2b42b296460346ee0139d73224ce03afd2bcd2f60f8dbf44462b084df1807e4e",
+        "tests/unit/test_media.py": "c1352cda4a6a3e981f0263b12bad1501858b28a8e547014226f95f0dfc48f8b8",
+        "tests/unit/test_models.py": "f5bd159a66185f81ca70fbaa2852bd6eb630f136eb2ae974ef2f3505c7d01dc3",
+        "tests/unit/test_native_staging.py": "ef32a76237d477918319d727325c6297ff2150536456fd21f1a92bffa3dde42d",
+        "tests/unit/test_native_storage_smoke.py": "d402393dae9ba8a505e5c5d738563a71408a102c16b317fc2502ca9822347ec9",
+        "tests/unit/test_observability.py": "88f624ddc090d1bb0118fc4766efbd7288f72887338ec93d3d482c6c07c5c900",
+        "tests/unit/test_package_scaffold.py": "1602f836aa4ac5546623c96d655ab44a28771ed3a36fc198a80529477f013bf7",
+        "tests/unit/test_persistence.py": "e5c259afdf301eed7237d735333d21915af96ba1422371671052cf6acd29392d",
+        "tests/unit/test_pricing.py": "94873a07522bed3f5b794c7663f5d212a6c96cd5a8fb2e0705dd80cfab458a58",
+        "tests/unit/test_runtime_policy.py": "db4c249ef2441c8690e37f892d13c339704b9fb0fcbf6299992fb2f55d7813cd",
+        "tests/unit/test_s3_upload.py": "fa93e2043989935dec9487996f8c9659728346309a1dd4584c71472621345184",
+        "tests/unit/test_secrets.py": "3a2c5e6a6cb5720e954bd47f84f5ba35ab4f9c5830032623aaa9a51e8d039b77",
+        "tests/unit/test_x2_video_data_url_probe.py": "0558d39bdba941af66c1d84c7abeb5c670f934a06f0e4a1c9fad356d9b0e279a",
+        "web/openrouter_video.js": "6ce1f1648b0bba17eced926760476b27f2c7997f73afd52223580bcca99991f0"
+      },
+      "head": "08838ab93df2abe370d69dcc0375db3b135aa3fa"
+    },
+    "start_time": "2026-10-08T19:10:46.549561+00:00",
+    "state": "ACTIVE"
+  },
+  "run_id": "phase10-exclusive-20261008-7ae68eb9"
+}

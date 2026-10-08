@@ -1,0 +1,130 @@
+{
+  "checkpoint_id": "phase9-runtime-reliability-canonical-main",
+  "contract_id": "openrouter-video-phase9-runtime-reliability-v1",
+  "exporter": {
+    "name": "openrouter-video-product-contract-exporter",
+    "version": "1"
+  },
+  "protocol": "openrouter-video-product-contract",
+  "schema_version": 1,
+  "subject_sha": "b492184f41492d37677a2dde9afdbe88666717a2",
+  "surfaces": {
+    "observed_evidence": {
+      "browser_proof_provenance": "CANONICAL_RUNTIME",
+      "canonical_dev": "127.0.0.1:8189",
+      "catalogue_model_count": 29,
+      "catalogue_revision": null,
+      "comfy_runtime_version": "0.34.3",
+      "observation_source": "docs/active-execution-checkpoint.md@b492184f41492d37677a2dde9afdbe88666717a2",
+      "ui_contract_version": 3
+    },
+    "product_owned": {
+      "billing_security": {
+        "app_identity_runtime_override": false,
+        "capabilities_fail_closed": true,
+        "credentials_serialized": false,
+        "max_intentional_paid_submits_per_operation": 1,
+        "native_storage": {
+          "cleanup_never_authorizes_regeneration": false,
+          "enabled": false,
+          "private_temporary_objects": false,
+          "resume_can_upload": false
+        }
+      },
+      "controls": {
+        "capability_driven": [
+          "generate_audio",
+          "supported_aspect_ratios",
+          "supported_durations",
+          "supported_frame_types",
+          "supported_resolutions",
+          "supported_sizes"
+        ],
+        "fail_closed": true,
+        "request_fields": [
+          "aspect_ratio",
+          "duration",
+          "generate_audio",
+          "resolution",
+          "seed",
+          "size"
+        ]
+      },
+      "lifecycle": {
+        "ambiguous_submit_resubmits": false,
+        "atomic_submit_claim": true,
+        "generate_submit_calls": 1,
+        "poll_failure_is_generation_failure": false,
+        "resume_submit_authority": false,
+        "states": [
+          "NOT_SUBMITTED",
+          "VALIDATING",
+          "SUBMITTING",
+          "ACCEPTED",
+          "POLLING",
+          "COMPLETED",
+          "DOWNLOADING",
+          "DONE",
+          "SUBMIT_REJECTED",
+          "SUBMISSION_UNKNOWN",
+          "OBSERVATION_INTERRUPTED",
+          "FAILED",
+          "CANCELLED",
+          "EXPIRED",
+          "UNKNOWN_REMOTE_STATE"
+        ]
+      },
+      "media_topology": {
+        "duplicates": "preserved",
+        "incompatible_switch": "preserve_state_and_block_generate",
+        "native_direct_inputs": {
+          "AUDIO": false,
+          "IMAGE": false,
+          "VIDEO": false
+        },
+        "ordered_occurrences": "preserved",
+        "reference_kinds": [
+          "IMAGE",
+          "VIDEO"
+        ],
+        "source_video_first": false
+      },
+      "method_semantics": {
+        "derivation_authority": "exact_model_capability_primitives_fail_closed",
+        "inference_method_is_local": false,
+        "methods": [],
+        "non_ready_behavior": "hidden_for_new_selection_preserved_when_persisted",
+        "topology": {}
+      },
+      "node_family": {
+        "generate": "OpenRouterVideoGenerate",
+        "registered_types": [
+          "OpenRouterVideoGenerate",
+          "OpenRouterVideoImageReference",
+          "OpenRouterVideoReferenceCollection",
+          "OpenRouterVideoResume",
+          "OpenRouterVideoVideoReference"
+        ],
+        "resume": "OpenRouterVideoResume"
+      },
+      "persistence": {
+        "legacy_workflow_support": true,
+        "staging_ownership_ledger": false,
+        "staging_tombstone": false,
+        "workflow_compatibility": "preserve_compatible_values_and_links"
+      }
+    },
+    "upstream_dynamic": {
+      "catalogue_rule": "project_complete_current_canonical_production_catalogue_without_fixture_substitution",
+      "dynamic_fields": [
+        "model_ids",
+        "model_count",
+        "provider_availability",
+        "capability_values",
+        "pricing_values",
+        "catalogue_revision"
+      ],
+      "immutable_model_count": false
+    }
+  }
+}

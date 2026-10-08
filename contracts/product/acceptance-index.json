@@ -1,0 +1,11 @@
+{
+  "protocol": "openrouter-video-product-acceptance-index",
+  "schema_version": 1,
+  "historical_bootstrap": {
+    "contract": "accepted/phase9-runtime-reliability-b492184.product-contract.json",
+    "evidence_status": "PROVEN_FOR_AFFECTED_SURFACES",
+    "formal_acceptance_record": null,
+    "note": "The repository predates Product Contract Guard. This exact canonical merge is reconstructed from PR #17, canonical Git ancestry, the Phase 9 completion checkpoint and verification evidence; no historical tag is invented."
+  },
+  "accepted_canonical": []
+}

@@ -43,7 +43,17 @@ async def smoke() -> None:
                     "Storage configuration changed; cleanup requires original settings."
                 )
             await uploader.delete(key)
-    print("PASS: synthetic PUT, signed GET without authentication headers, exact DELETE")  # noqa: T201
+        # The same presigned URL must no longer retrieve the exact deleted object.
+        # Keep it in memory only; no bucket listing or additional cloud resource.
+        async with httpx.AsyncClient(follow_redirects=False, trust_env=False, timeout=30) as client:
+            absent = await client.get(url)
+        if absent.status_code != 404:
+            raise StorageError(
+                "Deleted storage object is still retrievable or cleanup is unverified."
+            )
+    print(  # noqa: T201
+        "PASS: synthetic PUT, signed GET without authentication headers, exact DELETE and absence"
+    )
 
 
 def main() -> None:

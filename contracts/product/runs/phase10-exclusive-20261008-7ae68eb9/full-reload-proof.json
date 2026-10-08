@@ -1,0 +1,37 @@
+{
+  "completed_at": "2026-10-08T19:14:50.195Z",
+  "full_page_reload": true,
+  "linked": [
+    {
+      "name": "direct_references.reference_0",
+      "origin": "LoadImage"
+    },
+    {
+      "name": "direct_references.reference_1",
+      "origin": "LoadVideo"
+    },
+    {
+      "name": "direct_references.reference_2",
+      "origin": "LoadAudio"
+    },
+    {
+      "name": "direct_references.reference_3",
+      "origin": "LoadVideo"
+    }
+  ],
+  "paid_posts": 0,
+  "queue_attempts": 0,
+  "resume_widgets": [
+    "job_id"
+  ],
+  "run_id": "phase10-exclusive-20261008-7ae68eb9",
+  "saved_workflow": "workflows/ORV_Canonical_Native_Media_QA_1791486753787.json",
+  "values": {
+    "aspect_ratio": "16:9",
+    "duration": 4,
+    "inference_method": "MMR2V",
+    "model": "bytedance/seedance-2.5",
+    "resolution": "480p"
+  },
+  "workflow_queues": 0
+}

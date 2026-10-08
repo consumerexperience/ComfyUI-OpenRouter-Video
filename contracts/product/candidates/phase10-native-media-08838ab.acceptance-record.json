@@ -1,0 +1,39 @@
+{
+  "protocol": "openrouter-video-acceptance-record",
+  "schema_version": 1,
+  "acceptance_id": "phase10-native-media-08838ab-candidate-v1",
+  "state": "ACCEPTANCE_CANDIDATE",
+  "exact_head_sha": "08838ab93df2abe370d69dcc0375db3b135aa3fa",
+  "canonical_sha": null,
+  "product_contract_digest": "sha256:eb1eb2991f468c04385fddb541b2da58b3e7ae1e337480f545089e28169d53e7",
+  "contract_delta_digest": "sha256:8f29333989fc0b46cf1cd48c3d97473c967da39d5942074155eefb62ef9955a6",
+  "builder_version": "0.5.0-rc.2+codex.20261008",
+  "builder_package_digest": "sha256:eb733daca342afef4786a2ddb48e29332d46281f2e3235ae8541e10ae2d7a009",
+  "verification_result": {
+    "status": "PASS",
+    "gates": [
+      "baseline_recovery",
+      "product_contract_validation",
+      "semantic_export_determinism",
+      "semantic_diff",
+      "negative_space_tests",
+      "complete_python_suite",
+      "frontend_tests",
+      "ruff",
+      "mypy",
+      "build",
+      "dependency_audit",
+      "migration_persistence_tests",
+      "canonical_browser_matrix"
+    ]
+  },
+  "product_owner_approval": {
+    "status": "NOT_APPROVED",
+    "exact_head_sha": null,
+    "product_contract_digest": null
+  },
+  "checkpoint_tag": null,
+  "canonical_readback": false,
+  "tag_readback": false,
+  "acceptance_index_updated": false
+}

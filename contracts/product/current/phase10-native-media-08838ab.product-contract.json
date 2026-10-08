@@ -1,0 +1,203 @@
+{
+  "checkpoint_id": "phase10-native-media-candidate-08838ab",
+  "contract_id": "openrouter-video-phase10-native-media-candidate-v1",
+  "exporter": {
+    "name": "openrouter-video-product-contract-exporter",
+    "version": "1"
+  },
+  "protocol": "openrouter-video-product-contract",
+  "schema_version": 1,
+  "subject_sha": "08838ab93df2abe370d69dcc0375db3b135aa3fa",
+  "surfaces": {
+    "observed_evidence": {
+      "browser_proof_provenance": "CANONICAL_RUNTIME",
+      "canonical_dev": "127.0.0.1:8189",
+      "catalogue_model_count": 30,
+      "catalogue_revision": "6977cf3816633a6aced624ecea5f60157435f0cf6d3e0deeea16bdc7ebb3122f",
+      "comfy_runtime_version": "0.34.3",
+      "observation_source": "docs/assets/product-contract/phase10-canonical-browser-proof.json",
+      "ui_contract_version": 4
+    },
+    "product_owned": {
+      "billing_security": {
+        "app_identity_runtime_override": false,
+        "capabilities_fail_closed": true,
+        "credentials_serialized": false,
+        "max_intentional_paid_submits_per_operation": 1,
+        "native_storage": {
+          "cleanup_never_authorizes_regeneration": true,
+          "enabled": true,
+          "private_temporary_objects": true,
+          "resume_can_upload": false
+        }
+      },
+      "controls": {
+        "capability_driven": [
+          "generate_audio",
+          "supported_aspect_ratios",
+          "supported_durations",
+          "supported_frame_types",
+          "supported_resolutions",
+          "supported_sizes"
+        ],
+        "fail_closed": true,
+        "request_fields": [
+          "aspect_ratio",
+          "duration",
+          "generate_audio",
+          "resolution",
+          "seed",
+          "size"
+        ]
+      },
+      "lifecycle": {
+        "ambiguous_submit_resubmits": false,
+        "atomic_submit_claim": true,
+        "generate_submit_calls": 1,
+        "poll_failure_is_generation_failure": false,
+        "resume_submit_authority": false,
+        "states": [
+          "NOT_SUBMITTED",
+          "VALIDATING",
+          "SUBMITTING",
+          "ACCEPTED",
+          "POLLING",
+          "COMPLETED",
+          "DOWNLOADING",
+          "DONE",
+          "SUBMIT_REJECTED",
+          "SUBMISSION_UNKNOWN",
+          "OBSERVATION_INTERRUPTED",
+          "FAILED",
+          "CANCELLED",
+          "EXPIRED",
+          "UNKNOWN_REMOTE_STATE"
+        ]
+      },
+      "media_topology": {
+        "duplicates": "preserved",
+        "incompatible_switch": "preserve_state_and_block_generate",
+        "native_direct_inputs": {
+          "AUDIO": true,
+          "IMAGE": true,
+          "VIDEO": true
+        },
+        "ordered_occurrences": "preserved",
+        "reference_kinds": [
+          "IMAGE",
+          "VIDEO",
+          "AUDIO"
+        ],
+        "source_video_first": true
+      },
+      "method_semantics": {
+        "derivation_authority": "exact_model_capability_primitives_fail_closed",
+        "inference_method_is_local": true,
+        "methods": [
+          "T2V",
+          "I2V",
+          "FLF2V",
+          "IR2V",
+          "MI2V",
+          "VR2V",
+          "AR2V",
+          "MMR2V",
+          "V2V_EDIT",
+          "V2V_EXTEND"
+        ],
+        "non_ready_behavior": "hidden_for_new_selection_preserved_when_persisted",
+        "topology": {
+          "AR2V": {
+            "references": "at_least_one",
+            "required": [
+              "AUDIO"
+            ]
+          },
+          "FLF2V": {
+            "references": "none",
+            "required": [
+              "first_frame",
+              "last_frame"
+            ]
+          },
+          "I2V": {
+            "references": "none",
+            "required": [
+              "first_frame"
+            ]
+          },
+          "IR2V": {
+            "references": "exactly_one",
+            "required": [
+              "IMAGE"
+            ]
+          },
+          "MI2V": {
+            "references": "at_least_two",
+            "required": [
+              "IMAGE"
+            ]
+          },
+          "MMR2V": {
+            "references": "at_least_two",
+            "required": [
+              "two_distinct_media_kinds"
+            ]
+          },
+          "T2V": {
+            "references": "none",
+            "required": []
+          },
+          "V2V_EDIT": {
+            "references": "source_first",
+            "required": [
+              "source_video"
+            ]
+          },
+          "V2V_EXTEND": {
+            "references": "source_first",
+            "required": [
+              "source_video"
+            ]
+          },
+          "VR2V": {
+            "references": "at_least_one",
+            "required": [
+              "VIDEO"
+            ]
+          }
+        }
+      },
+      "node_family": {
+        "generate": "OpenRouterVideoGenerate",
+        "registered_types": [
+          "OpenRouterVideoAudioReference",
+          "OpenRouterVideoGenerate",
+          "OpenRouterVideoImageReference",
+          "OpenRouterVideoReferenceCollection",
+          "OpenRouterVideoResume",
+          "OpenRouterVideoVideoReference"
+        ],
+        "resume": "OpenRouterVideoResume"
+      },
+      "persistence": {
+        "legacy_workflow_support": true,
+        "staging_ownership_ledger": true,
+        "staging_tombstone": true,
+        "workflow_compatibility": "preserve_compatible_values_and_links"
+      }
+    },
+    "upstream_dynamic": {
+      "catalogue_rule": "project_complete_current_canonical_production_catalogue_without_fixture_substitution",
+      "dynamic_fields": [
+        "model_ids",
+        "model_count",
+        "provider_availability",
+        "capability_values",
+        "pricing_values",
+        "catalogue_revision"
+      ],
+      "immutable_model_count": false
+    }
+  }
+}

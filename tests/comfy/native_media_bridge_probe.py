@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
+import gc
 import json
 import sys
 import tempfile
@@ -35,6 +37,9 @@ def main() -> None:
         _reference_collection,
     )
     from openrouter_video.local_media import NativeMediaError
+    from openrouter_video.models import GenerationRequest, InferenceMethod
+    from openrouter_video.persistence import JobStore
+    from openrouter_video.staging import StagingManager
 
     compat.validate_host_api()
     union = "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE"
@@ -112,12 +117,74 @@ def main() -> None:
             "video",
         ]
         assert _media_or_reference(video).kind.value == "video"
+
+        # Real host encoders feed the real staging manager; the storage boundary
+        # is offline. No model/capability fixture replaces canonical browser data.
+        class OfflineUploader:
+            def __init__(self):
+                self.keys = []
+                self.paths = []
+                self.deleted = []
+
+            def configuration_fingerprint(self):
+                return "offline-real-host-staging"
+
+            async def upload(self, key, path, content_type):
+                with path.open("rb+") as file:
+                    assert file.read(8)
+                if content_type == "video/mp4":
+                    with av.open(str(path)) as container:
+                        assert container.streams.video[0].codec_context.name == "h264"
+                else:
+                    with wave.open(str(path)) as file:
+                        assert (file.getnchannels(), file.getsampwidth(), file.getframerate()) == (
+                            2,
+                            2,
+                            22050,
+                        )
+                self.keys.append(key)
+                self.paths.append(path)
+
+            async def presign_get(self, key):
+                return "https://offline.example.test/" + key + "?signature=synthetic"
+
+            async def delete(self, key):
+                self.deleted.append(key)
+
+        uploader = OfflineUploader()
+        staging = StagingManager(JobStore(root / "offline-staging.sqlite3"), uploader)
+        ordered = _reference_collection(
+            {"reference_0": image, "reference_1": video, "reference_2": audio, "reference_3": video}
+        )
+        request = GenerationRequest(
+            "bytedance/seedance-2.5",
+            "Synthetic host staging proof",
+            InferenceMethod.MMR2V,
+            input_references=ordered,
+        )
+        staged = asyncio.run(staging.materialize("offline-host-proof", request))
+        assert [ref["type"] for ref in staged.to_openrouter_payload()["input_references"]] == [
+            "image_url",
+            "video_url",
+            "audio_url",
+            "video_url",
+        ]
+        assert len(uploader.keys) == len(set(uploader.keys)) == 3
+        assert all(not path.exists() for path in uploader.paths)
+        asyncio.run(staging.cleanup_operation("offline-host-proof"))
+        assert uploader.deleted == uploader.keys
+        # Existing JobStore connections are released by GC. Release this test's
+        # temporary SQLite handles before Windows removes its temporary folder.
+        del staging
+        gc.collect()
     if args.schema_out:
         args.schema_out.parent.mkdir(parents=True, exist_ok=True)
         args.schema_out.write_text(
             json.dumps(OpenRouterVideoGenerate.GET_NODE_INFO_V1(), indent=2), encoding="utf-8"
         )
-    print("PASS: real VIDEO H264, AUDIO PCM16, IMAGE, mixed order and native unions")  # noqa: T201
+    print(  # noqa: T201
+        "PASS: real VIDEO H264, AUDIO PCM16, IMAGE, mixed order, native unions and offline staging"
+    )
 
 
 if __name__ == "__main__":

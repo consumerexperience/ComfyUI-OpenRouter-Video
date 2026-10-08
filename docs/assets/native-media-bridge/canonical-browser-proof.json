@@ -1,0 +1,5126 @@
+{
+  "host": "canonical DEV 8189",
+  "fixture_product_overrides": 0,
+  "production_projection": {
+    "observed_at": "2026-10-08T09:55:54.882652+00:00",
+    "catalogue_revision": "7342ab4d57587528215b2e6eefeb6576d9be277056a85b6a801d890270fe8b60",
+    "ui_contract_version": 4,
+    "models": [
+      {
+        "model_id": "alibaba/happyhorse-1.0",
+        "display_name": "Alibaba: HappyHorse 1.0",
+        "supported_durations": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "supported_resolutions": [
+          "720p",
+          "1080p"
+        ],
+        "supported_aspect_ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4",
+          "21:9",
+          "9:21"
+        ],
+        "supported_sizes": [
+          "1280x720",
+          "720x1280",
+          "720x720",
+          "960x720",
+          "720x960",
+          "1680x720",
+          "720x1680",
+          "1920x1080",
+          "1080x1920",
+          "1080x1080",
+          "1440x1080",
+          "1080x1440",
+          "2520x1080",
+          "1080x2520"
+        ],
+        "supported_frame_types": [
+          "first_frame"
+        ],
+        "supports_seed": true,
+        "generate_audio": null,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "UNSUPPORTED"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "alibaba/happyhorse-1.1",
+        "display_name": "Alibaba: HappyHorse 1.1",
+        "supported_durations": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "supported_resolutions": [
+          "720p",
+          "1080p"
+        ],
+        "supported_aspect_ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4",
+          "21:9",
+          "9:21"
+        ],
+        "supported_sizes": [
+          "1280x720",
+          "720x1280",
+          "720x720",
+          "960x720",
+          "720x960",
+          "1680x720",
+          "720x1680",
+          "1920x1080",
+          "1080x1920",
+          "1080x1080",
+          "1440x1080",
+          "1080x1440",
+          "2520x1080",
+          "1080x2520"
+        ],
+        "supported_frame_types": [
+          "first_frame"
+        ],
+        "supports_seed": true,
+        "generate_audio": null,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "UNSUPPORTED"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "alibaba/wan-2.6",
+        "display_name": "Alibaba: Wan 2.6",
+        "supported_durations": [
+          5,
+          10
+        ],
+        "supported_resolutions": [
+          "720p",
+          "1080p"
+        ],
+        "supported_aspect_ratios": [
+          "16:9",
+          "9:16"
+        ],
+        "supported_sizes": [
+          "1280x720",
+          "1080x1920",
+          "720x1280",
+          "1920x1080"
+        ],
+        "supported_frame_types": [
+          "first_frame"
+        ],
+        "supports_seed": true,
+        "generate_audio": true,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "UNSUPPORTED"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "alibaba/wan-2.7",
+        "display_name": "Alibaba: Wan 2.7",
+        "supported_durations": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "supported_resolutions": [
+          "720p",
+          "1080p"
+        ],
+        "supported_aspect_ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4"
+        ],
+        "supported_sizes": [
+          "1280x720",
+          "720x1280",
+          "1920x1080",
+          "1080x1920",
+          "720x720",
+          "1080x1080",
+          "960x720",
+          "720x960",
+          "1440x1080",
+          "1080x1440"
+        ],
+        "supported_frame_types": [
+          "first_frame",
+          "last_frame"
+        ],
+        "supports_seed": true,
+        "generate_audio": true,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V",
+          "FLF2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "READY"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "alibaba/wan-3.0",
+        "display_name": "Alibaba: Wan 3.0",
+        "supported_durations": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30
+        ],
+        "supported_resolutions": [
+          "480p",
+          "720p",
+          "1080p"
+        ],
+        "supported_aspect_ratios": [
+          "16:9",
+          "4:3",
+          "1:1",
+          "3:4",
+          "9:16"
+        ],
+        "supported_sizes": null,
+        "supported_frame_types": [
+          "first_frame"
+        ],
+        "supports_seed": true,
+        "generate_audio": true,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "UNSUPPORTED"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "alibaba/wan-3.0-prime",
+        "display_name": "Alibaba: Wan 3.0 Prime",
+        "supported_durations": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30
+        ],
+        "supported_resolutions": [
+          "480p",
+          "720p",
+          "1080p"
+        ],
+        "supported_aspect_ratios": [
+          "16:9",
+          "4:3",
+          "1:1",
+          "3:4",
+          "9:16"
+        ],
+        "supported_sizes": null,
+        "supported_frame_types": [
+          "first_frame"
+        ],
+        "supports_seed": true,
+        "generate_audio": true,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "UNSUPPORTED"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "black-forest-labs/flux-3-video",
+        "display_name": "Black Forest Labs: FLUX.3 Video",
+        "supported_durations": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20
+        ],
+        "supported_resolutions": [
+          "720p",
+          "1080p"
+        ],
+        "supported_aspect_ratios": [
+          "21:9",
+          "16:9",
+          "4:3",
+          "1:1",
+          "3:4",
+          "9:16"
+        ],
+        "supported_sizes": null,
+        "supported_frame_types": [
+          "first_frame",
+          "last_frame"
+        ],
+        "supports_seed": false,
+        "generate_audio": true,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V",
+          "FLF2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "READY"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "black-forest-labs/flux-video-edit",
+        "display_name": "Black Forest Labs: FLUX Video Edit",
+        "supported_durations": null,
+        "supported_resolutions": null,
+        "supported_aspect_ratios": null,
+        "supported_sizes": null,
+        "supported_frame_types": null,
+        "supports_seed": false,
+        "generate_audio": false,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "FLF2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "black-forest-labs/flux-video-upscale",
+        "display_name": "Black Forest Labs: FLUX Video Upscale",
+        "supported_durations": null,
+        "supported_resolutions": null,
+        "supported_aspect_ratios": null,
+        "supported_sizes": null,
+        "supported_frame_types": null,
+        "supports_seed": false,
+        "generate_audio": false,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "FLF2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "bytedance/seedance-1-5-pro",
+        "display_name": "ByteDance: Seedance 1.5 Pro",
+        "supported_durations": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "supported_resolutions": [
+          "480p",
+          "720p",
+          "1080p"
+        ],
+        "supported_aspect_ratios": [
+          "1:1",
+          "3:4",
+          "9:16",
+          "9:21",
+          "4:3",
+          "16:9",
+          "21:9"
+        ],
+        "supported_sizes": [
+          "480x480",
+          "480x640",
+          "480x854",
+          "480x1120",
+          "640x480",
+          "720x720",
+          "720x960",
+          "720x1280",
+          "720x1680",
+          "854x480",
+          "960x720",
+          "1080x1080",
+          "1080x1440",
+          "1080x1920",
+          "1080x2520",
+          "1120x480",
+          "1280x720",
+          "1440x1080",
+          "1680x720",
+          "1920x1080",
+          "2520x1080"
+        ],
+        "supported_frame_types": [
+          "first_frame",
+          "last_frame"
+        ],
+        "supports_seed": true,
+        "generate_audio": true,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V",
+          "FLF2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "READY"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "bytedance/seedance-2.0",
+        "display_name": "ByteDance: Seedance 2.0",
+        "supported_durations": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "supported_resolutions": [
+          "480p",
+          "720p",
+          "1080p",
+          "4K"
+        ],
+        "supported_aspect_ratios": [
+          "1:1",
+          "3:4",
+          "9:16",
+          "4:3",
+          "16:9",
+          "21:9",
+          "9:21"
+        ],
+        "supported_sizes": [
+          "480x480",
+          "480x640",
+          "480x854",
+          "640x480",
+          "854x480",
+          "1120x480",
+          "720x720",
+          "720x960",
+          "720x1280",
+          "720x1680",
+          "960x720",
+          "1280x720",
+          "1680x720",
+          "1080x1080",
+          "1080x1440",
+          "1080x1920",
+          "1440x1080",
+          "1920x1080",
+          "2520x1080",
+          "3840x2160",
+          "2160x3840",
+          "2160x2160",
+          "2880x2160",
+          "2160x2880",
+          "5040x2160"
+        ],
+        "supported_frame_types": [
+          "first_frame",
+          "last_frame"
+        ],
+        "supports_seed": true,
+        "generate_audio": true,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V",
+          "FLF2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "READY"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "bytedance/seedance-2.0-fast",
+        "display_name": "ByteDance: Seedance 2.0 Fast",
+        "supported_durations": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "supported_resolutions": [
+          "480p",
+          "720p"
+        ],
+        "supported_aspect_ratios": [
+          "1:1",
+          "3:4",
+          "9:16",
+          "4:3",
+          "16:9",
+          "21:9",
+          "9:21"
+        ],
+        "supported_sizes": [
+          "480x480",
+          "480x640",
+          "480x854",
+          "640x480",
+          "854x480",
+          "1120x480",
+          "720x720",
+          "720x960",
+          "720x1280",
+          "720x1680",
+          "960x720",
+          "1280x720",
+          "1680x720"
+        ],
+        "supported_frame_types": [
+          "first_frame",
+          "last_frame"
+        ],
+        "supports_seed": true,
+        "generate_audio": true,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V",
+          "FLF2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "READY"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "bytedance/seedance-2.0-mini",
+        "display_name": "ByteDance: Seedance 2.0 Mini",
+        "supported_durations": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "supported_resolutions": [
+          "480p",
+          "720p"
+        ],
+        "supported_aspect_ratios": [
+          "1:1",
+          "3:4",
+          "9:16",
+          "4:3",
+          "16:9",
+          "21:9",
+          "9:21"
+        ],
+        "supported_sizes": [
+          "480x480",
+          "480x640",
+          "480x854",
+          "640x480",
+          "854x480",
+          "1120x480",
+          "720x720",
+          "720x960",
+          "720x1280",
+          "720x1680",
+          "960x720",
+          "1280x720",
+          "1680x720"
+        ],
+        "supported_frame_types": [
+          "first_frame",
+          "last_frame"
+        ],
+        "supports_seed": true,
+        "generate_audio": true,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V",
+          "FLF2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "READY"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "bytedance/seedance-2.5",
+        "display_name": "ByteDance: Seedance 2.5",
+        "supported_durations": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30
+        ],
+        "supported_resolutions": [
+          "480p",
+          "720p"
+        ],
+        "supported_aspect_ratios": [
+          "16:9",
+          "4:3",
+          "1:1",
+          "3:4",
+          "9:16",
+          "21:9"
+        ],
+        "supported_sizes": [
+          "854x480",
+          "752x560",
+          "640x640",
+          "560x752",
+          "480x854",
+          "992x432",
+          "1280x720",
+          "1112x834",
+          "960x960",
+          "834x1112",
+          "720x1280",
+          "1470x630"
+        ],
+        "supported_frame_types": [
+          "first_frame",
+          "last_frame"
+        ],
+        "supports_seed": true,
+        "generate_audio": true,
+        "supported_reference_kinds": [
+          "audio",
+          "image",
+          "video"
+        ],
+        "max_reference_count": 50,
+        "mixed_reference_kinds": true,
+        "supports_edit": true,
+        "supports_extend": true,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V",
+          "FLF2V",
+          "IR2V",
+          "MI2V",
+          "VR2V",
+          "AR2V",
+          "MMR2V",
+          "V2V_EDIT",
+          "V2V_EXTEND"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "READY"
+          },
+          {
+            "method": "IR2V",
+            "status": "READY"
+          },
+          {
+            "method": "MI2V",
+            "status": "READY"
+          },
+          {
+            "method": "VR2V",
+            "status": "READY"
+          },
+          {
+            "method": "AR2V",
+            "status": "READY"
+          },
+          {
+            "method": "MMR2V",
+            "status": "READY"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "READY"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "READY"
+          }
+        ],
+        "preferred_inference_method": "MI2V",
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "google/veo-3.1",
+        "display_name": "Google: Veo 3.1",
+        "supported_durations": [
+          4,
+          6,
+          8
+        ],
+        "supported_resolutions": [
+          "720p",
+          "1080p",
+          "4K"
+        ],
+        "supported_aspect_ratios": [
+          "16:9",
+          "9:16"
+        ],
+        "supported_sizes": [
+          "1280x720",
+          "1080x1920",
+          "1920x1080",
+          "720x1280",
+          "3840x2160",
+          "2160x3840"
+        ],
+        "supported_frame_types": [
+          "first_frame",
+          "last_frame"
+        ],
+        "supports_seed": true,
+        "generate_audio": true,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V",
+          "FLF2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "READY"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "google/veo-3.1-fast",
+        "display_name": "Google: Veo 3.1 Fast",
+        "supported_durations": [
+          4,
+          6,
+          8
+        ],
+        "supported_resolutions": [
+          "720p",
+          "1080p",
+          "4K"
+        ],
+        "supported_aspect_ratios": [
+          "16:9",
+          "9:16"
+        ],
+        "supported_sizes": [
+          "1280x720",
+          "1080x1920",
+          "1920x1080",
+          "720x1280",
+          "3840x2160",
+          "2160x3840"
+        ],
+        "supported_frame_types": [
+          "first_frame",
+          "last_frame"
+        ],
+        "supports_seed": true,
+        "generate_audio": true,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V",
+          "FLF2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "READY"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "google/veo-3.1-lite",
+        "display_name": "Google: Veo 3.1 Lite",
+        "supported_durations": [
+          8,
+          4,
+          6
+        ],
+        "supported_resolutions": [
+          "720p",
+          "1080p"
+        ],
+        "supported_aspect_ratios": [
+          "16:9",
+          "9:16"
+        ],
+        "supported_sizes": [
+          "1280x720",
+          "720x1280",
+          "1920x1080",
+          "1080x1920"
+        ],
+        "supported_frame_types": [
+          "first_frame",
+          "last_frame"
+        ],
+        "supports_seed": true,
+        "generate_audio": true,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V",
+          "FLF2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "READY"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "heygen/avatar-iv",
+        "display_name": "HeyGen: Avatar IV",
+        "supported_durations": null,
+        "supported_resolutions": [
+          "720p",
+          "1080p"
+        ],
+        "supported_aspect_ratios": [
+          "16:9",
+          "9:16",
+          "1:1"
+        ],
+        "supported_sizes": null,
+        "supported_frame_types": null,
+        "supports_seed": false,
+        "generate_audio": false,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "FLF2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "heygen/heygen-video-1",
+        "display_name": "HeyGen: HeyGen Video",
+        "supported_durations": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "supported_resolutions": [
+          "480p",
+          "768p",
+          "2K"
+        ],
+        "supported_aspect_ratios": [
+          "21:9",
+          "16:9",
+          "4:3",
+          "1:1",
+          "3:4",
+          "9:16"
+        ],
+        "supported_sizes": null,
+        "supported_frame_types": [
+          "first_frame"
+        ],
+        "supports_seed": true,
+        "generate_audio": false,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "UNSUPPORTED"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "kwaivgi/kling-v3.0-pro",
+        "display_name": "Kling: Video v3.0 Pro",
+        "supported_durations": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "supported_resolutions": [
+          "720p"
+        ],
+        "supported_aspect_ratios": [
+          "16:9",
+          "9:16",
+          "1:1"
+        ],
+        "supported_sizes": [
+          "1280x720",
+          "720x1280",
+          "720x720"
+        ],
+        "supported_frame_types": [
+          "first_frame",
+          "last_frame"
+        ],
+        "supports_seed": false,
+        "generate_audio": true,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V",
+          "FLF2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "READY"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "kwaivgi/kling-v3.0-std",
+        "display_name": "Kling: Video v3.0 Standard",
+        "supported_durations": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "supported_resolutions": [
+          "720p"
+        ],
+        "supported_aspect_ratios": [
+          "16:9",
+          "9:16",
+          "1:1"
+        ],
+        "supported_sizes": [
+          "1280x720",
+          "720x1280",
+          "720x720"
+        ],
+        "supported_frame_types": [
+          "first_frame",
+          "last_frame"
+        ],
+        "supports_seed": false,
+        "generate_audio": true,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V",
+          "FLF2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "READY"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "kwaivgi/kling-video-o1",
+        "display_name": "Kling: Video O1",
+        "supported_durations": [
+          5,
+          10
+        ],
+        "supported_resolutions": [
+          "720p"
+        ],
+        "supported_aspect_ratios": [
+          "16:9",
+          "9:16",
+          "1:1"
+        ],
+        "supported_sizes": [
+          "1280x720",
+          "720x1280",
+          "720x720"
+        ],
+        "supported_frame_types": [
+          "first_frame",
+          "last_frame"
+        ],
+        "supports_seed": false,
+        "generate_audio": true,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V",
+          "FLF2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "READY"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "minimax/hailuo-2.3",
+        "display_name": "MiniMax: Hailuo 2.3",
+        "supported_durations": [
+          6,
+          10
+        ],
+        "supported_resolutions": [
+          "1080p"
+        ],
+        "supported_aspect_ratios": [
+          "16:9"
+        ],
+        "supported_sizes": [
+          "1920x1080"
+        ],
+        "supported_frame_types": [
+          "first_frame"
+        ],
+        "supports_seed": null,
+        "generate_audio": false,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "UNSUPPORTED"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "minimax/hailuo-3",
+        "display_name": "MiniMax: H3",
+        "supported_durations": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "supported_resolutions": [
+          "2K"
+        ],
+        "supported_aspect_ratios": [
+          "21:9",
+          "16:9",
+          "4:3",
+          "1:1",
+          "3:4",
+          "9:16"
+        ],
+        "supported_sizes": null,
+        "supported_frame_types": [
+          "first_frame",
+          "last_frame"
+        ],
+        "supports_seed": false,
+        "generate_audio": true,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V",
+          "FLF2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "READY"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "minimax/hailuo-3-max",
+        "display_name": "MiniMax: H3 Max",
+        "supported_durations": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "supported_resolutions": [
+          "768p",
+          "480p"
+        ],
+        "supported_aspect_ratios": [
+          "21:9",
+          "16:9",
+          "4:3",
+          "1:1",
+          "3:4",
+          "9:16"
+        ],
+        "supported_sizes": null,
+        "supported_frame_types": [
+          "first_frame",
+          "last_frame"
+        ],
+        "supports_seed": false,
+        "generate_audio": false,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V",
+          "FLF2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "READY"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "runway/aleph-2",
+        "display_name": "Runway: Aleph 2.0",
+        "supported_durations": null,
+        "supported_resolutions": null,
+        "supported_aspect_ratios": [
+          "16:9",
+          "4:3",
+          "3:2",
+          "1:1",
+          "2:3",
+          "3:4",
+          "9:16",
+          "21:9"
+        ],
+        "supported_sizes": null,
+        "supported_frame_types": null,
+        "supports_seed": true,
+        "generate_audio": false,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "FLF2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "runway/gen-4.5",
+        "display_name": "Runway: Gen-4.5",
+        "supported_durations": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "supported_resolutions": [
+          "720p"
+        ],
+        "supported_aspect_ratios": [
+          "16:9",
+          "9:16"
+        ],
+        "supported_sizes": [
+          "1280x720",
+          "720x1280"
+        ],
+        "supported_frame_types": [
+          "first_frame"
+        ],
+        "supports_seed": true,
+        "generate_audio": false,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "UNSUPPORTED"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "x-ai/grok-imagine-video",
+        "display_name": "SpaceXAI: Grok Imagine Video",
+        "supported_durations": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "supported_resolutions": [
+          "480p",
+          "720p"
+        ],
+        "supported_aspect_ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4",
+          "3:2",
+          "2:3"
+        ],
+        "supported_sizes": [
+          "854x480",
+          "1280x720",
+          "480x854",
+          "720x1280",
+          "480x480",
+          "720x720",
+          "640x480",
+          "960x720",
+          "480x640",
+          "720x960",
+          "720x480",
+          "1080x720",
+          "480x720",
+          "720x1080"
+        ],
+        "supported_frame_types": [
+          "first_frame"
+        ],
+        "supports_seed": null,
+        "generate_audio": null,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "UNSUPPORTED"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "x-ai/grok-imagine-video-1.5",
+        "display_name": "SpaceXAI: Grok Imagine Video 1.5",
+        "supported_durations": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "supported_resolutions": [
+          "480p",
+          "720p",
+          "1080p"
+        ],
+        "supported_aspect_ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4",
+          "3:2",
+          "2:3"
+        ],
+        "supported_sizes": null,
+        "supported_frame_types": [
+          "first_frame"
+        ],
+        "supports_seed": null,
+        "generate_audio": null,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "UNSUPPORTED"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      },
+      {
+        "model_id": "x-ai/grok-imagine-video-1.5-lite",
+        "display_name": "SpaceXAI: Grok Imagine Video 1.5 Lite",
+        "supported_durations": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "supported_resolutions": [
+          "480p",
+          "720p",
+          "1080p"
+        ],
+        "supported_aspect_ratios": [
+          "16:9",
+          "9:16",
+          "1:1",
+          "4:3",
+          "3:4",
+          "3:2",
+          "2:3"
+        ],
+        "supported_sizes": null,
+        "supported_frame_types": [
+          "first_frame"
+        ],
+        "supports_seed": null,
+        "generate_audio": null,
+        "supported_reference_kinds": null,
+        "max_reference_count": null,
+        "mixed_reference_kinds": null,
+        "supports_edit": null,
+        "supports_extend": null,
+        "supported_inference_methods": [
+          "T2V",
+          "I2V"
+        ],
+        "inference_method_statuses": [
+          {
+            "method": "T2V",
+            "status": "READY"
+          },
+          {
+            "method": "I2V",
+            "status": "READY"
+          },
+          {
+            "method": "FLF2V",
+            "status": "UNSUPPORTED"
+          },
+          {
+            "method": "IR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MI2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "VR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "AR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "MMR2V",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EDIT",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          },
+          {
+            "method": "V2V_EXTEND",
+            "status": "CAPABILITY_SIGNAL_GAP"
+          }
+        ],
+        "preferred_inference_method": null,
+        "observed_at": "2026-10-08T09:55:54.882652+00:00"
+      }
+    ]
+  },
+  "model_order": [
+    "alibaba/happyhorse-1.0",
+    "alibaba/happyhorse-1.1",
+    "alibaba/wan-2.6",
+    "alibaba/wan-2.7",
+    "alibaba/wan-3.0",
+    "alibaba/wan-3.0-prime",
+    "black-forest-labs/flux-video-edit",
+    "black-forest-labs/flux-video-upscale",
+    "black-forest-labs/flux-3-video",
+    "bytedance/seedance-1-5-pro",
+    "bytedance/seedance-2.0",
+    "bytedance/seedance-2.0-fast",
+    "bytedance/seedance-2.0-mini",
+    "bytedance/seedance-2.5",
+    "google/veo-3.1",
+    "google/veo-3.1-fast",
+    "google/veo-3.1-lite",
+    "heygen/avatar-iv",
+    "heygen/heygen-video-1",
+    "kwaivgi/kling-video-o1",
+    "kwaivgi/kling-v3.0-pro",
+    "kwaivgi/kling-v3.0-std",
+    "minimax/hailuo-3",
+    "minimax/hailuo-3-max",
+    "minimax/hailuo-2.3",
+    "runway/aleph-2",
+    "runway/gen-4.5",
+    "x-ai/grok-imagine-video",
+    "x-ai/grok-imagine-video-1.5",
+    "x-ai/grok-imagine-video-1.5-lite"
+  ],
+  "matrix": [
+    {
+      "model": "alibaba/happyhorse-1.0",
+      "methods": [
+        "T2V",
+        "I2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "720p",
+        "1080p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4",
+        "21:9",
+        "9:21"
+      ],
+      "duration": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "model": "alibaba/happyhorse-1.1",
+      "methods": [
+        "T2V",
+        "I2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "720p",
+        "1080p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4",
+        "21:9",
+        "9:21"
+      ],
+      "duration": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "model": "alibaba/wan-2.6",
+      "methods": [
+        "T2V",
+        "I2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "720p",
+        "1080p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "9:16"
+      ],
+      "duration": [
+        5,
+        10
+      ]
+    },
+    {
+      "model": "alibaba/wan-2.7",
+      "methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "720p",
+        "1080p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4"
+      ],
+      "duration": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "model": "alibaba/wan-3.0",
+      "methods": [
+        "T2V",
+        "I2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "4:3",
+        "1:1",
+        "3:4",
+        "9:16"
+      ],
+      "duration": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ]
+    },
+    {
+      "model": "alibaba/wan-3.0-prime",
+      "methods": [
+        "T2V",
+        "I2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "4:3",
+        "1:1",
+        "3:4",
+        "9:16"
+      ],
+      "duration": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ]
+    },
+    {
+      "model": "black-forest-labs/flux-3-video",
+      "methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "720p",
+        "1080p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "21:9",
+        "16:9",
+        "4:3",
+        "1:1",
+        "3:4",
+        "9:16"
+      ],
+      "duration": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ]
+    },
+    {
+      "model": "black-forest-labs/flux-video-edit",
+      "methods": [
+        "T2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT"
+      ],
+      "duration": null
+    },
+    {
+      "model": "black-forest-labs/flux-video-upscale",
+      "methods": [
+        "T2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT"
+      ],
+      "duration": null
+    },
+    {
+      "model": "bytedance/seedance-1-5-pro",
+      "methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "1:1",
+        "3:4",
+        "9:16",
+        "9:21",
+        "4:3",
+        "16:9",
+        "21:9"
+      ],
+      "duration": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "model": "bytedance/seedance-2.0",
+      "methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "480p",
+        "720p",
+        "1080p",
+        "4K"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "1:1",
+        "3:4",
+        "9:16",
+        "4:3",
+        "16:9",
+        "21:9",
+        "9:21"
+      ],
+      "duration": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "model": "bytedance/seedance-2.0-fast",
+      "methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "480p",
+        "720p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "1:1",
+        "3:4",
+        "9:16",
+        "4:3",
+        "16:9",
+        "21:9",
+        "9:21"
+      ],
+      "duration": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "model": "bytedance/seedance-2.0-mini",
+      "methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "480p",
+        "720p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "1:1",
+        "3:4",
+        "9:16",
+        "4:3",
+        "16:9",
+        "21:9",
+        "9:21"
+      ],
+      "duration": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "model": "bytedance/seedance-2.5",
+      "methods": [
+        "T2V",
+        "I2V",
+        "FLF2V",
+        "IR2V",
+        "MI2V",
+        "VR2V",
+        "AR2V",
+        "MMR2V",
+        "V2V_EDIT",
+        "V2V_EXTEND"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "480p",
+        "720p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "4:3",
+        "1:1",
+        "3:4",
+        "9:16",
+        "21:9"
+      ],
+      "duration": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ]
+    },
+    {
+      "model": "google/veo-3.1",
+      "methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "720p",
+        "1080p",
+        "4K"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "9:16"
+      ],
+      "duration": [
+        4,
+        6,
+        8
+      ]
+    },
+    {
+      "model": "google/veo-3.1-fast",
+      "methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "720p",
+        "1080p",
+        "4K"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "9:16"
+      ],
+      "duration": [
+        4,
+        6,
+        8
+      ]
+    },
+    {
+      "model": "google/veo-3.1-lite",
+      "methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "720p",
+        "1080p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "9:16"
+      ],
+      "duration": [
+        8,
+        4,
+        6
+      ]
+    },
+    {
+      "model": "heygen/avatar-iv",
+      "methods": [
+        "T2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "720p",
+        "1080p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "9:16",
+        "1:1"
+      ],
+      "duration": null
+    },
+    {
+      "model": "heygen/heygen-video-1",
+      "methods": [
+        "T2V",
+        "I2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "480p",
+        "768p",
+        "2K"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "21:9",
+        "16:9",
+        "4:3",
+        "1:1",
+        "3:4",
+        "9:16"
+      ],
+      "duration": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "model": "kwaivgi/kling-v3.0-pro",
+      "methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "720p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "9:16",
+        "1:1"
+      ],
+      "duration": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "model": "kwaivgi/kling-v3.0-std",
+      "methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "720p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "9:16",
+        "1:1"
+      ],
+      "duration": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "model": "kwaivgi/kling-video-o1",
+      "methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "720p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "9:16",
+        "1:1"
+      ],
+      "duration": [
+        5,
+        10
+      ]
+    },
+    {
+      "model": "minimax/hailuo-2.3",
+      "methods": [
+        "T2V",
+        "I2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "1080p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9"
+      ],
+      "duration": [
+        6,
+        10
+      ]
+    },
+    {
+      "model": "minimax/hailuo-3",
+      "methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "2K"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "21:9",
+        "16:9",
+        "4:3",
+        "1:1",
+        "3:4",
+        "9:16"
+      ],
+      "duration": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "model": "minimax/hailuo-3-max",
+      "methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "768p",
+        "480p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "21:9",
+        "16:9",
+        "4:3",
+        "1:1",
+        "3:4",
+        "9:16"
+      ],
+      "duration": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "model": "runway/aleph-2",
+      "methods": [
+        "T2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "4:3",
+        "3:2",
+        "1:1",
+        "2:3",
+        "3:4",
+        "9:16",
+        "21:9"
+      ],
+      "duration": null
+    },
+    {
+      "model": "runway/gen-4.5",
+      "methods": [
+        "T2V",
+        "I2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "720p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "9:16"
+      ],
+      "duration": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "model": "x-ai/grok-imagine-video",
+      "methods": [
+        "T2V",
+        "I2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "480p",
+        "720p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4",
+        "3:2",
+        "2:3"
+      ],
+      "duration": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "model": "x-ai/grok-imagine-video-1.5",
+      "methods": [
+        "T2V",
+        "I2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4",
+        "3:2",
+        "2:3"
+      ],
+      "duration": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "model": "x-ai/grok-imagine-video-1.5-lite",
+      "methods": [
+        "T2V",
+        "I2V"
+      ],
+      "resolution": [
+        "AUTO / MODEL DEFAULT",
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "aspect_ratio": [
+        "AUTO / MODEL DEFAULT",
+        "16:9",
+        "9:16",
+        "1:1",
+        "4:3",
+        "3:4",
+        "3:2",
+        "2:3"
+      ],
+      "duration": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    }
+  ],
+  "switches": [
+    {
+      "model": "bytedance/seedance-2.5",
+      "methods": [
+        "T2V",
+        "I2V",
+        "FLF2V",
+        "IR2V",
+        "MI2V",
+        "VR2V",
+        "AR2V",
+        "MMR2V",
+        "V2V_EDIT",
+        "V2V_EXTEND"
+      ]
+    },
+    {
+      "model": "google/veo-3.1",
+      "methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ]
+    },
+    {
+      "model": "alibaba/wan-3.0",
+      "methods": [
+        "T2V",
+        "I2V"
+      ]
+    },
+    {
+      "model": "bytedance/seedance-2.5",
+      "methods": [
+        "T2V",
+        "I2V",
+        "FLF2V",
+        "IR2V",
+        "MI2V",
+        "VR2V",
+        "AR2V",
+        "MMR2V",
+        "V2V_EDIT",
+        "V2V_EXTEND"
+      ]
+    }
+  ],
+  "topology": [
+    {
+      "method": "T2V",
+      "inputs": [
+        {
+          "name": "model",
+          "type": "COMBO"
+        },
+        {
+          "name": "inference_method",
+          "type": "COMBO"
+        },
+        {
+          "name": "prompt",
+          "type": "STRING"
+        },
+        {
+          "name": "resolution",
+          "type": "STRING"
+        },
+        {
+          "name": "aspect_ratio",
+          "type": "STRING"
+        },
+        {
+          "name": "duration",
+          "type": "INT"
+        },
+        {
+          "name": "size",
+          "type": "STRING"
+        },
+        {
+          "name": "seed",
+          "type": "INT"
+        },
+        {
+          "name": "generate_audio",
+          "type": "BOOLEAN"
+        },
+        {
+          "name": "first_frame_url",
+          "type": "STRING"
+        },
+        {
+          "name": "last_frame_url",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "method": "I2V",
+      "inputs": [
+        {
+          "name": "first_frame",
+          "type": "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE"
+        },
+        {
+          "name": "model",
+          "type": "COMBO"
+        },
+        {
+          "name": "inference_method",
+          "type": "COMBO"
+        },
+        {
+          "name": "prompt",
+          "type": "STRING"
+        },
+        {
+          "name": "resolution",
+          "type": "STRING"
+        },
+        {
+          "name": "aspect_ratio",
+          "type": "STRING"
+        },
+        {
+          "name": "duration",
+          "type": "INT"
+        },
+        {
+          "name": "size",
+          "type": "STRING"
+        },
+        {
+          "name": "seed",
+          "type": "INT"
+        },
+        {
+          "name": "generate_audio",
+          "type": "BOOLEAN"
+        },
+        {
+          "name": "first_frame_url",
+          "type": "STRING"
+        },
+        {
+          "name": "last_frame_url",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "method": "FLF2V",
+      "inputs": [
+        {
+          "name": "first_frame",
+          "type": "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE"
+        },
+        {
+          "name": "last_frame",
+          "type": "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE"
+        },
+        {
+          "name": "model",
+          "type": "COMBO"
+        },
+        {
+          "name": "inference_method",
+          "type": "COMBO"
+        },
+        {
+          "name": "prompt",
+          "type": "STRING"
+        },
+        {
+          "name": "resolution",
+          "type": "STRING"
+        },
+        {
+          "name": "aspect_ratio",
+          "type": "STRING"
+        },
+        {
+          "name": "duration",
+          "type": "INT"
+        },
+        {
+          "name": "size",
+          "type": "STRING"
+        },
+        {
+          "name": "seed",
+          "type": "INT"
+        },
+        {
+          "name": "generate_audio",
+          "type": "BOOLEAN"
+        },
+        {
+          "name": "first_frame_url",
+          "type": "STRING"
+        },
+        {
+          "name": "last_frame_url",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "method": "IR2V",
+      "inputs": [
+        {
+          "name": "direct_references.reference_0",
+          "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE"
+        },
+        {
+          "name": "model",
+          "type": "COMBO"
+        },
+        {
+          "name": "inference_method",
+          "type": "COMBO"
+        },
+        {
+          "name": "prompt",
+          "type": "STRING"
+        },
+        {
+          "name": "resolution",
+          "type": "STRING"
+        },
+        {
+          "name": "aspect_ratio",
+          "type": "STRING"
+        },
+        {
+          "name": "duration",
+          "type": "INT"
+        },
+        {
+          "name": "size",
+          "type": "STRING"
+        },
+        {
+          "name": "seed",
+          "type": "INT"
+        },
+        {
+          "name": "generate_audio",
+          "type": "BOOLEAN"
+        },
+        {
+          "name": "first_frame_url",
+          "type": "STRING"
+        },
+        {
+          "name": "last_frame_url",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "method": "MI2V",
+      "inputs": [
+        {
+          "name": "direct_references.reference_0",
+          "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE"
+        },
+        {
+          "name": "model",
+          "type": "COMBO"
+        },
+        {
+          "name": "inference_method",
+          "type": "COMBO"
+        },
+        {
+          "name": "prompt",
+          "type": "STRING"
+        },
+        {
+          "name": "resolution",
+          "type": "STRING"
+        },
+        {
+          "name": "aspect_ratio",
+          "type": "STRING"
+        },
+        {
+          "name": "duration",
+          "type": "INT"
+        },
+        {
+          "name": "size",
+          "type": "STRING"
+        },
+        {
+          "name": "seed",
+          "type": "INT"
+        },
+        {
+          "name": "generate_audio",
+          "type": "BOOLEAN"
+        },
+        {
+          "name": "first_frame_url",
+          "type": "STRING"
+        },
+        {
+          "name": "last_frame_url",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "method": "VR2V",
+      "inputs": [
+        {
+          "name": "direct_references.reference_0",
+          "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE"
+        },
+        {
+          "name": "model",
+          "type": "COMBO"
+        },
+        {
+          "name": "inference_method",
+          "type": "COMBO"
+        },
+        {
+          "name": "prompt",
+          "type": "STRING"
+        },
+        {
+          "name": "resolution",
+          "type": "STRING"
+        },
+        {
+          "name": "aspect_ratio",
+          "type": "STRING"
+        },
+        {
+          "name": "duration",
+          "type": "INT"
+        },
+        {
+          "name": "size",
+          "type": "STRING"
+        },
+        {
+          "name": "seed",
+          "type": "INT"
+        },
+        {
+          "name": "generate_audio",
+          "type": "BOOLEAN"
+        },
+        {
+          "name": "first_frame_url",
+          "type": "STRING"
+        },
+        {
+          "name": "last_frame_url",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "method": "AR2V",
+      "inputs": [
+        {
+          "name": "direct_references.reference_0",
+          "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE"
+        },
+        {
+          "name": "model",
+          "type": "COMBO"
+        },
+        {
+          "name": "inference_method",
+          "type": "COMBO"
+        },
+        {
+          "name": "prompt",
+          "type": "STRING"
+        },
+        {
+          "name": "resolution",
+          "type": "STRING"
+        },
+        {
+          "name": "aspect_ratio",
+          "type": "STRING"
+        },
+        {
+          "name": "duration",
+          "type": "INT"
+        },
+        {
+          "name": "size",
+          "type": "STRING"
+        },
+        {
+          "name": "seed",
+          "type": "INT"
+        },
+        {
+          "name": "generate_audio",
+          "type": "BOOLEAN"
+        },
+        {
+          "name": "first_frame_url",
+          "type": "STRING"
+        },
+        {
+          "name": "last_frame_url",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "method": "MMR2V",
+      "inputs": [
+        {
+          "name": "direct_references.reference_0",
+          "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE"
+        },
+        {
+          "name": "model",
+          "type": "COMBO"
+        },
+        {
+          "name": "inference_method",
+          "type": "COMBO"
+        },
+        {
+          "name": "prompt",
+          "type": "STRING"
+        },
+        {
+          "name": "resolution",
+          "type": "STRING"
+        },
+        {
+          "name": "aspect_ratio",
+          "type": "STRING"
+        },
+        {
+          "name": "duration",
+          "type": "INT"
+        },
+        {
+          "name": "size",
+          "type": "STRING"
+        },
+        {
+          "name": "seed",
+          "type": "INT"
+        },
+        {
+          "name": "generate_audio",
+          "type": "BOOLEAN"
+        },
+        {
+          "name": "first_frame_url",
+          "type": "STRING"
+        },
+        {
+          "name": "last_frame_url",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "method": "V2V_EDIT",
+      "inputs": [
+        {
+          "name": "source_video",
+          "type": "VIDEO,OPENROUTER_VIDEO_INPUT_REFERENCE"
+        },
+        {
+          "name": "direct_references.reference_0",
+          "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE"
+        },
+        {
+          "name": "model",
+          "type": "COMBO"
+        },
+        {
+          "name": "inference_method",
+          "type": "COMBO"
+        },
+        {
+          "name": "prompt",
+          "type": "STRING"
+        },
+        {
+          "name": "resolution",
+          "type": "STRING"
+        },
+        {
+          "name": "aspect_ratio",
+          "type": "STRING"
+        },
+        {
+          "name": "duration",
+          "type": "INT"
+        },
+        {
+          "name": "size",
+          "type": "STRING"
+        },
+        {
+          "name": "seed",
+          "type": "INT"
+        },
+        {
+          "name": "generate_audio",
+          "type": "BOOLEAN"
+        },
+        {
+          "name": "first_frame_url",
+          "type": "STRING"
+        },
+        {
+          "name": "last_frame_url",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "method": "V2V_EXTEND",
+      "inputs": [
+        {
+          "name": "source_video",
+          "type": "VIDEO,OPENROUTER_VIDEO_INPUT_REFERENCE"
+        },
+        {
+          "name": "direct_references.reference_0",
+          "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE"
+        },
+        {
+          "name": "model",
+          "type": "COMBO"
+        },
+        {
+          "name": "inference_method",
+          "type": "COMBO"
+        },
+        {
+          "name": "prompt",
+          "type": "STRING"
+        },
+        {
+          "name": "resolution",
+          "type": "STRING"
+        },
+        {
+          "name": "aspect_ratio",
+          "type": "STRING"
+        },
+        {
+          "name": "duration",
+          "type": "INT"
+        },
+        {
+          "name": "size",
+          "type": "STRING"
+        },
+        {
+          "name": "seed",
+          "type": "INT"
+        },
+        {
+          "name": "generate_audio",
+          "type": "BOOLEAN"
+        },
+        {
+          "name": "first_frame_url",
+          "type": "STRING"
+        },
+        {
+          "name": "last_frame_url",
+          "type": "STRING"
+        }
+      ]
+    }
+  ],
+  "native_source_video": true,
+  "legacy_source_video": true,
+  "before": [
+    {
+      "name": "direct_references.reference_0",
+      "label": "image_1",
+      "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+      "origin": "LoadImage"
+    },
+    {
+      "name": "direct_references.reference_1",
+      "label": "video_2",
+      "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+      "origin": "LoadVideo"
+    },
+    {
+      "name": "direct_references.reference_2",
+      "label": "audio_3",
+      "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+      "origin": "LoadAudio"
+    },
+    {
+      "name": "direct_references.reference_3",
+      "label": "video_4",
+      "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+      "origin": "LoadVideo"
+    }
+  ],
+  "after": [
+    {
+      "name": "direct_references.reference_0",
+      "label": "image_1",
+      "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+      "origin": "LoadImage"
+    },
+    {
+      "name": "direct_references.reference_1",
+      "label": "video_2",
+      "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+      "origin": "LoadVideo"
+    },
+    {
+      "name": "direct_references.reference_2",
+      "label": "audio_3",
+      "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+      "origin": "LoadAudio"
+    },
+    {
+      "name": "direct_references.reference_3",
+      "label": "video_4",
+      "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+      "origin": "LoadVideo"
+    }
+  ],
+  "saved_workflow": "workflows/ORV_Canonical_Native_Media_QA_1791453679777.json",
+  "workflow": {
+    "id": "00000000-0000-0000-0000-000000000000",
+    "revision": 0,
+    "last_node_id": 37,
+    "last_link_id": 7,
+    "nodes": [
+      {
+        "id": 31,
+        "type": "OpenRouterVideoGenerate",
+        "pos": [
+          630,
+          130
+        ],
+        "size": [
+          560,
+          574
+        ],
+        "flags": {},
+        "order": 5,
+        "mode": 0,
+        "inputs": [
+          {
+            "label": "image_1",
+            "name": "direct_references.reference_0",
+            "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "link": 3
+          },
+          {
+            "label": "video_2",
+            "localized_name": "direct_references.reference_1",
+            "name": "direct_references.reference_1",
+            "shape": 7,
+            "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "link": 4
+          },
+          {
+            "label": "audio_3",
+            "localized_name": "direct_references.reference_2",
+            "name": "direct_references.reference_2",
+            "shape": 7,
+            "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "link": 5
+          },
+          {
+            "label": "video_4",
+            "localized_name": "direct_references.reference_3",
+            "name": "direct_references.reference_3",
+            "shape": 7,
+            "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "link": 6
+          },
+          {
+            "label": "reference_5",
+            "localized_name": "direct_references.reference_4",
+            "name": "direct_references.reference_4",
+            "shape": 7,
+            "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "link": null
+          },
+          {
+            "localized_name": "model",
+            "name": "model",
+            "type": "COMBO",
+            "widget": {
+              "name": "model"
+            },
+            "link": null
+          },
+          {
+            "localized_name": "inference_method",
+            "name": "inference_method",
+            "type": "COMBO",
+            "widget": {
+              "name": "inference_method"
+            },
+            "link": null
+          },
+          {
+            "localized_name": "prompt",
+            "name": "prompt",
+            "type": "STRING",
+            "widget": {
+              "name": "prompt"
+            },
+            "link": null
+          },
+          {
+            "localized_name": "resolution",
+            "name": "resolution",
+            "type": "STRING",
+            "widget": {
+              "name": "resolution"
+            },
+            "link": null
+          },
+          {
+            "localized_name": "aspect_ratio",
+            "name": "aspect_ratio",
+            "type": "STRING",
+            "widget": {
+              "name": "aspect_ratio"
+            },
+            "link": null
+          },
+          {
+            "localized_name": "duration",
+            "name": "duration",
+            "type": "INT",
+            "widget": {
+              "name": "duration"
+            },
+            "link": null
+          },
+          {
+            "localized_name": "size",
+            "name": "size",
+            "type": "STRING",
+            "widget": {
+              "name": "size"
+            },
+            "link": null
+          },
+          {
+            "localized_name": "seed",
+            "name": "seed",
+            "type": "INT",
+            "widget": {
+              "name": "seed"
+            },
+            "link": null
+          },
+          {
+            "localized_name": "generate_audio",
+            "name": "generate_audio",
+            "type": "BOOLEAN",
+            "widget": {
+              "name": "generate_audio"
+            },
+            "link": null
+          },
+          {
+            "localized_name": "first_frame_url",
+            "name": "first_frame_url",
+            "type": "STRING",
+            "widget": {
+              "name": "first_frame_url"
+            },
+            "link": null
+          },
+          {
+            "localized_name": "last_frame_url",
+            "name": "last_frame_url",
+            "type": "STRING",
+            "widget": {
+              "name": "last_frame_url"
+            },
+            "link": null
+          }
+        ],
+        "outputs": [
+          {
+            "localized_name": "VIDEO",
+            "name": "VIDEO",
+            "type": "VIDEO",
+            "links": [
+              7
+            ]
+          },
+          {
+            "localized_name": "JOB_ID",
+            "name": "JOB_ID",
+            "type": "STRING",
+            "links": null
+          },
+          {
+            "localized_name": "MODEL",
+            "name": "MODEL",
+            "type": "STRING",
+            "links": null
+          },
+          {
+            "localized_name": "ACTUAL_COST_USD",
+            "name": "ACTUAL_COST_USD",
+            "type": "STRING",
+            "links": null
+          },
+          {
+            "localized_name": "STATUS",
+            "name": "STATUS",
+            "type": "STRING",
+            "links": null
+          }
+        ],
+        "properties": {
+          "Node name for S&R": "OpenRouterVideoGenerate"
+        },
+        "widgets_values": [
+          null,
+          "bytedance/seedance-2.5",
+          "MMR2V",
+          "Canonical native media zero-submit QA",
+          "480p",
+          "16:9",
+          4,
+          -1,
+          false,
+          null,
+          "AUTO / MODEL DEFAULT",
+          "randomize",
+          "",
+          ""
+        ],
+        "widgets_values_named": {
+          "model": "bytedance/seedance-2.5",
+          "inference_method": "MMR2V",
+          "prompt": "Canonical native media zero-submit QA",
+          "resolution": "480p",
+          "aspect_ratio": "16:9",
+          "duration": 4,
+          "seed": -1,
+          "generate_audio": false,
+          "size": "AUTO / MODEL DEFAULT",
+          "randomize": "randomize",
+          "first_frame_url": "",
+          "last_frame_url": ""
+        },
+        "color": "#173c33",
+        "bgcolor": "#1b2024",
+        "boxcolor": "#45dca5"
+      },
+      {
+        "id": 32,
+        "type": "LoadImage",
+        "pos": [
+          50,
+          130
+        ],
+        "size": [
+          282.798828125,
+          314
+        ],
+        "flags": {},
+        "order": 0,
+        "mode": 0,
+        "inputs": [
+          {
+            "localized_name": "image",
+            "name": "image",
+            "type": "COMBO",
+            "widget": {
+              "name": "image"
+            },
+            "link": null
+          },
+          {
+            "localized_name": "choose file to upload",
+            "name": "upload",
+            "type": "IMAGEUPLOAD",
+            "widget": {
+              "name": "upload"
+            },
+            "link": null
+          }
+        ],
+        "outputs": [
+          {
+            "localized_name": "IMAGE",
+            "name": "IMAGE",
+            "type": "IMAGE",
+            "links": [
+              3
+            ]
+          },
+          {
+            "localized_name": "MASK",
+            "name": "MASK",
+            "type": "MASK",
+            "links": null
+          }
+        ],
+        "properties": {
+          "Node name for S&R": "LoadImage"
+        },
+        "widgets_values": [
+          "example.png",
+          "image"
+        ],
+        "widgets_values_named": {
+          "image": "example.png",
+          "upload": "image"
+        }
+      },
+      {
+        "id": 33,
+        "type": "LoadVideo",
+        "pos": [
+          50,
+          495
+        ],
+        "size": [
+          282.798828125,
+          82
+        ],
+        "flags": {},
+        "order": 1,
+        "mode": 0,
+        "inputs": [
+          {
+            "localized_name": "file",
+            "name": "file",
+            "type": "COMBO",
+            "widget": {
+              "name": "file"
+            },
+            "link": null
+          },
+          {
+            "localized_name": "choose file to upload",
+            "name": "upload",
+            "type": "IMAGEUPLOAD",
+            "widget": {
+              "name": "upload"
+            },
+            "link": null
+          }
+        ],
+        "outputs": [
+          {
+            "localized_name": "VIDEO",
+            "name": "VIDEO",
+            "type": "VIDEO",
+            "links": [
+              4,
+              6
+            ]
+          }
+        ],
+        "properties": {
+          "Node name for S&R": "LoadVideo"
+        },
+        "widgets_values": [
+          null,
+          "image"
+        ],
+        "widgets_values_named": {
+          "file": null,
+          "upload": "image"
+        }
+      },
+      {
+        "id": 34,
+        "type": "LoadAudio",
+        "pos": [
+          50,
+          930
+        ],
+        "size": [
+          282.798828125,
+          136
+        ],
+        "flags": {},
+        "order": 2,
+        "mode": 0,
+        "inputs": [
+          {
+            "localized_name": "audio",
+            "name": "audio",
+            "type": "COMBO",
+            "widget": {
+              "name": "audio"
+            },
+            "link": null
+          },
+          {
+            "localized_name": "audioUI",
+            "name": "audioUI",
+            "type": "AUDIO_UI",
+            "widget": {
+              "name": "audioUI"
+            },
+            "link": null
+          },
+          {
+            "localized_name": "choose file to upload",
+            "name": "upload",
+            "type": "AUDIOUPLOAD",
+            "widget": {
+              "name": "upload"
+            },
+            "link": null
+          }
+        ],
+        "outputs": [
+          {
+            "localized_name": "AUDIO",
+            "name": "AUDIO",
+            "type": "AUDIO",
+            "links": [
+              5
+            ]
+          }
+        ],
+        "properties": {
+          "Node name for S&R": "LoadAudio"
+        },
+        "widgets_values": [
+          null,
+          null,
+          ""
+        ],
+        "widgets_values_named": {
+          "audio": null,
+          "upload": ""
+        }
+      },
+      {
+        "id": 36,
+        "type": "OpenRouterVideoResume",
+        "pos": [
+          1280,
+          180
+        ],
+        "size": [
+          278.0787109375,
+          138
+        ],
+        "flags": {},
+        "order": 3,
+        "mode": 0,
+        "inputs": [
+          {
+            "localized_name": "job_id",
+            "name": "job_id",
+            "type": "STRING",
+            "widget": {
+              "name": "job_id"
+            },
+            "link": null
+          }
+        ],
+        "outputs": [
+          {
+            "localized_name": "VIDEO",
+            "name": "VIDEO",
+            "type": "VIDEO",
+            "links": null
+          },
+          {
+            "localized_name": "JOB_ID",
+            "name": "JOB_ID",
+            "type": "STRING",
+            "links": null
+          },
+          {
+            "localized_name": "MODEL",
+            "name": "MODEL",
+            "type": "STRING",
+            "links": null
+          },
+          {
+            "localized_name": "ACTUAL_COST_USD",
+            "name": "ACTUAL_COST_USD",
+            "type": "STRING",
+            "links": null
+          },
+          {
+            "localized_name": "STATUS",
+            "name": "STATUS",
+            "type": "STRING",
+            "links": null
+          }
+        ],
+        "properties": {
+          "Node name for S&R": "OpenRouterVideoResume"
+        },
+        "widgets_values": [
+          ""
+        ],
+        "widgets_values_named": {
+          "job_id": ""
+        }
+      },
+      {
+        "id": 37,
+        "type": "SaveVideo",
+        "pos": [
+          1280,
+          550
+        ],
+        "size": [
+          270,
+          106
+        ],
+        "flags": {},
+        "order": 4,
+        "mode": 0,
+        "inputs": [
+          {
+            "localized_name": "video",
+            "name": "video",
+            "type": "VIDEO",
+            "link": 7
+          },
+          {
+            "localized_name": "filename_prefix",
+            "name": "filename_prefix",
+            "type": "STRING",
+            "widget": {
+              "name": "filename_prefix"
+            },
+            "link": null
+          },
+          {
+            "localized_name": "format.codec",
+            "name": "format.codec",
+            "type": "COMFY_DYNAMICCOMBO_V3",
+            "widget": {
+              "name": "format.codec"
+            },
+            "link": null
+          },
+          {
+            "localized_name": "format",
+            "name": "format",
+            "type": "COMFY_DYNAMICCOMBO_V3",
+            "widget": {
+              "name": "format"
+            },
+            "link": null
+          },
+          {
+            "localized_name": "codec",
+            "name": "codec",
+            "shape": 7,
+            "type": "COMFY_DYNAMICCOMBO_V3",
+            "widget": {
+              "name": "codec"
+            },
+            "link": null
+          }
+        ],
+        "outputs": [
+          {
+            "localized_name": "video",
+            "name": "video",
+            "type": "VIDEO",
+            "links": null
+          }
+        ],
+        "properties": {},
+        "widgets_values": [
+          "video/ComfyUI",
+          "auto",
+          "auto",
+          "auto"
+        ],
+        "widgets_values_named": {
+          "filename_prefix": "video/ComfyUI",
+          "format": "auto",
+          "format.codec": "auto",
+          "codec": "auto"
+        }
+      }
+    ],
+    "links": [
+      [
+        3,
+        32,
+        0,
+        31,
+        0,
+        "IMAGE"
+      ],
+      [
+        4,
+        33,
+        0,
+        31,
+        1,
+        "VIDEO"
+      ],
+      [
+        5,
+        34,
+        0,
+        31,
+        2,
+        "AUDIO"
+      ],
+      [
+        6,
+        33,
+        0,
+        31,
+        3,
+        "VIDEO"
+      ],
+      [
+        7,
+        31,
+        0,
+        37,
+        0,
+        "VIDEO"
+      ]
+    ],
+    "groups": [],
+    "config": {},
+    "extra": {
+      "ds": {
+        "scale": 0.8181818181818187,
+        "offset": [
+          35,
+          40
+        ]
+      }
+    },
+    "version": 0.4
+  },
+  "workflow_queues": 0,
+  "paid_posts": 0,
+  "widgets": [
+    {
+      "name": "REFERENCES",
+      "y": 106
+    },
+    {
+      "name": "model",
+      "y": 132
+    },
+    {
+      "name": "inference_method",
+      "y": 174
+    },
+    {
+      "name": "prompt",
+      "y": 216
+    },
+    {
+      "name": "resolution",
+      "y": 312
+    },
+    {
+      "name": "aspect_ratio",
+      "y": 354
+    },
+    {
+      "name": "duration",
+      "y": 396
+    },
+    {
+      "name": "seed",
+      "y": 438
+    },
+    {
+      "name": "generate_audio",
+      "y": 480
+    },
+    {
+      "name": "Advanced",
+      "y": 522
+    },
+    {
+      "name": "size",
+      "y": 0
+    },
+    {
+      "name": "randomize",
+      "y": 0
+    },
+    {
+      "name": "first_frame_url",
+      "y": 0
+    },
+    {
+      "name": "last_frame_url",
+      "y": 0
+    },
+    {
+      "name": "STATE",
+      "y": 0
+    },
+    {
+      "name": "COST",
+      "y": 0
+    }
+  ]
+}

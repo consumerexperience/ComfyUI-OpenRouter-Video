@@ -1,0 +1,103 @@
+{
+  "allowed_semantic_changes": [
+    {
+      "operations": [
+        "replace"
+      ],
+      "path": "/surfaces/product_owned/node_family/registered_types",
+      "reason": "ADR-031 adds the public AUDIO reference helper while preserving the existing node family."
+    },
+    {
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "path": "/surfaces/product_owned/method_semantics",
+      "reason": "ADR-031 authorizes deterministic capability-derived Phase 10 inference methods and topology rules."
+    },
+    {
+      "operations": [
+        "replace"
+      ],
+      "path": "/surfaces/product_owned/media_topology/reference_kinds",
+      "reason": "ADR-031 authorizes typed AUDIO alongside IMAGE and VIDEO."
+    },
+    {
+      "operations": [
+        "replace"
+      ],
+      "path": "/surfaces/product_owned/media_topology/native_direct_inputs",
+      "reason": "ADR-032 authorizes native IMAGE plus native VIDEO/AUDIO transport."
+    },
+    {
+      "operations": [
+        "replace"
+      ],
+      "path": "/surfaces/product_owned/media_topology/source_video_first",
+      "reason": "ADR-031 authorizes explicit Edit/Extend Source Video topology."
+    },
+    {
+      "operations": [
+        "replace"
+      ],
+      "path": "/surfaces/product_owned/persistence/staging_ownership_ledger",
+      "reason": "ADR-032 requires exact-object staging ownership."
+    },
+    {
+      "operations": [
+        "replace"
+      ],
+      "path": "/surfaces/product_owned/persistence/staging_tombstone",
+      "reason": "ADR-032 requires a staging operation tombstone."
+    },
+    {
+      "operations": [
+        "replace"
+      ],
+      "path": "/surfaces/product_owned/billing_security/native_storage",
+      "reason": "ADR-032 authorizes the bounded private temporary storage boundary."
+    }
+  ],
+  "baseline_checkpoint": "phase9-runtime-reliability-canonical-main",
+  "baseline_sha": "b492184f41492d37677a2dde9afdbe88666717a2",
+  "delta_id": "phase10-capability-methods-and-native-media-v1",
+  "expected_components": [
+    "capability-derived method projection",
+    "native media adapter",
+    "private staging manager",
+    "exact-object persistence ledger",
+    "negative-space contract tests"
+  ],
+  "intended_delta": [
+    "Add capability-derived local inference methods and approved IMAGE/VIDEO/AUDIO topology without creating a second capability truth.",
+    "Add native IMAGE direct input and transient native VIDEO/AUDIO staging through the approved private S3-compatible boundary.",
+    "Persist exact staging ownership and cleanup state without changing paid-submit or Resume authority."
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned/node_family/generate",
+    "/surfaces/product_owned/node_family/resume",
+    "/surfaces/product_owned/media_topology/ordered_occurrences",
+    "/surfaces/product_owned/media_topology/duplicates",
+    "/surfaces/product_owned/media_topology/incompatible_switch",
+    "/surfaces/product_owned/controls",
+    "/surfaces/product_owned/persistence/workflow_compatibility",
+    "/surfaces/product_owned/persistence/legacy_workflow_support",
+    "/surfaces/product_owned/lifecycle",
+    "/surfaces/product_owned/billing_security/max_intentional_paid_submits_per_operation",
+    "/surfaces/product_owned/billing_security/credentials_serialized",
+    "/surfaces/product_owned/billing_security/app_identity_runtime_override",
+    "/surfaces/product_owned/billing_security/capabilities_fail_closed"
+  ],
+  "protocol": "openrouter-video-contract-delta",
+  "required_gates": [
+    "baseline_declaration",
+    "semantic_diff",
+    "negative_space_tests",
+    "explicit_high_risk_approval",
+    "migration_persistence_tests",
+    "canonical_browser_matrix"
+  ],
+  "risk_tier": "C",
+  "schema_version": 1,
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}
