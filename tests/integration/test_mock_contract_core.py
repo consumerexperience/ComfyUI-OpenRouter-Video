@@ -18,6 +18,7 @@ from openrouter_video.models import (
     LocalLifecycleState,
 )
 from openrouter_video.policy import Operation
+from tests.fixtures.golden_pack import load_default_pack
 from tests.harness.core import core_harness
 from tests.harness.scenario import Scenario, ScenarioStep
 
@@ -109,15 +110,8 @@ def test_real_core_happy_path_is_one_submit_one_job_and_durable_artifact(tmp_pat
             (InputReference(InputReferenceKind.VIDEO, "https://assets.example/b.mp4"),),
             InferenceMethod.VR2V,
         ),
-        (
-            (
-                InputReference(InputReferenceKind.VIDEO, "https://assets.example/b.mp4"),
-                InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
-            ),
-            InferenceMethod.MMR2V,
-        ),
     ],
-    ids=("multi-image", "video", "mixed-image-video"),
+    ids=("multi-image", "video"),
 )
 def test_seedance_overlay_reference_modes_use_the_existing_generate_lifecycle(
     tmp_path: Path,
@@ -188,3 +182,87 @@ def test_seedance_overlay_reference_modes_use_the_existing_generate_lifecycle(
     database_bytes = (tmp_path / "jobs.sqlite3").read_bytes()
     for sensitive in (prompt, *(reference.url for reference in references)):
         assert sensitive.encode() not in database_bytes
+
+
+def test_default_golden_pack_multimodal_order_uses_mocked_generate_lifecycle(
+    tmp_path: Path,
+) -> None:
+    pack = load_default_pack()
+    ordered_assets = pack.canonical_references
+    references = tuple(
+        InputReference(
+            InputReferenceKind[asset["type"]],
+            f"https://golden-pack.invalid/{asset['sha256']}/{asset['local_filename']}",
+        )
+        for asset in ordered_assets
+    )
+    expected_references = [
+        {
+            "type": asset["transport"]["wire_type"],
+            asset["transport"]["wire_type"]: {"url": reference.url},
+        }
+        for asset, reference in zip(ordered_assets, references, strict=True)
+    ]
+    assert [reference.kind for reference in references] == [
+        InputReferenceKind.IMAGE,
+        InputReferenceKind.IMAGE,
+        InputReferenceKind.VIDEO,
+        InputReferenceKind.AUDIO,
+    ]
+
+    prompt = "DEFAULT_GOLDEN_PACK_MMR2V_MOCK_CANARY"
+    request = GenerationRequest(
+        "bytedance/seedance-2.5",
+        prompt,
+        duration=5,
+        inference_method=InferenceMethod.MMR2V,
+        input_references=InputReferenceCollection(references),
+    )
+    scenario = Scenario(
+        "default-golden-pack-mmr2v",
+        [
+            ScenarioStep(
+                Operation.DISCOVERY,
+                "GET",
+                "/api/v1/videos/models",
+                json_body={"data": [{"id": "bytedance/seedance-2.5"}]},
+            ),
+            ScenarioStep(
+                Operation.SUBMIT,
+                "POST",
+                "/api/v1/videos",
+                status=202,
+                json_body=_json("submit/accepted.json"),
+                expected_json={
+                    "model": "bytedance/seedance-2.5",
+                    "generate_audio": False,
+                    "duration": 5,
+                    "prompt": prompt,
+                    "input_references": expected_references,
+                },
+            ),
+            ScenarioStep(
+                Operation.POLL,
+                "GET",
+                "/api/v1/videos/job_123",
+                json_body=_json("poll/completed_cost.json"),
+            ),
+            ScenarioStep(
+                Operation.CONTENT,
+                "GET",
+                "/api/v1/videos/job_123/content?index=0",
+                headers={"Content-Type": "video/mp4"},
+                body=MP4,
+            ),
+        ],
+    )
+
+    async def run() -> None:
+        async with core_harness(scenario, tmp_path) as core:
+            result = await core.generate.generate("operation-golden-mmr2v", request)
+            assert result.state is LocalLifecycleState.DONE
+            assert result.artifact is not None and result.artifact.path.read_bytes() == MP4
+
+    asyncio.run(run())
+    scenario.assert_complete()
+    scenario.ledger.assert_generation_submit_count(1)

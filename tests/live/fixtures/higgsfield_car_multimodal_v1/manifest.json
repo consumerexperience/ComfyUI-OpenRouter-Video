@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "id": "higgsfield-car-golden-multimodal-v1",
+  "title": "Golden Multimodal Asset Pack v1",
+  "generation_target_seconds": 5,
+  "paid_generation": {
+    "status": "not_run",
+    "post_count": 0
+  },
+  "assets": [
+    {
+      "asset_id": "car_sheet",
+      "type": "IMAGE",
+      "local_filename": "car_sheet.png",
+      "path": "assets/car_sheet.png",
+      "upstream_filename": "car_sheet.png",
+      "source_url": "https://higgsfield.ai/blog/ai-car-commercial-youtube-guide",
+      "upstream_member": "all assets here_car commercial/car_sheet.png",
+      "bytes": 5679347,
+      "sha256": "fa3dcadd9b0a9492ffed690ac8c33b930251e871e5c72b638fd864fec7796c1b",
+      "media_metadata": {
+        "container": "PNG",
+        "width": 2048,
+        "height": 2048,
+        "pixel_format": "RGB",
+        "channels": 3
+      },
+      "roles": ["image_vehicle_identity", "image_vehicle_geometry"],
+      "transport": {
+        "upstream_role": "image_reference",
+        "wire_type": "image_url"
+      },
+      "modified": false
+    },
+    {
+      "asset_id": "street_environment",
+      "type": "IMAGE",
+      "local_filename": "loc_street_main.png",
+      "path": "assets/loc_street_main.png",
+      "upstream_filename": "loc_street_main.png",
+      "source_url": "https://higgsfield.ai/blog/ai-car-commercial-youtube-guide",
+      "upstream_member": "all assets here_car commercial/loc_street_main.png",
+      "bytes": 4246628,
+      "sha256": "58839076ec0047430465b8516e51d93735a1cadfde9d792a0c7941271fa2b5b7",
+      "media_metadata": {
+        "container": "PNG",
+        "width": 2048,
+        "height": 1152,
+        "pixel_format": "RGBA",
+        "channels": 4
+      },
+      "roles": ["image_environment", "image_lighting_context"],
+      "transport": {
+        "upstream_role": "image_reference",
+        "wire_type": "image_url"
+      },
+      "modified": false
+    },
+    {
+      "asset_id": "car_chasing_playblast",
+      "type": "VIDEO",
+      "local_filename": "Car_Chasing.mp4",
+      "path": "assets/Car_Chasing.mp4",
+      "upstream_filename": "a76f2e99-0a41-4fdf-934d-9c95b0ee85bf.mp4",
+      "source_url": "https://static.higgsfield.ai/a76f2e99-0a41-4fdf-934d-9c95b0ee85bf.mp4",
+      "source_page_url": "https://higgsfield.ai/commercial",
+      "source_title": "Car Chasing",
+      "bytes": 337491,
+      "sha256": "7e1bedcc079331cd15e48ed53bc4fd55b0d0f03dfb0d4d66ad6690c149e2048c",
+      "media_metadata": {
+        "container": "MP4",
+        "video_codec": "h264",
+        "pixel_format": "yuv420p",
+        "duration_seconds": 5.366667,
+        "width": 320,
+        "height": 182,
+        "fps": 30,
+        "audio_stream": false
+      },
+      "usable_timing_cue": {
+        "start_seconds": 0,
+        "end_seconds": 5,
+        "note": "Use the opening five seconds as the timing cue. The complete upstream binary remains untouched; no derived clip was created."
+      },
+      "roles": [
+        "video_playblast",
+        "video_control",
+        "video_camera",
+        "video_motion",
+        "video_timing",
+        "video_environment"
+      ],
+      "role_scope_note": "Controls blocking, camera path, timing, and automotive motion only; it does not override hero-car identity from IMAGE references.",
+      "transport": {
+        "upstream_role": "video_reference",
+        "wire_type": "video_url"
+      },
+      "modified": false
+    },
+    {
+      "asset_id": "passing_car_urban_ambience",
+      "type": "AUDIO",
+      "local_filename": "Passing_car_urban_ambience.wav",
+      "path": "assets/Passing_car_urban_ambience.wav",
+      "upstream_filename": "1554.wav",
+      "source_url": "https://assets.mixkit.co/active_storage/sfx/1554/1554.wav",
+      "source_page_url": "https://mixkit.co/free-sound-effects/car/",
+      "source_title": "Passing car and urban ambience",
+      "license": "Mixkit License",
+      "bytes": 2473696,
+      "sha256": "8eb0e3aa4e3a990bd5280b3309fcfac8c549f633caae165f52f7684316b83493",
+      "media_metadata": {
+        "container": "WAV",
+        "audio_codec": "pcm_s16le",
+        "duration_seconds": 14,
+        "sample_rate_hz": 44100,
+        "channels": 2,
+        "bits_per_sample": 16
+      },
+      "usable_timing_cue": {
+        "start_seconds": 0,
+        "end_seconds": 5,
+        "note": "Use the opening five seconds as an optional timing/ambience cue; the full upstream audio binary remains untouched."
+      },
+      "roles": ["audio_reference", "audio_timing", "audio_ambience"],
+      "transport": {
+        "upstream_role": "audio_reference",
+        "wire_type": "audio_url"
+      },
+      "modified": false
+    }
+  ],
+  "canonical_mmr2v_order": [
+    { "position": 1, "asset_id": "car_sheet", "type": "IMAGE" },
+    { "position": 2, "asset_id": "street_environment", "type": "IMAGE" },
+    { "position": 3, "asset_id": "car_chasing_playblast", "type": "VIDEO" },
+    { "position": 4, "asset_id": "passing_car_urban_ambience", "type": "AUDIO" }
+  ],
+  "duplicate_reference_regression_fixture": "checks/duplicate-reference-regression.json",
+  "rights_and_storage": {
+    "binary_policy": "Keep exact source bytes locally. Redistribution of source media is not asserted.",
+    "git_policy": "Binary assets are locally materialized and gitignored; tracked manifest records provenance and hashes."
+  }
+}

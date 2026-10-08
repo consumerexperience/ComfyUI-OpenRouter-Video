@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "id": "higgsfield_car_front_wheel_v1",
+  "name": "GOLDEN SMOKE 01 — FRONT WHEEL RIG",
+  "level": 1,
+  "duration_seconds": 5,
+  "generation": {
+    "shot_count": 1,
+    "continuous_take": true,
+    "cuts": 0,
+    "audio": false,
+    "model_selection": "live_catalog_model_supporting_video_generation_and_image_references"
+  },
+  "reference_policy": {
+    "min_refs": 1,
+    "preferred_refs": 2,
+    "ordered_refs": ["car_sheet.png", "loc_street_main.png"],
+    "preserve_order": true,
+    "preserve_duplicate_occurrences": true,
+    "fallback_when_one_reference_supported": ["car_sheet.png"]
+  },
+  "machine_assertions": {
+    "generate_request_created": true,
+    "generate_paid_post_count_max": 1,
+    "resume_paid_post_count": 0,
+    "job_id_persisted": true,
+    "completed_output_exists": true,
+    "output_nonempty": true,
+    "output_duration_seconds_tolerance": 0.5,
+    "valid_video_container": true,
+    "video_stream_decodes": true,
+    "reference_order_preserved": true,
+    "duplicate_occurrences_preserved": true
+  },
+  "human_visual_acceptance": "checks/visual-acceptance.md",
+  "paid_action_gate": "Immediate explicit Product Owner approval is required for each paid Generate POST."
+}

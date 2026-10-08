@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "higgsfield-car-creative-golden-pack-v1",
+  "source": {
+    "name": "Higgsfield — Cinematic Car Commercial — Full Breakdown",
+    "page_url": "https://higgsfield.ai/blog/ai-car-commercial-youtube-guide",
+    "archive_filename": "all_assets_here_car_commercial.zip",
+    "archive_local_path": "source/all_assets_here_car_commercial.zip",
+    "archive_download_url": "https://cdn.sanity.io/files/s479xw3z/production/367b90336bcfca0b8929c58e4ced493d7204760f.zip",
+    "archive_bytes": 96761184,
+    "archive_sha256": "3ff6d1b23f91028174a572182436781a079c1ccc44d099725db356490eace404",
+    "archive_etag_md5": "f6e81c8c57ed1674c461b29ebd8a2220",
+    "official_archive_member_count": 24,
+    "materialization_command": "python scripts/fetch_higgsfield_car_v1.py"
+  },
+  "canonical_case": "checks/contract.json",
+  "level2_multimodal_case": "checks/contract-level2-mmr2v.json",
+  "assets": [
+    {
+      "local_filename": "car_sheet.png",
+      "path": "assets/car_sheet.png",
+      "upstream_filename": "car_sheet.png",
+      "upstream_archive_member": "all assets here_car commercial/car_sheet.png",
+      "media_type": "image/png",
+      "dimensions": [2048, 2048],
+      "pixel_format": "RGB",
+      "channels": 3,
+      "bytes": 5679347,
+      "sha256": "fa3dcadd9b0a9492ffed690ac8c33b930251e871e5c72b638fd864fec7796c1b",
+      "selector": "@car_sheet",
+      "role": ["hero vehicle identity", "body geometry", "front wheel geometry"],
+      "modified": false
+    },
+    {
+      "local_filename": "loc_street_main.png",
+      "path": "assets/loc_street_main.png",
+      "upstream_filename": "loc_street_main.png",
+      "upstream_archive_member": "all assets here_car commercial/loc_street_main.png",
+      "media_type": "image/png",
+      "dimensions": [2048, 1152],
+      "pixel_format": "RGBA",
+      "channels": 4,
+      "bytes": 4246628,
+      "sha256": "58839076ec0047430465b8516e51d93735a1cadfde9d792a0c7941271fa2b5b7",
+      "selector": "@loc_street_main",
+      "role": ["road environment", "lighting and color context"],
+      "modified": false
+    }
+  ],
+  "rights": {
+    "local_materialization": "Official creator tutorial download, local test corpus only",
+    "public_redistribution": "Not established; binaries are excluded from Git"
+  },
+  "test_pyramid": {
+    "level_0": "local zero-cost contract, serialization, reference/persistence/transport/hash tests",
+    "level_1": "5-second single continuous automotive shot; paid and owner-gated",
+    "level_2": "5-second IMAGE + VIDEO + AUDIO only for multimodal transport validation; separate paid gate",
+    "level_3": "cinematic acceptance, 15 seconds maximum by default; milestone/release validation",
+    "30_seconds_plus": "demo/showcase/manual cinematic evaluation only; not regression testing"
+  }
+}

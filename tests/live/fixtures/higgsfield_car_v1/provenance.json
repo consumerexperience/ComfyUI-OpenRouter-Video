@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "source": "Higgsfield",
+  "source_project": "Cinematic Car Commercial — Full Breakdown",
+  "source_url": "https://higgsfield.ai/blog/ai-car-commercial-youtube-guide",
+  "source_type": "official_creator_tutorial",
+  "source_archive": {
+    "upstream_filename": "all_assets_here_car_commercial.zip",
+    "download_url": "https://cdn.sanity.io/files/s479xw3z/production/367b90336bcfca0b8929c58e4ced493d7204760f.zip",
+    "local_path": "source/all_assets_here_car_commercial.zip",
+    "bytes": 96761184,
+    "sha256": "3ff6d1b23f91028174a572182436781a079c1ccc44d099725db356490eace404",
+    "etag_md5": "f6e81c8c57ed1674c461b29ebd8a2220"
+  },
+  "prompt_provenance": {
+    "file": "prompts/upstream.md",
+    "section": "Scene 2, Part 2 — Driving B-Roll; technical block and Shot 1 (0–5s)",
+    "source_url": "https://higgsfield.ai/blog/ai-car-commercial-youtube-guide"
+  },
+  "assets": [
+    {
+      "local_filename": "car_sheet.png",
+      "upstream_filename": "car_sheet.png",
+      "upstream_archive_member": "all assets here_car commercial/car_sheet.png",
+      "source": "Higgsfield",
+      "source_project": "Cinematic Car Commercial — Full Breakdown",
+      "source_url": "https://higgsfield.ai/blog/ai-car-commercial-youtube-guide",
+      "source_type": "official_creator_tutorial",
+      "sha256": "fa3dcadd9b0a9492ffed690ac8c33b930251e871e5c72b638fd864fec7796c1b",
+      "bytes": 5679347,
+      "media_type": "image",
+      "role": ["vehicle identity", "body and front-wheel geometry"],
+      "modified": false
+    },
+    {
+      "local_filename": "loc_street_main.png",
+      "upstream_filename": "loc_street_main.png",
+      "upstream_archive_member": "all assets here_car commercial/loc_street_main.png",
+      "source": "Higgsfield",
+      "source_project": "Cinematic Car Commercial — Full Breakdown",
+      "source_url": "https://higgsfield.ai/blog/ai-car-commercial-youtube-guide",
+      "source_type": "official_creator_tutorial",
+      "sha256": "58839076ec0047430465b8516e51d93735a1cadfde9d792a0c7941271fa2b5b7",
+      "bytes": 4246628,
+      "media_type": "image",
+      "role": ["road environment", "lighting and color context"],
+      "modified": false
+    }
+  ],
+  "public_redistribution": "Not established by the source page; third-party binaries remain local and gitignored"
+}

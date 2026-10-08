@@ -1,0 +1,3 @@
+# GOLDEN SMOKE 01 — FRONT WHEEL RIG
+
+One continuous 5-second cinematic, photoreal shot. Match the hero vehicle in `@car_sheet` and the road world in `@loc_street_main`. Extreme low three-quarter side angle, rigid camera mount inches above asphalt beside the front wheel. The car travels forward at speed; show stable vehicle geometry, clear wheel rotation, tire contact and road texture moving past, subtle suspension vibration, and coherent reflections sliding over the dark cherry-red body. Camera remains mechanically locked relative to the car. No cut, no transition, no extra subject, no added branding or text. Natural film grain, organic color, soft contrast, grounded physical motion, no CGI look. NON-IP.

@@ -1,0 +1,17 @@
+{
+  "id": "higgsfield_car_mmr2v_duplicate-reference-regression_v1",
+  "purpose": "Verify that intentional duplicate occurrences preserve their order without duplicating physical asset files.",
+  "ordered_occurrences": [
+    "car_sheet",
+    "car_chasing_playblast",
+    "passing_car_urban_ambience",
+    "car_chasing_playblast"
+  ],
+  "physical_asset_ids": [
+    "car_sheet",
+    "street_environment",
+    "car_chasing_playblast",
+    "passing_car_urban_ambience"
+  ],
+  "paid_post_count": 0
+}
