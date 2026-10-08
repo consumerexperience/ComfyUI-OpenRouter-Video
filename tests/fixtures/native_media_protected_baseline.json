@@ -1,0 +1,63 @@
+{
+  "catalog": [
+    {
+      "path": "src/openrouter_video/client.py",
+      "selected": null,
+      "sha256": "af839ef69dc0699866f12001e741b731218666ca6680d2c27918fc08878e7ac6"
+    }
+  ],
+  "capabilities": [
+    {
+      "path": "src/openrouter_video/capabilities.py",
+      "selected": [
+        "inference_method_matrix",
+        "_reference_kind_status",
+        "_intent_status",
+        "mode_enforcement_matrix",
+        "infer_legacy_inference_method",
+        "CapabilityService"
+      ],
+      "sha256": "46112450edbf565159a62f30f9ce1f69c03b761a75b242f8069546cec8ea84f1"
+    },
+    {
+      "path": "src/openrouter_video/capability_overlays.py",
+      "selected": null,
+      "sha256": "3a1e7f9192bd2781aca3662fb84652785ac8c96f682496cfa881f92ddb51c3d8"
+    },
+    {
+      "path": "src/openrouter_video/models.py",
+      "selected": [
+        "ModelCapabilities",
+        "InputReferenceCapabilities"
+      ],
+      "sha256": "9f3af3641ef825a8226f2016db923ece52622ccfa690399c646b5321cd285513"
+    }
+  ],
+  "image": [
+    {
+      "path": "src/openrouter_video/image_transport.py",
+      "selected": null,
+      "sha256": "8083813029dfd783144673b7a3df662212ecdcd9abe341241937ec74b3929458"
+    },
+    {
+      "path": "src/openrouter_video/comfy/nodes.py",
+      "selected": [
+        "_frame_reference",
+        "_image_or_reference"
+      ],
+      "sha256": "0e6c20286a57d94a91501f3e6dcb9ac7705bd8a89071a4474c57c1d86a33c88f"
+    }
+  ],
+  "submit_policy": [
+    {
+      "path": "src/openrouter_video/request_policy.py",
+      "selected": null,
+      "sha256": "63cb99d59111bc0e0370a2e0762d032527cbe8b6def62f341506ebf8a77702c7"
+    },
+    {
+      "path": "src/openrouter_video/policy.py",
+      "selected": null,
+      "sha256": "fbdb02361508e4cf52febe1cf8a667b60abb5d558fcfdfc0fb958620ce0bf3b5"
+    }
+  ]
+}

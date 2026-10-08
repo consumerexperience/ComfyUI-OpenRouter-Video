@@ -23,7 +23,9 @@ from openrouter_video.models import GenerationRequest, GenerationResult
 from openrouter_video.persistence import JobStore
 from openrouter_video.pricing import CostEstimateInputs, EstimateResult, PreflightCostEstimator
 from openrouter_video.request_policy import OpenRouterRequestPolicy
+from openrouter_video.s3_upload import S3MediaUploader
 from openrouter_video.secrets import EnvironmentSecretProvider
+from openrouter_video.staging import StagingManager
 from openrouter_video.transport import HttpxTransport
 
 from . import compat
@@ -43,6 +45,7 @@ class _Resources:
     client: OpenRouterVideoClient
     capabilities: CapabilityService
     output_root: Path
+    staging: StagingManager
 
 
 class ProcessRuntime:
@@ -88,12 +91,20 @@ class ProcessRuntime:
                 client=client,
                 capabilities=CapabilityService(client=client, store=store),
                 output_root=self._output_root,
+                staging=StagingManager(store, S3MediaUploader()),
             )
         except BaseException as exc:
             self._startup_error = exc
             self._ready.set()
             self._loop.close()
             return
+
+        async def startup_cleanup(_: ExecutionControl) -> None:
+            await self._require_resources().staging.cleanup()
+
+        # One owned startup operation, not a scheduler or a second cleanup thread.
+        # Slow storage must not block the host's 15-second initialization gate.
+        self._submit(startup_cleanup, ExecutionControl())
         self._ready.set()
         self._loop.run_forever()
         self._loop.close()
@@ -227,6 +238,7 @@ class ProcessRuntime:
                 sleep=sleep,
                 control=control,
                 progress=progress,
+                staging=resources.staging,
             )
             operation_id = secrets.token_urlsafe(32)
             return await service.generate(operation_id, request)
@@ -257,6 +269,7 @@ class ProcessRuntime:
                 sleep=sleep,
                 control=control,
                 progress=progress,
+                staging=resources.staging,
             )
             return await service.resume(job_id)
 

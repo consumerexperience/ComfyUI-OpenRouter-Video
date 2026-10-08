@@ -7,7 +7,8 @@ from importlib.metadata import PackageNotFoundError, version
 from typing import Any, Final
 
 from openrouter_video.errors import ProductFailureError, RequestPolicyError
-from openrouter_video.pricing import CostEstimateInputs, ReferenceMode
+from openrouter_video.models import InferenceMethod, InputReferenceKind
+from openrouter_video.pricing import CostEstimateInputs
 from openrouter_video.secrets import openrouter_credential_state
 
 from . import compat
@@ -123,7 +124,10 @@ def _parse_estimate_inputs(value: object) -> CostEstimateInputs:
         "aspect_ratio",
         "size",
         "generate_audio",
-        "reference_mode",
+        "inference_method",
+        "reference_kinds",
+        "reference_count",
+        "source_video_present",
     }
     if set(value) - allowed:
         raise ValueError("estimate request contains unsupported fields")
@@ -136,9 +140,18 @@ def _parse_estimate_inputs(value: object) -> CostEstimateInputs:
     audio = value.get("generate_audio", False)
     if not isinstance(audio, bool):
         raise ValueError("generate_audio is invalid")
-    reference_raw = value.get("reference_mode", ReferenceMode.NONE.value)
-    if not isinstance(reference_raw, str):
-        raise ValueError("reference_mode is invalid")
+    method_raw = value.get("inference_method", InferenceMethod.T2V.value)
+    if not isinstance(method_raw, str):
+        raise ValueError("inference_method is invalid")
+    kinds_raw = value.get("reference_kinds", [])
+    if not isinstance(kinds_raw, list) or any(not isinstance(item, str) for item in kinds_raw):
+        raise ValueError("reference_kinds is invalid")
+    count_raw = value.get("reference_count", 0)
+    if isinstance(count_raw, bool) or not isinstance(count_raw, int) or count_raw < 0:
+        raise ValueError("reference_count is invalid")
+    source_video = value.get("source_video_present", False)
+    if not isinstance(source_video, bool):
+        raise ValueError("source_video_present is invalid")
     return CostEstimateInputs(
         model_id=model_id,
         duration=duration_raw,
@@ -146,7 +159,10 @@ def _parse_estimate_inputs(value: object) -> CostEstimateInputs:
         aspect_ratio=_optional_text(value.get("aspect_ratio")),
         size=_optional_text(value.get("size")),
         generate_audio=audio,
-        reference_mode=ReferenceMode(reference_raw),
+        inference_method=InferenceMethod(method_raw),
+        reference_kinds=tuple(InputReferenceKind(item) for item in kinds_raw),
+        reference_count=count_raw,
+        source_video_present=source_video,
     )
 
 

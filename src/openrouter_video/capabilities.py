@@ -21,14 +21,17 @@ from openrouter_video.errors import (
     ProductFailureError,
     TransportError,
 )
+from openrouter_video.image_transport import is_supported_image_data_url
 from openrouter_video.models import (
     BillingContext,
     FrameReference,
     FrameType,
     GenerationRequest,
+    InferenceMethod,
     InputReference,
     InputReferenceKind,
     ModelCapabilities,
+    ModelCapabilityField,
     ProductError,
     ProductErrorCode,
 )
@@ -60,18 +63,6 @@ class CapabilityObservation:
     models: tuple[ModelCapabilities, ...]
 
 
-class GenerationMode(str, Enum):
-    """Product modes evaluated independently by the Phase-8 evidence gate."""
-
-    T2V = "T2V"
-    FIRST_FRAME = "FIRST_FRAME"
-    FIRST_PLUS_LAST = "FIRST_PLUS_LAST"
-    MULTI_IMAGE_REFERENCE = "MULTI_IMAGE_REFERENCE"
-    VIDEO_REFERENCE = "VIDEO_REFERENCE"
-    IMAGE_PLUS_VIDEO_REFERENCE = "IMAGE_PLUS_VIDEO_REFERENCE"
-    PROMPT_OPTIONAL_REFERENCE_GENERATION = "PROMPT_OPTIONAL_REFERENCE_GENERATION"
-
-
 class CapabilityModeStatus(str, Enum):
     """Evidence-derived runtime disposition for one independent product mode."""
 
@@ -83,47 +74,73 @@ class CapabilityModeStatus(str, Enum):
     DEFERRED = "DEFERRED"
 
 
-def mode_enforcement_matrix(
+def inference_method_matrix(
     capabilities: ModelCapabilities,
-) -> dict[GenerationMode, CapabilityModeStatus]:
-    """Evaluate only current authoritative runtime-resolvable capability evidence."""
+) -> dict[InferenceMethod, CapabilityModeStatus]:
+    """Derive product methods deterministically from primitive capability evidence."""
 
     frames = capabilities.supported_frame_types
     references = capabilities.input_reference_capabilities
     if references is None:
-        multi_image = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
-        video = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
-        mixed = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+        reference_status = {
+            method: CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+            for method in (
+                InferenceMethod.IR2V,
+                InferenceMethod.MI2V,
+                InferenceMethod.VR2V,
+                InferenceMethod.AR2V,
+                InferenceMethod.MMR2V,
+                InferenceMethod.V2V_EDIT,
+                InferenceMethod.V2V_EXTEND,
+            )
+        }
     elif references.conflicts:
-        multi_image = CapabilityModeStatus.CONFLICT
-        video = CapabilityModeStatus.CONFLICT
-        mixed = CapabilityModeStatus.CONFLICT
+        reference_status = {
+            method: CapabilityModeStatus.CONFLICT
+            for method in (
+                InferenceMethod.IR2V,
+                InferenceMethod.MI2V,
+                InferenceMethod.VR2V,
+                InferenceMethod.AR2V,
+                InferenceMethod.MMR2V,
+                InferenceMethod.V2V_EDIT,
+                InferenceMethod.V2V_EXTEND,
+            )
+        }
     elif references.reference_kinds is None:
-        multi_image = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
-        video = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
-        mixed = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+        reference_status = {
+            method: CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+            for method in (
+                InferenceMethod.IR2V,
+                InferenceMethod.MI2V,
+                InferenceMethod.VR2V,
+                InferenceMethod.AR2V,
+                InferenceMethod.MMR2V,
+                InferenceMethod.V2V_EDIT,
+                InferenceMethod.V2V_EXTEND,
+            )
+        }
     else:
         kinds = references.reference_kinds
-        if InputReferenceKind.IMAGE not in kinds:
-            multi_image = CapabilityModeStatus.UNSUPPORTED
-        elif references.max_reference_count is None:
-            multi_image = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
-        elif references.max_reference_count < 2:
-            multi_image = CapabilityModeStatus.UNSUPPORTED
-        else:
-            multi_image = CapabilityModeStatus.READY
-
-        video = (
-            CapabilityModeStatus.READY
-            if InputReferenceKind.VIDEO in kinds
-            else CapabilityModeStatus.UNSUPPORTED
-        )
-
-        if not {InputReferenceKind.IMAGE, InputReferenceKind.VIDEO}.issubset(kinds):
+        reference_status = {
+            InferenceMethod.IR2V: _reference_kind_status(
+                references.max_reference_count, kinds, InputReferenceKind.IMAGE, 1
+            ),
+            InferenceMethod.MI2V: _reference_kind_status(
+                references.max_reference_count, kinds, InputReferenceKind.IMAGE, 2
+            ),
+            InferenceMethod.VR2V: _reference_kind_status(
+                references.max_reference_count, kinds, InputReferenceKind.VIDEO, 1
+            ),
+            InferenceMethod.AR2V: _reference_kind_status(
+                references.max_reference_count, kinds, InputReferenceKind.AUDIO, 1
+            ),
+        }
+        if len(kinds) < 2:
             mixed = CapabilityModeStatus.UNSUPPORTED
-        elif references.mixed_image_video_references is None:
+        elif references.mixed_reference_kinds is None:
             mixed = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
-        elif references.mixed_image_video_references is False:
+        elif references.mixed_reference_kinds is False:
             mixed = CapabilityModeStatus.UNSUPPORTED
         elif references.max_reference_count is None:
             mixed = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
@@ -131,9 +148,21 @@ def mode_enforcement_matrix(
             mixed = CapabilityModeStatus.UNSUPPORTED
         else:
             mixed = CapabilityModeStatus.READY
-    return {
-        GenerationMode.T2V: CapabilityModeStatus.READY,
-        GenerationMode.FIRST_FRAME: (
+        reference_status[InferenceMethod.MMR2V] = mixed
+        video_ready = reference_status[InferenceMethod.VR2V]
+        reference_status[InferenceMethod.V2V_EDIT] = _intent_status(
+            video_ready,
+            capabilities.supports_edit,
+            ModelCapabilityField.EDIT in capabilities.capability_conflicts,
+        )
+        reference_status[InferenceMethod.V2V_EXTEND] = _intent_status(
+            video_ready,
+            capabilities.supports_extend,
+            ModelCapabilityField.EXTEND in capabilities.capability_conflicts,
+        )
+    matrix = {
+        InferenceMethod.T2V: CapabilityModeStatus.READY,
+        InferenceMethod.I2V: (
             CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
             if frames is None
             else (
@@ -142,7 +171,7 @@ def mode_enforcement_matrix(
                 else CapabilityModeStatus.UNSUPPORTED
             )
         ),
-        GenerationMode.FIRST_PLUS_LAST: (
+        InferenceMethod.FLF2V: (
             CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
             if frames is None
             else (
@@ -151,11 +180,70 @@ def mode_enforcement_matrix(
                 else CapabilityModeStatus.UNSUPPORTED
             )
         ),
-        GenerationMode.MULTI_IMAGE_REFERENCE: multi_image,
-        GenerationMode.VIDEO_REFERENCE: video,
-        GenerationMode.IMAGE_PLUS_VIDEO_REFERENCE: mixed,
-        GenerationMode.PROMPT_OPTIONAL_REFERENCE_GENERATION: CapabilityModeStatus.DEFERRED,
     }
+    matrix.update(reference_status)
+    return matrix
+
+
+def _reference_kind_status(
+    limit: int | None,
+    kinds: frozenset[InputReferenceKind],
+    kind: InputReferenceKind,
+    minimum: int,
+) -> CapabilityModeStatus:
+    if kind not in kinds:
+        return CapabilityModeStatus.UNSUPPORTED
+    if limit is None:
+        return CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+    return CapabilityModeStatus.READY if limit >= minimum else CapabilityModeStatus.UNSUPPORTED
+
+
+def _intent_status(
+    video_status: CapabilityModeStatus,
+    supported: bool | None,
+    conflict: bool,
+) -> CapabilityModeStatus:
+    if video_status is not CapabilityModeStatus.READY:
+        return video_status
+    if conflict:
+        return CapabilityModeStatus.CONFLICT
+    if supported is None:
+        return CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+    return CapabilityModeStatus.READY if supported else CapabilityModeStatus.UNSUPPORTED
+
+
+def mode_enforcement_matrix(
+    capabilities: ModelCapabilities,
+) -> dict[InferenceMethod, CapabilityModeStatus]:
+    """Compatibility name for callers migrating to the Phase-10 method registry."""
+
+    return inference_method_matrix(capabilities)
+
+
+def infer_legacy_inference_method(
+    *,
+    first_frame: FrameReference | None,
+    last_frame: FrameReference | None,
+    references: tuple[InputReference, ...],
+) -> InferenceMethod:
+    """Migrate legacy topology without inventing Edit or Extend intent."""
+
+    if first_frame is not None or last_frame is not None:
+        if first_frame is not None and last_frame is not None:
+            return InferenceMethod.FLF2V
+        if first_frame is not None:
+            return InferenceMethod.I2V
+        raise ValueError("A legacy last frame without a first frame has no valid Phase-10 intent.")
+    if not references:
+        return InferenceMethod.T2V
+    kinds = {reference.kind for reference in references}
+    if kinds == {InputReferenceKind.IMAGE}:
+        return InferenceMethod.IR2V if len(references) == 1 else InferenceMethod.MI2V
+    if kinds == {InputReferenceKind.VIDEO}:
+        return InferenceMethod.VR2V
+    if kinds == {InputReferenceKind.AUDIO}:
+        return InferenceMethod.AR2V
+    return InferenceMethod.MMR2V
 
 
 class CapabilityService:
@@ -283,6 +371,11 @@ class RequestValidator:
 
         if not request.model or request.model != request.model.strip():
             self._fail(ProductErrorCode.UNSUPPORTED_MODEL, "A valid video model is required.")
+        if not isinstance(request.inference_method, InferenceMethod):
+            self._fail(
+                ProductErrorCode.UNSUPPORTED_PARAMETER,
+                "A supported inference method is required.",
+            )
         references = request.input_references.references if request.input_references else ()
         if request.prompt is not None and not isinstance(request.prompt, str):
             self._fail(ProductErrorCode.UNSUPPORTED_PARAMETER, "Prompt must be text.")
@@ -314,13 +407,16 @@ class RequestValidator:
             )
         self._validate_frame(request.first_frame, FrameType.FIRST)
         self._validate_frame(request.last_frame, FrameType.LAST)
-        if references and (request.first_frame is not None or request.last_frame is not None):
-            self._fail(
-                ProductErrorCode.UNSUPPORTED_PARAMETER,
-                "Frame guidance cannot be combined with input references.",
-            )
+        if request.source_video is not None:
+            self._validate_reference(request.source_video)
+            if request.source_video.kind is not InputReferenceKind.VIDEO:
+                self._fail(
+                    ProductErrorCode.UNSUPPORTED_PARAMETER,
+                    "Source Video must be a VIDEO reference.",
+                )
         for reference in references:
             self._validate_reference(reference)
+        self._validate_topology(request, references)
 
     def validate_capabilities(
         self, request: GenerationRequest, capabilities: ModelCapabilities
@@ -372,21 +468,21 @@ class RequestValidator:
                 "Last-frame guidance is not positively supported by this model.",
             )
         references = request.input_references.references if request.input_references else ()
-        matrix = mode_enforcement_matrix(capabilities)
-        if references:
-            mode = self._reference_mode(references)
-            status = matrix[mode]
-            if status is not CapabilityModeStatus.READY:
-                self._fail(
-                    ProductErrorCode.CAPABILITY_SIGNAL_GAP,
-                    f"{mode.value} is blocked because runtime capability evidence "
-                    f"is {status.value}.",
-                )
+        matrix = inference_method_matrix(capabilities)
+        status = matrix[request.inference_method]
+        if status is not CapabilityModeStatus.READY:
+            self._fail(
+                ProductErrorCode.CAPABILITY_SIGNAL_GAP,
+                f"{request.inference_method.value} is blocked because runtime capability "
+                f"evidence is {status.value}.",
+            )
+        total_reference_count = len(references) + (request.source_video is not None)
+        if total_reference_count:
             reference_capabilities = capabilities.input_reference_capabilities
             if (
                 reference_capabilities is not None
                 and reference_capabilities.max_reference_count is not None
-                and len(references) > reference_capabilities.max_reference_count
+                and total_reference_count > reference_capabilities.max_reference_count
             ):
                 self._fail(
                     ProductErrorCode.UNSUPPORTED_PARAMETER,
@@ -405,10 +501,10 @@ class RequestValidator:
     def _validate_frame(frame: FrameReference | None, expected: FrameType) -> None:
         if frame is None:
             return
-        if frame.frame_type is not expected or not _is_public_https_url(frame.url):
+        if frame.frame_type is not expected or not _is_image_source(frame.url):
             RequestValidator._fail(
                 ProductErrorCode.INVALID_MEDIA_URL,
-                "Frame images require a direct public HTTPS URL.",
+                "Frame images require a valid IMAGE source.",
             )
 
     @staticmethod
@@ -420,34 +516,104 @@ class RequestValidator:
                 ProductErrorCode.UNSUPPORTED_PARAMETER,
                 "Input references require a supported typed media kind.",
             )
-        if not _is_public_https_url(reference.url):
+        if reference.local_media is not None:
+            expected = {
+                InputReferenceKind.VIDEO: ("video/mp4", ".mp4"),
+                InputReferenceKind.AUDIO: ("audio/wav", ".wav"),
+            }.get(reference.kind)
+            if reference.url or expected != (
+                reference.local_media.content_type,
+                reference.local_media.suffix,
+            ):
+                RequestValidator._fail(
+                    ProductErrorCode.UNSUPPORTED_PARAMETER, "Invalid native media reference."
+                )
+            return
+        if reference.kind is InputReferenceKind.IMAGE and not _is_image_source(reference.url):
+            RequestValidator._fail(
+                ProductErrorCode.INVALID_MEDIA_URL,
+                "IMAGE references require a public HTTPS URL or valid PNG data URL.",
+            )
+        if reference.kind is not InputReferenceKind.IMAGE and not _is_public_https_url(
+            reference.url
+        ):
             RequestValidator._fail(
                 ProductErrorCode.INVALID_MEDIA_URL,
                 "Input references require a direct public HTTPS URL.",
             )
 
     @staticmethod
-    def _reference_mode(references: tuple[InputReference, ...]) -> GenerationMode:
-        kinds = {reference.kind for reference in references}
-        if kinds == {InputReferenceKind.IMAGE}:
-            if len(references) < 2:
-                RequestValidator._fail(
-                    ProductErrorCode.UNSUPPORTED_PARAMETER,
-                    "Multi-image reference generation requires at least two references.",
-                )
-            return GenerationMode.MULTI_IMAGE_REFERENCE
-        if kinds == {InputReferenceKind.VIDEO}:
-            return GenerationMode.VIDEO_REFERENCE
-        if kinds == {InputReferenceKind.IMAGE, InputReferenceKind.VIDEO}:
-            return GenerationMode.IMAGE_PLUS_VIDEO_REFERENCE
-        RequestValidator._fail(
-            ProductErrorCode.UNSUPPORTED_PARAMETER,
-            "Input reference collection is unsupported.",
-        )
+    def _validate_topology(
+        request: GenerationRequest, references: tuple[InputReference, ...]
+    ) -> None:
+        method = request.inference_method
+        has_first = request.first_frame is not None
+        has_last = request.last_frame is not None
+        has_source = request.source_video is not None
+        kinds = tuple(reference.kind for reference in references)
+
+        if method is InferenceMethod.T2V:
+            valid = not has_first and not has_last and not has_source and not references
+        elif method is InferenceMethod.I2V:
+            valid = has_first and not has_last and not has_source and not references
+        elif method is InferenceMethod.FLF2V:
+            valid = has_first and has_last and not has_source and not references
+        elif method is InferenceMethod.IR2V:
+            valid = (
+                not has_first
+                and not has_last
+                and not has_source
+                and kinds == (InputReferenceKind.IMAGE,)
+            )
+        elif method is InferenceMethod.MI2V:
+            valid = (
+                not has_first
+                and not has_last
+                and not has_source
+                and len(kinds) >= 2
+                and set(kinds) == {InputReferenceKind.IMAGE}
+            )
+        elif method is InferenceMethod.VR2V:
+            valid = (
+                not has_first
+                and not has_last
+                and not has_source
+                and len(kinds) >= 1
+                and set(kinds) == {InputReferenceKind.VIDEO}
+            )
+        elif method is InferenceMethod.AR2V:
+            valid = (
+                not has_first
+                and not has_last
+                and not has_source
+                and len(kinds) >= 1
+                and set(kinds) == {InputReferenceKind.AUDIO}
+            )
+        elif method is InferenceMethod.MMR2V:
+            valid = (
+                not has_first
+                and not has_last
+                and not has_source
+                and len(kinds) >= 2
+                and len(set(kinds)) >= 2
+            )
+        elif method in {InferenceMethod.V2V_EDIT, InferenceMethod.V2V_EXTEND}:
+            valid = not has_first and not has_last and has_source
+        else:  # pragma: no cover - exhaustive guard for future enum additions
+            valid = False
+        if not valid:
+            RequestValidator._fail(
+                ProductErrorCode.UNSUPPORTED_PARAMETER,
+                f"The connected media topology does not match {method.value}.",
+            )
 
     @staticmethod
     def _fail(code: ProductErrorCode, message: str) -> NoReturn:
         raise ProductFailureError(ProductError(code, message, BillingContext.NO_SUBMIT))
+
+
+def _is_image_source(value: str) -> bool:
+    return _is_public_https_url(value) or is_supported_image_data_url(value)
 
 
 def _is_public_https_url(value: str) -> bool:
@@ -486,8 +652,10 @@ __all__ = (
     "CapabilityObservation",
     "CapabilityService",
     "FRESH_TTL",
-    "GenerationMode",
+    "InferenceMethod",
     "LKG_TTL",
     "RequestValidator",
+    "inference_method_matrix",
+    "infer_legacy_inference_method",
     "mode_enforcement_matrix",
 )

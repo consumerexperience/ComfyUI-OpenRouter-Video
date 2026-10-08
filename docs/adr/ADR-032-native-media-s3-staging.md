@@ -1,0 +1,20 @@
+# ADR-032 — Native VIDEO/AUDIO through private S3-compatible staging
+
+Status: accepted by Product Owner in IMPLEMENT PACKAGE — Native Media Bridge, 2026-10-02.
+Scope: approved Phase 10 native media transport only. Generate/Resume, AppIdentity and billing invariants remain authoritative.
+
+Native IMAGE continues its direct PNG bridge. Native VIDEO/AUDIO are transient deferred sources in Core; the Comfy adapter converts VIDEO to MP4/H.264 and AUDIO to WAV PCM16 with the original sample rate and one or two channels. Model capability and request topology validation precede conversion and storage. Reference occurrences retain their order, including duplicates; Source Video precedes additional references in the existing wire form.
+
+`MediaUploader` owns upload, presign_get and delete. Its first implementation is boto3 S3-compatible transport with R2 as the reference deployment. Configuration and credentials are explicit local OPENROUTER_VIDEO_S3 environment variables. No AWS credential discovery, Comfy hosted storage or project service participates. Private random object keys use openrouter-video/staging/; GET signatures last 24 hours and require only the URL. Object size is at most 256 MiB; the native media total is at most 512 MiB per request. Conversion uses closed temporary files; upload streams those files outside the event loop. Cancellation waits for file workers before local cleanup.
+
+The SDK uses standard retries with total_max_attempts=3 and no outer PUT retry loop. Before-send and needs-retry guards enforce a maximum of three actual sends per object and reject redirects, including endpoint changes. A single key is reused across all attempts. SDK errors and SDK debug output cannot expose signed URLs, bytes, paths or credentials. Storage never consumes OpenRouter authentication or attribution.
+
+Database migration 5 adds staging operation ownership and an exact-object ledger. Entries are committed before PUT and contain only the operation association, random key, configuration fingerprint, timestamps and cleanup state. Existing job record schema 2 and structural request fingerprint 3 remain unchanged. The existing atomic submit claim precedes staging so concurrent executions cannot upload or submit twice. A crash before paid dispatch conservatively leaves a SUBMITTING claim; it never grants another paid POST. Resume does not materialize media.
+
+Completed, failed, cancelled, expired, definite rejection and proven no-submit dispositions attempt exact-object deletion. Unknown submission/remote status and interrupted observation retain staging. Failed DELETE remains pending and cannot cancel a generation result. Startup cleanup is a single tracked operation on the existing Core event loop and cannot block the runtime readiness gate; it introduces no scheduler or additional thread. Cleanup runs opportunistically at startup, before/after Generate, Resume and terminal transition, and also removes ledger-owned objects at least 48 hours old. It never lists a bucket or deletes by prefix; the storage fingerprint must match. The operation tombstone prevents replay after staging has already existed.
+
+The user configures a prefix-scoped 48-hour R2 lifecycle once. The plugin neither checks nor administers lifecycle and requires no bucket administration permission. Actual provider deletion can lag expiration. URL expiry or cleanup never authorizes regeneration. Objects retained after a configuration change must be reconciled with the original configuration or removed by the provider lifecycle.
+
+The native upload choices are closed by this explicit Product Owner decision. Historical transport research remains historical evidence; this ADR supersedes implementation holds on independent staging for this bounded slice.
+
+Validation: real botocore loopback PUT counts; fault, ownership, migration, concurrent claim and privacy tests; offline real-host conversions; browser fixture proof. Live R2 and paid OpenRouter smokes require separate immediate approvals and are not implied by offline results.

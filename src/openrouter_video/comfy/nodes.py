@@ -2,13 +2,18 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from openrouter_video.application import OperationInterrupted
+from openrouter_video.capabilities import infer_legacy_inference_method
 from openrouter_video.execution_hooks import ExecutionPhase
+from openrouter_video.local_media import NativeMediaError
 from openrouter_video.models import (
     FrameReference,
     FrameType,
     GenerationRequest,
     GenerationResult,
+    InferenceMethod,
     InputReference,
     InputReferenceCollection,
     InputReferenceKind,
@@ -16,6 +21,8 @@ from openrouter_video.models import (
 )
 
 from . import compat
+from .image import ImageBridgeError, to_image_data_url
+from .native_media import native_reference
 from .runtime import get_runtime
 from .video import VideoBridgeError, to_native_video
 
@@ -81,6 +88,27 @@ def _safe_job_id(value: str | None) -> str | None:
     if any(ord(character) < 32 or ord(character) == 127 for character in value):
         return None
     return value
+
+
+def _frame_reference(
+    reference: InputReference | object | None,
+    legacy_url: str,
+    frame_type: FrameType,
+) -> FrameReference | None:
+    normalized_url = _optional_text(legacy_url)
+    if reference is not None and normalized_url is not None:
+        raise AdapterExecutionError(
+            "UNSUPPORTED_PARAMETER: use the typed frame socket or the legacy URL, not both."
+        )
+    if reference is not None:
+        if not isinstance(reference, InputReference):
+            reference = _image_or_reference(reference)
+        if reference.kind is not InputReferenceKind.IMAGE:
+            raise AdapterExecutionError(
+                "UNSUPPORTED_PARAMETER: First and Last Frame require IMAGE inputs."
+            )
+        normalized_url = reference.url
+    return FrameReference(frame_type, normalized_url) if normalized_url is not None else None
 
 
 def _raise_product_error(result: GenerationResult) -> None:
@@ -187,6 +215,35 @@ class OpenRouterVideoVideoReference(compat.IO.ComfyNode):
         return compat.IO.NodeOutput(InputReference(InputReferenceKind.VIDEO, url.strip()))
 
 
+class OpenRouterVideoAudioReference(compat.IO.ComfyNode):
+    """Create one transient typed audio reference from a public URL."""
+
+    @classmethod
+    def define_schema(cls) -> object:
+        return compat.IO.Schema(
+            node_id="OpenRouterVideoAudioReference",
+            display_name="OpenRouter Video · Public Audio URL",
+            category="OpenRouter/Video/References",
+            description=(
+                "Creates an ordered audio reference from a public HTTPS URL. "
+                "Local AUDIO upload is not claimed by the current OpenRouter Video contract."
+            ),
+            inputs=[
+                compat.IO.String.Input(
+                    "url",
+                    display_name="PUBLIC HTTPS AUDIO URL",
+                    default="",
+                    tooltip="Publicly retrievable HTTPS audio URL.",
+                )
+            ],
+            outputs=[compat.INPUT_REFERENCE_IO.Output("REFERENCE")],
+        )
+
+    @classmethod
+    def execute(cls, url: str) -> object:
+        return compat.IO.NodeOutput(InputReference(InputReferenceKind.AUDIO, url.strip()))
+
+
 class OpenRouterVideoReferenceCollection(compat.IO.ComfyNode):
     """Legacy Phase-8 collection node retained only for workflow compatibility."""
 
@@ -216,7 +273,7 @@ class OpenRouterVideoReferenceCollection(compat.IO.ComfyNode):
 
 
 def _reference_collection(
-    references: dict[str, InputReference] | None,
+    references: Mapping[str, object] | None,
 ) -> InputReferenceCollection:
     """Preserve autogrow positions, duplicates and heterogeneous order exactly."""
 
@@ -225,9 +282,29 @@ def _reference_collection(
         prefix, separator, suffix = name.rpartition("_")
         if prefix != "reference" or not separator or not suffix.isdigit():
             raise AdapterExecutionError("UNSUPPORTED_PARAMETER: invalid reference position.")
-        indexed.append((int(suffix), reference))
+        indexed.append((int(suffix), _media_or_reference(reference)))
     indexed.sort(key=lambda item: item[0])
     return InputReferenceCollection(tuple(reference for _, reference in indexed))
+
+
+def _media_or_reference(value: object) -> InputReference:
+    if isinstance(value, InputReference):
+        return value
+    if isinstance(value, dict) or callable(getattr(value, "save_to", None)):
+        try:
+            return native_reference(value)
+        except NativeMediaError as exc:
+            raise AdapterExecutionError(str(exc)) from None
+    return _image_or_reference(value)
+
+
+def _image_or_reference(value: InputReference | object) -> InputReference:
+    if isinstance(value, InputReference):
+        return value
+    try:
+        return InputReference(InputReferenceKind.IMAGE, to_image_data_url(value))
+    except ImageBridgeError as exc:
+        raise AdapterExecutionError(str(exc)) from None
 
 
 class OpenRouterVideoGenerate(compat.IO.ComfyNode):
@@ -242,10 +319,16 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
             not_idempotent=True,
             inputs=[
                 compat.model_input(),
-                compat.IO.String.Input("prompt", default="", multiline=True),
-                compat.IO.Int.Input("duration", default=0, min=0, step=1, advanced=True),
-                compat.IO.String.Input("resolution", default="", advanced=True),
-                compat.IO.String.Input("aspect_ratio", default="", advanced=True),
+                compat.IO.Combo.Input(
+                    "inference_method",
+                    options=[method.value for method in InferenceMethod],
+                    default=InferenceMethod.T2V.value,
+                    tooltip="Local product intent. Never sent as an OpenRouter field.",
+                ),
+                compat.IO.String.Input("prompt", display_name="Prompt", default="", multiline=True),
+                compat.IO.String.Input("resolution", default=""),
+                compat.IO.String.Input("aspect_ratio", default=""),
+                compat.IO.Int.Input("duration", default=0, min=0, step=1),
                 compat.IO.String.Input("size", default="", advanced=True),
                 compat.IO.Int.Input(
                     "seed",
@@ -255,33 +338,48 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                     step=1,
                     control_after_generate=compat.IO.ControlAfterGenerate.randomize,
                     display_mode=compat.IO.NumberDisplay.number,
-                    advanced=True,
                 ),
-                compat.IO.Boolean.Input("generate_audio", default=False, advanced=True),
+                compat.IO.Boolean.Input("generate_audio", default=False),
                 compat.IO.String.Input(
                     "first_frame_url",
-                    display_name="FIRST FRAME · PUBLIC HTTPS URL",
+                    display_name="first_frame",
                     default="",
                     advanced=True,
                 ),
                 compat.IO.String.Input(
                     "last_frame_url",
-                    display_name="LAST FRAME · PUBLIC HTTPS URL",
+                    display_name="last_frame",
                     default="",
+                    advanced=True,
+                ),
+                compat.IMAGE_OR_REFERENCE_IO.Input(
+                    "first_frame",
+                    display_name="first_frame",
+                    optional=True,
+                ),
+                compat.IMAGE_OR_REFERENCE_IO.Input(
+                    "last_frame",
+                    display_name="last_frame",
+                    optional=True,
+                ),
+                compat.VIDEO_OR_REFERENCE_IO.Input(
+                    "source_video",
+                    display_name="source_video",
+                    optional=True,
                     advanced=True,
                 ),
                 compat.IO.Autogrow.Input(
                     "direct_references",
                     display_name="ORDERED REFERENCES",
                     template=compat.IO.Autogrow.TemplatePrefix(
-                        input=compat.INPUT_REFERENCE_IO.Input("reference"),
+                        input=compat.MEDIA_OR_REFERENCE_IO.Input("reference"),
                         prefix="reference_",
                         min=0,
                         max=100,
                     ),
                     optional=True,
                     tooltip=(
-                        "Connect Public Image URL / Public Video URL nodes in order. "
+                        "Connect Load Image, Load Video, Load Audio or typed references in order. "
                         "The UI enforces the selected model's effective count and kinds; "
                         "Core validates again before submit."
                     ),
@@ -304,8 +402,12 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         return compat.next_cache_token()
 
     @classmethod
-    def validate_inputs(cls, model: str) -> bool | str:
-        """Let Core, not a stale Comfy combo copy, authorize model availability."""
+    def validate_inputs(
+        cls, model: str, direct_references: Mapping[str, object] | None = None
+    ) -> bool | str:
+        """Let Core authorize availability; accept host-reconstructed Autogrow input."""
+
+        del direct_references
 
         if (
             not isinstance(model, str)
@@ -331,8 +433,12 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         generate_audio: bool = False,
         first_frame_url: str = "",
         last_frame_url: str = "",
-        direct_references: dict[str, InputReference] | None = None,
+        first_frame: InputReference | object | None = None,
+        last_frame: InputReference | object | None = None,
+        source_video: InputReference | object | None = None,
+        direct_references: Mapping[str, object] | None = None,
         input_references: InputReferenceCollection | None = None,
+        inference_method: str = "",
     ) -> object:
         if direct_references and input_references is not None:
             raise AdapterExecutionError(
@@ -343,19 +449,30 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         effective_references = (
             direct_collection if direct_collection.references else input_references
         )
-        first = _optional_text(first_frame_url)
-        last = _optional_text(last_frame_url)
+        first_reference = _frame_reference(first_frame, first_frame_url, FrameType.FIRST)
+        last_reference = _frame_reference(last_frame, last_frame_url, FrameType.LAST)
+        references = effective_references.references if effective_references is not None else ()
+        try:
+            method = InferenceMethod(inference_method)
+        except (TypeError, ValueError):
+            method = infer_legacy_inference_method(
+                first_frame=first_reference,
+                last_frame=last_reference,
+                references=references,
+            )
         request = GenerationRequest(
             model=_model(model),
             prompt=prompt if prompt.strip() else None,
+            inference_method=method,
             duration=_duration(duration),
             resolution=_optional_text(resolution),
             aspect_ratio=_optional_text(aspect_ratio),
             size=_optional_text(size),
             seed=_seed(seed),
             generate_audio=generate_audio,
-            first_frame=FrameReference(FrameType.FIRST, first) if first is not None else None,
-            last_frame=FrameReference(FrameType.LAST, last) if last is not None else None,
+            first_frame=first_reference,
+            last_frame=last_reference,
+            source_video=_media_or_reference(source_video) if source_video is not None else None,
             input_references=effective_references,
         )
         node_id = compat.current_node_id(cls)
@@ -403,6 +520,7 @@ class OpenRouterVideoResume(compat.IO.ComfyNode):
 __all__ = (
     "AdapterExecutionError",
     "OpenRouterVideoGenerate",
+    "OpenRouterVideoAudioReference",
     "OpenRouterVideoImageReference",
     "OpenRouterVideoReferenceCollection",
     "OpenRouterVideoResume",

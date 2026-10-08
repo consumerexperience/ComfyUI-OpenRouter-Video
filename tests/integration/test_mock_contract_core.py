@@ -11,6 +11,7 @@ import pytest
 
 from openrouter_video.models import (
     GenerationRequest,
+    InferenceMethod,
     InputReference,
     InputReferenceCollection,
     InputReferenceKind,
@@ -95,16 +96,25 @@ def test_real_core_happy_path_is_one_submit_one_job_and_durable_artifact(tmp_pat
 
 
 @pytest.mark.parametrize(
-    "references",
+    "references, method",
     [
         (
-            InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
-            InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
+            (
+                InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
+                InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
+            ),
+            InferenceMethod.MI2V,
         ),
-        (InputReference(InputReferenceKind.VIDEO, "https://assets.example/b.mp4"),),
         (
-            InputReference(InputReferenceKind.VIDEO, "https://assets.example/b.mp4"),
-            InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
+            (InputReference(InputReferenceKind.VIDEO, "https://assets.example/b.mp4"),),
+            InferenceMethod.VR2V,
+        ),
+        (
+            (
+                InputReference(InputReferenceKind.VIDEO, "https://assets.example/b.mp4"),
+                InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
+            ),
+            InferenceMethod.MMR2V,
         ),
     ],
     ids=("multi-image", "video", "mixed-image-video"),
@@ -112,11 +122,13 @@ def test_real_core_happy_path_is_one_submit_one_job_and_durable_artifact(tmp_pat
 def test_seedance_overlay_reference_modes_use_the_existing_generate_lifecycle(
     tmp_path: Path,
     references: tuple[InputReference, ...],
+    method: InferenceMethod,
 ) -> None:
     prompt = "REFERENCE_PROMPT_CANARY"
     request = GenerationRequest(
         "bytedance/seedance-2.5",
         prompt,
+        inference_method=method,
         input_references=InputReferenceCollection(references),
     )
     expected_references = [

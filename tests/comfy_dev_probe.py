@@ -42,6 +42,8 @@ def _write_video(path: Path, *, container_format: str, codec: str) -> None:
 
 
 def _prompt(node_type: str, inputs: dict[str, object]) -> dict[str, object]:
+    if node_type == "OpenRouterVideoGenerate":
+        inputs = {"inference_method": "T2V", **inputs}
     return {"1": {"class_type": node_type, "inputs": inputs}}
 
 
@@ -225,6 +227,7 @@ def main() -> None:
                 "first_frame_url": "",
                 "last_frame_url": "",
                 "direct_references.reference_2": ["2", 0],
+                "inference_method": "MMR2V",
                 "direct_references.reference_0": ["1", 0],
                 "direct_references.reference_1": ["1", 0],
             },
@@ -278,6 +281,7 @@ def main() -> None:
         "4": {
             "class_type": "OpenRouterVideoGenerate",
             "inputs": {
+                "inference_method": "T2V",
                 "model": "vendor/model",
                 "prompt": "test-only prompt",
                 "duration": 0,

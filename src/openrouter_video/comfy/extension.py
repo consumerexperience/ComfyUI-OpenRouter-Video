@@ -2,6 +2,7 @@
 
 from .compat import ComfyExtension, validate_host_api
 from .nodes import (
+    OpenRouterVideoAudioReference,
     OpenRouterVideoGenerate,
     OpenRouterVideoImageReference,
     OpenRouterVideoReferenceCollection,
@@ -17,11 +18,15 @@ class OpenRouterVideoExtension(ComfyExtension):
     async def on_load(self) -> None:
         validate_host_api()
         register_routes()
+        from .runtime import get_runtime
+
+        get_runtime()
 
     async def get_node_list(self) -> list[type]:
         return [
             OpenRouterVideoImageReference,
             OpenRouterVideoVideoReference,
+            OpenRouterVideoAudioReference,
             OpenRouterVideoReferenceCollection,
             OpenRouterVideoGenerate,
             OpenRouterVideoResume,

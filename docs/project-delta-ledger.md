@@ -1,5 +1,15 @@
 # Project Delta Ledger
 
+## Phase 10
+
+| Delta | Evidence | Classification | Product treatment |
+| --- | --- | --- | --- |
+| Current official Video schema types `input_references` as IMAGE/VIDEO/AUDIO and confirms the AUDIO wire object | Official Go SDK at `a968428…` | `CONTRACT_DRIFT — CONFIRMED` | Add AUDIO as an exact typed reference; never infer wire shape. |
+| Exact Seedance 2.5 evidence reports up to 50 image/video/audio references plus editing and extension | Current exact-model page and review | `PRODUCT EXPANSION — APPROVED` | ADR-031 supersedes ADR-030's AUDIO/Edit/Extend exclusions for the exact ID. |
+| Current runtime UI contract 3 still projects Seedance 2.5 as IMAGE/VIDEO only | Canonical 8189 zero-cost read at `2026-09-29T23:52:19+03:00` | `LOCAL PROJECTION DRIFT` | Phase-10 implementation must update Core truth and frontend projection together; no bypass. |
+| Current generic schema includes `previous_job_id` continuation | Official generated Video request schema | `UPSTREAM EXPANSION` | Record only; exact-model support and product contract are not established for Phase 10. |
+| Video-input pricing differs from base generation and may depend on input footage | Exact-model model page/review | `PRICING VARIABILITY` | Structural estimator input; `ESTIMATE UNAVAILABLE` unless an exact SKU match is provable. |
+
 ## Phase 9
 
 | Delta | Evidence | Classification | Product treatment |

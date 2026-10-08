@@ -1,0 +1,269 @@
+{
+  "ACCEPTED_CONTRACT_DIGEST": "sha256:ef3232e2034c6cde6a4fde16d8996303c8da2bc073fb5dace4cad272ec37e7cc",
+  "AUTHORIZED_DELTA": [
+    {
+      "after": true,
+      "before": false,
+      "operation": "replace",
+      "path": "/surfaces/product_owned/billing_security/native_storage/cleanup_never_authorizes_regeneration"
+    },
+    {
+      "after": true,
+      "before": false,
+      "operation": "replace",
+      "path": "/surfaces/product_owned/billing_security/native_storage/enabled"
+    },
+    {
+      "after": true,
+      "before": false,
+      "operation": "replace",
+      "path": "/surfaces/product_owned/billing_security/native_storage/private_temporary_objects"
+    },
+    {
+      "after": true,
+      "before": false,
+      "operation": "replace",
+      "path": "/surfaces/product_owned/media_topology/native_direct_inputs/AUDIO"
+    },
+    {
+      "after": true,
+      "before": false,
+      "operation": "replace",
+      "path": "/surfaces/product_owned/media_topology/native_direct_inputs/IMAGE"
+    },
+    {
+      "after": true,
+      "before": false,
+      "operation": "replace",
+      "path": "/surfaces/product_owned/media_topology/native_direct_inputs/VIDEO"
+    },
+    {
+      "after": [
+        "IMAGE",
+        "VIDEO",
+        "AUDIO"
+      ],
+      "before": [
+        "IMAGE",
+        "VIDEO"
+      ],
+      "operation": "replace",
+      "path": "/surfaces/product_owned/media_topology/reference_kinds"
+    },
+    {
+      "after": true,
+      "before": false,
+      "operation": "replace",
+      "path": "/surfaces/product_owned/media_topology/source_video_first"
+    },
+    {
+      "after": true,
+      "before": false,
+      "operation": "replace",
+      "path": "/surfaces/product_owned/method_semantics/inference_method_is_local"
+    },
+    {
+      "after": [
+        "T2V",
+        "I2V",
+        "FLF2V",
+        "IR2V",
+        "MI2V",
+        "VR2V",
+        "AR2V",
+        "MMR2V",
+        "V2V_EDIT",
+        "V2V_EXTEND"
+      ],
+      "before": [],
+      "operation": "replace",
+      "path": "/surfaces/product_owned/method_semantics/methods"
+    },
+    {
+      "after": {
+        "references": "at_least_one",
+        "required": [
+          "AUDIO"
+        ]
+      },
+      "before": null,
+      "operation": "add",
+      "path": "/surfaces/product_owned/method_semantics/topology/AR2V"
+    },
+    {
+      "after": {
+        "references": "none",
+        "required": [
+          "first_frame",
+          "last_frame"
+        ]
+      },
+      "before": null,
+      "operation": "add",
+      "path": "/surfaces/product_owned/method_semantics/topology/FLF2V"
+    },
+    {
+      "after": {
+        "references": "none",
+        "required": [
+          "first_frame"
+        ]
+      },
+      "before": null,
+      "operation": "add",
+      "path": "/surfaces/product_owned/method_semantics/topology/I2V"
+    },
+    {
+      "after": {
+        "references": "exactly_one",
+        "required": [
+          "IMAGE"
+        ]
+      },
+      "before": null,
+      "operation": "add",
+      "path": "/surfaces/product_owned/method_semantics/topology/IR2V"
+    },
+    {
+      "after": {
+        "references": "at_least_two",
+        "required": [
+          "IMAGE"
+        ]
+      },
+      "before": null,
+      "operation": "add",
+      "path": "/surfaces/product_owned/method_semantics/topology/MI2V"
+    },
+    {
+      "after": {
+        "references": "at_least_two",
+        "required": [
+          "two_distinct_media_kinds"
+        ]
+      },
+      "before": null,
+      "operation": "add",
+      "path": "/surfaces/product_owned/method_semantics/topology/MMR2V"
+    },
+    {
+      "after": {
+        "references": "none",
+        "required": []
+      },
+      "before": null,
+      "operation": "add",
+      "path": "/surfaces/product_owned/method_semantics/topology/T2V"
+    },
+    {
+      "after": {
+        "references": "source_first",
+        "required": [
+          "source_video"
+        ]
+      },
+      "before": null,
+      "operation": "add",
+      "path": "/surfaces/product_owned/method_semantics/topology/V2V_EDIT"
+    },
+    {
+      "after": {
+        "references": "source_first",
+        "required": [
+          "source_video"
+        ]
+      },
+      "before": null,
+      "operation": "add",
+      "path": "/surfaces/product_owned/method_semantics/topology/V2V_EXTEND"
+    },
+    {
+      "after": {
+        "references": "at_least_one",
+        "required": [
+          "VIDEO"
+        ]
+      },
+      "before": null,
+      "operation": "add",
+      "path": "/surfaces/product_owned/method_semantics/topology/VR2V"
+    },
+    {
+      "after": [
+        "OpenRouterVideoAudioReference",
+        "OpenRouterVideoGenerate",
+        "OpenRouterVideoImageReference",
+        "OpenRouterVideoReferenceCollection",
+        "OpenRouterVideoResume",
+        "OpenRouterVideoVideoReference"
+      ],
+      "before": [
+        "OpenRouterVideoGenerate",
+        "OpenRouterVideoImageReference",
+        "OpenRouterVideoReferenceCollection",
+        "OpenRouterVideoResume",
+        "OpenRouterVideoVideoReference"
+      ],
+      "operation": "replace",
+      "path": "/surfaces/product_owned/node_family/registered_types"
+    },
+    {
+      "after": true,
+      "before": false,
+      "operation": "replace",
+      "path": "/surfaces/product_owned/persistence/staging_ownership_ledger"
+    },
+    {
+      "after": true,
+      "before": false,
+      "operation": "replace",
+      "path": "/surfaces/product_owned/persistence/staging_tombstone"
+    }
+  ],
+  "CONTRACT_DELTA_DIGEST": "sha256:8f29333989fc0b46cf1cd48c3d97473c967da39d5942074155eefb62ef9955a6",
+  "CURRENT_CONTRACT_DIGEST": "sha256:eb1eb2991f468c04385fddb541b2da58b3e7ae1e337480f545089e28169d53e7",
+  "OBSERVED_EVIDENCE_CHANGES": [
+    {
+      "after": 30,
+      "before": 29,
+      "operation": "replace",
+      "path": "/surfaces/observed_evidence/catalogue_model_count"
+    },
+    {
+      "after": "6977cf3816633a6aced624ecea5f60157435f0cf6d3e0deeea16bdc7ebb3122f",
+      "before": null,
+      "operation": "replace",
+      "path": "/surfaces/observed_evidence/catalogue_revision"
+    },
+    {
+      "after": "docs/assets/product-contract/phase10-canonical-browser-proof.json",
+      "before": "docs/active-execution-checkpoint.md@b492184f41492d37677a2dde9afdbe88666717a2",
+      "operation": "replace",
+      "path": "/surfaces/observed_evidence/observation_source"
+    },
+    {
+      "after": 4,
+      "before": 3,
+      "operation": "replace",
+      "path": "/surfaces/observed_evidence/ui_contract_version"
+    }
+  ],
+  "STATUS": "PASS",
+  "UNAUTHORIZED_DELTA": [],
+  "UNCHANGED_PROTECTED_SURFACES": [
+    "/surfaces/product_owned/node_family/generate",
+    "/surfaces/product_owned/node_family/resume",
+    "/surfaces/product_owned/media_topology/ordered_occurrences",
+    "/surfaces/product_owned/media_topology/duplicates",
+    "/surfaces/product_owned/media_topology/incompatible_switch",
+    "/surfaces/product_owned/controls",
+    "/surfaces/product_owned/persistence/workflow_compatibility",
+    "/surfaces/product_owned/persistence/legacy_workflow_support",
+    "/surfaces/product_owned/lifecycle",
+    "/surfaces/product_owned/billing_security/max_intentional_paid_submits_per_operation",
+    "/surfaces/product_owned/billing_security/credentials_serialized",
+    "/surfaces/product_owned/billing_security/app_identity_runtime_override",
+    "/surfaces/product_owned/billing_security/capabilities_fail_closed"
+  ],
+  "UNKNOWN_DYNAMIC_SURFACES": []
+}

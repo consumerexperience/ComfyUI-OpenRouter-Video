@@ -1,0 +1,9 @@
+{
+  "error": "STORAGE_UPLOAD_FAILED: Configure local S3 endpoint, region, bucket and credentials.",
+  "node_type": "OpenRouterVideoGenerate",
+  "saved_workflow": "workflows/ORV_Canonical_Native_Media_Inputs_1791453936078.json",
+  "negative_workflow_queues": 1,
+  "storage_puts": 0,
+  "paid_video_posts": 0,
+  "catalogue_override": false
+}

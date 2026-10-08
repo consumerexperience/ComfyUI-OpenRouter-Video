@@ -32,6 +32,7 @@ from openrouter_video.execution_hooks import (
     report_progress,
 )
 from openrouter_video.lifecycle import transition
+from openrouter_video.local_media import NativeMediaError
 from openrouter_video.media import DownloadService
 from openrouter_video.models import (
     BillingContext,
@@ -43,9 +44,11 @@ from openrouter_video.models import (
     ProductErrorCode,
     RemoteJobSnapshot,
     VideoArtifact,
-    request_fingerprint_v2,
+    request_fingerprint_v3,
 )
 from openrouter_video.persistence import JOB_RECORD_SCHEMA_VERSION, JobStore
+from openrouter_video.s3_upload import StorageError
+from openrouter_video.staging import StagingManager, has_local_media
 
 POLL_INTERVAL_SECONDS = 30.0
 POLL_CEILING_SECONDS = 60 * 60.0
@@ -133,6 +136,7 @@ class _ObservationCoordinator:
         "_progress",
         "_sleep",
         "_store",
+        "_staging",
     )
 
     def __init__(
@@ -147,6 +151,7 @@ class _ObservationCoordinator:
         jitter: Jitter,
         control: ExecutionControl | None,
         progress: ProgressObserver | None,
+        staging: StagingManager | None = None,
     ) -> None:
         self._observation = observation_client
         self._store = store
@@ -157,9 +162,13 @@ class _ObservationCoordinator:
         self._jitter = jitter
         self._control = control
         self._progress = progress
+        self._staging = staging
 
     async def reconcile(self, record: JobRecord) -> GenerationResult:
         """Continue only the known durable operation represented by record."""
+
+        if self._staging is not None:
+            await self._staging.cleanup()
 
         if record.local_state is LocalLifecycleState.DONE:
             if record.output_relpath is None:
@@ -289,6 +298,13 @@ class _ObservationCoordinator:
 
             consecutive_failures = 0
             record = self._apply_observation(record, snapshot)
+            if self._staging is not None and record.remote_status_raw in {
+                "completed",
+                "failed",
+                "cancelled",
+                "expired",
+            }:
+                await self._staging.cleanup_operation(record.operation_id)
             if record.local_state is LocalLifecycleState.POLLING:
                 self._store.save(record)
                 await self._sleep_or_interrupt(record, POLL_INTERVAL_SECONDS)
@@ -469,6 +485,7 @@ class GenerateService:
         "_now",
         "_progress",
         "_store",
+        "_staging",
         "_submit",
         "_validator",
     )
@@ -488,6 +505,7 @@ class GenerateService:
         jitter: Jitter = _jitter,
         control: ExecutionControl | None = None,
         progress: ProgressObserver | None = None,
+        staging: StagingManager | None = None,
     ) -> None:
         self._capabilities = capabilities
         self._validator = validator
@@ -496,6 +514,7 @@ class GenerateService:
         self._now = now
         self._control = control
         self._progress = progress
+        self._staging = staging
         self._coordinator = _ObservationCoordinator(
             observation_client=observation_client,
             store=store,
@@ -506,9 +525,21 @@ class GenerateService:
             jitter=jitter,
             control=control,
             progress=progress,
+            staging=staging,
         )
 
     async def generate(self, operation_id: str, request: GenerationRequest) -> GenerationResult:
+        if self._staging is not None:
+            await self._staging.cleanup()
+        try:
+            return await self._generate_inner(operation_id, request)
+        finally:
+            if self._staging is not None:
+                await self._staging.cleanup()
+
+    async def _generate_inner(
+        self, operation_id: str, request: GenerationRequest
+    ) -> GenerationResult:
         """Validate, atomically claim, submit once, persist job_id, then observe."""
 
         await report_progress(self._progress, ExecutionPhase.VALIDATING)
@@ -526,7 +557,7 @@ class GenerateService:
             self._validator.validate_shape(request)
         except ProductFailureError as exc:
             return GenerationResult(LocalLifecycleState.NOT_SUBMITTED, None, error=exc.error)
-        fingerprint = request_fingerprint_v2(request)
+        fingerprint = request_fingerprint_v3(request)
         try:
             existing = self._store.get_by_operation_id(operation_id)
         except PersistenceError:
@@ -584,9 +615,48 @@ class GenerateService:
                 return _local_state_failure(None)
             return await self._reconcile_existing(raced, fingerprint)
 
+        if has_local_media(request):
+            try:
+                if self._staging is None:
+                    raise StorageError("Configure local S3 storage for native VIDEO/AUDIO.")
+                request = await self._staging.materialize(operation_id, request, self._control)
+            except (
+                StorageError,
+                NativeMediaError,
+                ProductFailureError,
+                CooperativeInterrupt,
+            ) as exc:
+                self._store.release_unsubmitted_claim(operation_id, fingerprint)
+                if isinstance(exc, CooperativeInterrupt):
+                    raise OperationInterrupted(
+                        GenerationResult(
+                            LocalLifecycleState.NOT_SUBMITTED, None, model=request.model
+                        )
+                    ) from None
+                code = (
+                    ProductErrorCode.NATIVE_MEDIA_INVALID
+                    if isinstance(exc, NativeMediaError)
+                    else ProductErrorCode.STORAGE_UPLOAD_FAILED
+                )
+                return GenerationResult(
+                    LocalLifecycleState.NOT_SUBMITTED,
+                    None,
+                    error=ProductError(
+                        code,
+                        str(exc)
+                        if isinstance(exc, (StorageError, NativeMediaError))
+                        else "Native media URL is invalid.",
+                        BillingContext.NO_SUBMIT,
+                    ),
+                )
+            except PersistenceError:
+                return _local_state_failure(record)
+
         if self._control is not None and self._control.interrupted():
             try:
                 self._store.release_unsubmitted_claim(operation_id, fingerprint)
+                if self._staging is not None:
+                    await self._staging.cleanup_operation(operation_id)
             except PersistenceError:
                 raise OperationInterrupted(_local_state_failure(record)) from None
             raise OperationInterrupted(
@@ -604,6 +674,8 @@ class GenerateService:
                 self._store.release_unsubmitted_claim(operation_id, fingerprint)
             except PersistenceError:
                 return _local_state_failure(record)
+            if self._staging is not None:
+                await self._staging.cleanup_operation(operation_id)
             code = (
                 ProductErrorCode.API_KEY_MISSING
                 if "credential" in str(exc).lower()
@@ -694,7 +766,7 @@ class GenerateService:
 class ResumeService:
     """Observe/download an existing job with no typed access to submit capability."""
 
-    __slots__ = ("_coordinator", "_now", "_store")
+    __slots__ = ("_coordinator", "_now", "_store", "_staging")
 
     def __init__(
         self,
@@ -708,8 +780,10 @@ class ResumeService:
         jitter: Jitter = _jitter,
         control: ExecutionControl | None = None,
         progress: ProgressObserver | None = None,
+        staging: StagingManager | None = None,
     ) -> None:
         self._store = store
+        self._staging = staging
         self._now = now
         self._coordinator = _ObservationCoordinator(
             observation_client=observation_client,
@@ -721,11 +795,14 @@ class ResumeService:
             jitter=jitter,
             control=control,
             progress=progress,
+            staging=staging,
         )
 
     async def resume(self, job_id: str) -> GenerationResult:
         """Resume a durable or user-supplied job identity using GET/content only."""
 
+        if self._staging is not None:
+            await self._staging.cleanup()
         if not job_id or job_id != job_id.strip():
             return GenerationResult(
                 LocalLifecycleState.NOT_SUBMITTED,

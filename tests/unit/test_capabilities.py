@@ -10,13 +10,15 @@ import pytest
 from openrouter_video.capabilities import (
     CapabilityModeStatus,
     CapabilityService,
-    GenerationMode,
     RequestValidator,
+    infer_legacy_inference_method,
+    inference_method_matrix,
     mode_enforcement_matrix,
 )
 from openrouter_video.capability_overlays import (
     SEEDANCE_2_5_OVERLAY,
     apply_capability_overlay,
+    preferred_inference_method,
 )
 from openrouter_video.errors import OpenRouterHTTPError, ProductFailureError, TransportError
 from openrouter_video.models import (
@@ -24,6 +26,7 @@ from openrouter_video.models import (
     FrameReference,
     FrameType,
     GenerationRequest,
+    InferenceMethod,
     InputReference,
     InputReferenceCapabilities,
     InputReferenceCapabilityField,
@@ -164,7 +167,9 @@ def test_validator_requires_positive_frame_and_audio_capability() -> None:
     request = GenerationRequest(
         "vendor/model",
         "prompt",
+        inference_method=InferenceMethod.FLF2V,
         generate_audio=True,
+        first_frame=FrameReference(FrameType.FIRST, "https://assets.example/first.png"),
         last_frame=FrameReference(FrameType.LAST, "https://assets.example/frame.png"),
     )
     validator.validate_shape(request)
@@ -190,26 +195,26 @@ def test_validator_never_silently_changes_explicit_options() -> None:
 
 
 def test_mode_matrix_scopes_frame_readiness_and_reference_signal_gaps() -> None:
-    matrix = mode_enforcement_matrix(MODEL)
+    matrix = inference_method_matrix(MODEL)
 
-    assert matrix[GenerationMode.T2V] is CapabilityModeStatus.READY
-    assert matrix[GenerationMode.FIRST_FRAME] is CapabilityModeStatus.READY
-    assert matrix[GenerationMode.FIRST_PLUS_LAST] is CapabilityModeStatus.UNSUPPORTED
-    both_frames = mode_enforcement_matrix(
+    assert matrix[InferenceMethod.T2V] is CapabilityModeStatus.READY
+    assert matrix[InferenceMethod.I2V] is CapabilityModeStatus.READY
+    assert matrix[InferenceMethod.FLF2V] is CapabilityModeStatus.UNSUPPORTED
+    both_frames = inference_method_matrix(
         replace(MODEL, supported_frame_types=frozenset({FrameType.FIRST, FrameType.LAST}))
     )
-    assert both_frames[GenerationMode.FIRST_PLUS_LAST] is CapabilityModeStatus.READY
-    assert (
-        matrix[GenerationMode.MULTI_IMAGE_REFERENCE] is CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
-    )
-    assert matrix[GenerationMode.VIDEO_REFERENCE] is CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
-    assert (
-        matrix[GenerationMode.IMAGE_PLUS_VIDEO_REFERENCE]
-        is CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
-    )
-    assert (
-        matrix[GenerationMode.PROMPT_OPTIONAL_REFERENCE_GENERATION] is CapabilityModeStatus.DEFERRED
-    )
+    assert both_frames[InferenceMethod.FLF2V] is CapabilityModeStatus.READY
+    for method in (
+        InferenceMethod.IR2V,
+        InferenceMethod.MI2V,
+        InferenceMethod.VR2V,
+        InferenceMethod.AR2V,
+        InferenceMethod.MMR2V,
+        InferenceMethod.V2V_EDIT,
+        InferenceMethod.V2V_EXTEND,
+    ):
+        assert matrix[method] is CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+    assert mode_enforcement_matrix(MODEL) == matrix
 
 
 def test_exact_id_overlay_makes_only_proven_reference_modes_ready() -> None:
@@ -217,25 +222,23 @@ def test_exact_id_overlay_makes_only_proven_reference_modes_ready() -> None:
         ModelCapabilities(
             model_id="bytedance/seedance-2.5",
             canonical_slug="bytedance/seedance-2.5",
+            supported_frame_types=frozenset({FrameType.FIRST, FrameType.LAST}),
         )
     )
     references = model.input_reference_capabilities
     assert references is not None
     assert references.reference_kinds == frozenset(
-        {InputReferenceKind.IMAGE, InputReferenceKind.VIDEO}
+        {InputReferenceKind.IMAGE, InputReferenceKind.VIDEO, InputReferenceKind.AUDIO}
     )
     assert references.max_reference_count == 50
-    assert references.mixed_image_video_references is True
+    assert references.mixed_reference_kinds is True
     assert references.reference_kinds_source is CapabilityEvidenceSource.EVIDENCE_OVERLAY
     assert not references.conflicts
     assert apply_capability_overlay(model) == model
-    matrix = mode_enforcement_matrix(model)
-    assert matrix[GenerationMode.MULTI_IMAGE_REFERENCE] is CapabilityModeStatus.READY
-    assert matrix[GenerationMode.VIDEO_REFERENCE] is CapabilityModeStatus.READY
-    assert matrix[GenerationMode.IMAGE_PLUS_VIDEO_REFERENCE] is CapabilityModeStatus.READY
-    assert (
-        matrix[GenerationMode.PROMPT_OPTIONAL_REFERENCE_GENERATION] is CapabilityModeStatus.DEFERRED
-    )
+    matrix = inference_method_matrix(model)
+    for method in InferenceMethod:
+        assert matrix[method] is CapabilityModeStatus.READY
+    assert preferred_inference_method(model.model_id) is InferenceMethod.MI2V
 
 
 def test_overlay_is_exact_id_data_not_provider_family_inference() -> None:
@@ -252,7 +255,7 @@ def test_level_a_is_never_overridden_and_conflicts_fail_closed() -> None:
     level_a = InputReferenceCapabilities(
         reference_kinds=frozenset({InputReferenceKind.IMAGE}),
         max_reference_count=4,
-        mixed_image_video_references=False,
+        mixed_reference_kinds=False,
     )
     model = apply_capability_overlay(
         ModelCapabilities(
@@ -264,13 +267,13 @@ def test_level_a_is_never_overridden_and_conflicts_fail_closed() -> None:
     assert effective is not None
     assert effective.reference_kinds == level_a.reference_kinds
     assert effective.max_reference_count == 4
-    assert effective.mixed_image_video_references is False
+    assert effective.mixed_reference_kinds is False
     assert effective.reference_kinds_source is CapabilityEvidenceSource.LEVEL_A
     assert effective.conflicts == frozenset(InputReferenceCapabilityField)
-    matrix = mode_enforcement_matrix(model)
-    assert matrix[GenerationMode.MULTI_IMAGE_REFERENCE] is CapabilityModeStatus.CONFLICT
-    assert matrix[GenerationMode.VIDEO_REFERENCE] is CapabilityModeStatus.CONFLICT
-    assert matrix[GenerationMode.IMAGE_PLUS_VIDEO_REFERENCE] is CapabilityModeStatus.CONFLICT
+    matrix = inference_method_matrix(model)
+    assert matrix[InferenceMethod.MI2V] is CapabilityModeStatus.CONFLICT
+    assert matrix[InferenceMethod.VR2V] is CapabilityModeStatus.CONFLICT
+    assert matrix[InferenceMethod.MMR2V] is CapabilityModeStatus.CONFLICT
 
 
 def test_overlay_requires_a_fresh_catalog_observation(tmp_path: Path) -> None:
@@ -301,7 +304,12 @@ def test_reference_validation_is_https_order_preserving_and_fail_closed() -> Non
             InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
         )
     )
-    request = GenerationRequest("vendor/model", "prompt", input_references=references)
+    request = GenerationRequest(
+        "vendor/model",
+        "prompt",
+        inference_method=InferenceMethod.MI2V,
+        input_references=references,
+    )
     validator.validate_shape(request)
 
     with pytest.raises(ProductFailureError) as caught:
@@ -325,6 +333,7 @@ def test_frame_and_reference_conflict_fails_before_capability_resolution() -> No
     request = GenerationRequest(
         "vendor/model",
         "prompt",
+        inference_method=InferenceMethod.I2V,
         first_frame=FrameReference(FrameType.FIRST, "https://assets.example/frame.png"),
         input_references=InputReferenceCollection(
             (InputReference(InputReferenceKind.VIDEO, "https://assets.example/reference.mp4"),)
@@ -341,6 +350,7 @@ def test_prompt_omission_is_outside_the_phase_8_product_contract() -> None:
     request = GenerationRequest(
         "vendor/model",
         None,
+        inference_method=InferenceMethod.VR2V,
         input_references=InputReferenceCollection(
             (InputReference(InputReferenceKind.VIDEO, "https://assets.example/reference.mp4"),)
         ),
@@ -359,9 +369,92 @@ def test_reference_count_above_overlay_limit_is_rejected() -> None:
             for index in range(51)
         )
     )
-    request = GenerationRequest(model.model_id, "prompt", input_references=references)
+    request = GenerationRequest(
+        model.model_id,
+        "prompt",
+        inference_method=InferenceMethod.MI2V,
+        input_references=references,
+    )
 
     validator.validate_shape(request)
     with pytest.raises(ProductFailureError) as caught:
         validator.validate_capabilities(request, model)
     assert caught.value.error.code is ProductErrorCode.UNSUPPORTED_PARAMETER
+
+
+def test_method_topologies_and_legacy_migration_preserve_intent() -> None:
+    validator = RequestValidator()
+    image = InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png")
+    video = InputReference(InputReferenceKind.VIDEO, "https://assets.example/a.mp4")
+    audio = InputReference(InputReferenceKind.AUDIO, "https://assets.example/a.mp3")
+    first = FrameReference(FrameType.FIRST, "https://assets.example/first.png")
+    last = FrameReference(FrameType.LAST, "https://assets.example/last.png")
+    valid = (
+        GenerationRequest("vendor/model", "prompt", InferenceMethod.T2V),
+        GenerationRequest("vendor/model", "prompt", InferenceMethod.I2V, first_frame=first),
+        GenerationRequest(
+            "vendor/model",
+            "prompt",
+            InferenceMethod.FLF2V,
+            first_frame=first,
+            last_frame=last,
+        ),
+        GenerationRequest(
+            "vendor/model",
+            "prompt",
+            InferenceMethod.IR2V,
+            input_references=InputReferenceCollection((image,)),
+        ),
+        GenerationRequest(
+            "vendor/model",
+            "prompt",
+            InferenceMethod.MI2V,
+            input_references=InputReferenceCollection((image, image)),
+        ),
+        GenerationRequest(
+            "vendor/model",
+            "prompt",
+            InferenceMethod.VR2V,
+            input_references=InputReferenceCollection((video,)),
+        ),
+        GenerationRequest(
+            "vendor/model",
+            "prompt",
+            InferenceMethod.AR2V,
+            input_references=InputReferenceCollection((audio,)),
+        ),
+        GenerationRequest(
+            "vendor/model",
+            "prompt",
+            InferenceMethod.MMR2V,
+            input_references=InputReferenceCollection((image, audio, video)),
+        ),
+        GenerationRequest(
+            "vendor/model",
+            "prompt",
+            InferenceMethod.V2V_EDIT,
+            source_video=video,
+            input_references=InputReferenceCollection((audio, image)),
+        ),
+        GenerationRequest(
+            "vendor/model",
+            "prompt",
+            InferenceMethod.V2V_EXTEND,
+            source_video=video,
+        ),
+    )
+    for request in valid:
+        validator.validate_shape(request)
+
+    assert (
+        infer_legacy_inference_method(first_frame=None, last_frame=None, references=(video,))
+        is InferenceMethod.VR2V
+    )
+    assert (
+        infer_legacy_inference_method(first_frame=None, last_frame=None, references=(image,))
+        is InferenceMethod.IR2V
+    )
+    assert (
+        infer_legacy_inference_method(first_frame=None, last_frame=None, references=(image, audio))
+        is InferenceMethod.MMR2V
+    )

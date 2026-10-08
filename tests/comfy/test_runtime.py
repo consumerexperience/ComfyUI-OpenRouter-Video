@@ -164,3 +164,28 @@ def test_aclose_reports_bounded_failure_for_noncooperative_task(
 
     process = asyncio.run(scenario())
     assert not process._thread.is_alive()
+
+
+def test_slow_startup_cleanup_does_not_block_runtime_readiness(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    entered = threading.Event()
+    release = threading.Event()
+    calls: list[int] = []
+
+    async def slow_cleanup(self: object) -> None:
+        calls.append(threading.get_ident())
+        entered.set()
+        while not release.is_set():
+            await asyncio.sleep(0.001)
+
+    monkeypatch.setattr(runtime.StagingManager, "cleanup", slow_cleanup)
+    process = runtime.ProcessRuntime(tmp_path / "jobs.sqlite3", tmp_path / "output")
+    try:
+        assert entered.wait(2)
+        assert process._ready.is_set() and process._thread.is_alive()
+        assert calls == [process._thread.ident]
+        assert len(process._tasks) == 1
+    finally:
+        release.set()
+        asyncio.run(process.aclose(timeout=2.0))

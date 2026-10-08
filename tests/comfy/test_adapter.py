@@ -95,6 +95,10 @@ def _install_fake_numbered_api() -> None:
     numbered.ComfyExtension = _ComfyExtension
     numbered.IO = io
     numbered.InputImpl = _InputImpl
+    numbered.Types = types.SimpleNamespace(
+        VideoContainer=types.SimpleNamespace(MP4="mp4"),
+        VideoCodec=types.SimpleNamespace(H264="h264"),
+    )
     package = types.ModuleType("comfy_api")
     package.v0_0_2 = numbered
     sys.modules.setdefault("comfy_api", package)
@@ -155,15 +159,19 @@ def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
     ]
     assert [item.name for item in generate.inputs] == [
         "model",
+        "inference_method",
         "prompt",
-        "duration",
         "resolution",
         "aspect_ratio",
+        "duration",
         "size",
         "seed",
         "generate_audio",
         "first_frame_url",
         "last_frame_url",
+        "first_frame",
+        "last_frame",
+        "source_video",
         "direct_references",
         "input_references",
     ]
@@ -210,6 +218,7 @@ def test_extension_registers_exact_phase8_node_set() -> None:
     assert registered == [
         nodes.OpenRouterVideoImageReference,
         nodes.OpenRouterVideoVideoReference,
+        nodes.OpenRouterVideoAudioReference,
         nodes.OpenRouterVideoReferenceCollection,
         nodes.OpenRouterVideoGenerate,
         nodes.OpenRouterVideoResume,
@@ -354,6 +363,41 @@ def test_generate_bridges_typed_reference_collection(monkeypatch: pytest.MonkeyP
     assert captured[0].input_references is collection
 
 
+def test_audio_helper_and_v2v_source_role_bridge_to_core(monkeypatch: pytest.MonkeyPatch) -> None:
+    source = nodes.OpenRouterVideoVideoReference.execute(
+        "https://assets.example/source.mp4"
+    ).values[0]
+    audio = nodes.OpenRouterVideoAudioReference.execute("https://assets.example/guide.mp3").values[
+        0
+    ]
+    captured: list[object] = []
+
+    class Runtime:
+        async def generate(self, request: object, _: str | None) -> GenerationResult:
+            captured.append(request)
+            return GenerationResult(
+                LocalLifecycleState.DONE,
+                "job-v2v",
+                artifact=VideoArtifact(Path("ignored.mp4"), "video/mp4", 10),
+            )
+
+    monkeypatch.setattr(nodes, "get_runtime", Runtime)
+    monkeypatch.setattr(nodes, "to_native_video", lambda _: "native-video")
+    asyncio.run(
+        nodes.OpenRouterVideoGenerate.execute(
+            "vendor/model",
+            "prompt",
+            inference_method="V2V_EDIT",
+            source_video=source,
+            direct_references={"reference_0": audio},
+        )
+    )
+
+    assert captured[0].inference_method.value == "V2V_EDIT"
+    assert captured[0].source_video == source
+    assert captured[0].input_references == InputReferenceCollection((audio,))
+
+
 def test_generate_bridges_direct_ordered_references_and_rejects_mixed_topologies(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -394,6 +438,62 @@ def test_generate_bridges_direct_ordered_references_and_rejects_mixed_topologies
                 input_references=InputReferenceCollection((video,)),
             )
         )
+
+
+def test_native_image_normalizes_into_existing_frame_and_ordered_reference_roles(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    native = object()
+    data_url = "data:image/png;base64,private-image-canary"
+    monkeypatch.setattr(
+        nodes, "to_image_data_url", lambda value: data_url if value is native else ""
+    )
+    captured: list[object] = []
+
+    class Runtime:
+        async def generate(self, request: object, _: str | None) -> GenerationResult:
+            captured.append(request)
+            return GenerationResult(LocalLifecycleState.DONE, "job-native-image")
+
+    monkeypatch.setattr(nodes, "get_runtime", Runtime)
+    with pytest.raises(nodes.AdapterExecutionError):
+        asyncio.run(
+            nodes.OpenRouterVideoGenerate.execute(
+                "vendor/model",
+                "prompt",
+                inference_method="FLF2V",
+                first_frame=native,
+                last_frame=InputReference(
+                    InputReferenceKind.IMAGE, "https://assets.example/last.png"
+                ),
+            )
+        )
+    assert captured[0].first_frame.url == data_url
+    assert captured[0].last_frame.url == "https://assets.example/last.png"
+
+    with pytest.raises(nodes.AdapterExecutionError):
+        asyncio.run(
+            nodes.OpenRouterVideoGenerate.execute(
+                "vendor/model",
+                "prompt",
+                inference_method="MI2V",
+                direct_references={
+                    "reference_2": native,
+                    "reference_0": InputReference(
+                        InputReferenceKind.IMAGE, "https://assets.example/first.png"
+                    ),
+                    "reference_1": native,
+                },
+            )
+        )
+    assert [item.url for item in captured[1].input_references.references] == [
+        "https://assets.example/first.png",
+        data_url,
+        data_url,
+    ]
+    assert data_url not in caplog.text
+    assert "api_key" not in caplog.text.lower()
 
 
 @pytest.mark.parametrize("duration", (-1, True, 1.5))
@@ -607,7 +707,7 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
                                 {InputReferenceKind.IMAGE, InputReferenceKind.VIDEO}
                             ),
                             max_reference_count=50,
-                            mixed_image_video_references=True,
+                            mixed_reference_kinds=True,
                         ),
                         pricing_evidence=PricingEvidence(
                             (PricingSku("generate", Decimal("0.42")),)
@@ -627,7 +727,7 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
 
     assert status == 200
     assert payload["observed_at"] == observed.isoformat()
-    assert payload["ui_contract_version"] == 3
+    assert payload["ui_contract_version"] == 4
     assert len(payload["catalogue_revision"]) == 64
     generate = nodes.OpenRouterVideoGenerate.define_schema()
     assert _schema_inputs(generate)["model"].options["options"] == ["SELECT MODEL"]
@@ -637,7 +737,15 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
     assert projected["supports_seed"] is None
     assert projected["supported_reference_kinds"] == ("image", "video")
     assert projected["max_reference_count"] == 50
-    assert projected["mixed_image_video_references"] is True
+    assert projected["mixed_reference_kinds"] is True
+    assert projected["supported_inference_methods"] == (
+        "T2V",
+        "I2V",
+        "IR2V",
+        "MI2V",
+        "VR2V",
+        "MMR2V",
+    )
     serialized = repr(payload).lower()
     assert "pricing" not in serialized
     assert "0.42" not in serialized
@@ -704,7 +812,7 @@ def test_health_route_is_pure_local_sanitized_observation(
         "catalogue_model_count": 30,
         "catalogue_revision": "a" * 64,
         "plugin_version": "0.1.0",
-        "ui_contract_version": 3,
+        "ui_contract_version": 4,
     }
     assert "key" not in repr(payload).lower()
     assert "authorization" not in repr(payload).lower()
@@ -724,7 +832,10 @@ def test_cost_estimate_route_returns_prepared_result_only(
                 "resolution": "480p",
                 "aspect_ratio": "16:9",
                 "generate_audio": False,
-                "reference_mode": "first_frame",
+                "inference_method": "I2V",
+                "reference_kinds": [],
+                "reference_count": 0,
+                "source_video_present": False,
             }
 
     class Runtime:
@@ -749,6 +860,7 @@ def test_cost_estimate_route_returns_prepared_result_only(
 
     assert status == 200
     assert captured[0].model_id == "vendor/model"
+    assert captured[0].inference_method.value == "I2V"
     assert payload == {
         "availability": "AVAILABLE",
         "observed_at": observed.isoformat(),
@@ -756,3 +868,12 @@ def test_cost_estimate_route_returns_prepared_result_only(
         "estimated_cost_usd": "0.140",
         "provenance": "catalogue pricing_skus.per-video-second-480p × duration",
     }
+
+
+def test_model_validation_accepts_reconstructed_native_autogrow() -> None:
+    assert (
+        nodes.OpenRouterVideoGenerate.validate_inputs(
+            "vendor/model", direct_references={"reference_0": ["native-node", 0]}
+        )
+        is True
+    )

@@ -1,0 +1,513 @@
+#!/usr/bin/env python3
+"""Validate and compare Product Contract Guard JSON without external dependencies."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import re
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+SHA_RE = re.compile(r"^[0-9a-f]{40}(?:[0-9a-f]{24})?$")
+DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
+POINTER_RE = re.compile(r"^/(?:[^~/]|~0|~1)*(?:/(?:[^~/]|~0|~1)*)*$")
+OPERATIONS = {"add", "remove", "replace"}
+MINIMUM_GATES = {
+    "A": {"focused_tests"},
+    "B": {"baseline_declaration", "semantic_diff", "negative_space_tests"},
+    "C": {
+        "baseline_declaration",
+        "semantic_diff",
+        "negative_space_tests",
+        "explicit_high_risk_approval",
+    },
+}
+
+
+class ProtocolError(ValueError):
+    """Raised when a Product Contract Guard artifact is invalid."""
+
+
+@dataclass(frozen=True)
+class Change:
+    path: str
+    operation: str
+    before: Any
+    after: Any
+
+    def payload(self) -> dict[str, Any]:
+        return {
+            "path": self.path,
+            "operation": self.operation,
+            "before": self.before,
+            "after": self.after,
+        }
+
+
+def load_json(path: Path) -> dict[str, Any]:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ProtocolError(f"Cannot read valid JSON from {path}: {exc}") from exc
+    if not isinstance(value, dict):
+        raise ProtocolError(f"Top-level JSON value in {path} must be an object")
+    return value
+
+
+def canonical_json(value: Any) -> bytes:
+    return json.dumps(
+        value,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+
+
+def artifact_digest(value: Any) -> str:
+    return "sha256:" + hashlib.sha256(canonical_json(value)).hexdigest()
+
+
+def _require_keys(
+    value: dict[str, Any], required: set[str], allowed: set[str], label: str
+) -> None:
+    missing = sorted(required - value.keys())
+    extra = sorted(value.keys() - allowed)
+    if missing:
+        raise ProtocolError(f"{label} is missing required fields: {missing}")
+    if extra:
+        raise ProtocolError(f"{label} contains unsupported fields: {extra}")
+
+
+def _text(value: Any, label: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ProtocolError(f"{label} must be a non-empty string")
+    return value
+
+
+def _sha(value: Any, label: str) -> str:
+    text = _text(value, label)
+    if not SHA_RE.fullmatch(text):
+        raise ProtocolError(f"{label} must be a lowercase 40- or 64-character Git SHA")
+    return text
+
+
+def _digest(value: Any, label: str) -> str:
+    text = _text(value, label)
+    if not DIGEST_RE.fullmatch(text):
+        raise ProtocolError(f"{label} must use sha256:<64 lowercase hex> format")
+    return text
+
+
+def _strings(value: Any, label: str, *, nonempty: bool = False) -> list[str]:
+    if not isinstance(value, list) or any(
+        not isinstance(item, str) or not item for item in value
+    ):
+        raise ProtocolError(f"{label} must be an array of non-empty strings")
+    if nonempty and not value:
+        raise ProtocolError(f"{label} must not be empty")
+    if len(set(value)) != len(value):
+        raise ProtocolError(f"{label} must not contain duplicates")
+    return value
+
+
+def _pointer(value: Any, label: str) -> str:
+    text = _text(value, label)
+    if not POINTER_RE.fullmatch(text):
+        raise ProtocolError(f"{label} must be an RFC 6901 JSON pointer")
+    return text
+
+
+def validate_product_contract(value: dict[str, Any]) -> None:
+    required = {
+        "protocol",
+        "schema_version",
+        "contract_id",
+        "checkpoint_id",
+        "subject_sha",
+        "exporter",
+        "surfaces",
+    }
+    _require_keys(value, required, required, "Product Contract")
+    if (
+        value["protocol"] != "openrouter-video-product-contract"
+        or value["schema_version"] != 1
+    ):
+        raise ProtocolError("Unsupported Product Contract protocol or schema version")
+    _text(value["contract_id"], "contract_id")
+    _text(value["checkpoint_id"], "checkpoint_id")
+    _sha(value["subject_sha"], "subject_sha")
+    exporter = value["exporter"]
+    if not isinstance(exporter, dict):
+        raise ProtocolError("exporter must be an object")
+    _require_keys(exporter, {"name", "version"}, {"name", "version"}, "exporter")
+    _text(exporter["name"], "exporter.name")
+    _text(exporter["version"], "exporter.version")
+    surfaces = value["surfaces"]
+    if not isinstance(surfaces, dict):
+        raise ProtocolError("surfaces must be an object")
+    surface_names = {"product_owned", "upstream_dynamic", "observed_evidence"}
+    _require_keys(surfaces, surface_names, surface_names, "surfaces")
+    for name in sorted(surface_names):
+        if not isinstance(surfaces[name], dict):
+            raise ProtocolError(f"surfaces.{name} must be an object")
+
+
+def validate_contract_delta(value: dict[str, Any]) -> None:
+    required = {
+        "protocol",
+        "schema_version",
+        "delta_id",
+        "baseline_checkpoint",
+        "baseline_sha",
+        "risk_tier",
+        "intended_delta",
+        "allowed_semantic_changes",
+        "protected_surfaces",
+        "expected_components",
+        "required_gates",
+        "unexpected_scope_policy",
+    }
+    _require_keys(value, required, required, "Contract Delta")
+    if (
+        value["protocol"] != "openrouter-video-contract-delta"
+        or value["schema_version"] != 1
+    ):
+        raise ProtocolError("Unsupported Contract Delta protocol or schema version")
+    _text(value["delta_id"], "delta_id")
+    _text(value["baseline_checkpoint"], "baseline_checkpoint")
+    _sha(value["baseline_sha"], "baseline_sha")
+    tier = value["risk_tier"]
+    if tier not in MINIMUM_GATES:
+        raise ProtocolError("risk_tier must be A, B, or C")
+    _strings(value["intended_delta"], "intended_delta", nonempty=True)
+    expected = _strings(value["expected_components"], "expected_components")
+    if any(component.startswith(("/", "\\")) for component in expected):
+        raise ProtocolError(
+            "expected_components are semantic guidance, not absolute file allowlists"
+        )
+    gates = set(_strings(value["required_gates"], "required_gates"))
+    missing_gates = sorted(MINIMUM_GATES[tier] - gates)
+    if missing_gates:
+        raise ProtocolError(f"Tier {tier} is missing required gates: {missing_gates}")
+    if value["unexpected_scope_policy"] != "STOP_AND_REPORT":
+        raise ProtocolError("unexpected_scope_policy must be STOP_AND_REPORT")
+    protected = [
+        _pointer(item, "protected_surfaces item")
+        for item in value["protected_surfaces"]
+    ]
+    if len(set(protected)) != len(protected):
+        raise ProtocolError("protected_surfaces must not contain duplicates")
+    allowed = value["allowed_semantic_changes"]
+    if not isinstance(allowed, list):
+        raise ProtocolError("allowed_semantic_changes must be an array")
+    seen: set[tuple[str, tuple[str, ...]]] = set()
+    for index, item in enumerate(allowed):
+        if not isinstance(item, dict):
+            raise ProtocolError(f"allowed_semantic_changes[{index}] must be an object")
+        fields = {"path", "operations", "reason"}
+        _require_keys(item, fields, fields, f"allowed_semantic_changes[{index}]")
+        path = _pointer(item["path"], f"allowed_semantic_changes[{index}].path")
+        operations = item["operations"]
+        if (
+            not isinstance(operations, list)
+            or not operations
+            or set(operations) - OPERATIONS
+        ):
+            raise ProtocolError(
+                f"allowed_semantic_changes[{index}].operations are invalid"
+            )
+        if len(set(operations)) != len(operations):
+            raise ProtocolError(
+                f"allowed_semantic_changes[{index}].operations contain duplicates"
+            )
+        _text(item["reason"], f"allowed_semantic_changes[{index}].reason")
+        key = (path, tuple(sorted(operations)))
+        if key in seen:
+            raise ProtocolError(
+                "allowed_semantic_changes must not contain duplicate grants"
+            )
+        seen.add(key)
+
+
+def validate_acceptance_record(value: dict[str, Any]) -> None:
+    required = {
+        "protocol",
+        "schema_version",
+        "acceptance_id",
+        "state",
+        "exact_head_sha",
+        "canonical_sha",
+        "product_contract_digest",
+        "contract_delta_digest",
+        "builder_version",
+        "builder_package_digest",
+        "verification_result",
+        "product_owner_approval",
+        "checkpoint_tag",
+        "canonical_readback",
+        "tag_readback",
+        "acceptance_index_updated",
+    }
+    ownership_fields = {"run_id", "single_writer_proven", "lease_digest"}
+    _require_keys(value, required, required | ownership_fields, "Acceptance Record")
+    if "rc.3" in str(value.get("builder_version")) or ownership_fields & value.keys():
+        if not ownership_fields <= value.keys():
+            raise ProtocolError("Acceptance requires all single-writer bindings")
+        _text(value["run_id"], "run_id")
+        _digest(value["lease_digest"], "lease_digest")
+        if value["single_writer_proven"] is not True:
+            raise ProtocolError("Ownership loss forbids acceptance candidate")
+    if (
+        value["protocol"] != "openrouter-video-acceptance-record"
+        or value["schema_version"] != 1
+    ):
+        raise ProtocolError("Unsupported Acceptance Record protocol or schema version")
+    _text(value["acceptance_id"], "acceptance_id")
+    state = value["state"]
+    if state not in {"ACCEPTANCE_CANDIDATE", "ACCEPTED_CANONICAL"}:
+        raise ProtocolError("state must be ACCEPTANCE_CANDIDATE or ACCEPTED_CANONICAL")
+    head = _sha(value["exact_head_sha"], "exact_head_sha")
+    _digest(value["product_contract_digest"], "product_contract_digest")
+    _digest(value["contract_delta_digest"], "contract_delta_digest")
+    _text(value["builder_version"], "builder_version")
+    _digest(value["builder_package_digest"], "builder_package_digest")
+    verification = value["verification_result"]
+    if not isinstance(verification, dict):
+        raise ProtocolError("verification_result must be an object")
+    _require_keys(
+        verification, {"status", "gates"}, {"status", "gates"}, "verification_result"
+    )
+    if verification["status"] not in {"PASS", "FAIL", "BLOCKED"}:
+        raise ProtocolError("verification_result.status is invalid")
+    _strings(verification["gates"], "verification_result.gates")
+    approval = value["product_owner_approval"]
+    if not isinstance(approval, dict):
+        raise ProtocolError("product_owner_approval must be an object")
+    fields = {"status", "exact_head_sha", "product_contract_digest"}
+    _require_keys(approval, fields, fields, "product_owner_approval")
+    if approval["status"] not in {"APPROVED", "NOT_APPROVED"}:
+        raise ProtocolError("product_owner_approval.status is invalid")
+    if approval["status"] == "APPROVED":
+        if (
+            _sha(approval["exact_head_sha"], "product_owner_approval.exact_head_sha")
+            != head
+        ):
+            raise ProtocolError("Product Owner approval refers to a different HEAD")
+        if (
+            _digest(
+                approval["product_contract_digest"],
+                "product_owner_approval.product_contract_digest",
+            )
+            != value["product_contract_digest"]
+        ):
+            raise ProtocolError(
+                "Product Owner approval refers to a different contract digest"
+            )
+    elif (
+        approval["exact_head_sha"] is not None
+        or approval["product_contract_digest"] is not None
+    ):
+        raise ProtocolError("Unapproved record must not carry approval bindings")
+    booleans = ("canonical_readback", "tag_readback", "acceptance_index_updated")
+    if any(not isinstance(value[field], bool) for field in booleans):
+        raise ProtocolError("Acceptance read-back fields must be booleans")
+    if state == "ACCEPTANCE_CANDIDATE":
+        if value["canonical_sha"] is not None or value["checkpoint_tag"] is not None:
+            raise ProtocolError(
+                "Acceptance candidate must not claim canonical SHA or checkpoint tag"
+            )
+        if any(value[field] for field in booleans):
+            raise ProtocolError(
+                "Acceptance candidate must not claim canonical or tag read-back"
+            )
+    else:
+        _sha(value["canonical_sha"], "canonical_sha")
+        _text(value["checkpoint_tag"], "checkpoint_tag")
+        if verification["status"] != "PASS" or approval["status"] != "APPROVED":
+            raise ProtocolError(
+                "Canonical acceptance requires PASS verification and exact approval"
+            )
+        if not all(value[field] for field in booleans):
+            raise ProtocolError(
+                "Canonical acceptance requires canonical, tag, and index read-back"
+            )
+
+
+VALIDATORS = {
+    "product-contract": validate_product_contract,
+    "contract-delta": validate_contract_delta,
+    "acceptance-record": validate_acceptance_record,
+}
+
+
+def _escape_pointer(value: str) -> str:
+    return value.replace("~", "~0").replace("/", "~1")
+
+
+def _join_pointer(parent: str, child: str) -> str:
+    return f"{parent}/{_escape_pointer(child)}"
+
+
+def _changes(before: Any, after: Any, path: str) -> list[Change]:
+    if type(before) is not type(after):
+        return [Change(path, "replace", before, after)]
+    if isinstance(before, dict):
+        result: list[Change] = []
+        for key in sorted(before.keys() - after.keys()):
+            result.append(Change(_join_pointer(path, key), "remove", before[key], None))
+        for key in sorted(after.keys() - before.keys()):
+            result.append(Change(_join_pointer(path, key), "add", None, after[key]))
+        for key in sorted(before.keys() & after.keys()):
+            result.extend(_changes(before[key], after[key], _join_pointer(path, key)))
+        return result
+    if isinstance(before, list):
+        if before == after:
+            return []
+        return [Change(path, "replace", before, after)]
+    if before != after:
+        return [Change(path, "replace", before, after)]
+    return []
+
+
+def _covers(scope: str, path: str) -> bool:
+    return path == scope or path.startswith(scope + "/")
+
+
+def semantic_diff(
+    accepted: dict[str, Any], current: dict[str, Any], delta: dict[str, Any]
+) -> dict[str, Any]:
+    validate_product_contract(accepted)
+    validate_product_contract(current)
+    validate_contract_delta(delta)
+    if delta["baseline_checkpoint"] != accepted["checkpoint_id"]:
+        raise ProtocolError(
+            "Contract Delta baseline_checkpoint does not match accepted contract"
+        )
+    if delta["baseline_sha"] != accepted["subject_sha"]:
+        raise ProtocolError(
+            "Contract Delta baseline_sha does not match accepted contract"
+        )
+    grants = delta["allowed_semantic_changes"]
+    owned_changes = _changes(
+        accepted["surfaces"]["product_owned"],
+        current["surfaces"]["product_owned"],
+        "/surfaces/product_owned",
+    )
+    authorized: list[Change] = []
+    unauthorized: list[Change] = []
+    for change in owned_changes:
+        allowed = any(
+            _covers(grant["path"], change.path)
+            and change.operation in grant["operations"]
+            for grant in grants
+        )
+        (authorized if allowed else unauthorized).append(change)
+    dynamic = _changes(
+        accepted["surfaces"]["upstream_dynamic"],
+        current["surfaces"]["upstream_dynamic"],
+        "/surfaces/upstream_dynamic",
+    )
+    observed = _changes(
+        accepted["surfaces"]["observed_evidence"],
+        current["surfaces"]["observed_evidence"],
+        "/surfaces/observed_evidence",
+    )
+    protected = delta["protected_surfaces"]
+    unchanged = [
+        scope
+        for scope in protected
+        if not any(_covers(scope, change.path) for change in owned_changes)
+    ]
+    if unauthorized:
+        status = "FAIL"
+    elif dynamic:
+        status = "REVIEW_REQUIRED"
+    else:
+        status = "PASS"
+    return {
+        "STATUS": status,
+        "AUTHORIZED_DELTA": [item.payload() for item in authorized],
+        "UNAUTHORIZED_DELTA": [item.payload() for item in unauthorized],
+        "UNCHANGED_PROTECTED_SURFACES": unchanged,
+        "UNKNOWN_DYNAMIC_SURFACES": [item.payload() for item in dynamic],
+        "OBSERVED_EVIDENCE_CHANGES": [item.payload() for item in observed],
+        "ACCEPTED_CONTRACT_DIGEST": artifact_digest(accepted),
+        "CURRENT_CONTRACT_DIGEST": artifact_digest(current),
+        "CONTRACT_DELTA_DIGEST": artifact_digest(delta),
+    }
+
+
+def _write(payload: Any, pretty: bool) -> None:
+    print(
+        json.dumps(
+            payload, ensure_ascii=False, sort_keys=True, indent=2 if pretty else None
+        )
+    )
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    validate_parser = subparsers.add_parser("validate")
+    validate_parser.add_argument("kind", choices=sorted(VALIDATORS))
+    validate_parser.add_argument("path", type=Path)
+    validate_parser.add_argument("--pretty", action="store_true")
+    validate_parser.add_argument("--repository", type=Path)
+    validate_parser.add_argument("--run-id")
+    validate_parser.add_argument("--lease-receipt", type=Path)
+    digest_parser = subparsers.add_parser("digest")
+    digest_parser.add_argument("path", type=Path)
+    diff_parser = subparsers.add_parser("diff")
+    diff_parser.add_argument("--accepted", type=Path, required=True)
+    diff_parser.add_argument("--current", type=Path, required=True)
+    diff_parser.add_argument("--delta", type=Path, required=True)
+    diff_parser.add_argument("--pretty", action="store_true")
+    args = parser.parse_args(argv)
+    try:
+        if args.command == "validate":
+            value = load_json(args.path)
+            VALIDATORS[args.kind](value)
+            if args.kind == "acceptance-record" and "run_id" in value:
+                from acceptance_lease import check, LeaseError
+                if args.repository is None or args.run_id != value["run_id"]:
+                    raise ProtocolError("Bound acceptance requires current repository/run lease check")
+                if args.lease_receipt is None:
+                    raise ProtocolError("Exact checked lease receipt required")
+                receipt = load_json(args.lease_receipt)
+                if artifact_digest(receipt) != value["lease_digest"]:
+                    raise ProtocolError("Lease receipt digest mismatch")
+                try:
+                    lease = check(args.repository.resolve(), args.run_id)
+                except LeaseError as exc:
+                    raise ProtocolError(str(exc)) from exc
+                if (lease["snapshot"]["head"] != value["exact_head_sha"] or
+                    lease["base_contract_digest"] != value["product_contract_digest"] or
+                    lease["base_delta_digest"] != value["contract_delta_digest"]):
+                    raise ProtocolError("Acceptance differs from controlled-run bindings")
+                if (receipt.get("run_id") != lease["run_id"] or
+                    receipt.get("repository") != lease["repository"] or
+                    receipt.get("state") != "ACTIVE" or receipt.get("pending") is not None or
+                    receipt.get("owner_creation") != lease["owner_creation"] or
+                    receipt.get("snapshot", {}).get("head") != value["exact_head_sha"]):
+                    raise ProtocolError("Lease receipt ownership bindings mismatch")
+            _write({"STATUS": "PASS", "DIGEST": artifact_digest(value)}, args.pretty)
+            return 0
+        if args.command == "digest":
+            print(artifact_digest(load_json(args.path)))
+            return 0
+        payload = semantic_diff(
+            load_json(args.accepted), load_json(args.current), load_json(args.delta)
+        )
+        _write(payload, args.pretty)
+        return {"PASS": 0, "FAIL": 2, "REVIEW_REQUIRED": 3}[payload["STATUS"]]
+    except ProtocolError as exc:
+        print(json.dumps({"STATUS": "INVALID", "ERROR": str(exc)}, ensure_ascii=False))
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

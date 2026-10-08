@@ -21,7 +21,7 @@ from openrouter_video.models import (
     ProductErrorCode,
 )
 
-DATABASE_SCHEMA_VERSION: Final = 4
+DATABASE_SCHEMA_VERSION: Final = 5
 JOB_RECORD_SCHEMA_VERSION: Final = 2
 LEGACY_IMPORTED_MODEL_SENTINEL: Final = "unknown/remote-job"
 
@@ -212,7 +212,7 @@ def _parse_job(row: sqlite3.Row) -> JobRecord:
 
 
 class JobStore:
-    """SQLite schema-v4 store with independently versioned v2 job records."""
+    """SQLite schema-v5 store with independently versioned v2 job records."""
 
     __slots__ = ("_path",)
 
@@ -242,7 +242,7 @@ class JobStore:
     def _initialize(self) -> None:
         with self._connect() as connection:
             version = int(connection.execute("PRAGMA user_version").fetchone()[0])
-            if version not in (0, 1, 2, 3, DATABASE_SCHEMA_VERSION):
+            if version not in (0, 1, 2, 3, 4, DATABASE_SCHEMA_VERSION):
                 raise PersistenceError("Unsupported SQLite schema version")
             if version == 0:
                 user_tables = connection.execute(
@@ -307,6 +307,21 @@ class JobStore:
                 )
                 """
             )
+            connection.execute("""
+                CREATE TABLE IF NOT EXISTS staging_operations (
+                    operation_id TEXT PRIMARY KEY,
+                    created_at TEXT NOT NULL
+                )
+            """)
+            connection.execute("""
+                CREATE TABLE IF NOT EXISTS staging_objects (
+                    object_key TEXT PRIMARY KEY,
+                    operation_id TEXT NOT NULL REFERENCES staging_operations(operation_id),
+                    configuration_fingerprint TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    cleanup_pending INTEGER NOT NULL DEFAULT 0 CHECK (cleanup_pending IN (0, 1))
+                )
+            """)
             connection.execute(f"PRAGMA user_version = {DATABASE_SCHEMA_VERSION}")
             connection.commit()
 

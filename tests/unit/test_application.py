@@ -18,6 +18,7 @@ from openrouter_video.execution_hooks import ExecutionControl, ExecutionPhase
 from openrouter_video.media import DownloadService
 from openrouter_video.models import (
     GenerationRequest,
+    InferenceMethod,
     InputReference,
     InputReferenceCollection,
     InputReferenceKind,
@@ -28,6 +29,7 @@ from openrouter_video.models import (
     UsageCost,
     request_fingerprint_v1,
     request_fingerprint_v2,
+    request_fingerprint_v3,
 )
 from openrouter_video.persistence import JOB_RECORD_SCHEMA_VERSION, JobStore
 from openrouter_video.policy import Operation
@@ -287,6 +289,7 @@ def test_prompt_change_same_fingerprint_reconciles_existing_operation(tmp_path: 
     service, _ = _generate_service(tmp_path, client)
     changed_prompt = GenerationRequest("vendor/model", "different private prompt")
     assert request_fingerprint_v2(REQUEST) == request_fingerprint_v2(changed_prompt)
+    assert request_fingerprint_v3(REQUEST) == request_fingerprint_v3(changed_prompt)
 
     asyncio.run(service.generate("operation-1", REQUEST))
     result = asyncio.run(service.generate("operation-1", changed_prompt))
@@ -316,6 +319,7 @@ def test_reference_signal_gap_is_resolved_before_submit_authority(tmp_path: Path
             GenerationRequest(
                 "vendor/model",
                 "prompt",
+                inference_method=InferenceMethod.MI2V,
                 input_references=InputReferenceCollection(
                     (
                         InputReference(InputReferenceKind.IMAGE, "https://assets.example/a.png"),
@@ -329,6 +333,7 @@ def test_reference_signal_gap_is_resolved_before_submit_authority(tmp_path: Path
             GenerationRequest(
                 "vendor/model",
                 None,
+                inference_method=InferenceMethod.VR2V,
                 input_references=InputReferenceCollection(
                     (
                         InputReference(

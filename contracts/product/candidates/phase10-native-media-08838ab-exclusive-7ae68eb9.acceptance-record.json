@@ -1,0 +1,41 @@
+{
+  "acceptance_id": "phase10-native-media-08838ab-exclusive-7ae68eb9",
+  "acceptance_index_updated": false,
+  "builder_package_digest": "sha256:bb6c5fb125749fe0c6bffac2bf9045c38b294f4c538749d0cba8239de9a79c95",
+  "builder_version": "0.5.0-rc.3+codex.202610081830",
+  "canonical_readback": false,
+  "canonical_sha": null,
+  "checkpoint_tag": null,
+  "contract_delta_digest": "sha256:8f29333989fc0b46cf1cd48c3d97473c967da39d5942074155eefb62ef9955a6",
+  "exact_head_sha": "08838ab93df2abe370d69dcc0375db3b135aa3fa",
+  "lease_digest": "sha256:2585dcb2efc164d6672ec7b7f20171a304cccf495125ed092ca5834d5d522d57",
+  "product_contract_digest": "sha256:eb1eb2991f468c04385fddb541b2da58b3e7ae1e337480f545089e28169d53e7",
+  "product_owner_approval": {
+    "exact_head_sha": null,
+    "product_contract_digest": null,
+    "status": "NOT_APPROVED"
+  },
+  "protocol": "openrouter-video-acceptance-record",
+  "run_id": "phase10-exclusive-20261008-7ae68eb9",
+  "schema_version": 1,
+  "single_writer_proven": true,
+  "state": "ACCEPTANCE_CANDIDATE",
+  "tag_readback": false,
+  "verification_result": {
+    "gates": [
+      "exclusive_single_writer",
+      "product_contract_validation",
+      "semantic_export_determinism",
+      "semantic_diff",
+      "focused_regression_55",
+      "negative_space_tests",
+      "frontend_regression_10",
+      "canonical_runtime_healthy",
+      "canonical_browser_matrix",
+      "full_page_reload",
+      "generate_resume_authority_offline",
+      "evidence_provenance:sha256:09b5ddb44c3e12b622b11c07cb77c2f3cdfdaf637c6e7e4162fd1984ca745e02"
+    ],
+    "status": "PASS"
+  }
+}

@@ -334,7 +334,7 @@ def test_v3_to_v4_reinstall_is_idempotent_and_preserves_jobs_outputs(
     assert reinstalled.load_capability_catalog() is None
     assert output.read_bytes() == b"preserved-video-output"
     with sqlite3.connect(path) as connection:
-        assert connection.execute("PRAGMA user_version").fetchone()[0] == 4
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == DATABASE_SCHEMA_VERSION
         assert connection.execute("SELECT COUNT(*) FROM jobs").fetchone()[0] == 1
 
 

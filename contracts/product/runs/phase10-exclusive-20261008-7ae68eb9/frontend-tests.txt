@@ -1,0 +1,18 @@
+✔ Phase 8 remote-options values restore by field, not Phase 10 widget position (1.4306ms)
+✔ unresolved numeric legacy model stays unresolved (0.2111ms)
+✔ presentation order keeps reference summary above Model and Advanced above its controls (0.7299ms)
+✔ primary control sizing preserves original widget measurement and visibility (0.2387ms)
+✔ Prompt styling is scoped to this Generate widget (0.1881ms)
+✔ named Phase 10 values win over presentation positions (0.2257ms)
+✔ prior Phase 10 positional values restore by field after presentation reorder (0.2716ms)
+✔ new presentation order restores the same intent on reload (0.1644ms)
+✔ visible reference sockets lead hidden widget inputs and preserve link slots (0.9644ms)
+✔ native Load Image is recognized as IMAGE while existing URL helper remains valid (0.9521ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 77.0185

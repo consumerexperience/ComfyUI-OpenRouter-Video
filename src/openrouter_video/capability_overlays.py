@@ -9,10 +9,12 @@ from typing import Final, TypeVar
 
 from openrouter_video.models import (
     CapabilityEvidenceSource,
+    InferenceMethod,
     InputReferenceCapabilities,
     InputReferenceCapabilityField,
     InputReferenceKind,
     ModelCapabilities,
+    ModelCapabilityField,
 )
 
 _Value = TypeVar("_Value")
@@ -24,6 +26,8 @@ class EvidenceBackedCapabilityOverlay:
 
     model_id: str
     capabilities: InputReferenceCapabilities
+    supports_edit: bool | None
+    supports_extend: bool | None
     evidence_level: str
     first_party_source: str
     evidence_checked_at: date
@@ -33,24 +37,31 @@ class EvidenceBackedCapabilityOverlay:
 SEEDANCE_2_5_OVERLAY: Final = EvidenceBackedCapabilityOverlay(
     model_id="bytedance/seedance-2.5",
     capabilities=InputReferenceCapabilities(
-        reference_kinds=frozenset({InputReferenceKind.IMAGE, InputReferenceKind.VIDEO}),
+        reference_kinds=frozenset(
+            {InputReferenceKind.IMAGE, InputReferenceKind.VIDEO, InputReferenceKind.AUDIO}
+        ),
         max_reference_count=50,
-        mixed_image_video_references=True,
+        mixed_reference_kinds=True,
     ),
+    supports_edit=True,
+    supports_extend=True,
     evidence_level="B2",
     first_party_source="https://openrouter.ai/blog/insights/seedance-2-5-review/",
-    evidence_checked_at=date(2026, 9, 26),
+    evidence_checked_at=date(2026, 9, 30),
     notes=(
-        "OpenRouter documents image, video, and audio references; the product exposes only image "
-        "and video references.",
+        "OpenRouter documents image, video, and audio references for this exact model.",
         "The reported limit of 50 references is model-page evidence, not a videos/models field.",
         "A first-party request example combines video_url and image_url references.",
-        "Video references remain Generate inputs; Edit and Extend are not product operations.",
+        "Edit and Extend are separate local intents over the ordinary ordered reference wire form.",
     ),
 )
 
 APPROVED_CAPABILITY_OVERLAYS: Final = MappingProxyType(
     {SEEDANCE_2_5_OVERLAY.model_id: SEEDANCE_2_5_OVERLAY}
+)
+
+PREFERRED_INFERENCE_METHODS: Final = MappingProxyType(
+    {SEEDANCE_2_5_OVERLAY.model_id: InferenceMethod.MI2V}
 )
 
 
@@ -67,7 +78,30 @@ def apply_capability_overlay(model: ModelCapabilities) -> ModelCapabilities:
     overlay = APPROVED_CAPABILITY_OVERLAYS[next(iter(matching_ids))]
     current = model.input_reference_capabilities or InputReferenceCapabilities()
     effective = _merge_reference_capabilities(current, overlay.capabilities)
-    return replace(model, input_reference_capabilities=effective)
+    edit, edit_source, edit_conflict = _merge_field(
+        model.supports_edit,
+        model.edit_support_source,
+        overlay.supports_edit,
+    )
+    extend, extend_source, extend_conflict = _merge_field(
+        model.supports_extend,
+        model.extend_support_source,
+        overlay.supports_extend,
+    )
+    model_conflicts = set(model.capability_conflicts)
+    if edit_conflict:
+        model_conflicts.add(ModelCapabilityField.EDIT)
+    if extend_conflict:
+        model_conflicts.add(ModelCapabilityField.EXTEND)
+    return replace(
+        model,
+        input_reference_capabilities=effective,
+        supports_edit=edit,
+        supports_extend=extend,
+        edit_support_source=edit_source,
+        extend_support_source=extend_source,
+        capability_conflicts=frozenset(model_conflicts),
+    )
 
 
 def _merge_reference_capabilities(
@@ -85,9 +119,9 @@ def _merge_reference_capabilities(
         overlay.max_reference_count,
     )
     mixed, mixed_source, mixed_conflict = _merge_field(
-        level_a.mixed_image_video_references,
-        level_a.mixed_image_video_references_source,
-        overlay.mixed_image_video_references,
+        level_a.mixed_reference_kinds,
+        level_a.mixed_reference_kinds_source,
+        overlay.mixed_reference_kinds,
     )
     conflicts = set(level_a.conflicts)
     if kinds_conflict:
@@ -95,14 +129,14 @@ def _merge_reference_capabilities(
     if count_conflict:
         conflicts.add(InputReferenceCapabilityField.MAX_REFERENCE_COUNT)
     if mixed_conflict:
-        conflicts.add(InputReferenceCapabilityField.MIXED_IMAGE_VIDEO_REFERENCES)
+        conflicts.add(InputReferenceCapabilityField.MIXED_REFERENCE_KINDS)
     return InputReferenceCapabilities(
         reference_kinds=kinds,
         max_reference_count=count,
-        mixed_image_video_references=mixed,
+        mixed_reference_kinds=mixed,
         reference_kinds_source=kinds_source,
         max_reference_count_source=count_source,
-        mixed_image_video_references_source=mixed_source,
+        mixed_reference_kinds_source=mixed_source,
         conflicts=frozenset(conflicts),
     )
 
@@ -121,9 +155,17 @@ def _merge_field(
     return None, None, False
 
 
+def preferred_inference_method(model_id: str) -> InferenceMethod | None:
+    """Return exact-ID UX policy without provider, family, or slug inference."""
+
+    return PREFERRED_INFERENCE_METHODS.get(model_id)
+
+
 __all__ = (
     "APPROVED_CAPABILITY_OVERLAYS",
     "EvidenceBackedCapabilityOverlay",
+    "PREFERRED_INFERENCE_METHODS",
     "SEEDANCE_2_5_OVERLAY",
     "apply_capability_overlay",
+    "preferred_inference_method",
 )

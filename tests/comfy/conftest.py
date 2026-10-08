@@ -86,6 +86,10 @@ def _install() -> None:
     numbered.ComfyExtension = ComfyExtension
     numbered.IO = io
     numbered.InputImpl = _InputImpl
+    numbered.Types = types.SimpleNamespace(
+        VideoContainer=types.SimpleNamespace(MP4="mp4"),
+        VideoCodec=types.SimpleNamespace(H264="h264"),
+    )
     package = types.ModuleType("comfy_api")
     package.v0_0_2 = numbered
     sys.modules["comfy_api"] = package

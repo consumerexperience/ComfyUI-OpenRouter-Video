@@ -1,0 +1,9 @@
+{
+  "browser_proof_provenance": "CANONICAL_RUNTIME",
+  "canonical_dev": "127.0.0.1:8189",
+  "catalogue_model_count": 30,
+  "catalogue_revision": "6977cf3816633a6aced624ecea5f60157435f0cf6d3e0deeea16bdc7ebb3122f",
+  "comfy_runtime_version": "0.34.3",
+  "observation_source": "docs/assets/product-contract/phase10-canonical-browser-proof.json",
+  "ui_contract_version": 4
+}

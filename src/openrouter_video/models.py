@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 from pathlib import Path
 from typing import Any
+
+from openrouter_video.local_media import LocalMedia
 
 
 class FrameType(str, Enum):
@@ -20,10 +22,26 @@ class FrameType(str, Enum):
 
 
 class InputReferenceKind(str, Enum):
-    """Typed media kinds accepted by the Phase-8 reference protocol."""
+    """Typed media kinds accepted by the evidence-backed reference protocol."""
 
     IMAGE = "image"
     VIDEO = "video"
+    AUDIO = "audio"
+
+
+class InferenceMethod(str, Enum):
+    """Local product intent; values are never serialized to OpenRouter."""
+
+    T2V = "T2V"
+    I2V = "I2V"
+    FLF2V = "FLF2V"
+    IR2V = "IR2V"
+    MI2V = "MI2V"
+    VR2V = "VR2V"
+    AR2V = "AR2V"
+    MMR2V = "MMR2V"
+    V2V_EDIT = "V2V_EDIT"
+    V2V_EXTEND = "V2V_EXTEND"
 
 
 class CapabilityEvidenceSource(str, Enum):
@@ -38,7 +56,14 @@ class InputReferenceCapabilityField(str, Enum):
 
     REFERENCE_KINDS = "reference_kinds"
     MAX_REFERENCE_COUNT = "max_reference_count"
-    MIXED_IMAGE_VIDEO_REFERENCES = "mixed_image_video_references"
+    MIXED_REFERENCE_KINDS = "mixed_reference_kinds"
+
+
+class ModelCapabilityField(str, Enum):
+    """Exact-model primitive fields whose evidence can conflict."""
+
+    EDIT = "supports_edit"
+    EXTEND = "supports_extend"
 
 
 @dataclass(frozen=True, slots=True)
@@ -79,6 +104,8 @@ class LocalLifecycleState(str, Enum):
 class ProductErrorCode(str, Enum):
     """Specification-defined product-facing error codes."""
 
+    STORAGE_UPLOAD_FAILED = "STORAGE_UPLOAD_FAILED"
+    NATIVE_MEDIA_INVALID = "NATIVE_MEDIA_INVALID"
     API_KEY_MISSING = "API_KEY_MISSING"
     API_KEY_INVALID = "API_KEY_INVALID"
     DISCOVERY_UNAVAILABLE = "DISCOVERY_UNAVAILABLE"
@@ -125,7 +152,8 @@ class InputReference:
     """One transient typed media reference; never persisted or logged."""
 
     kind: InputReferenceKind
-    url: str
+    url: str = field(default="", repr=False)
+    local_media: LocalMedia | None = field(default=None, repr=False, compare=False)
 
 
 @dataclass(frozen=True, slots=True)
@@ -141,10 +169,10 @@ class InputReferenceCapabilities:
 
     reference_kinds: frozenset[InputReferenceKind] | None = None
     max_reference_count: int | None = None
-    mixed_image_video_references: bool | None = None
+    mixed_reference_kinds: bool | None = None
     reference_kinds_source: CapabilityEvidenceSource | None = None
     max_reference_count_source: CapabilityEvidenceSource | None = None
-    mixed_image_video_references_source: CapabilityEvidenceSource | None = None
+    mixed_reference_kinds_source: CapabilityEvidenceSource | None = None
     conflicts: frozenset[InputReferenceCapabilityField] = frozenset()
 
 
@@ -154,6 +182,7 @@ class GenerationRequest:
 
     model: str
     prompt: str | None
+    inference_method: InferenceMethod = InferenceMethod.T2V
     duration: int | None = None
     resolution: str | None = None
     aspect_ratio: str | None = None
@@ -162,9 +191,15 @@ class GenerationRequest:
     generate_audio: bool = False
     first_frame: FrameReference | None = None
     last_frame: FrameReference | None = None
+    source_video: InputReference | None = None
     input_references: InputReferenceCollection | None = None
 
     def to_openrouter_payload(self) -> dict[str, object]:
+        references = self.input_references.references if self.input_references else ()
+        if any(item.local_media is not None for item in references) or (
+            self.source_video is not None and self.source_video.local_media is not None
+        ):
+            raise ValueError("Native media must be staged before serialization.")
         """Return only the frozen OpenRouter request fields with no passthrough escape hatch."""
 
         payload: dict[str, object] = {"model": self.model, "generate_audio": self.generate_audio}
@@ -192,6 +227,8 @@ class GenerationRequest:
         if frames:
             payload["frame_images"] = frames
         references = self.input_references.references if self.input_references is not None else ()
+        if self.source_video is not None:
+            references = (self.source_video, *references)
         if references:
             payload["input_references"] = [
                 {
@@ -218,6 +255,11 @@ class ModelCapabilities:
     generate_audio: bool | None = None
     supports_seed: bool | None = None
     input_reference_capabilities: InputReferenceCapabilities | None = None
+    supports_edit: bool | None = None
+    supports_extend: bool | None = None
+    edit_support_source: CapabilityEvidenceSource | None = None
+    extend_support_source: CapabilityEvidenceSource | None = None
+    capability_conflicts: frozenset[ModelCapabilityField] = frozenset()
     pricing_evidence: PricingEvidence | None = None
 
 
@@ -349,6 +391,36 @@ def request_fingerprint_v2(request: GenerationRequest) -> str:
     return f"v2:{hashlib.sha256(canonical_bytes).hexdigest()}"
 
 
+def request_fingerprint_v3(request: GenerationRequest) -> str:
+    """Return the Phase-10 structural intent checksum without sensitive values."""
+
+    references = request.input_references.references if request.input_references is not None else ()
+    payload: dict[str, Any] = {
+        "schema": 3,
+        "model": request.model,
+        "inference_method": request.inference_method.value,
+        "duration": request.duration,
+        "resolution": request.resolution,
+        "aspect_ratio": request.aspect_ratio,
+        "size": request.size,
+        "seed": request.seed,
+        "generate_audio": request.generate_audio,
+        "prompt_present": bool(request.prompt and request.prompt.strip()),
+        "first_frame_present": request.first_frame is not None,
+        "last_frame_present": request.last_frame is not None,
+        "source_video_present": request.source_video is not None,
+        "input_reference_count": len(references),
+        "input_reference_kinds": [reference.kind.value for reference in references],
+    }
+    canonical_bytes = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+    return f"v3:{hashlib.sha256(canonical_bytes).hexdigest()}"
+
+
 __all__ = (
     "BillingContext",
     "CapabilityEvidenceSource",
@@ -362,8 +434,10 @@ __all__ = (
     "InputReferenceCapabilityField",
     "InputReferenceCollection",
     "InputReferenceKind",
+    "InferenceMethod",
     "LocalLifecycleState",
     "ModelCapabilities",
+    "ModelCapabilityField",
     "ProductError",
     "ProductErrorCode",
     "PricingEvidence",
@@ -373,4 +447,5 @@ __all__ = (
     "VideoArtifact",
     "request_fingerprint_v1",
     "request_fingerprint_v2",
+    "request_fingerprint_v3",
 )

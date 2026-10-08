@@ -8,3 +8,4 @@ Narrow additive implementation clarifications accepted for Headless Core II:
 - [ADR-028 — Local Recovery Identity and Request Fingerprint](ADR-028-local-recovery-identity-and-request-fingerprint.md)
 - [ADR-029 — Durable Definite Submit Rejection](ADR-029-durable-definite-submit-rejection.md)
 - [ADR-030 — Evidence-Backed Capability Overlay](ADR-030-evidence-backed-capability-overlay.md)
+- [ADR-031 — Capability-Driven Inference Methods and Multimodal References](ADR-031-capability-driven-inference-methods-and-multimodal-references.md)

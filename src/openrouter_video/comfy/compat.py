@@ -7,7 +7,7 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any, Final, NoReturn
 
-from comfy_api.v0_0_2 import IO, ComfyAPI, ComfyExtension, InputImpl
+from comfy_api.v0_0_2 import IO, ComfyAPI, ComfyExtension, InputImpl, Types
 
 from openrouter_video.execution_hooks import ExecutionPhase
 
@@ -16,12 +16,27 @@ MODEL_ROUTE: Final = "/openrouter-video/v1/models"
 UI_CAPABILITIES_ROUTE: Final = "/openrouter-video/v1/ui-capabilities"
 HEALTH_ROUTE: Final = "/openrouter-video/v1/health"
 COST_ESTIMATE_ROUTE: Final = "/openrouter-video/v1/cost-estimate"
-UI_CONTRACT_VERSION: Final = 3
+UI_CONTRACT_VERSION: Final = 4
 MODEL_UNRESOLVED: Final = "SELECT MODEL"
 AUTO_MODEL_DEFAULT: Final = "AUTO / MODEL DEFAULT"
 _CUSTOM_FACTORY = getattr(IO, "Custom", None)
 INPUT_REFERENCE_IO: Any = (
     _CUSTOM_FACTORY("OPENROUTER_VIDEO_INPUT_REFERENCE") if _CUSTOM_FACTORY is not None else None
+)
+IMAGE_OR_REFERENCE_IO: Any = (
+    _CUSTOM_FACTORY("IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE")
+    if _CUSTOM_FACTORY is not None
+    else None
+)
+MEDIA_OR_REFERENCE_IO: Any = (
+    _CUSTOM_FACTORY("IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE")
+    if _CUSTOM_FACTORY is not None
+    else None
+)
+VIDEO_OR_REFERENCE_IO: Any = (
+    _CUSTOM_FACTORY("VIDEO,OPENROUTER_VIDEO_INPUT_REFERENCE")
+    if _CUSTOM_FACTORY is not None
+    else None
 )
 INPUT_REFERENCE_COLLECTION_IO: Any = (
     _CUSTOM_FACTORY("OPENROUTER_VIDEO_INPUT_REFERENCES") if _CUSTOM_FACTORY is not None else None
@@ -63,6 +78,9 @@ def validate_host_api() -> None:
         getattr(getattr(IO, "Autogrow", None), "Input", None),
         getattr(IO, "Custom", None),
         INPUT_REFERENCE_IO,
+        IMAGE_OR_REFERENCE_IO,
+        MEDIA_OR_REFERENCE_IO,
+        VIDEO_OR_REFERENCE_IO,
         INPUT_REFERENCE_COLLECTION_IO,
         getattr(InputImpl, "VideoFromFile", None),
     )
@@ -197,11 +215,15 @@ def json_response(payload: object, *, status: int) -> Any:
 
 __all__ = (
     "ComfyExtension",
+    "Types",
     "AUTO_MODEL_DEFAULT",
     "EXPECTED_API_VERSION",
     "IO",
     "INPUT_REFERENCE_COLLECTION_IO",
     "INPUT_REFERENCE_IO",
+    "IMAGE_OR_REFERENCE_IO",
+    "MEDIA_OR_REFERENCE_IO",
+    "VIDEO_OR_REFERENCE_IO",
     "COST_ESTIMATE_ROUTE",
     "HEALTH_ROUTE",
     "MODEL_ROUTE",
