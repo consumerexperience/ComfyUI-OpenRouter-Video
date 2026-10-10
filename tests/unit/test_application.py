@@ -36,7 +36,7 @@ from openrouter_video.policy import Operation
 
 NOW = datetime(2026, 9, 4, 12, 0, tzinfo=timezone.utc)
 MP4 = b"\x00\x00\x00\x18ftypisom" + b"\x00" * 32
-MODEL = ModelCapabilities(model_id="vendor/model")
+MODEL = ModelCapabilities(model_id="vendor/model", supports_text_only=True)
 REQUEST = GenerationRequest("vendor/model", "private prompt")
 
 

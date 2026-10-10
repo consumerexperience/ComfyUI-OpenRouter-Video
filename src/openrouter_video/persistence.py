@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from collections.abc import Iterable
+from dataclasses import replace
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -12,7 +13,12 @@ from typing import Any, Final
 
 from openrouter_video.errors import PersistenceError
 from openrouter_video.models import (
+    CapabilityEvidenceSource,
+    CapabilityFact,
+    CapabilityFactState,
     FrameType,
+    InputReferenceCapabilities,
+    InputReferenceKind,
     JobRecord,
     LocalLifecycleState,
     ModelCapabilities,
@@ -21,7 +27,7 @@ from openrouter_video.models import (
     ProductErrorCode,
 )
 
-DATABASE_SCHEMA_VERSION: Final = 5
+DATABASE_SCHEMA_VERSION: Final = 6
 JOB_RECORD_SCHEMA_VERSION: Final = 2
 LEGACY_IMPORTED_MODEL_SENTINEL: Final = "unknown/remote-job"
 
@@ -212,7 +218,7 @@ def _parse_job(row: sqlite3.Row) -> JobRecord:
 
 
 class JobStore:
-    """SQLite schema-v5 store with independently versioned v2 job records."""
+    """SQLite schema-v6 store with independently versioned v2 job records."""
 
     __slots__ = ("_path",)
 
@@ -242,7 +248,7 @@ class JobStore:
     def _initialize(self) -> None:
         with self._connect() as connection:
             version = int(connection.execute("PRAGMA user_version").fetchone()[0])
-            if version not in (0, 1, 2, 3, 4, DATABASE_SCHEMA_VERSION):
+            if version not in (0, 1, 2, 3, 4, 5, DATABASE_SCHEMA_VERSION):
                 raise PersistenceError("Unsupported SQLite schema version")
             if version == 0:
                 user_tables = connection.execute(
@@ -313,6 +319,10 @@ class JobStore:
                     created_at TEXT NOT NULL
                 )
             """)
+            connection.execute(
+                "CREATE TABLE IF NOT EXISTS capability_profile_evidence "
+                "(model_id TEXT PRIMARY KEY, payload TEXT NOT NULL)"
+            )
             connection.execute("""
                 CREATE TABLE IF NOT EXISTS staging_objects (
                     object_key TEXT PRIMARY KEY,
@@ -490,7 +500,12 @@ class JobStore:
             with self._connect() as connection:
                 connection.execute("BEGIN IMMEDIATE")
                 connection.execute("DELETE FROM capability_models")
+                connection.execute("DELETE FROM capability_profile_evidence")
                 for item in rows:
+                    connection.execute(
+                        "INSERT INTO capability_profile_evidence VALUES (?, ?)",
+                        (item.model_id, _profile_json(item)),
+                    )
                     connection.execute(
                         """
                         INSERT INTO capability_models (
@@ -545,7 +560,9 @@ class JobStore:
                 if meta is None:
                     return None
                 rows = connection.execute(
-                    "SELECT * FROM capability_models ORDER BY model_id"
+                    "SELECT m.*, p.payload AS profile_payload FROM capability_models m "
+                    "LEFT JOIN capability_profile_evidence p ON m.model_id=p.model_id "
+                    "ORDER BY m.model_id"
                 ).fetchall()
         except sqlite3.Error as exc:
             raise PersistenceError("Unable to read capability catalog") from exc
@@ -642,7 +659,7 @@ def _parse_capability(row: sqlite3.Row) -> ModelCapabilities:
         resolutions = _load_optional_tuple(row["supported_resolutions"], str)
         aspects = _load_optional_tuple(row["supported_aspect_ratios"], str)
         sizes = _load_optional_tuple(row["supported_sizes"], str)
-        return ModelCapabilities(
+        model = ModelCapabilities(
             model_id=model_id,
             canonical_slug=_as_optional_string(row["canonical_slug"]),
             name=_as_optional_string(row["name"]),
@@ -655,8 +672,92 @@ def _parse_capability(row: sqlite3.Row) -> ModelCapabilities:
             supports_seed=_load_optional_bool(row["supports_seed"]),
             pricing_evidence=_load_pricing(row["pricing_skus"]),
         )
+        return _restore_profile(model, row["profile_payload"])
     except (TypeError, ValueError, json.JSONDecodeError):
         raise PersistenceError("Capability catalog record is corrupt") from None
+
+
+def _profile_json(model: ModelCapabilities) -> str:
+    refs = model.input_reference_capabilities
+    payload = {
+        "supports_text_only": model.supports_text_only,
+        "source_required": model.source_required,
+        "supports_edit": model.supports_edit,
+        "supports_extend": model.supports_extend,
+        "references": None
+        if refs is None
+        else {
+            "reference_kinds": None
+            if refs.reference_kinds is None
+            else sorted(k.value for k in refs.reference_kinds),
+            "max_reference_count": refs.max_reference_count,
+            "mixed_reference_kinds": refs.mixed_reference_kinds,
+        },
+        "unmapped": model.unmapped_capability_keys,
+        "facts": [
+            {
+                "model_id": f.model_id,
+                "key": f.key,
+                "value": f.value,
+                "state": f.state.value,
+                "authority": f.authority,
+                "source_reference": f.source_reference,
+                "observed_at": f.observed_at,
+                "scope": f.scope,
+                "artifact_version": f.artifact_version,
+                "conflicting_evidence": f.conflicting_evidence,
+            }
+            for f in model.evidence_facts
+        ],
+    }
+    return json.dumps(payload, default=lambda v: sorted(getattr(i, "value", i) for i in v))
+
+
+def _restore_profile(model: ModelCapabilities, raw: object) -> ModelCapabilities:
+    if raw is None:
+        return model
+    data = json.loads(str(raw))
+    refs = data["references"]
+    reference = (
+        InputReferenceCapabilities(
+            reference_kinds=None
+            if refs["reference_kinds"] is None
+            else frozenset(InputReferenceKind(k) for k in refs["reference_kinds"]),
+            max_reference_count=refs["max_reference_count"],
+            mixed_reference_kinds=refs["mixed_reference_kinds"],
+            reference_kinds_source=CapabilityEvidenceSource.LEVEL_A
+            if refs["reference_kinds"] is not None
+            else None,
+            max_reference_count_source=CapabilityEvidenceSource.LEVEL_A
+            if refs["max_reference_count"] is not None
+            else None,
+            mixed_reference_kinds_source=CapabilityEvidenceSource.LEVEL_A
+            if refs["mixed_reference_kinds"] is not None
+            else None,
+        )
+        if refs is not None
+        else None
+    )
+    facts = tuple(
+        CapabilityFact(
+            **{
+                **f,
+                "state": CapabilityFactState(f["state"]),
+                "conflicting_evidence": tuple(f["conflicting_evidence"]),
+            }
+        )
+        for f in data["facts"]
+    )
+    return replace(
+        model,
+        supports_text_only=data["supports_text_only"],
+        source_required=data["source_required"],
+        supports_edit=data["supports_edit"],
+        supports_extend=data["supports_extend"],
+        input_reference_capabilities=reference,
+        evidence_facts=facts,
+        unmapped_capability_keys=tuple(data["unmapped"]),
+    )
 
 
 __all__ = (

@@ -16,7 +16,6 @@ from openrouter_video.capabilities import (
     mode_enforcement_matrix,
 )
 from openrouter_video.capability_overlays import (
-    SEEDANCE_2_5_OVERLAY,
     apply_capability_overlay,
     preferred_inference_method,
 )
@@ -197,7 +196,7 @@ def test_validator_never_silently_changes_explicit_options() -> None:
 def test_mode_matrix_scopes_frame_readiness_and_reference_signal_gaps() -> None:
     matrix = inference_method_matrix(MODEL)
 
-    assert matrix[InferenceMethod.T2V] is CapabilityModeStatus.READY
+    assert matrix[InferenceMethod.T2V] is CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
     assert matrix[InferenceMethod.I2V] is CapabilityModeStatus.READY
     assert matrix[InferenceMethod.FLF2V] is CapabilityModeStatus.UNSUPPORTED
     both_frames = inference_method_matrix(
@@ -244,11 +243,9 @@ def test_exact_id_overlay_makes_only_proven_reference_modes_ready() -> None:
 def test_overlay_is_exact_id_data_not_provider_family_inference() -> None:
     near_matches = (
         ModelCapabilities("bytedance/seedance-2.5-fast"),
-        ModelCapabilities("bytedance/seedance-2.0"),
         ModelCapabilities("another/seedance-2.5"),
     )
     assert all(apply_capability_overlay(model) == model for model in near_matches)
-    assert SEEDANCE_2_5_OVERLAY.model_id == "bytedance/seedance-2.5"
 
 
 def test_level_a_is_never_overridden_and_conflicts_fail_closed() -> None:

@@ -1,0 +1,29 @@
+{
+  "runtime_receipt": "canonical-final-runtime.json",
+  "source": "actual production node on canonical :8189; live 30-model data",
+  "model_count": 30,
+  "model_order": "same as retained baseline",
+  "mini": "MMR2V, 480p, 16:9, 4s; Generate not executed",
+  "native_reference_order": [
+    "image_1",
+    "video_2",
+    "audio_3",
+    "video_4"
+  ],
+  "duplicate_video": "preserved",
+  "save_reload": "PASS",
+  "geometry": "actual resolution/aspect-ratio dropdowns; compatible values restored",
+  "seedance25": "all ten methods; MI2V preserved; V2V_EDIT adds source_video socket",
+  "source_only": "incompatible saved mode disclosed; links preserved; no T2V READY",
+  "paid_post_count": 0,
+  "screenshots": [
+    "final-mini-save-reload.png",
+    "mini-mixed-native.png",
+    "mini-resolution-capabilities.png",
+    "mini-save-reload.png",
+    "production-30-model-dropdown.png",
+    "seedance25-mi2v.png",
+    "seedance25-source-video-topology.png",
+    "source-only-incompatible-links-preserved.png"
+  ]
+}

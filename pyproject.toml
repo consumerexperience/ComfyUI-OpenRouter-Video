@@ -41,7 +41,7 @@ where = ["src"]
 include = ["openrouter_video*"]
 
 [tool.setuptools.package-data]
-openrouter_video = ["py.typed"]
+openrouter_video = ["py.typed", "data/*.json"]
 
 [tool.pytest.ini_options]
 addopts = "-ra -m 'not live'"

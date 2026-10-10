@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import json
+import math
+import re
 from collections.abc import AsyncIterator, Mapping, Sequence
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
+from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from typing import Any, Protocol
 
@@ -12,8 +15,13 @@ import httpx
 
 from openrouter_video.errors import MalformedOpenRouterResponseError, OpenRouterHTTPError
 from openrouter_video.models import (
+    CapabilityEvidenceSource,
+    CapabilityFact,
+    CapabilityFactState,
     FrameType,
     GenerationRequest,
+    InputReferenceCapabilities,
+    InputReferenceKind,
     ModelCapabilities,
     PricingEvidence,
     PricingSku,
@@ -189,6 +197,78 @@ def _parse_capability(value: Mapping[Any, Any]) -> ModelCapabilities:
     )
     audio_raw = value.get("generate_audio")
     seed_raw = value.get("seed")
+    text_raw = value.get("supports_text_only")
+    source_raw = value.get("source_required")
+    known_keys = {
+        "id",
+        "canonical_slug",
+        "hugging_face_id",
+        "name",
+        "created",
+        "description",
+        "supported_durations",
+        "supported_resolutions",
+        "supported_aspect_ratios",
+        "supported_sizes",
+        "supported_frame_images",
+        "generate_audio",
+        "seed",
+        "pricing_skus",
+        "supports_text_only",
+        "source_required",
+        "reference_kinds",
+        "max_reference_count",
+        "mixed_reference_kinds",
+        "supports_edit",
+        "supports_extend",
+    }
+    raw_kinds = _optional_string_tuple(value.get("reference_kinds"))
+    reference_kinds = (
+        frozenset(InputReferenceKind(kind) for kind in raw_kinds)
+        if raw_kinds is not None
+        and all(kind in {k.value for k in InputReferenceKind} for kind in raw_kinds)
+        else None
+    )
+    limit = value.get("max_reference_count")
+    count = limit if isinstance(limit, int) and not isinstance(limit, bool) and limit >= 0 else None
+    mixed = value.get("mixed_reference_kinds")
+    observed = datetime.now(timezone.utc).isoformat()
+    control_keys = {"upscale_factor", "creativity", "allowed_passthrough_parameters"}
+    control_values = {key: _catalogue_control(value.get(key), key) for key in control_keys}
+    facts = tuple(
+        CapabilityFact(
+            model_id,
+            str(key),
+            control_values[key] if key in control_keys else raw if key in known_keys else None,
+            CapabilityFactState.UNKNOWN
+            if (
+                control_values[key] is None
+                if key in control_keys
+                else raw is None or key not in known_keys
+            )
+            else CapabilityFactState.UNSUPPORTED
+            if raw is False
+            else CapabilityFactState.SUPPORTED,
+            "LIVE_STRUCTURED_API",
+            "https://openrouter.ai/api/v1/videos/models",
+            observed,
+            "CAPABILITY_ONLY_CONFIRMED; wire unresolved"
+            if key in control_keys
+            else "exact model catalogue metadata",
+            "live",
+        )
+        for key, raw in value.items()
+        if key
+        not in {
+            "id",
+            "canonical_slug",
+            "hugging_face_id",
+            "name",
+            "created",
+            "description",
+            "pricing_skus",
+        }
+    )
     return ModelCapabilities(
         model_id=model_id,
         canonical_slug=_optional_text(value.get("canonical_slug")),
@@ -201,7 +281,52 @@ def _parse_capability(value: Mapping[Any, Any]) -> ModelCapabilities:
         generate_audio=audio_raw if isinstance(audio_raw, bool) else None,
         supports_seed=seed_raw if isinstance(seed_raw, bool) else None,
         pricing_evidence=_parse_pricing_evidence(value.get("pricing_skus")),
+        supports_text_only=text_raw if isinstance(text_raw, bool) else None,
+        source_required=source_raw if isinstance(source_raw, bool) else None,
+        input_reference_capabilities=InputReferenceCapabilities(
+            reference_kinds=reference_kinds,
+            max_reference_count=count,
+            mixed_reference_kinds=mixed if isinstance(mixed, bool) else None,
+            reference_kinds_source=CapabilityEvidenceSource.LEVEL_A
+            if reference_kinds is not None
+            else None,
+            max_reference_count_source=CapabilityEvidenceSource.LEVEL_A
+            if count is not None
+            else None,
+            mixed_reference_kinds_source=CapabilityEvidenceSource.LEVEL_A
+            if isinstance(mixed, bool)
+            else None,
+        )
+        if any(v is not None for v in (reference_kinds, count, mixed))
+        else None,
+        supports_edit=value.get("supports_edit")
+        if isinstance(value.get("supports_edit"), bool)
+        else None,
+        supports_extend=value.get("supports_extend")
+        if isinstance(value.get("supports_extend"), bool)
+        else None,
+        evidence_facts=facts,
+        unmapped_capability_keys=tuple(sorted(str(key) for key in value if key not in known_keys)),
     )
+
+
+def _catalogue_control(raw: object, key: str) -> object:
+    """Retain typed public control evidence without enabling body passthrough."""
+    if key == "allowed_passthrough_parameters":
+        if isinstance(raw, list) and all(
+            isinstance(item, str) and re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,127}", item)
+            for item in raw
+        ):
+            return raw
+        return None
+    values = [raw.get("min"), raw.get("max")] if isinstance(raw, dict) else raw
+    if not isinstance(values, list) or len(values) != 2:
+        return None
+    if not all(type(item) in (int, float) and math.isfinite(item) for item in values):
+        return None
+    if values[0] > values[1] or values[0] < 0:
+        return None
+    return {"type": "number", "min": values[0], "max": values[1]}
 
 
 def _parse_pricing_evidence(value: object) -> PricingEvidence | None:

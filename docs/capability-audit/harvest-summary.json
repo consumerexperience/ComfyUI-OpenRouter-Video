@@ -1,0 +1,15 @@
+{
+  "catalog_model_count": 30,
+  "fact_count": 330,
+  "status_counts": {
+    "CORRECT": 183,
+    "UNKNOWN_UPSTREAM": 92,
+    "UNMAPPED_CAPABILITY": 55
+  },
+  "pages_retrieved": 30,
+  "manual_overlay_dependent_models": [
+    "bytedance/seedance-2.5"
+  ],
+  "paid_post_count": 0,
+  "audit_status": "HARVEST_COMPLETE_SEMANTIC_REVIEW_REQUIRED"
+}

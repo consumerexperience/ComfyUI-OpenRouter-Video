@@ -1,0 +1,773 @@
+{
+  "schema_version": 1,
+  "artifact_version": "2026-10-10.1",
+  "review_status": "PRODUCT_OWNER_APPROVED_AUDIT",
+  "models": [
+    {
+      "exact_model_id": "x-ai/grok-imagine-video-1.5-lite",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/x-ai/grok-imagine-video-1.5-lite",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/x-ai/grok-imagine-video-1.5-lite",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "heygen/heygen-video-1",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/heygen/heygen-video-1",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/heygen/heygen-video-1",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "reference_kinds": {
+          "value": [
+            "image",
+            "video",
+            "audio"
+          ],
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/heygen/heygen-video-1",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "mixed_reference_kinds": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/heygen/heygen-video-1",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "black-forest-labs/flux-video-edit",
+      "facts": {
+        "supports_text_only": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-edit",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-edit",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "operation.editing": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-edit",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "CAPABILITY_ONLY_CONFIRMED"
+        }
+      }
+    },
+    {
+      "exact_model_id": "minimax/hailuo-3-max",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/minimax/hailuo-3-max",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/minimax/hailuo-3-max",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "alibaba/wan-3.0-prime",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/wan-3.0-prime",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/wan-3.0-prime",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "alibaba/wan-3.0",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/wan-3.0",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/wan-3.0",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "heygen/avatar-iv",
+      "facts": {
+        "supports_text_only": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/heygen/avatar-iv",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/heygen/avatar-iv",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "operation.avatar_lipsync": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/heygen/avatar-iv",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "CAPABILITY_ONLY_CONFIRMED"
+        }
+      }
+    },
+    {
+      "exact_model_id": "black-forest-labs/flux-video-upscale",
+      "facts": {
+        "supports_text_only": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-upscale",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-upscale",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "operation.video_upscale": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-upscale",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "CAPABILITY_ONLY_CONFIRMED"
+        }
+      }
+    },
+    {
+      "exact_model_id": "bytedance/seedance-2.0-mini",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.0-mini",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.0-mini",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "reference_kinds": {
+          "value": [
+            "image",
+            "video",
+            "audio"
+          ],
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.0-mini",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "mixed_reference_kinds": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.0-mini",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "bytedance/seedance-2.5",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.5",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.5",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "reference_kinds": {
+          "value": [
+            "image",
+            "video",
+            "audio"
+          ],
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.5",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "mixed_reference_kinds": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.5",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "max_reference_count": {
+          "value": 50,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.5",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "supports_edit": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.5",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "supports_extend": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.5",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "preferred_inference_method": {
+          "value": "MI2V",
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.5",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "Preserved accepted UI preference"
+        }
+      }
+    },
+    {
+      "exact_model_id": "black-forest-labs/flux-3-video",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-3-video",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-3-video",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "operation.continuation": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-3-video",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "CAPABILITY_ONLY_CONFIRMED"
+        }
+      }
+    },
+    {
+      "exact_model_id": "minimax/hailuo-3",
+      "facts": {
+        "operation.motion_transfer": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/minimax/hailuo-3",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "CAPABILITY_ONLY_CONFIRMED"
+        }
+      }
+    },
+    {
+      "exact_model_id": "runway/aleph-2",
+      "facts": {
+        "supports_text_only": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/runway/aleph-2",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/runway/aleph-2",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "operation.editing": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/runway/aleph-2",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "CAPABILITY_ONLY_CONFIRMED"
+        }
+      }
+    },
+    {
+      "exact_model_id": "runway/gen-4.5",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/runway/gen-4.5",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/runway/gen-4.5",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "x-ai/grok-imagine-video-1.5",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/x-ai/grok-imagine-video-1.5",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/x-ai/grok-imagine-video-1.5",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "alibaba/happyhorse-1.1",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/happyhorse-1.1",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/happyhorse-1.1",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "reference_kinds": {
+          "value": [
+            "image"
+          ],
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/happyhorse-1.1",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "alibaba/happyhorse-1.0",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/happyhorse-1.0",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/happyhorse-1.0",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "reference_kinds": {
+          "value": [
+            "image"
+          ],
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/happyhorse-1.0",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "x-ai/grok-imagine-video",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/x-ai/grok-imagine-video",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/x-ai/grok-imagine-video",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "reference_kinds": {
+          "value": [
+            "image"
+          ],
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/x-ai/grok-imagine-video",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "max_reference_count": {
+          "value": 7,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/x-ai/grok-imagine-video",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "kwaivgi/kling-v3.0-pro",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/kwaivgi/kling-v3.0-pro",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/kwaivgi/kling-v3.0-pro",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "kwaivgi/kling-v3.0-std",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/kwaivgi/kling-v3.0-std",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/kwaivgi/kling-v3.0-std",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "google/veo-3.1-fast",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/google/veo-3.1-fast",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/google/veo-3.1-fast",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "google/veo-3.1-lite",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/google/veo-3.1-lite",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/google/veo-3.1-lite",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "kwaivgi/kling-video-o1",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/kwaivgi/kling-video-o1",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/kwaivgi/kling-video-o1",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "minimax/hailuo-2.3",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/minimax/hailuo-2.3",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/minimax/hailuo-2.3",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "bytedance/seedance-2.0",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.0",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.0",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "reference_kinds": {
+          "value": [
+            "image",
+            "video",
+            "audio"
+          ],
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.0",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "mixed_reference_kinds": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.0",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "alibaba/wan-2.7",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/wan-2.7",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/wan-2.7",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "reference_kinds": {
+          "value": [
+            "image"
+          ],
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/wan-2.7",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "bytedance/seedance-2.0-fast",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.0-fast",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.0-fast",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "reference_kinds": {
+          "value": [
+            "image",
+            "video",
+            "audio"
+          ],
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.0-fast",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "mixed_reference_kinds": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/bytedance/seedance-2.0-fast",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      }
+    },
+    {
+      "exact_model_id": "alibaba/wan-2.6",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/wan-2.6",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/wan-2.6",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "input_modalities_conflict": {
+          "value": null,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/wan-2.6",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "Conflicting description vs featureList; no executable enrichment",
+          "conflicting_evidence": [
+            "Alibaba's most advanced video generation model, supporting over 10 visual creation capabilities in a unified system. Wan 2.6 generates 1080p video at 24fps from text, images, reference videos, or audio, with native audio-visual synchronization and precise lip-sync. Key features include reference-to-video (insert a character's appearance and voice into new scenes), multi-shot storytelling from simple prompts, synchronized sound effects and music, and support for 16:9, 9:16, and 1:1 aspect ratios with clips up to 15 seconds.",
+            [
+              "Input modalities: text, image",
+              "Output modalities: video"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "exact_model_id": "bytedance/seedance-1-5-pro",
+      "facts": {}
+    },
+    {
+      "exact_model_id": "google/veo-3.1",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/google/veo-3.1",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/google/veo-3.1",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "operation.continuation": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/google/veo-3.1",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "CAPABILITY_ONLY_CONFIRMED"
+        }
+      }
+    }
+  ],
+  "content_hash": "4b628c0feffc1c792be528599241f26a84665ff52a7ca89d4a5b42e6a04d0e82"
+}

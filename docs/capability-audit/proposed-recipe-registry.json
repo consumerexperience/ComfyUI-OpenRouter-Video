@@ -1,0 +1,82 @@
+{
+  "T2V": {
+    "requires": {
+      "operation": "generation",
+      "prompt_only": true
+    }
+  },
+  "I2V": {
+    "requires": {
+      "first_frame": true
+    }
+  },
+  "FLF2V": {
+    "requires": {
+      "first_frame": true,
+      "last_frame": true
+    }
+  },
+  "IR2V": {
+    "requires": {
+      "image_reference": true,
+      "max_count": 1
+    }
+  },
+  "MI2V": {
+    "requires": {
+      "image_reference": true,
+      "max_count_at_least": 2
+    }
+  },
+  "VR2V": {
+    "requires": {
+      "video_reference": true
+    }
+  },
+  "AR2V": {
+    "requires": {
+      "audio_reference": true
+    }
+  },
+  "MMR2V": {
+    "requires": {
+      "mixed_references": true,
+      "distinct_kinds_at_least": 2,
+      "max_count_at_least": 2
+    }
+  },
+  "V2V_EDIT": {
+    "requires": {
+      "source_video": true,
+      "editing": true
+    }
+  },
+  "V2V_EXTEND": {
+    "requires": {
+      "source_video": true,
+      "extension": true
+    }
+  },
+  "VIDEO_UPSCALE": {
+    "requires": {
+      "source_video": true,
+      "upscale_factor": true
+    },
+    "state": "PROPOSED_REQUIRES_WIRE_REVIEW"
+  },
+  "AVATAR_LIPSYNC": {
+    "requires": {
+      "image": true,
+      "audio_or_script": true,
+      "lipsync": true
+    },
+    "state": "PROPOSED_REQUIRES_WIRE_REVIEW"
+  },
+  "MOTION_TRANSFER": {
+    "requires": {
+      "source_video": true,
+      "motion_transfer": true
+    },
+    "state": "PROPOSED_REQUIRES_WIRE_REVIEW"
+  }
+}

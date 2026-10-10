@@ -1,0 +1,14 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "capability-catalog-rebase",
+  "baseline_checkpoint": "phase10-native-media-v1",
+  "baseline_sha": "fd460f99bddc500b9b663162587c8cfda5c61c0e",
+  "risk_tier": "C",
+  "intended_delta": ["Product Owner approved capability/evidence, recipe, control and pricing rebase; audit before/after; no paid generation"],
+  "allowed_semantic_changes": [{"path": "/surfaces/product_owned/capabilities", "operations": ["add", "replace"], "reason": "Remove implicit T2V, data-driven evidence enrichment and explicit conflicts"}, {"path": "/surfaces/product_owned/controls", "operations": ["add", "replace"], "reason": "Approved P4: real capability-driven geometry combos; preserve named and positional serialization and backend STRING contracts"}, {"path": "/surfaces/product_owned/pricing", "operations": ["add", "replace"], "reason": "Typed pricing dimensions and safe unknown/bounded estimation"}],
+  "protected_surfaces": ["/surfaces/product_owned/native_media", "/surfaces/product_owned/submit_resume", "/surfaces/product_owned/identity", "/surfaces/product_owned/storage"],
+  "expected_components": ["models", "client", "capabilities", "evidence_registry", "recipes", "projection", "pricing", "frontend", "tests", "evidence tooling"],
+  "required_gates": ["baseline_declaration", "semantic_diff", "negative_space_tests", "full_tests", "30_model_reaudit", "canonical_dev_acceptance"],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

@@ -261,6 +261,33 @@ class ModelCapabilities:
     extend_support_source: CapabilityEvidenceSource | None = None
     capability_conflicts: frozenset[ModelCapabilityField] = frozenset()
     pricing_evidence: PricingEvidence | None = None
+    supports_text_only: bool | None = None
+    source_required: bool | None = None
+    evidence_facts: tuple[CapabilityFact, ...] = ()
+    unmapped_capability_keys: tuple[str, ...] = ()
+
+
+class CapabilityFactState(str, Enum):
+    SUPPORTED = "SUPPORTED"
+    UNSUPPORTED = "UNSUPPORTED"
+    UNKNOWN = "UNKNOWN"
+    CONFLICT = "CONFLICT"
+
+
+@dataclass(frozen=True, slots=True)
+class CapabilityFact:
+    """Exact-model data provenance; unknown facts never become denials."""
+
+    model_id: str
+    key: str
+    value: object
+    state: CapabilityFactState
+    authority: str
+    source_reference: str
+    observed_at: str
+    scope: str
+    artifact_version: str
+    conflicting_evidence: tuple[object, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

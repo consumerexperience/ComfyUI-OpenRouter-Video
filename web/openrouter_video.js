@@ -30,6 +30,25 @@ function widget(node, name) {
     return node.widgets?.find((item) => item.name === name);
 }
 
+function createGeometryCombos(node) {
+    // A String widget's event handler survives a later `type = "combo"`.
+    // Create the correct renderer before callback binding and preserve its
+    // named/positional serialization slot and the backend STRING contract.
+    for (const name of ["resolution", "aspect_ratio", "size"]) {
+        const previous = widget(node, name);
+        if (!previous || previous.type === "combo") continue;
+        const index = node.widgets.indexOf(previous);
+        const replacement = node.addWidget(
+            "combo", name, previous.value || AUTO, previous.callback,
+            { ...previous.options, values: [AUTO] },
+        );
+        const appended = node.widgets.indexOf(replacement);
+        node.widgets.splice(appended, 1);
+        node.widgets[index] = replacement;
+        if (previous.serializeValue) replacement.serializeValue = previous.serializeValue;
+    }
+}
+
 function setVisible(item, visible) {
     if (!item) return;
     item.hidden = !visible;
@@ -974,6 +993,7 @@ app.registerExtension({
         const previousCreated = nodeType.prototype.onNodeCreated;
         nodeType.prototype.onNodeCreated = function (...args) {
             const result = previousCreated?.apply(this, args);
+            createGeometryCombos(this);
             this.__orvIsNewNode = true;
             this.__orvAdvancedOpen = false;
             this.__orvAdvanced = this.addWidget("button", "Advanced", "›", () => {
