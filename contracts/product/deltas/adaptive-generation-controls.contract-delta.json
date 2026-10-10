@@ -6,7 +6,8 @@
   "baseline_sha": "0f05665cb302fe4bc8398f2e9e04b08a5116a313",
   "risk_tier": "B",
   "intended_delta": [
-    "Owner approved adaptive Resolution/Aspect Ratio/Duration with independent domains and explicit coupled constraints; preserve accepted Generate semantics and exact workflow values"
+    "Owner approved adaptive Resolution/Aspect Ratio/Duration with independent domains and explicit coupled constraints; preserve accepted Generate semantics and exact workflow values",
+    "Owner approved bounded presentation-only canonical option ordering on 2026-10-11: resolution nominal class, ratio numeric, duration seconds, exact size area; unchanged option sets/evidence/wire values."
   ],
   "allowed_semantic_changes": [
     {

@@ -1,0 +1,36 @@
+✔ independent parameters preserve the existing Cartesian availability (2.2422ms)
+✔ Resolution and Aspect Ratio immediately constrain remaining values (0.4892ms)
+✔ invalid saved intent remains repairable without creating a false tuple (0.1855ms)
+✔ known incomplete coupling fails closed only for the specific unknown tuple (0.1337ms)
+✔ method and mode scopes reproject without a model-specific branch (0.8989ms)
+✔ future relation-only model gets options without adding an ID to UI code (0.1813ms)
+✔ Duration is a real combo and incompatible numeric intent is preserved (0.4999ms)
+✔ every current model retains its real structured axis options (5.7307ms)
+✔ canonical resolution order: ["4K","480p","1080p","720p"] (0.1992ms)
+✔ canonical resolution order: ["8K","future-z","4K","1440p","2K","AUTO / MODEL DEFAULT","1080p","future-a"] (0.1895ms)
+✔ canonical aspect_ratio order: ["16:9","1:1","9:21","3:4","9:16"] (0.1056ms)
+✔ canonical aspect_ratio order: ["21:9","3:2","4:3","2:3","AUTO / MODEL DEFAULT"] (0.094ms)
+✔ canonical duration order: [8,4,6] (0.0633ms)
+✔ canonical duration order: [8,0,6,4] (0.0557ms)
+✔ canonical size order: ["1280x720","960x960","720x1280","480x480","future-z","future-a"] (0.0968ms)
+✔ canonical size order: ["640x480","480x640","640×480","480x480","AUTO / MODEL DEFAULT"] (0.1237ms)
+✔ canonical resolution order: ["720p","720p","1080p","odd","Odd"] (0.1016ms)
+✔ reprojection preserves selected wire value and sentinel label (0.6895ms)
+✔ Phase 8 remote-options values restore by field, not Phase 10 widget position (1.0332ms)
+✔ unresolved numeric legacy model stays unresolved (0.2034ms)
+✔ presentation order keeps reference summary above Model and Advanced above its controls (1.0492ms)
+✔ primary control sizing preserves original widget measurement and visibility (0.244ms)
+✔ Prompt styling is scoped to this Generate widget (0.1813ms)
+✔ named Phase 10 values win over presentation positions (0.2531ms)
+✔ prior Phase 10 positional values restore by field after presentation reorder (0.2802ms)
+✔ new presentation order restores the same intent on reload (0.1716ms)
+✔ visible reference sockets lead hidden widget inputs and preserve link slots (0.918ms)
+✔ native Load Image is recognized as IMAGE while existing URL helper remains valid (0.8423ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 93.1029

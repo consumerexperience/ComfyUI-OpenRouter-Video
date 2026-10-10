@@ -1,0 +1,155 @@
+[
+  {
+    "axis": "resolution",
+    "input": [
+      "4K",
+      "480p",
+      "1080p",
+      "720p"
+    ],
+    "expected": [
+      "480p",
+      "720p",
+      "1080p",
+      "4K"
+    ]
+  },
+  {
+    "axis": "resolution",
+    "input": [
+      "8K",
+      "future-z",
+      "4K",
+      "1440p",
+      "2K",
+      "AUTO / MODEL DEFAULT",
+      "1080p",
+      "future-a"
+    ],
+    "expected": [
+      "AUTO / MODEL DEFAULT",
+      "1080p",
+      "1440p",
+      "2K",
+      "4K",
+      "8K",
+      "future-a",
+      "future-z"
+    ]
+  },
+  {
+    "axis": "aspect_ratio",
+    "input": [
+      "16:9",
+      "1:1",
+      "9:21",
+      "3:4",
+      "9:16"
+    ],
+    "expected": [
+      "9:21",
+      "9:16",
+      "3:4",
+      "1:1",
+      "16:9"
+    ]
+  },
+  {
+    "axis": "aspect_ratio",
+    "input": [
+      "21:9",
+      "3:2",
+      "4:3",
+      "2:3",
+      "AUTO / MODEL DEFAULT"
+    ],
+    "expected": [
+      "AUTO / MODEL DEFAULT",
+      "2:3",
+      "4:3",
+      "3:2",
+      "21:9"
+    ]
+  },
+  {
+    "axis": "duration",
+    "input": [
+      8,
+      4,
+      6
+    ],
+    "expected": [
+      4,
+      6,
+      8
+    ]
+  },
+  {
+    "axis": "duration",
+    "input": [
+      8,
+      0,
+      6,
+      4
+    ],
+    "expected": [
+      0,
+      4,
+      6,
+      8
+    ]
+  },
+  {
+    "axis": "size",
+    "input": [
+      "1280x720",
+      "960x960",
+      "720x1280",
+      "480x480",
+      "future-z",
+      "future-a"
+    ],
+    "expected": [
+      "480x480",
+      "720x1280",
+      "960x960",
+      "1280x720",
+      "future-a",
+      "future-z"
+    ]
+  },
+  {
+    "axis": "size",
+    "input": [
+      "640x480",
+      "480x640",
+      "640\u00d7480",
+      "480x480",
+      "AUTO / MODEL DEFAULT"
+    ],
+    "expected": [
+      "AUTO / MODEL DEFAULT",
+      "480x480",
+      "480x640",
+      "640x480",
+      "640\u00d7480"
+    ]
+  },
+  {
+    "axis": "resolution",
+    "input": [
+      "720p",
+      "720p",
+      "1080p",
+      "odd",
+      "Odd"
+    ],
+    "expected": [
+      "720p",
+      "720p",
+      "1080p",
+      "Odd",
+      "odd"
+    ]
+  }
+]

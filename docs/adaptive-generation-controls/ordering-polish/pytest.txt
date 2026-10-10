@@ -1,0 +1,11 @@
+............................................................s.s..s...... [ 18%]
+........................................................................ [ 37%]
+........................................................................ [ 56%]
+........................................................................ [ 75%]
+........................................................................ [ 94%]
+......................                                                   [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] tests\contract\test_higgsfield_golden_pack.py:89: Official third-party media is not materialized; run the fetch command in README.md
+SKIPPED [1] tests\contract\test_higgsfield_multimodal_pack.py:43: MATERIALIZATION_REQUIRED: run python scripts/materialize_higgsfield_multimodal_pack.py; missing=('car_sheet', 'street_environment', 'car_chasing_playblast', 'passing_car_urban_ambience')
+SKIPPED [1] tests\contract\test_higgsfield_multimodal_pack.py:83: MATERIALIZATION_REQUIRED: run python scripts/materialize_higgsfield_multimodal_pack.py; missing=('car_sheet', 'street_environment', 'car_chasing_playblast', 'passing_car_urban_ambience')
+379 passed, 3 skipped in 31.64s

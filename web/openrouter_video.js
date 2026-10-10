@@ -404,6 +404,40 @@ function disclose(node, message) {
     node.setDirtyCanvas?.(true, true);
 }
 
+function canonicalOptions(axis, values) {
+    if (values === null) return null;
+    const key = (value) => {
+        const text = String(value);
+        if (value === AUTO || (axis === "duration" && value === 0)) return [-1, 0, 0, 0, 0, text];
+        let match;
+        if (axis === "resolution" && (match = /^([0-9]+(?:\.[0-9]+)?)(p|k)$/i.exec(text))) {
+            const nominal = Number(match[1]) * (match[2].toLowerCase() === "k" ? 1000 : 1);
+            // Nominal class ranking only; never a preset-to-pixel mapping.
+            if (Number.isFinite(nominal) && nominal > 0) return [0, nominal, 0, 0, 0, text];
+        } else if (["aspect_ratio", "size"].includes(axis)) {
+            match = (axis === "size" ? /^([0-9]+)[x×]([0-9]+)$/ : /^([0-9]+):([0-9]+)$/).exec(text);
+            if (match) {
+                const [width, height] = [Number(match[1]), Number(match[2])];
+                const ratio = width / height, area = axis === "size" ? width * height : ratio;
+                if (width > 0 && height > 0 && Number.isFinite(area) && Number.isFinite(ratio))
+                    return [0, area, ratio, width, height, text];
+            }
+        } else if (axis === "duration" && /^[0-9]+(?:\.[0-9]+)?$/.test(text)) {
+            const seconds = Number(text);
+            if (Number.isFinite(seconds) && seconds > 0) return [0, seconds, 0, 0, 0, text];
+        }
+        return [1, 0, 0, 0, 0, text];
+    };
+    return [...values].sort((left, right) => {
+        const a = key(left), b = key(right);
+        for (let i = 0; i < a.length; i++) {
+            if (a[i] < b[i]) return -1;
+            if (a[i] > b[i]) return 1;
+        }
+        return 0;
+    });
+}
+
 function configureEnum(node, item, supported, label) {
     if (!item) return;
     const current = normalizedValue(item);
@@ -414,9 +448,9 @@ function configureEnum(node, item, supported, label) {
         if (current !== null) disclose(node, `${label}: saved value is not verified by catalogue`);
         return;
     }
-    item.options.values = [AUTO, ...supported];
+    item.options.values = canonicalOptions(item.name, [AUTO, ...supported]);
     if (current !== null && !supported.includes(current)) {
-        item.options.values.push(current);
+        item.options.values = canonicalOptions(item.name, [...item.options.values, current]);
         disclose(node, `${label}: incompatible saved value preserved; Generate blocked`);
     } else if (current === null) {
         item.value = AUTO;
@@ -437,6 +471,8 @@ function configureDuration(node, supported) {
     const item = widget(node, "duration");
     if (!item) return;
     node.__orvDurationValues = supported;
+    item.options = item.options || {};
+    item.options.getOptionLabel = (value) => value == null || String(value) === "0" ? AUTO : String(value);
     const current = Number(item.value || 0);
     item.options = item.options || {};
     setVisible(item, true);
@@ -446,10 +482,10 @@ function configureDuration(node, supported) {
         if (current > 0) disclose(node, "DURATION: saved value is not verified by catalogue");
         return;
     }
-    const values = [...supported].sort((left, right) => left - right);
+    const values = canonicalOptions("duration", supported);
     if (current > 0 && !values.includes(current)) {
         item.type = "combo";
-        item.options.values = [0, ...values, current];
+        item.options.values = canonicalOptions("duration", [0, ...values, current]);
         disclose(node, "DURATION: incompatible saved value preserved; Generate blocked");
         return;
     }
@@ -519,7 +555,7 @@ function configurationOptions(capability, selections, context) {
     };
     return {
         options: Object.fromEntries(Object.entries(domains).map(([axis, values]) =>
-            [axis, values === null ? null : values.filter((value) => permitsCompletion({ ...selections, [axis]: value }))])),
+            [axis, values === null ? null : canonicalOptions(axis, values.filter((value) => permitsCompletion({ ...selections, [axis]: value })))])),
         status: configurationStatus(relations, selections, context),
     };
 }

@@ -1,0 +1,17 @@
+{
+  "pre_patch_head": "dbdd47507f2811e8dca34fcacf6fad1c575334bb",
+  "production_changed_files": [
+    "src/openrouter_video/comfy/projection.py",
+    "web/openrouter_video.js"
+  ],
+  "capability_evidence_changed": false,
+  "option_set_changed": false,
+  "wire_values_changed": false,
+  "paid_post_count": 0,
+  "run_id": "ordering-polish-final-20261011",
+  "single_writer_proven": true,
+  "checked_receipt_path": "E:\\_ARENAS_lab\\Bizdev\\AI\\OPENROUTER\\adaptive-generation-controls\\output\\verification\\ordering-final-lease-after-tests.json",
+  "checked_receipt_sha256": "2ee2f74bb0fb017f797aeb75abf8cff1e2043dfae78a9347cbe8ebdd17b92924",
+  "owner_visual_direction": "ACCEPTED",
+  "final_owner_acceptance": "PENDING"
+}
