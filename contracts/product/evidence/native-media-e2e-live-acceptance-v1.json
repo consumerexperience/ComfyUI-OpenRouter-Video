@@ -2,8 +2,8 @@
   "schema_version": 1,
   "LIVE_TESTED_PRODUCT_SHA": "0f05665cb302fe4bc8398f2e9e04b08a5116a313",
   "PRODUCT_SOURCE_SHA": "0f05665cb302fe4bc8398f2e9e04b08a5116a313",
-  "REGRESSION_SHIELD_CHECKPOINT_SHA": null,
-  "checkpoint_state": "AWAITING_HUMAN_PR_MERGE",
+  "REGRESSION_SHIELD_CHECKPOINT_SHA": "72998e931e5e9e59a277b63c2f2b0cd4cb513164",
+  "checkpoint_state": "ACCEPTED_CANONICAL",
   "MODEL": "bytedance/seedance-2.0-mini",
   "METHOD": "MMR2V",
   "RESOLUTION": "480p",
@@ -40,5 +40,8 @@
       "AUDIO"
     ],
     "manual_public_url_required": false
-  }
+  },
+  "REGRESSION_SHIELD_HEAD_SHA": "e861db343580e402293aab9b751d68255be07744",
+  "ACCEPTED_BASELINE_MERGE_SHA": "72998e931e5e9e59a277b63c2f2b0cd4cb513164",
+  "checkpoint_tag": "openrouter-video-native-media-e2e-v1"
 }

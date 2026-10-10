@@ -188,6 +188,22 @@ def test_live_receipt_is_bound_to_certified_product_not_shield_commit() -> None:
     assert receipt["provenance"]["binary_committed"] is False
     assert receipt["provenance"]["native_inputs"] == ["IMAGE", "VIDEO", "AUDIO"]
     assert receipt["RESUBMIT_OCCURRED"] == "NO"
+    assert receipt["REGRESSION_SHIELD_HEAD_SHA"] == "e861db343580e402293aab9b751d68255be07744"
+    assert receipt["ACCEPTED_BASELINE_MERGE_SHA"] == "72998e931e5e9e59a277b63c2f2b0cd4cb513164"
+    assert receipt["REGRESSION_SHIELD_CHECKPOINT_SHA"] == receipt["ACCEPTED_BASELINE_MERGE_SHA"]
+    assert receipt["checkpoint_state"] == "ACCEPTED_CANONICAL"
+
+
+def test_acceptance_index_resolves_new_checkpoint_tag_and_provenance() -> None:
+    index = _load(ROOT / "contracts/product/acceptance-index.json")
+    entry = next(
+        item
+        for item in index["accepted_canonical"]
+        if item["checkpoint_tag"] == "openrouter-video-native-media-e2e-v1"
+    )
+    assert entry["protected_product_merge_sha"] == "72998e931e5e9e59a277b63c2f2b0cd4cb513164"
+    assert entry["regression_shield_head_sha"] == "e861db343580e402293aab9b751d68255be07744"
+    assert entry["live_tested_product_sha"] == "0f05665cb302fe4bc8398f2e9e04b08a5116a313"
 
 
 def test_regression_contract_has_executable_coverage_and_no_paid_ci() -> None:
