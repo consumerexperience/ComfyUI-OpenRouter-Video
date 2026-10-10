@@ -1,0 +1,71 @@
+{
+  "vocabulary_candidates": [
+    "VIDEO_UPSCALE",
+    "AVATAR_LIPSYNC",
+    "MOTION_TRANSFER",
+    "CREATIVITY_CONTROL",
+    "UPSCALE_FACTOR_CONTROL",
+    "TYPED_PROVIDER_CONTROLS"
+  ],
+  "facts": [
+    {
+      "exact_model_id": "black-forest-labs/flux-video-upscale",
+      "capability": "upscale_factor",
+      "value": {
+        "min": 1.5,
+        "max": 3
+      },
+      "source": "LIVE_STRUCTURED_API",
+      "source_url": "https://openrouter.ai/api/v1/videos/models",
+      "observed_at": "2026-10-10T16:37:05.412933+00:00",
+      "authority": "A",
+      "current_product_exposure": null,
+      "status": "UNMAPPED_CAPABILITY"
+    },
+    {
+      "exact_model_id": "black-forest-labs/flux-video-upscale",
+      "capability": "creativity",
+      "value": [
+        0,
+        1
+      ],
+      "source": "LIVE_STRUCTURED_API",
+      "source_url": "https://openrouter.ai/api/v1/videos/models",
+      "observed_at": "2026-10-10T16:37:05.412933+00:00",
+      "authority": "A",
+      "current_product_exposure": null,
+      "status": "UNMAPPED_CAPABILITY"
+    },
+    {
+      "exact_model_id": "minimax/hailuo-3",
+      "capability": "motion_transfer",
+      "value": true,
+      "current_product_exposure": "NOT_EXPOSED",
+      "status": "UNMAPPED_CAPABILITY",
+      "source_url": "https://openrouter.ai/minimax/hailuo-3",
+      "observed_at": "2026-10-10T16:37:05.412933+00:00",
+      "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+    },
+    {
+      "exact_model_id": "black-forest-labs/flux-video-upscale",
+      "capability": "VIDEO_UPSCALE",
+      "value": true,
+      "current_product_exposure": "NO_RECIPE",
+      "status": "UNMAPPED_CAPABILITY",
+      "source_url": "https://openrouter.ai/black-forest-labs/flux-video-upscale",
+      "observed_at": "2026-10-10T16:37:05.412933+00:00",
+      "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+    },
+    {
+      "exact_model_id": "heygen/avatar-iv",
+      "capability": "AVATAR_LIPSYNC",
+      "value": true,
+      "current_product_exposure": "NO_RECIPE",
+      "status": "UNMAPPED_CAPABILITY",
+      "source_url": "https://openrouter.ai/heygen/avatar-iv",
+      "observed_at": "2026-10-10T16:37:05.412933+00:00",
+      "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+    }
+  ],
+  "note": "Vocabulary candidates require wire/authority review; they are not implemented or runtime-supported."
+}

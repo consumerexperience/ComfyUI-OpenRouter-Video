@@ -13,7 +13,6 @@ from enum import Enum
 from typing import NoReturn
 from urllib.parse import urlsplit
 
-from openrouter_video.capability_overlays import apply_capability_overlay
 from openrouter_video.client import DiscoveryClient
 from openrouter_video.errors import (
     MalformedOpenRouterResponseError,
@@ -21,6 +20,7 @@ from openrouter_video.errors import (
     ProductFailureError,
     TransportError,
 )
+from openrouter_video.evidence_registry import enrich_capabilities
 from openrouter_video.image_transport import is_supported_image_data_url
 from openrouter_video.models import (
     BillingContext,
@@ -31,7 +31,6 @@ from openrouter_video.models import (
     InputReference,
     InputReferenceKind,
     ModelCapabilities,
-    ModelCapabilityField,
     ProductError,
     ProductErrorCode,
 )
@@ -79,110 +78,11 @@ def inference_method_matrix(
 ) -> dict[InferenceMethod, CapabilityModeStatus]:
     """Derive product methods deterministically from primitive capability evidence."""
 
-    frames = capabilities.supported_frame_types
-    references = capabilities.input_reference_capabilities
-    if references is None:
-        reference_status = {
-            method: CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
-            for method in (
-                InferenceMethod.IR2V,
-                InferenceMethod.MI2V,
-                InferenceMethod.VR2V,
-                InferenceMethod.AR2V,
-                InferenceMethod.MMR2V,
-                InferenceMethod.V2V_EDIT,
-                InferenceMethod.V2V_EXTEND,
-            )
-        }
-    elif references.conflicts:
-        reference_status = {
-            method: CapabilityModeStatus.CONFLICT
-            for method in (
-                InferenceMethod.IR2V,
-                InferenceMethod.MI2V,
-                InferenceMethod.VR2V,
-                InferenceMethod.AR2V,
-                InferenceMethod.MMR2V,
-                InferenceMethod.V2V_EDIT,
-                InferenceMethod.V2V_EXTEND,
-            )
-        }
-    elif references.reference_kinds is None:
-        reference_status = {
-            method: CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
-            for method in (
-                InferenceMethod.IR2V,
-                InferenceMethod.MI2V,
-                InferenceMethod.VR2V,
-                InferenceMethod.AR2V,
-                InferenceMethod.MMR2V,
-                InferenceMethod.V2V_EDIT,
-                InferenceMethod.V2V_EXTEND,
-            )
-        }
-    else:
-        kinds = references.reference_kinds
-        reference_status = {
-            InferenceMethod.IR2V: _reference_kind_status(
-                references.max_reference_count, kinds, InputReferenceKind.IMAGE, 1
-            ),
-            InferenceMethod.MI2V: _reference_kind_status(
-                references.max_reference_count, kinds, InputReferenceKind.IMAGE, 2
-            ),
-            InferenceMethod.VR2V: _reference_kind_status(
-                references.max_reference_count, kinds, InputReferenceKind.VIDEO, 1
-            ),
-            InferenceMethod.AR2V: _reference_kind_status(
-                references.max_reference_count, kinds, InputReferenceKind.AUDIO, 1
-            ),
-        }
-        if len(kinds) < 2:
-            mixed = CapabilityModeStatus.UNSUPPORTED
-        elif references.mixed_reference_kinds is None:
-            mixed = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
-        elif references.mixed_reference_kinds is False:
-            mixed = CapabilityModeStatus.UNSUPPORTED
-        elif references.max_reference_count is None:
-            mixed = CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
-        elif references.max_reference_count < 2:
-            mixed = CapabilityModeStatus.UNSUPPORTED
-        else:
-            mixed = CapabilityModeStatus.READY
-        reference_status[InferenceMethod.MMR2V] = mixed
-        video_ready = reference_status[InferenceMethod.VR2V]
-        reference_status[InferenceMethod.V2V_EDIT] = _intent_status(
-            video_ready,
-            capabilities.supports_edit,
-            ModelCapabilityField.EDIT in capabilities.capability_conflicts,
-        )
-        reference_status[InferenceMethod.V2V_EXTEND] = _intent_status(
-            video_ready,
-            capabilities.supports_extend,
-            ModelCapabilityField.EXTEND in capabilities.capability_conflicts,
-        )
-    matrix = {
-        InferenceMethod.T2V: CapabilityModeStatus.READY,
-        InferenceMethod.I2V: (
-            CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
-            if frames is None
-            else (
-                CapabilityModeStatus.READY
-                if FrameType.FIRST in frames
-                else CapabilityModeStatus.UNSUPPORTED
-            )
-        ),
-        InferenceMethod.FLF2V: (
-            CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
-            if frames is None
-            else (
-                CapabilityModeStatus.READY
-                if {FrameType.FIRST, FrameType.LAST}.issubset(frames)
-                else CapabilityModeStatus.UNSUPPORTED
-            )
-        ),
+    from openrouter_video.recipes import RECIPES, evaluate
+
+    return {
+        recipe.method: CapabilityModeStatus(evaluate(capabilities, recipe)) for recipe in RECIPES
     }
-    matrix.update(reference_status)
-    return matrix
 
 
 def _reference_kind_status(
@@ -194,7 +94,7 @@ def _reference_kind_status(
     if kind not in kinds:
         return CapabilityModeStatus.UNSUPPORTED
     if limit is None:
-        return CapabilityModeStatus.CAPABILITY_SIGNAL_GAP
+        return CapabilityModeStatus.READY
     return CapabilityModeStatus.READY if limit >= minimum else CapabilityModeStatus.UNSUPPORTED
 
 
@@ -326,7 +226,7 @@ class CapabilityService:
         for model in observation.models:
             if model.model_id == model_id or model.canonical_slug == model_id:
                 if self._now() - observation.observed_at <= FRESH_TTL:
-                    return apply_capability_overlay(model)
+                    return enrich_capabilities(model)
                 return model
         raise ProductFailureError(
             ProductError(
@@ -344,7 +244,7 @@ class CapabilityService:
             return observation
         return CapabilityObservation(
             observation.observed_at,
-            tuple(apply_capability_overlay(model) for model in observation.models),
+            tuple(enrich_capabilities(model) for model in observation.models),
         )
 
     def is_fresh(self, observation: CapabilityObservation) -> bool:

@@ -1,0 +1,962 @@
+[
+  {
+    "exact_model_id": "x-ai/grok-imagine-video-1.5-lite",
+    "capability": "pricing_skus",
+    "value": {
+      "cents_per_image_input": "1",
+      "cents_per_video_output_second_480p": "2",
+      "cents_per_video_output_second_720p": "3",
+      "cents_per_video_output_second_1080p": "14"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "heygen/heygen-video-1",
+    "capability": "pricing_skus",
+    "value": {
+      "duration_seconds_2k": "0.09",
+      "duration_seconds_480p": "0.02",
+      "duration_seconds_768p": "0.03",
+      "reference_duration_seconds_2k": "0.18",
+      "reference_duration_seconds_480p": "0.04",
+      "reference_duration_seconds_768p": "0.06"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "heygen/heygen-video-1",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "prompt_enhancement"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "black-forest-labs/flux-video-edit",
+    "capability": "pricing_skus",
+    "value": {
+      "cents_per_second_output": "3"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "black-forest-labs/flux-video-edit",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "safety_tolerance"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "minimax/hailuo-3-max",
+    "capability": "pricing_skus",
+    "value": {
+      "duration_seconds": "0.08",
+      "duration_seconds_480p": "0.05",
+      "duration_seconds_768p": "0.08"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "minimax/hailuo-3-max",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "aigc_watermark"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "alibaba/wan-3.0-prime",
+    "capability": "pricing_skus",
+    "value": {
+      "duration_seconds_480p": "0.068",
+      "duration_seconds_720p": "0.14",
+      "duration_seconds_1080p": "0.28"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "alibaba/wan-3.0",
+    "capability": "pricing_skus",
+    "value": {
+      "duration_seconds_480p": "0.05",
+      "duration_seconds_720p": "0.1",
+      "duration_seconds_1080p": "0.2"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "heygen/avatar-iv",
+    "capability": "pricing_skus",
+    "value": {
+      "duration_seconds": "0.05"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "heygen/avatar-iv",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "voice_id",
+      "voice_settings",
+      "motion_prompt",
+      "expressiveness",
+      "fit",
+      "remove_background",
+      "background",
+      "caption",
+      "title"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "black-forest-labs/flux-video-upscale",
+    "capability": "pricing_skus",
+    "value": {
+      "cents_per_megapixel_second_precise": "7.5",
+      "cents_per_megapixel_second_creative": "10.5"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "black-forest-labs/flux-video-upscale",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "safety_tolerance"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.0-mini",
+    "capability": "pricing_skus",
+    "value": {
+      "video_tokens": "0.0000035",
+      "video_tokens_without_audio": "0.0000035",
+      "video_tokens_with_video_input": "0.0000021"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.0-mini",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "watermark",
+      "req_key",
+      "return_last_frame"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.5",
+    "capability": "pricing_skus",
+    "value": {
+      "video_tokens": "0.0000107",
+      "video_tokens_without_audio": "0.0000107",
+      "video_tokens_with_video_input": "0.0000064"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.5",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "watermark",
+      "req_key",
+      "output_format"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "black-forest-labs/flux-3-video",
+    "capability": "pricing_skus",
+    "value": {
+      "cents_per_second_output": "17",
+      "cents_per_second_output_720p": "17",
+      "cents_per_second_output_1080p": "29",
+      "cents_per_second_video_continuation_720p": "41",
+      "cents_per_second_video_continuation_1080p": "53"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "black-forest-labs/flux-3-video",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "safety_tolerance",
+      "version"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "minimax/hailuo-3",
+    "capability": "pricing_skus",
+    "value": {
+      "duration_seconds": "0.13",
+      "reference_images": "0.04"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "minimax/hailuo-3",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "aigc_watermark"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "runway/aleph-2",
+    "capability": "pricing_skus",
+    "value": {
+      "cents_per_second_output": "28",
+      "minimum_cents_per_generation": "56"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "runway/aleph-2",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "contentModeration",
+      "keyframes"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "runway/gen-4.5",
+    "capability": "pricing_skus",
+    "value": {
+      "cents_per_second_output": "12"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "runway/gen-4.5",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "contentModeration"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "x-ai/grok-imagine-video-1.5",
+    "capability": "pricing_skus",
+    "value": {
+      "cents_per_image_input": "1",
+      "cents_per_video_output_second_480p": "8",
+      "cents_per_video_output_second_720p": "14",
+      "cents_per_video_output_second_1080p": "25"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "alibaba/happyhorse-1.1",
+    "capability": "pricing_skus",
+    "value": {
+      "duration_seconds_720p": "0.0988",
+      "duration_seconds_1080p": "0.1278"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "alibaba/happyhorse-1.0",
+    "capability": "pricing_skus",
+    "value": {
+      "duration_seconds_720p": "0.0988",
+      "duration_seconds_1080p": "0.1694"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "x-ai/grok-imagine-video",
+    "capability": "pricing_skus",
+    "value": {
+      "cents_per_image_input": "0.2",
+      "cents_per_video_output_second_480p": "5",
+      "cents_per_video_output_second_720p": "7"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "kwaivgi/kling-v3.0-pro",
+    "capability": "pricing_skus",
+    "value": {
+      "duration_seconds": "0.112",
+      "duration_seconds_with_audio": "0.168",
+      "text_to_video_duration_seconds_480p": "0.112",
+      "text_to_video_duration_seconds_720p": "0.112",
+      "image_to_video_duration_seconds_720p": "0.112",
+      "text_to_video_duration_seconds_1080p": "0.112",
+      "image_to_video_duration_seconds_1080p": "0.112"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "kwaivgi/kling-v3.0-pro",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "negative_prompt",
+      "cfg_scale"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "kwaivgi/kling-v3.0-std",
+    "capability": "pricing_skus",
+    "value": {
+      "duration_seconds": "0.084",
+      "duration_seconds_with_audio": "0.126",
+      "text_to_video_duration_seconds_480p": "0.084",
+      "text_to_video_duration_seconds_720p": "0.084",
+      "image_to_video_duration_seconds_720p": "0.084",
+      "text_to_video_duration_seconds_1080p": "0.084",
+      "image_to_video_duration_seconds_1080p": "0.084"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "kwaivgi/kling-v3.0-std",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "negative_prompt",
+      "cfg_scale"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "google/veo-3.1-fast",
+    "capability": "pricing_skus",
+    "value": {
+      "duration_seconds_with_audio": "0.12",
+      "duration_seconds_with_audio_4k": "0.30",
+      "duration_seconds_without_audio": "0.10",
+      "duration_seconds_with_audio_720p": "0.10",
+      "duration_seconds_without_audio_4k": "0.25",
+      "duration_seconds_without_audio_720p": "0.08"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "google/veo-3.1-fast",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "personGeneration",
+      "aspectRatio",
+      "negativePrompt",
+      "conditioningScale",
+      "enhancePrompt"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "google/veo-3.1-lite",
+    "capability": "pricing_skus",
+    "value": {
+      "duration_seconds_with_audio": "0.08",
+      "duration_seconds_without_audio": "0.05",
+      "duration_seconds_with_audio_720p": "0.05",
+      "duration_seconds_without_audio_720p": "0.03"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "google/veo-3.1-lite",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "personGeneration",
+      "aspectRatio",
+      "negativePrompt",
+      "conditioningScale",
+      "enhancePrompt"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "kwaivgi/kling-video-o1",
+    "capability": "pricing_skus",
+    "value": {
+      "duration_seconds": "0.1120"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "kwaivgi/kling-video-o1",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "negative_prompt"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "minimax/hailuo-2.3",
+    "capability": "pricing_skus",
+    "value": {
+      "duration_seconds": "0.0817"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "minimax/hailuo-2.3",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "prompt_optimizer",
+      "fast_pretreatment"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.0",
+    "capability": "pricing_skus",
+    "value": {
+      "video_tokens": "0.000007",
+      "video_tokens_4k": "0.000004",
+      "video_tokens_1080p": "0.0000077",
+      "video_tokens_without_audio": "0.000007",
+      "video_tokens_with_video_input": "0.0000043",
+      "video_tokens_4k_with_video_input": "0.0000024",
+      "video_tokens_1080p_with_video_input": "0.0000047"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.0",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "watermark",
+      "req_key"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "alibaba/wan-2.7",
+    "capability": "pricing_skus",
+    "value": {
+      "duration_seconds": "0.1"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "alibaba/wan-2.7",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "negative_prompt",
+      "prompt_extend",
+      "audio",
+      "ratio",
+      "last_image",
+      "video",
+      "videos",
+      "images"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.0-fast",
+    "capability": "pricing_skus",
+    "value": {
+      "video_tokens": "0.0000042",
+      "video_tokens_without_audio": "0.0000042",
+      "video_tokens_with_video_input": "0.000002475"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.0-fast",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "watermark",
+      "req_key"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "alibaba/wan-2.6",
+    "capability": "pricing_skus",
+    "value": {
+      "text_to_video_duration_seconds_480p": "0.04",
+      "text_to_video_duration_seconds_720p": "0.08",
+      "image_to_video_duration_seconds_720p": "0.10",
+      "text_to_video_duration_seconds_1080p": "0.12",
+      "image_to_video_duration_seconds_1080p": "0.15"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "alibaba/wan-2.6",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "negative_prompt",
+      "enable_prompt_expansion",
+      "shot_type",
+      "audio",
+      "size"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-1-5-pro",
+    "capability": "pricing_skus",
+    "value": {
+      "video_tokens": "0.0000024",
+      "video_tokens_without_audio": "0.0000012"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-1-5-pro",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "watermark",
+      "req_key"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "google/veo-3.1",
+    "capability": "pricing_skus",
+    "value": {
+      "duration_seconds_with_audio": "0.40",
+      "duration_seconds_with_audio_4k": "0.60",
+      "duration_seconds_without_audio": "0.20",
+      "duration_seconds_without_audio_4k": "0.40"
+    },
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "SKU evidence retained; estimator supports only generate/per-second simple families; native video/audio explicitly unavailable",
+    "status": "UNDEREXPOSED"
+  },
+  {
+    "exact_model_id": "google/veo-3.1",
+    "capability": "allowed_passthrough_parameters",
+    "value": [
+      "personGeneration",
+      "aspectRatio",
+      "negativePrompt",
+      "conditioningScale",
+      "enhancePrompt"
+    ],
+    "source": "LIVE_STRUCTURED_API",
+    "source_url": "https://openrouter.ai/api/v1/videos/models",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "A",
+    "current_product_exposure": "No typed provider controls or payload passthrough",
+    "status": "MISSING"
+  },
+  {
+    "exact_model_id": "heygen/heygen-video-1",
+    "capability": "multimodal_references",
+    "value": true,
+    "current_product_exposure": "NOT_EXPOSED",
+    "status": "MISSING",
+    "source_url": "https://openrouter.ai/heygen/heygen-video-1",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+  },
+  {
+    "exact_model_id": "black-forest-labs/flux-video-edit",
+    "capability": "editing",
+    "value": true,
+    "current_product_exposure": "NOT_EXPOSED",
+    "status": "MISSING",
+    "source_url": "https://openrouter.ai/black-forest-labs/flux-video-edit",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.0-mini",
+    "capability": "multimodal_references",
+    "value": true,
+    "current_product_exposure": "NOT_EXPOSED",
+    "status": "MISSING",
+    "source_url": "https://openrouter.ai/bytedance/seedance-2.0-mini",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+  },
+  {
+    "exact_model_id": "black-forest-labs/flux-3-video",
+    "capability": "continuation",
+    "value": true,
+    "current_product_exposure": "NOT_EXPOSED",
+    "status": "MISSING",
+    "source_url": "https://openrouter.ai/black-forest-labs/flux-3-video",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+  },
+  {
+    "exact_model_id": "runway/aleph-2",
+    "capability": "editing",
+    "value": true,
+    "current_product_exposure": "NOT_EXPOSED",
+    "status": "MISSING",
+    "source_url": "https://openrouter.ai/runway/aleph-2",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+  },
+  {
+    "exact_model_id": "alibaba/happyhorse-1.1",
+    "capability": "multiple_image_references",
+    "value": true,
+    "current_product_exposure": "NOT_EXPOSED",
+    "status": "MISSING",
+    "source_url": "https://openrouter.ai/alibaba/happyhorse-1.1",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+  },
+  {
+    "exact_model_id": "alibaba/happyhorse-1.0",
+    "capability": "multiple_image_references",
+    "value": true,
+    "current_product_exposure": "NOT_EXPOSED",
+    "status": "MISSING",
+    "source_url": "https://openrouter.ai/alibaba/happyhorse-1.0",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+  },
+  {
+    "exact_model_id": "x-ai/grok-imagine-video",
+    "capability": "multiple_image_references",
+    "value": true,
+    "current_product_exposure": "NOT_EXPOSED",
+    "status": "MISSING",
+    "source_url": "https://openrouter.ai/x-ai/grok-imagine-video",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.0",
+    "capability": "multimodal_references",
+    "value": true,
+    "current_product_exposure": "NOT_EXPOSED",
+    "status": "MISSING",
+    "source_url": "https://openrouter.ai/bytedance/seedance-2.0",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+  },
+  {
+    "exact_model_id": "alibaba/wan-2.7",
+    "capability": "multiple_image_references",
+    "value": true,
+    "current_product_exposure": "NOT_EXPOSED",
+    "status": "MISSING",
+    "source_url": "https://openrouter.ai/alibaba/wan-2.7",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.0-fast",
+    "capability": "multimodal_references",
+    "value": true,
+    "current_product_exposure": "NOT_EXPOSED",
+    "status": "MISSING",
+    "source_url": "https://openrouter.ai/bytedance/seedance-2.0-fast",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+  },
+  {
+    "exact_model_id": "google/veo-3.1",
+    "capability": "extension",
+    "value": true,
+    "current_product_exposure": "NOT_EXPOSED",
+    "status": "MISSING",
+    "source_url": "https://openrouter.ai/google/veo-3.1",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+  },
+  {
+    "exact_model_id": "black-forest-labs/flux-video-edit",
+    "capability": "unconditional_text_only_recipe",
+    "value": "Requires source video or image",
+    "current_product_exposure": "T2V READY",
+    "status": "OVEREXPOSED",
+    "source_url": "https://openrouter.ai/black-forest-labs/flux-video-edit",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+  },
+  {
+    "exact_model_id": "black-forest-labs/flux-video-upscale",
+    "capability": "unconditional_text_only_recipe",
+    "value": "Requires source video or image",
+    "current_product_exposure": "T2V READY",
+    "status": "OVEREXPOSED",
+    "source_url": "https://openrouter.ai/black-forest-labs/flux-video-upscale",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+  },
+  {
+    "exact_model_id": "runway/aleph-2",
+    "capability": "unconditional_text_only_recipe",
+    "value": "Requires source video or image",
+    "current_product_exposure": "T2V READY",
+    "status": "OVEREXPOSED",
+    "source_url": "https://openrouter.ai/runway/aleph-2",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+  },
+  {
+    "exact_model_id": "heygen/avatar-iv",
+    "capability": "unconditional_text_only_recipe",
+    "value": "Requires source video or image",
+    "current_product_exposure": "T2V READY",
+    "status": "OVEREXPOSED",
+    "source_url": "https://openrouter.ai/heygen/avatar-iv",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "authority": "EXACT_OFFICIAL_MODEL_PAGE"
+  }
+]

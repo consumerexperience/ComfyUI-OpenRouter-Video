@@ -23,6 +23,7 @@ OBSERVED = datetime(2026, 9, 26, 19, 54, 44, tzinfo=timezone.utc)
 def test_estimator_uses_only_matching_generic_resolution_sku() -> None:
     model = ModelCapabilities(
         "vendor/model",
+        supports_text_only=True,
         supported_durations=(4,),
         supported_resolutions=("480p",),
         pricing_evidence=PricingEvidence(
@@ -47,6 +48,7 @@ def test_estimator_uses_only_matching_generic_resolution_sku() -> None:
 def test_estimator_refuses_ambiguous_or_unmatched_shapes() -> None:
     ambiguous = ModelCapabilities(
         "vendor/model",
+        supports_text_only=True,
         supported_durations=(4,),
         supported_resolutions=("480p",),
         pricing_evidence=PricingEvidence(
@@ -58,6 +60,7 @@ def test_estimator_refuses_ambiguous_or_unmatched_shapes() -> None:
     )
     unmatched = ModelCapabilities(
         "vendor/model",
+        supports_text_only=True,
         supported_durations=(4,),
         supported_resolutions=("480p",),
         pricing_evidence=PricingEvidence((PricingSku("per-video-second-720p", Decimal("0.03")),)),
@@ -84,6 +87,7 @@ def test_estimator_refuses_ambiguous_or_unmatched_shapes() -> None:
 def test_estimator_accepts_only_unambiguous_fixed_generate_shape() -> None:
     model = ModelCapabilities(
         "vendor/model",
+        supports_text_only=True,
         pricing_evidence=PricingEvidence((PricingSku("generate", Decimal("0.42")),)),
     )
 

@@ -1,0 +1,212 @@
+[
+  {
+    "exact_model_id": "x-ai/grok-imagine-video-1.5-lite",
+    "url": "https://openrouter.ai/x-ai/grok-imagine-video-1.5-lite",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "c24c61289b66f254a33f025fdec73486859f521ec42f0b2264a173874456c962"
+  },
+  {
+    "exact_model_id": "heygen/heygen-video-1",
+    "url": "https://openrouter.ai/heygen/heygen-video-1",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "fd5e1752d3b02b8c19c19946df3f54ec4c35d52ba08b66e710db230ae616bae8"
+  },
+  {
+    "exact_model_id": "black-forest-labs/flux-video-edit",
+    "url": "https://openrouter.ai/black-forest-labs/flux-video-edit",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "c4bceff2d9bcf52ba793502a65f4b6f7869623eaf686c1b55537e65a0ffedf47"
+  },
+  {
+    "exact_model_id": "minimax/hailuo-3-max",
+    "url": "https://openrouter.ai/minimax/hailuo-3-max",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "cf22c4fa5ec950192a1a1eebec7f2da011c8b3e51f41bee7666163c6a5681a9a"
+  },
+  {
+    "exact_model_id": "alibaba/wan-3.0-prime",
+    "url": "https://openrouter.ai/alibaba/wan-3.0-prime",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "a283afa16fba2e24d60d88e2d0bf9a3a1c467deb00cfba4f57f84d71f060d5cd"
+  },
+  {
+    "exact_model_id": "alibaba/wan-3.0",
+    "url": "https://openrouter.ai/alibaba/wan-3.0",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "ce58ddf2c6f1c74442d2fd091f167659774f3151e74f52e749e21a6117c94ebc"
+  },
+  {
+    "exact_model_id": "heygen/avatar-iv",
+    "url": "https://openrouter.ai/heygen/avatar-iv",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "ce8f98f403092e04ae0f3d8d356ce82bc2e6549ff1d1e3540ffa8ca991301060"
+  },
+  {
+    "exact_model_id": "black-forest-labs/flux-video-upscale",
+    "url": "https://openrouter.ai/black-forest-labs/flux-video-upscale",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "983f0ab72f5f1d59f79564cefbe4c8c1661fd0cbbf7023de2fee7ffe4eaf63ce"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.0-mini",
+    "url": "https://openrouter.ai/bytedance/seedance-2.0-mini",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "de7e22b80290c5ec6aa3032b7ce08ede8403629d73a643cf60f449212f507347"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.5",
+    "url": "https://openrouter.ai/bytedance/seedance-2.5",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "e86ee97cac57c14201eef772d4ac88b2b01b5bcf179925282e0722e8568ea905"
+  },
+  {
+    "exact_model_id": "black-forest-labs/flux-3-video",
+    "url": "https://openrouter.ai/black-forest-labs/flux-3-video",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "6a16d7f3dea2114dcbbe9cb960f139b61be00ec007cf5d2b7e0bf7fd9b9d5e08"
+  },
+  {
+    "exact_model_id": "minimax/hailuo-3",
+    "url": "https://openrouter.ai/minimax/hailuo-3",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "987e83b539db5f0e9ebf1596a9fa2566da6cff4c8b3a70f4a5a46676b68fb4a3"
+  },
+  {
+    "exact_model_id": "runway/aleph-2",
+    "url": "https://openrouter.ai/runway/aleph-2",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "2abeda9aaa6f2edc9a5bba7bb38f08d6cb5e2e4a43b241afda47b3a4ff6f11f4"
+  },
+  {
+    "exact_model_id": "runway/gen-4.5",
+    "url": "https://openrouter.ai/runway/gen-4.5",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "b13b6b4355d2a78bfab7657b65bf2858fd993176a1cc572b50350298c6a16269"
+  },
+  {
+    "exact_model_id": "x-ai/grok-imagine-video-1.5",
+    "url": "https://openrouter.ai/x-ai/grok-imagine-video-1.5",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "0f87c4780df0b0bc262dfc60b910f117249718dbf264d3241fd99b18541e8e5c"
+  },
+  {
+    "exact_model_id": "alibaba/happyhorse-1.1",
+    "url": "https://openrouter.ai/alibaba/happyhorse-1.1",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "6996130656d3ab46a5366d80dfcfac4c9bccd84b0cd1d98ff968bb57676dc8f6"
+  },
+  {
+    "exact_model_id": "alibaba/happyhorse-1.0",
+    "url": "https://openrouter.ai/alibaba/happyhorse-1.0",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "bfab27d8bc7b10076849d1fdf5d3577bfbd9ef21a746e70149b019840fb2805b"
+  },
+  {
+    "exact_model_id": "x-ai/grok-imagine-video",
+    "url": "https://openrouter.ai/x-ai/grok-imagine-video",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "d6d37efa1db19f62164f2fb081bc0d243244256e20b285293b0cbd5a27dddbeb"
+  },
+  {
+    "exact_model_id": "kwaivgi/kling-v3.0-pro",
+    "url": "https://openrouter.ai/kwaivgi/kling-v3.0-pro",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "c56c47aab9f4ddfaa9bb7dd94879067b136e3494d4902cd97c12eacd85b3f989"
+  },
+  {
+    "exact_model_id": "kwaivgi/kling-v3.0-std",
+    "url": "https://openrouter.ai/kwaivgi/kling-v3.0-std",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "1408fc0974c29a8e51054fc2e5676ae33c77e41b8bc02d188f138cb57f47c018"
+  },
+  {
+    "exact_model_id": "google/veo-3.1-fast",
+    "url": "https://openrouter.ai/google/veo-3.1-fast",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "80a36cb4f4b7d2b67f1d8f8572654739539a5c2217921bbc9d9269f42f304de9"
+  },
+  {
+    "exact_model_id": "google/veo-3.1-lite",
+    "url": "https://openrouter.ai/google/veo-3.1-lite",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "53fa8d91885f16b9ed9cd580041622d268bea4abc91dd469ac0de9fd927c6d71"
+  },
+  {
+    "exact_model_id": "kwaivgi/kling-video-o1",
+    "url": "https://openrouter.ai/kwaivgi/kling-video-o1",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "a448835130286ef5efc10516a082e08ec2bda6826f7c981123e86652e7595b82"
+  },
+  {
+    "exact_model_id": "minimax/hailuo-2.3",
+    "url": "https://openrouter.ai/minimax/hailuo-2.3",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "045650c469751055d0062d92eec1608e897c85f238ec15bd98eeb1b36f8cf9fd"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.0",
+    "url": "https://openrouter.ai/bytedance/seedance-2.0",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "caa8c7f91c9708f05eb921ac061b33eb46b5863a92b3b835a917d77b913cc100"
+  },
+  {
+    "exact_model_id": "alibaba/wan-2.7",
+    "url": "https://openrouter.ai/alibaba/wan-2.7",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "8b7665f7465416b816e58ed71031908b962acdfa2b9656e254e6e679697aed18"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.0-fast",
+    "url": "https://openrouter.ai/bytedance/seedance-2.0-fast",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "94bf0b6dbf992b73dacf2f0787d543dc5a4df3b6467a747a28006f80a698a499"
+  },
+  {
+    "exact_model_id": "alibaba/wan-2.6",
+    "url": "https://openrouter.ai/alibaba/wan-2.6",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "471efa7b0bd73cd1dd676018684408a8a284bd696c503554768764606ef64149"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-1-5-pro",
+    "url": "https://openrouter.ai/bytedance/seedance-1-5-pro",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "7e4678275b15dc4a699ec4b86da99b725b5d2dc4eeab97ecb50200a7dd9f1185"
+  },
+  {
+    "exact_model_id": "google/veo-3.1",
+    "url": "https://openrouter.ai/google/veo-3.1",
+    "observed_at": "2026-10-10T16:37:05.412933+00:00",
+    "status": "RETRIEVED",
+    "sha256": "b06891baf3a529eff1e6ca8c4ae900c88c4b4867d740357aca9881098d5739f3"
+  }
+]

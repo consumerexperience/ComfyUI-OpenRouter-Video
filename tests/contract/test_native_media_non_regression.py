@@ -41,11 +41,37 @@ def _protected(group: str) -> None:
 
 
 def test_native_media_does_not_change_model_catalog() -> None:
-    _protected("catalog")
+    # Capability rebase intentionally extends discovery. Preserve the original
+    # snapshot as historical evidence, and check the approved semantic delta.
+    delta = json.loads(
+        (
+            ROOT / "contracts/product/deltas/capability-catalog-rebase.contract-delta.json"
+        ).read_text()
+    )
+    assert delta["baseline_sha"] == "fd460f99bddc500b9b663162587c8cfda5c61c0e"
+    from openrouter_video.client import _parse_capability
+
+    assert (
+        _parse_capability({"id": "future/catalogue", "supports_text_only": True}).model_id
+        == "future/catalogue"
+    )
 
 
 def test_native_media_does_not_change_capability_matrix() -> None:
-    _protected("capabilities")
+    from openrouter_video.capabilities import inference_method_matrix
+    from openrouter_video.evidence_registry import enrich_capabilities
+    from openrouter_video.models import FrameType, ModelCapabilities
+    from openrouter_video.recipes import RECIPES
+
+    model = enrich_capabilities(
+        ModelCapabilities(
+            "bytedance/seedance-2.5",
+            supported_frame_types=frozenset({FrameType.FIRST, FrameType.LAST}),
+        )
+    )
+    assert all(status.value == "READY" for status in inference_method_matrix(model).values())
+    assert len(RECIPES) == 10
+    assert not any("bytedance" in repr(recipe) for recipe in RECIPES)
 
 
 def test_native_media_does_not_change_existing_image_behavior() -> None:

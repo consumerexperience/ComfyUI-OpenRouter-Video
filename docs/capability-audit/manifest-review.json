@@ -1,0 +1,91 @@
+{
+  "baseline_hash": "2e778faa89bb4a69e6f23db21ea01b1411e519bdeff40a432fd578123f0fabb7",
+  "candidate_hash": "4b628c0feffc1c792be528599241f26a84665ff52a7ca89d4a5b42e6a04d0e82",
+  "changes": [
+    {
+      "exact_model_id": "black-forest-labs/flux-video-edit",
+      "before": {
+        "supports_text_only": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-edit",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-edit",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      },
+      "after": {
+        "supports_text_only": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-edit",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-edit",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "operation.editing": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-edit",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "CAPABILITY_ONLY_CONFIRMED"
+        }
+      }
+    },
+    {
+      "exact_model_id": "google/veo-3.1",
+      "before": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/google/veo-3.1",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/google/veo-3.1",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        }
+      },
+      "after": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/google/veo-3.1",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/google/veo-3.1",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model"
+        },
+        "operation.continuation": {
+          "value": true,
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/google/veo-3.1",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "CAPABILITY_ONLY_CONFIRMED"
+        }
+      }
+    }
+  ],
+  "review_required": true
+}

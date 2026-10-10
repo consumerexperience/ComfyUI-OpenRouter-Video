@@ -4,6 +4,7 @@
       "id": "test/video-alpha",
       "canonical_slug": "test/video-alpha",
       "name": "Synthetic Alpha",
+      "supports_text_only": true,
       "supported_durations": [4, 8],
       "supported_resolutions": ["720p"],
       "supported_aspect_ratios": ["16:9"],

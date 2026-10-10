@@ -1,0 +1,39 @@
+{
+  "authenticated_catalogue_required": true,
+  "catalogue_model_count": 30,
+  "fingerprint_file_count": 39,
+  "health": {
+    "catalogue_model_count": 30,
+    "catalogue_revision": "c7b33362f77f7096ad87ca60fc90adb3f365dcf9c3b8b52953f41f2c621de106",
+    "catalogue_state": "FRESH",
+    "credential_state": "PRESENT",
+    "database_state": "READY",
+    "plugin_loaded": true,
+    "plugin_version": "0.1.0",
+    "runtime_state": "READY",
+    "schema_version": 1,
+    "ui_contract_version": 4
+  },
+  "key_evidence": "AVAILABLE_TO_PROCESS_NOT_DISCLOSED",
+  "listener_pid": 30192,
+  "reason": "Canonical DEV session passed live revalidation",
+  "route_results": {
+    "/openrouter-video/v1/ui-capabilities": 200
+  },
+  "runtime_snapshot": {
+    "catalogue": "FRESH",
+    "code": "CURRENT",
+    "credential": "PRESENT",
+    "next_action": "REUSE",
+    "overall_status": "HEALTHY",
+    "ownership": "PROVEN",
+    "plugin": "READY",
+    "process": "RUNNING",
+    "reason": "RUNNING_HEALTHY",
+    "ui": "UNKNOWN",
+    "upstream": "HEALTHY"
+  },
+  "runtime_source_fingerprint": "c2b09e9c99e2de148b2c04fbf9fdb4faaaba471070155afe4adf851d6e37496d",
+  "runtime_url": "http://127.0.0.1:8189",
+  "state": "RUNNING_HEALTHY"
+}

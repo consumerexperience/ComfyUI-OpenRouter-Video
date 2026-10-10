@@ -1,0 +1,690 @@
+[
+  {
+    "exact_model_id": "black-forest-labs/flux-video-edit",
+    "official_exact_description": [
+      "FLUX Video Edit [fast] takes a source video and an edit prompt and returns a precisely edited video.",
+      "Add, remove, or replace objects and characters, rebuild the setting, edit on-screen..."
+    ],
+    "current_methods": [
+      {
+        "method": "T2V",
+        "status": "READY"
+      },
+      {
+        "method": "I2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "FLF2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "IR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MI2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "VR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "AR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MMR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EDIT",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EXTEND",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      }
+    ],
+    "classification": "REQUIRES_SEMANTIC_REVIEW"
+  },
+  {
+    "exact_model_id": "alibaba/wan-3.0",
+    "official_exact_description": [
+      "Wan 3.0 is a video generation model from Alibaba for text-to-video, image-to-video, and reference-guided video generation."
+    ],
+    "current_methods": [
+      {
+        "method": "T2V",
+        "status": "READY"
+      },
+      {
+        "method": "I2V",
+        "status": "READY"
+      },
+      {
+        "method": "FLF2V",
+        "status": "UNSUPPORTED"
+      },
+      {
+        "method": "IR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MI2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "VR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "AR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MMR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EDIT",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EXTEND",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      }
+    ],
+    "classification": "REQUIRES_SEMANTIC_REVIEW"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.0-mini",
+    "official_exact_description": [
+      "It supports text-to-video, image-to-video with first and last frame control, and multimodal reference-to-video with image, video, and audio inputs."
+    ],
+    "current_methods": [
+      {
+        "method": "T2V",
+        "status": "READY"
+      },
+      {
+        "method": "I2V",
+        "status": "READY"
+      },
+      {
+        "method": "FLF2V",
+        "status": "READY"
+      },
+      {
+        "method": "IR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MI2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "VR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "AR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MMR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EDIT",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EXTEND",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      }
+    ],
+    "classification": "REQUIRES_SEMANTIC_REVIEW"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.5",
+    "official_exact_description": [
+      "It is suited for long-form storytelling, multimodal reference-based generation, video editing, and video extension."
+    ],
+    "current_methods": [
+      {
+        "method": "T2V",
+        "status": "READY"
+      },
+      {
+        "method": "I2V",
+        "status": "READY"
+      },
+      {
+        "method": "FLF2V",
+        "status": "READY"
+      },
+      {
+        "method": "IR2V",
+        "status": "READY"
+      },
+      {
+        "method": "MI2V",
+        "status": "READY"
+      },
+      {
+        "method": "VR2V",
+        "status": "READY"
+      },
+      {
+        "method": "AR2V",
+        "status": "READY"
+      },
+      {
+        "method": "MMR2V",
+        "status": "READY"
+      },
+      {
+        "method": "V2V_EDIT",
+        "status": "READY"
+      },
+      {
+        "method": "V2V_EXTEND",
+        "status": "READY"
+      }
+    ],
+    "classification": "REQUIRES_SEMANTIC_REVIEW"
+  },
+  {
+    "exact_model_id": "minimax/hailuo-3",
+    "official_exact_description": [
+      "It is designed for precise multimodal editing and controlled content generation, including instruction-guided edits, text and brand rendering, and..."
+    ],
+    "current_methods": [
+      {
+        "method": "T2V",
+        "status": "READY"
+      },
+      {
+        "method": "I2V",
+        "status": "READY"
+      },
+      {
+        "method": "FLF2V",
+        "status": "READY"
+      },
+      {
+        "method": "IR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MI2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "VR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "AR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MMR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EDIT",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EXTEND",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      }
+    ],
+    "classification": "REQUIRES_SEMANTIC_REVIEW"
+  },
+  {
+    "exact_model_id": "runway/aleph-2",
+    "official_exact_description": [
+      "Runway Aleph 2.0 is an in-context video editing model from Runway.",
+      "It applies text instructions and keyframe-guided edits across existing footage while preserving details that are not meant to change...."
+    ],
+    "current_methods": [
+      {
+        "method": "T2V",
+        "status": "READY"
+      },
+      {
+        "method": "I2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "FLF2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "IR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MI2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "VR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "AR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MMR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EDIT",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EXTEND",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      }
+    ],
+    "classification": "REQUIRES_SEMANTIC_REVIEW"
+  },
+  {
+    "exact_model_id": "alibaba/happyhorse-1.1",
+    "official_exact_description": [
+      "It generates short videos from a text prompt, a single starting image, or a set of reference images, with output up..."
+    ],
+    "current_methods": [
+      {
+        "method": "T2V",
+        "status": "READY"
+      },
+      {
+        "method": "I2V",
+        "status": "READY"
+      },
+      {
+        "method": "FLF2V",
+        "status": "UNSUPPORTED"
+      },
+      {
+        "method": "IR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MI2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "VR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "AR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MMR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EDIT",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EXTEND",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      }
+    ],
+    "classification": "REQUIRES_SEMANTIC_REVIEW"
+  },
+  {
+    "exact_model_id": "alibaba/happyhorse-1.0",
+    "official_exact_description": [
+      "It generates short videos from a text prompt, a single starting image, or a set of reference images, with output up..."
+    ],
+    "current_methods": [
+      {
+        "method": "T2V",
+        "status": "READY"
+      },
+      {
+        "method": "I2V",
+        "status": "READY"
+      },
+      {
+        "method": "FLF2V",
+        "status": "UNSUPPORTED"
+      },
+      {
+        "method": "IR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MI2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "VR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "AR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MMR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EDIT",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EXTEND",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      }
+    ],
+    "classification": "REQUIRES_SEMANTIC_REVIEW"
+  },
+  {
+    "exact_model_id": "x-ai/grok-imagine-video",
+    "official_exact_description": [
+      "Grok Imagine Video is SpaceXAI's fast, text-, image-, and reference-conditioned video generation model."
+    ],
+    "current_methods": [
+      {
+        "method": "T2V",
+        "status": "READY"
+      },
+      {
+        "method": "I2V",
+        "status": "READY"
+      },
+      {
+        "method": "FLF2V",
+        "status": "UNSUPPORTED"
+      },
+      {
+        "method": "IR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MI2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "VR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "AR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MMR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EDIT",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EXTEND",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      }
+    ],
+    "classification": "REQUIRES_SEMANTIC_REVIEW"
+  },
+  {
+    "exact_model_id": "minimax/hailuo-2.3",
+    "official_exact_description": [
+      "It accepts text prompts and reference images as input and generates video output, supporting both text-to-video and image-to-video workflows."
+    ],
+    "current_methods": [
+      {
+        "method": "T2V",
+        "status": "READY"
+      },
+      {
+        "method": "I2V",
+        "status": "READY"
+      },
+      {
+        "method": "FLF2V",
+        "status": "UNSUPPORTED"
+      },
+      {
+        "method": "IR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MI2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "VR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "AR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MMR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EDIT",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EXTEND",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      }
+    ],
+    "classification": "REQUIRES_SEMANTIC_REVIEW"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.0",
+    "official_exact_description": [
+      "It supports text-to-video, image-to-video with first and last frame control, and multimodal reference-to-video."
+    ],
+    "current_methods": [
+      {
+        "method": "T2V",
+        "status": "READY"
+      },
+      {
+        "method": "I2V",
+        "status": "READY"
+      },
+      {
+        "method": "FLF2V",
+        "status": "READY"
+      },
+      {
+        "method": "IR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MI2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "VR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "AR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MMR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EDIT",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EXTEND",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      }
+    ],
+    "classification": "REQUIRES_SEMANTIC_REVIEW"
+  },
+  {
+    "exact_model_id": "alibaba/wan-2.7",
+    "official_exact_description": [
+      "It supports text-to-video, image-to-video with first and last frame control, and reference-to-video, where multiple reference images guide the style and content..."
+    ],
+    "current_methods": [
+      {
+        "method": "T2V",
+        "status": "READY"
+      },
+      {
+        "method": "I2V",
+        "status": "READY"
+      },
+      {
+        "method": "FLF2V",
+        "status": "READY"
+      },
+      {
+        "method": "IR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MI2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "VR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "AR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MMR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EDIT",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EXTEND",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      }
+    ],
+    "classification": "REQUIRES_SEMANTIC_REVIEW"
+  },
+  {
+    "exact_model_id": "bytedance/seedance-2.0-fast",
+    "official_exact_description": [
+      "It supports text-to-video, image-to-video with first and last frame control, and multimodal reference-to-video."
+    ],
+    "current_methods": [
+      {
+        "method": "T2V",
+        "status": "READY"
+      },
+      {
+        "method": "I2V",
+        "status": "READY"
+      },
+      {
+        "method": "FLF2V",
+        "status": "READY"
+      },
+      {
+        "method": "IR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MI2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "VR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "AR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MMR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EDIT",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EXTEND",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      }
+    ],
+    "classification": "REQUIRES_SEMANTIC_REVIEW"
+  },
+  {
+    "exact_model_id": "alibaba/wan-2.6",
+    "official_exact_description": [
+      "Wan 2.6 generates 1080p video at 24fps from text, images, reference videos, or audio,..."
+    ],
+    "current_methods": [
+      {
+        "method": "T2V",
+        "status": "READY"
+      },
+      {
+        "method": "I2V",
+        "status": "READY"
+      },
+      {
+        "method": "FLF2V",
+        "status": "UNSUPPORTED"
+      },
+      {
+        "method": "IR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MI2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "VR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "AR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "MMR2V",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EDIT",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      },
+      {
+        "method": "V2V_EXTEND",
+        "status": "CAPABILITY_SIGNAL_GAP"
+      }
+    ],
+    "classification": "REQUIRES_SEMANTIC_REVIEW"
+  }
+]

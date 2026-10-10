@@ -1,0 +1,26 @@
+{
+  "CATALOG_MODEL_COUNT": 30,
+  "CONFIRMED_CAPABILITY_FACTS": 256,
+  "CONFIRMED_FACTS_CORRECTLY_EXPOSED": 256,
+  "CONFIRMED_FACTS_MISSING": 0,
+  "CONFIRMED_OVEREXPOSURES": 0,
+  "MODELS_WITH_CONFIRMED_UNDEREXPOSURE": 0,
+  "MODELS_WITH_CONFIRMED_OVEREXPOSURE": 0,
+  "UNKNOWN_UPSTREAM_FACTS": 363,
+  "CAPABILITY_CONFLICTS": 1,
+  "UNMAPPED_UPSTREAM_CAPABILITIES": [
+    "allowed_passthrough_parameters",
+    "creativity",
+    "input_modalities_conflict",
+    "operation.avatar_lipsync",
+    "operation.continuation",
+    "operation.editing",
+    "operation.motion_transfer",
+    "operation.video_upscale",
+    "upscale_factor"
+  ],
+  "CAPABILITY_ONLY_FACTS": 38,
+  "MANUAL_OVERLAY_DEPENDENT_MODELS": 0,
+  "OPENROUTER_PAID_POST_COUNT": 0,
+  "provider_execution_certified": false
+}

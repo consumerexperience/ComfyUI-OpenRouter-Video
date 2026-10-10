@@ -555,7 +555,9 @@ def test_fingerprint_mismatch_and_corrupt_state_never_restore_submit_right(tmp_p
 def test_real_socket_post_received_response_lost_is_submission_unknown_once(
     tmp_path: Path,
 ) -> None:
-    model = ModelCapabilities(model_id="test/video-alpha", supported_durations=(4,))
+    model = ModelCapabilities(
+        model_id="test/video-alpha", supported_durations=(4,), supports_text_only=True
+    )
     database = tmp_path / "jobs.sqlite3"
     store = JobStore(database)
     store.replace_capability_catalog((model,), FIXED_NOW)

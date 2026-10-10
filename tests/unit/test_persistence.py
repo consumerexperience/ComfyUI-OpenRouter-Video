@@ -378,3 +378,35 @@ def test_failed_v1_migration_preserves_original_schema_and_rows(tmp_path: Path) 
         assert connection.execute("PRAGMA user_version").fetchone()[0] == 1
         assert connection.execute("SELECT model FROM jobs").fetchone()[0] == "vendor/model"
         assert connection.execute("SELECT COUNT(*) FROM jobs").fetchone()[0] == 1
+
+
+def test_v5_upgrade_preserves_submit_claim_and_owned_staging(tmp_path: Path) -> None:
+    path = tmp_path / "v5.sqlite3"
+    store = JobStore(path)
+    record = _submitting()
+    assert store.claim_submitting(record)
+    with sqlite3.connect(path) as connection:
+        connection.execute("DROP TABLE capability_profile_evidence")
+        connection.execute("PRAGMA user_version = 5")
+        connection.execute(
+            "INSERT INTO staging_operations VALUES (?, ?)", (record.operation_id, NOW.isoformat())
+        )
+        connection.execute(
+            "INSERT INTO staging_objects VALUES (?, ?, ?, ?, ?)",
+            (
+                "openrouter-video/staging/test-owned",
+                record.operation_id,
+                "test-config",
+                NOW.isoformat(),
+                1,
+            ),
+        )
+    upgraded = JobStore(path)
+    assert upgraded.get_by_operation_id(record.operation_id) == record
+    assert not upgraded.claim_submitting(record)
+    with sqlite3.connect(path) as connection:
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == DATABASE_SCHEMA_VERSION
+        assert connection.execute("SELECT cleanup_pending FROM staging_objects").fetchone() == (1,)
+        assert connection.execute(
+            "SELECT COUNT(*) FROM capability_profile_evidence"
+        ).fetchone() == (0,)

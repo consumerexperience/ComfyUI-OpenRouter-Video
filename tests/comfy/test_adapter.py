@@ -739,7 +739,6 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
     assert projected["max_reference_count"] == 50
     assert projected["mixed_reference_kinds"] is True
     assert projected["supported_inference_methods"] == (
-        "T2V",
         "I2V",
         "IR2V",
         "MI2V",

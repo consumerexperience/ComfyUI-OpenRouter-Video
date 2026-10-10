@@ -4,12 +4,26 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 
 from openrouter_video.capabilities import CapabilityModeStatus, inference_method_matrix
-from openrouter_video.capability_overlays import preferred_inference_method
+from openrouter_video.evidence_registry import preferred_method
 from openrouter_video.models import InferenceMethod, ModelCapabilities
 
 _UI_METHODS = tuple(InferenceMethod)
+
+
+def _evidence_json(value: object) -> object:
+    """Keep conflicting typed evidence serializable at the HTTP boundary."""
+    if isinstance(value, Enum):
+        return value.value
+    if isinstance(value, (set, frozenset)):
+        return sorted((_evidence_json(item) for item in value), key=str)
+    if isinstance(value, (tuple, list)):
+        return [_evidence_json(item) for item in value]
+    if isinstance(value, dict):
+        return {str(key): _evidence_json(item) for key, item in value.items()}
+    return value
 
 
 @dataclass(frozen=True, slots=True)
@@ -34,6 +48,8 @@ class UiModelCapabilities:
     inference_method_statuses: tuple[tuple[str, str], ...]
     preferred_inference_method: str | None
     observed_at: datetime
+    capability_evidence: tuple[dict[str, object], ...] = ()
+    unmapped_capabilities: tuple[str, ...] = ()
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -58,6 +74,8 @@ class UiModelCapabilities:
             ],
             "preferred_inference_method": self.preferred_inference_method,
             "observed_at": self.observed_at.isoformat(),
+            "capability_evidence": self.capability_evidence,
+            "unmapped_upstream_capabilities": self.unmapped_capabilities,
         }
 
 
@@ -98,11 +116,26 @@ def project_model(capabilities: ModelCapabilities, observed_at: datetime) -> UiM
         ),
         preferred_inference_method=(
             preferred.value
-            if (preferred := preferred_inference_method(capabilities.model_id)) is not None
+            if (preferred := preferred_method(capabilities.model_id)) is not None
             and matrix[preferred] is CapabilityModeStatus.READY
             else None
         ),
         observed_at=observed_at,
+        capability_evidence=tuple(
+            {
+                "key": fact.key,
+                "value": _evidence_json(fact.value),
+                "state": fact.state.value,
+                "authority": fact.authority,
+                "source_reference": fact.source_reference,
+                "observed_at": fact.observed_at,
+                "scope": fact.scope,
+                "artifact_version": fact.artifact_version,
+                "conflicting_evidence": _evidence_json(fact.conflicting_evidence),
+            }
+            for fact in capabilities.evidence_facts
+        ),
+        unmapped_capabilities=capabilities.unmapped_capability_keys,
     )
 
 

@@ -19,6 +19,7 @@ from openrouter_video.models import (
     ModelCapabilities,
     PricingEvidence,
 )
+from openrouter_video.pricing_profile import PricingUnit, normalize_pricing
 
 _PER_SECOND: Final = "per-video-second"
 _RESOLUTION_SKU = re.compile(r"^per-video-second-(?P<resolution>[a-z0-9]+)$")
@@ -101,6 +102,22 @@ class PreflightCostEstimator:
             is not CapabilityModeStatus.READY
         ):
             return EstimateResult.unavailable(observed_at, "inference_method_not_authorized")
+        evidence = capabilities.pricing_evidence
+        if evidence is not None and any(
+            sku.key.startswith(
+                (
+                    "duration_seconds",
+                    "cents_",
+                    "video_tokens",
+                    "minimum_",
+                    "text_to_video_",
+                    "image_to_video_",
+                    "reference_",
+                )
+            )
+            for sku in evidence.skus
+        ):
+            return self._current_vocabulary(capabilities, inputs, observed_at)
         if inputs.source_video_present or InputReferenceKind.VIDEO in inputs.reference_kinds:
             return EstimateResult.unavailable(
                 observed_at, "video_input_pricing_semantics_ambiguous"
@@ -143,6 +160,74 @@ class PreflightCostEstimator:
             estimated_cost_usd=estimated,
             provenance=f"catalogue pricing_skus.{selected_key} × duration",
             applied_skus=(selected_key,),
+        )
+
+    def _current_vocabulary(
+        self, capabilities: ModelCapabilities, inputs: CostEstimateInputs, observed_at: datetime
+    ) -> EstimateResult:
+        evidence = capabilities.pricing_evidence
+        if evidence is None or inputs.duration is None:
+            return EstimateResult.unavailable(observed_at, "duration_required_for_pricing")
+        dimensions = normalize_pricing(evidence)
+        if any(d.unit is PricingUnit.UNKNOWN for d in dimensions):
+            return EstimateResult.unavailable(observed_at, "pricing_sku_semantics_ambiguous")
+        if (
+            inputs.source_video_present
+            or InputReferenceKind.VIDEO in inputs.reference_kinds
+            or InputReferenceKind.AUDIO in inputs.reference_kinds
+        ):
+            return EstimateResult.unavailable(observed_at, "input_media_charge_cannot_be_bounded")
+        if any(
+            d.unit in (PricingUnit.OUTPUT_TOKEN, PricingUnit.MEGAPIXEL_SECOND) for d in dimensions
+        ):
+            return EstimateResult.unavailable(
+                observed_at, "token_or_pixel_billing_quantity_unproven"
+            )
+        resolution = inputs.resolution
+        candidates = []
+        image_mode = inputs.inference_method is not InferenceMethod.T2V
+        for d in dimensions:
+            if d.unit is not PricingUnit.OUTPUT_SECOND:
+                continue
+            if (
+                "video_continuation" in d.key
+                and inputs.inference_method is not InferenceMethod.V2V_EXTEND
+            ):
+                continue
+            if "text_to_video_" in d.key and image_mode:
+                continue
+            if "image_to_video_" in d.key and not image_mode:
+                continue
+            if "with_audio" in d.key and not inputs.generate_audio:
+                continue
+            if "without_audio" in d.key and inputs.generate_audio:
+                continue
+            geometry = re.search(r"_(\d+p|\d+k)$", d.key)
+            if geometry and geometry.group(1) != resolution:
+                continue
+            candidates.append(d)
+        if not candidates:
+            return EstimateResult.unavailable(observed_at, "matching_pricing_sku_unavailable")
+        # Conservative upper estimate when generic and specialized prices coexist.
+        selected = max(candidates, key=lambda d: d.rate_usd)
+        estimated = selected.rate_usd * inputs.duration
+        applied = [selected.key]
+        for d in dimensions:
+            if d.unit is PricingUnit.IMAGE_INPUT:
+                count = sum(k is InputReferenceKind.IMAGE for k in inputs.reference_kinds)
+                if inputs.inference_method in (InferenceMethod.I2V, InferenceMethod.FLF2V):
+                    count = 1 if inputs.inference_method is InferenceMethod.I2V else 2
+                estimated += d.rate_usd * count
+                applied.append(d.key)
+            if d.unit is PricingUnit.MINIMUM:
+                estimated = max(estimated, d.rate_usd)
+                applied.append(d.key)
+        return EstimateResult(
+            EstimateAvailability.AVAILABLE,
+            observed_at,
+            estimated,
+            "catalogue typed SKU conservative output/input/minimum bound",
+            tuple(applied),
         )
 
 
