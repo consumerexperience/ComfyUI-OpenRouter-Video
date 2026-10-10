@@ -1,0 +1,9 @@
+{
+  "owner_acceptance": "PENDING",
+  "single_writer_proven": true,
+  "lease_receipt_digest": "sha256:260f58dc17cc3e580ee44cc90f42c949cc9247341ca7973b6cb0f7a7cd7adfba",
+  "paid_posts": 0,
+  "status": "TECHNICAL_REVIEW_CANDIDATE",
+  "lease_receipt_path": "E:\\_ARENAS_lab\\Bizdev\\AI\\OPENROUTER\\adaptive-generation-controls\\output\\verification\\lease-complete.json",
+  "run_id": "adaptive-controls-20261011"
+}

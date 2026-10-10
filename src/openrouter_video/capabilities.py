@@ -14,6 +14,11 @@ from typing import NoReturn
 from urllib.parse import urlsplit
 
 from openrouter_video.client import DiscoveryClient
+from openrouter_video.configuration import (
+    CONFIGURATION_KEY,
+    configuration_status,
+    profile_constraints,
+)
 from openrouter_video.errors import (
     MalformedOpenRouterResponseError,
     OpenRouterHTTPError,
@@ -341,6 +346,38 @@ class RequestValidator:
             "aspect ratio",
         )
         self._supported(request.size, capabilities.supported_sizes, "size")
+        if CONFIGURATION_KEY in capabilities.unmapped_capability_keys:
+            self._fail(
+                ProductErrorCode.CAPABILITY_SIGNAL_GAP,
+                "UNMAPPED_UPSTREAM_CAPABILITY: configuration constraints require review.",
+            )
+        references_for_config = (
+            request.input_references.references if request.input_references else ()
+        )
+        config_status = configuration_status(
+            profile_constraints(capabilities),
+            {
+                "duration": request.duration,
+                "resolution": request.resolution,
+                "aspect_ratio": request.aspect_ratio,
+                "size": request.size,
+            },
+            {
+                "inference_method": request.inference_method.value,
+                "generate_audio": request.generate_audio,
+                "reference_count": len(references_for_config) + (request.source_video is not None),
+                "reference_kinds": tuple(r.kind.value for r in references_for_config)
+                + ((request.source_video.kind.value,) if request.source_video is not None else ()),
+                "source_video_present": request.source_video is not None,
+            },
+        )
+        if config_status != "READY":
+            self._fail(
+                ProductErrorCode.UNSUPPORTED_PARAMETER
+                if config_status == "CONFIRMED_INCOMPATIBLE"
+                else ProductErrorCode.CAPABILITY_SIGNAL_GAP,
+                f"{config_status}: configuration violates or lacks known coupling evidence.",
+            )
         if request.seed is not None and capabilities.supports_seed is not True:
             self._fail(
                 ProductErrorCode.UNSUPPORTED_PARAMETER,

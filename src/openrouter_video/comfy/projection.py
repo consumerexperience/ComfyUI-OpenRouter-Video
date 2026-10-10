@@ -7,6 +7,7 @@ from datetime import datetime
 from enum import Enum
 
 from openrouter_video.capabilities import CapabilityModeStatus, inference_method_matrix
+from openrouter_video.configuration import profile_constraints
 from openrouter_video.evidence_registry import preferred_method
 from openrouter_video.models import InferenceMethod, ModelCapabilities
 
@@ -50,6 +51,7 @@ class UiModelCapabilities:
     observed_at: datetime
     capability_evidence: tuple[dict[str, object], ...] = ()
     unmapped_capabilities: tuple[str, ...] = ()
+    configuration_relations: tuple[dict[str, object], ...] = ()
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -76,6 +78,7 @@ class UiModelCapabilities:
             "observed_at": self.observed_at.isoformat(),
             "capability_evidence": self.capability_evidence,
             "unmapped_upstream_capabilities": self.unmapped_capabilities,
+            "configuration_relations": self.configuration_relations,
         }
 
 
@@ -136,6 +139,7 @@ def project_model(capabilities: ModelCapabilities, observed_at: datetime) -> UiM
             for fact in capabilities.evidence_facts
         ),
         unmapped_capabilities=capabilities.unmapped_capability_keys,
+        configuration_relations=profile_constraints(capabilities),
     )
 
 

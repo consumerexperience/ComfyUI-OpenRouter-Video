@@ -1,0 +1,10 @@
+{
+  "category": "UNSUPPORTED_PARAMETER",
+  "node_type": "OpenRouterVideoGenerate",
+  "invalid_resolution": "2K",
+  "model": "bytedance/seedance-2.0-mini",
+  "negative_local_queues": 1,
+  "paid_posts": 0,
+  "fixtures": 0,
+  "restored_workflow": true
+}

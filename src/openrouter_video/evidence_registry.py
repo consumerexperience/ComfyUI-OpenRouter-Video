@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
+from openrouter_video.configuration import CONFIGURATION_KEY, normalize_constraints
 from openrouter_video.models import (
     CapabilityEvidenceSource,
     CapabilityFact,
@@ -33,6 +34,7 @@ KNOWN_FACTS = frozenset(
         "supports_edit",
         "supports_extend",
         "preferred_inference_method",
+        CONFIGURATION_KEY,
     }
 )
 
@@ -74,6 +76,8 @@ def load_manifest(path: Path = MANIFEST_PATH) -> dict[str, Any]:
             value = evidence.get("value")
             if value is None:
                 continue
+            if key == CONFIGURATION_KEY:
+                normalize_constraints(value)
             if key in {
                 "supports_text_only",
                 "source_required",
@@ -130,6 +134,15 @@ def enrich_capabilities(
             )
         )
         current = getattr(refs, key, None) if key in reference_fields else getattr(model, key, None)
+        if key == CONFIGURATION_KEY:
+            current = next(
+                (
+                    f.value
+                    for f in model.evidence_facts
+                    if f.key == CONFIGURATION_KEY and f.value is not None
+                ),
+                None,
+            )
         if key in reference_fields and current is not None:
             source_key = {
                 "reference_kinds": "reference_kinds_source",
@@ -143,6 +156,10 @@ def enrich_capabilities(
             if key == "reference_kinds" and value is not None
             else value
         )
+        if key == CONFIGURATION_KEY and value is not None:
+            effective = normalize_constraints(value)
+            if current is not None:
+                current = normalize_constraints(current)
         if current is not None and current != effective and effective is not None:
             state = CapabilityFactState.CONFLICT
             conflicts += (current, value)
@@ -172,7 +189,7 @@ def enrich_capabilities(
             current is None
             and effective is not None
             and not conflicts
-            and key != "preferred_inference_method"
+            and key not in {"preferred_inference_method", CONFIGURATION_KEY}
         ):
             if key in reference_fields:
                 ref_changes[key] = effective

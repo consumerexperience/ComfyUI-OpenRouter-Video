@@ -13,6 +13,7 @@ from typing import Any, Protocol
 
 import httpx
 
+from openrouter_video.configuration import CONFIGURATION_KEY, finite_domain, normalize_constraints
 from openrouter_video.errors import MalformedOpenRouterResponseError, OpenRouterHTTPError
 from openrouter_video.models import (
     CapabilityEvidenceSource,
@@ -177,6 +178,11 @@ def _optional_string_tuple(value: object) -> tuple[str, ...] | None:
 def _optional_int_tuple(value: object) -> tuple[int, ...] | None:
     if value is None:
         return None
+    if isinstance(value, dict):
+        try:
+            return tuple(finite_domain(value, numeric=True))
+        except ValueError:
+            return None
     if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
         return None
     result = tuple(item for item in value if isinstance(item, int) and not isinstance(item, bool))
@@ -221,6 +227,7 @@ def _parse_capability(value: Mapping[Any, Any]) -> ModelCapabilities:
         "mixed_reference_kinds",
         "supports_edit",
         "supports_extend",
+        CONFIGURATION_KEY,
     }
     raw_kinds = _optional_string_tuple(value.get("reference_kinds"))
     reference_kinds = (
@@ -235,14 +242,29 @@ def _parse_capability(value: Mapping[Any, Any]) -> ModelCapabilities:
     observed = datetime.now(timezone.utc).isoformat()
     control_keys = {"upscale_factor", "creativity", "allowed_passthrough_parameters"}
     control_values = {key: _catalogue_control(value.get(key), key) for key in control_keys}
+    configuration = None
+    configuration_invalid = False
+    if value.get(CONFIGURATION_KEY) is not None:
+        try:
+            configuration = normalize_constraints(value[CONFIGURATION_KEY])
+        except (TypeError, ValueError):
+            configuration_invalid = True
     facts = tuple(
         CapabilityFact(
             model_id,
             str(key),
-            control_values[key] if key in control_keys else raw if key in known_keys else None,
+            configuration
+            if key == CONFIGURATION_KEY
+            else control_values[key]
+            if key in control_keys
+            else raw
+            if key in known_keys
+            else None,
             CapabilityFactState.UNKNOWN
             if (
-                control_values[key] is None
+                configuration is None
+                if key == CONFIGURATION_KEY
+                else control_values[key] is None
                 if key in control_keys
                 else raw is None or key not in known_keys
             )
@@ -306,7 +328,12 @@ def _parse_capability(value: Mapping[Any, Any]) -> ModelCapabilities:
         if isinstance(value.get("supports_extend"), bool)
         else None,
         evidence_facts=facts,
-        unmapped_capability_keys=tuple(sorted(str(key) for key in value if key not in known_keys)),
+        unmapped_capability_keys=tuple(
+            sorted(
+                {str(key) for key in value if key not in known_keys}
+                | ({CONFIGURATION_KEY} if configuration_invalid else set())
+            )
+        ),
     )
 
 
