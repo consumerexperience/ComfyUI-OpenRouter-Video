@@ -1,0 +1,24 @@
+{
+  "accepted_tags_update": false,
+  "existing_tag_targets": {
+    "phase10-native-media-v1": "fd460f99bddc500b9b663162587c8cfda5c61c0e",
+    "capability-catalog-rebase-v1": "0f05665cb302fe4bc8398f2e9e04b08a5116a313"
+  },
+  "required_checks": [
+    "quality",
+    "test-linux-py310",
+    "test-linux-py313",
+    "test-windows-py310",
+    "test-windows-py313",
+    "Analyze Python"
+  ],
+  "tag_ruleset_id": 24853656,
+  "bypass_actors": [],
+  "observed_at": "2026-10-10T20:12:23.4120789Z",
+  "strict_current_head": true,
+  "main_merges_via_pr": true,
+  "accepted_tags_deletion": false,
+  "main_force_push": false,
+  "main_ruleset_id": 22208173,
+  "main_deletion": false
+}

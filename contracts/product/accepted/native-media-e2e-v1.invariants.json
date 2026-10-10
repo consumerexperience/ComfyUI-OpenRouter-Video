@@ -1,0 +1,79 @@
+{
+  "invariants": {
+    "native_media": [
+      "IMAGE normalization",
+      "VIDEO normalization",
+      "AUDIO normalization",
+      "no manual public URL",
+      "private staging",
+      "transient signed URLs",
+      "exact-owned cleanup",
+      "ambiguity preservation"
+    ],
+    "references": [
+      "ordered references",
+      "duplicates",
+      "mixed IMAGE VIDEO AUDIO",
+      "Source Video semantics"
+    ],
+    "submit_resume": [
+      "maximum one intentional paid POST",
+      "no paid retry",
+      "no ambiguous resubmit",
+      "Resume cannot submit",
+      "Resume cannot upload"
+    ],
+    "capabilities": [
+      "confirmed facts retained",
+      "zero confirmed overexposure",
+      "zero Python per-model overlays",
+      "UNKNOWN retained",
+      "conflicts retained",
+      "Mini MMR2V 480p 4 seconds IMAGE VIDEO AUDIO",
+      "Seedance 2.5 preserved"
+    ],
+    "security": [
+      "no credential serialization",
+      "immutable AppIdentity",
+      "no arbitrary passthrough",
+      "unsafe pricing UNKNOWN",
+      "PROD 8188 excluded"
+    ]
+  },
+  "executable_coverage": {
+    "native_media": [
+      "tests/unit/test_native_staging.py",
+      "tests/unit/test_image_transport.py",
+      "tests/unit/test_s3_upload.py"
+    ],
+    "references": [
+      "tests/unit/test_native_staging.py",
+      "tests/unit/test_image_transport.py"
+    ],
+    "submit_resume": [
+      "tests/unit/test_application.py",
+      "tests/unit/test_native_staging.py"
+    ],
+    "capabilities": [
+      "tests/unit/test_evidence_registry.py",
+      "tests/contract/test_native_media_non_regression.py"
+    ],
+    "security": [
+      "tests/contract/test_request_policy.py",
+      "tests/contract/test_harness_security_privacy.py",
+      "tests/unit/test_pricing_profile.py",
+      "tests/unit/test_runtime_policy.py"
+    ]
+  },
+  "paid_ci": false,
+  "paid_recertification_triggers": [
+    "provider request serialization",
+    "reference wire representation",
+    "native media transport",
+    "staging transport",
+    "submit lifecycle",
+    "payload affecting recipe semantics",
+    "upstream Video API contract",
+    "owner release certification"
+  ]
+}

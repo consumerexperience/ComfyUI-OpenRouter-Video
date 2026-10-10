@@ -1,0 +1,45 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "native-media-e2e-regression-shield",
+  "baseline_checkpoint": "capability-catalog-rebase-v1",
+  "baseline_sha": "0f05665cb302fe4bc8398f2e9e04b08a5116a313",
+  "risk_tier": "B",
+  "intended_delta": [
+    "Record owner accepted paid smoke and add test/metadata/CI protection only; no product changes"
+  ],
+  "allowed_semantic_changes": [],
+  "protected_surfaces": [
+    "/surfaces/product_owned/capabilities",
+    "/surfaces/product_owned/AppIdentity",
+    "/surfaces/product_owned/submit_resume",
+    "/surfaces/product_owned/native_media",
+    "/surfaces/product_owned/evidence_registry",
+    "/surfaces/product_owned/storage",
+    "/surfaces/product_owned/database_migrations",
+    "/surfaces/product_owned/pricing",
+    "/surfaces/product_owned/recipes",
+    "/surfaces/product_owned/credentials",
+    "/surfaces/product_owned/workflow_persistence"
+  ],
+  "expected_components": [
+    "contracts",
+    "tests",
+    "docs",
+    "CI"
+  ],
+  "required_gates": [
+    "full_tests",
+    "ruff",
+    "ruff_format",
+    "mypy",
+    "build",
+    "dependency_audit",
+    "CodeQL",
+    "exact_head",
+    "baseline_declaration",
+    "negative_space_tests",
+    "semantic_diff"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

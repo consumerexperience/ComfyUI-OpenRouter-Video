@@ -1,0 +1,76 @@
+{
+  "protocol": "openrouter-video-product-contract",
+  "schema_version": 1,
+  "contract_id": "native-media-e2e-regression-v1",
+  "checkpoint_id": "capability-catalog-rebase-v1",
+  "subject_sha": "0f05665cb302fe4bc8398f2e9e04b08a5116a313",
+  "exporter": {
+    "name": "accepted-source-normalized-digest",
+    "version": "1"
+  },
+  "surfaces": {
+    "product_owned": {
+      "capabilities": {
+        "src~1openrouter_video~1__init___py": "29609578652107b9020a259f63a9076e7128ac40d8638935b40f7d475417287b",
+        "src~1openrouter_video~1capabilities_py": "0514ffe7e7bd01aa1d5e4d97128daa071835d2b400ff21e2b2bb9b6760488bd5",
+        "src~1openrouter_video~1capability_overlays_py": "2faf6a156a6abe497992f6dfec594c3e6f6a0fcaaf45a963b3a6b428311cb232",
+        "src~1openrouter_video~1client_py": "73c42656a97178b5b7aae9098219f8071194c442581a3682163e17b987ba5c9c",
+        "src~1openrouter_video~1comfy~1__init___py": "53c1674848551aacdf94a06520af63ff90947add1e69af174b3d983367958654",
+        "src~1openrouter_video~1comfy~1compat_py": "073afc31544c1891b97793101b1bdeba8dcb226e362bc2eb2ad413595d0236ea",
+        "src~1openrouter_video~1comfy~1extension_py": "e8e544a1cd58cd7933fb62fab5a42f834a630d29cc50446324a69a295d9107ae",
+        "src~1openrouter_video~1comfy~1image_py": "ad04516d799f093ce6dfa65ecf0dc193970408119338c4da329dd9da4a88ba50",
+        "src~1openrouter_video~1comfy~1nodes_py": "89e7063926a0020e096320606b0fd5810f3f3b4924a9ca07a0c699e78ea2c653",
+        "src~1openrouter_video~1comfy~1projection_py": "de06997aea5b4fef6bebd356439655d0485442fb98f92e1a44cdcd39400f81f6",
+        "src~1openrouter_video~1comfy~1routes_py": "e3be56634c60447a526402c510e829a575b9d20e7dc58ee29fb890048d27b3ee",
+        "src~1openrouter_video~1comfy~1video_py": "4a68b60806cfce1e06712f0dcee3e0adef07d96ab553ce070d9c25bbfcf3aae4",
+        "src~1openrouter_video~1errors_py": "2ee7cc10ae9e353b28539b82810b8a7bf54ed1c33f6373daab2d71c3dd50642f",
+        "src~1openrouter_video~1image_transport_py": "b855df55ecf95d08d0aae6972a8f31ddb09945ea4686888ba28c9bef660761f0",
+        "src~1openrouter_video~1lifecycle_py": "5a8a124025bfdfdddba5c6d5714a02c061f81d7544a5e0e2ac033ee3adfbdc75",
+        "src~1openrouter_video~1media_py": "28f4680749b6ae634f0df6781c292aec0ed9e479a7fd305930a3fa4362a895bc",
+        "src~1openrouter_video~1models_py": "871883105a54340e9f93e646d67a112d4d2f3991b6b958358d0ef09c76db41d9",
+        "src~1openrouter_video~1observability_py": "b4c97e23d1bfbffa4553c6af9064a695ead6a7fd8e66b1c23f682a55c2305f7b",
+        "src~1openrouter_video~1policy_py": "86429367bd0a510502a114b085263bb21472e42b403e49fb1d3ec945aa8dbf39",
+        "src~1openrouter_video~1request_policy_py": "df34611e8fcf10b280d3c6d94bafc48be4feeff7879e0380d7f417e8ff43a141",
+        "src~1openrouter_video~1transport_py": "be05e33cc8ee5561185bb804848d2c2aba61f3229b622a035bb2f8d82a560a96"
+      },
+      "AppIdentity": {
+        "src~1openrouter_video~1app_identity_py": "94fc446b83ddd707ca4d6463b280dd0fa210e4f106ec08a059bf4abd260e7ed7"
+      },
+      "submit_resume": {
+        "src~1openrouter_video~1application_py": "0b01e0cdf2a479749c414c0ee3c11d3187eed17957d3faed97c4b4d0bad5fe2a",
+        "src~1openrouter_video~1comfy~1runtime_py": "6d7129cb65e3cb25cb2d24df92d6498bcf227e6e4953fd164444deacdee72c0e",
+        "src~1openrouter_video~1execution_hooks_py": "459c6370f1b987ee5214139172e910fa2af0884869b8fed2a328d0cb4cf47da7"
+      },
+      "native_media": {
+        "src~1openrouter_video~1comfy~1native_media_py": "b299ac091d9191f3dcd35b8611b4b88cba0faa302a0bc9c5502d8c78afea435e"
+      },
+      "evidence_registry": {
+        "src~1openrouter_video~1data~1capability-evidence_json": "a6a771959633875f3c690859e78f6a3b07176701daace1fb1c7ceb4fc952fea0",
+        "src~1openrouter_video~1evidence_registry_py": "a2de33d1868f84a000bf3f2c8b1b6799daff61dcac1fa9f92d16644db1ade830"
+      },
+      "storage": {
+        "src~1openrouter_video~1local_media_py": "67ecfd50ba69076b254c6dfee979535ef0e65d7b62c8f9627d95ec8efdf5fce6",
+        "src~1openrouter_video~1s3_upload_py": "bd01633e38999b3f0214d9c002e296e2a03ec328a9ecacfce0f9ff5ee7c9c4bf",
+        "src~1openrouter_video~1staging_py": "c42e38037a0c8d6f4093bca75d15b1d9e2cbebfb17d58f4e4be7267a718165fd"
+      },
+      "database_migrations": {
+        "src~1openrouter_video~1persistence_py": "da8297880feb43f6bb4bfd54b8b677462d0b859c72e72e1a78b0bd6d0a38cff4"
+      },
+      "pricing": {
+        "src~1openrouter_video~1pricing_py": "c73360cad870769b21545b9453a5af5e38922812207075488d4ee596ea9e4e52",
+        "src~1openrouter_video~1pricing_profile_py": "9fbd09ffa1bdd102a8042352edb1eda40004885f8d52c9a4080446293bb11f06"
+      },
+      "recipes": {
+        "src~1openrouter_video~1recipes_py": "9cbc7dc0a65f3a1f7dcd3783d16e3a745b76abffe52f949491a9748b73fe69e6"
+      },
+      "credentials": {
+        "src~1openrouter_video~1secrets_py": "9cd779b0340bbe9ce3a39fa8cb410142980b922cbebc14774a3eaf07ada2c5b9"
+      },
+      "workflow_persistence": {
+        "web~1openrouter_video_js": "e378feaaa5178aedf7dc1edb0221fdd0c96ac0a0da9b4f722cb5659fedfd9646"
+      }
+    },
+    "upstream_dynamic": {},
+    "observed_evidence": {}
+  }
+}
