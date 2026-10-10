@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "LIVE_TESTED_PRODUCT_SHA": "0f05665cb302fe4bc8398f2e9e04b08a5116a313",
+  "PRODUCT_SOURCE_SHA": "0f05665cb302fe4bc8398f2e9e04b08a5116a313",
+  "REGRESSION_SHIELD_CHECKPOINT_SHA": null,
+  "checkpoint_state": "AWAITING_HUMAN_PR_MERGE",
+  "MODEL": "bytedance/seedance-2.0-mini",
+  "METHOD": "MMR2V",
+  "RESOLUTION": "480p",
+  "DURATION_SECONDS": 4,
+  "JOB_ID": "gen-vid-1791661746-JSqWE4btXWZBdeDBkqPS",
+  "PAID_POST_COUNT": 1,
+  "SUBMIT": "ACCEPTED",
+  "IMAGE_REFERENCE_ACCEPTED": "YES",
+  "VIDEO_REFERENCE_ACCEPTED": "YES",
+  "AUDIO_REFERENCE_ACCEPTED": "YES",
+  "GENERATION_STATE": "COMPLETED",
+  "RESULT_DOWNLOAD": "PASS",
+  "NATIVE_COMFY_VIDEO_OUTPUT": "PASS",
+  "STAGING_CLEANUP": "PASS",
+  "RESUME_USED": "NO",
+  "RESUBMIT_OCCURRED": "NO",
+  "ACTUAL_COST_USD": "0.169617",
+  "COMFY_NATIVE_MEDIA_UPLOAD": "PASS",
+  "CAPABILITY_CATALOG_LIVE_PROOF": "PASS",
+  "FINAL_RESULT": "OPENROUTER_VIDEO_NATIVE_MEDIA_E2E_ACCEPTED",
+  "provenance": {
+    "local_evidence_receipt": "E:/_ARENAS_lab/Bizdev/AI/OPENROUTER/output/storage-provisioning/firstbyte-11371/owner-mini-final-evidence.json",
+    "local_video": "E:/_ARENAS_lab/Bizdev/AI/OPENROUTER/dev/ComfyUI-DEV/output/openrouter-video/owner-mini-native-smoke_00001_.mp4",
+    "video_sha256": "1585132a53c000cb3671d3259bb91af6d9d06c16336ccea0b2e9456e30a4d209",
+    "video_dimensions": [
+      864,
+      496
+    ],
+    "video_duration_seconds": 4.041667,
+    "binary_committed": false,
+    "native_inputs": [
+      "IMAGE",
+      "VIDEO",
+      "AUDIO"
+    ],
+    "manual_public_url_required": false
+  }
+}

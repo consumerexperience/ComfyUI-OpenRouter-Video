@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import importlib.util
 import json
 import os
@@ -119,3 +120,82 @@ def test_fixture_evidence_cannot_define_catalogue_or_capability_semantics() -> N
     assert "fixture" not in owned
     assert dynamic["immutable_model_count"] is False
     assert "fixture" not in evidence["observation_source"].casefold()
+
+
+SHIELD = ROOT / "contracts/product/accepted/native-media-e2e-v1.product-contract.json"
+SHIELD_DELTA = (
+    ROOT / "contracts/product/deltas/native-media-e2e-regression-shield.contract-delta.json"
+)
+
+
+def _shield_current(accepted: dict[str, Any]) -> dict[str, Any]:
+    current = copy.deepcopy(accepted)
+    owners = {
+        key: surface
+        for surface, files in accepted["surfaces"]["product_owned"].items()
+        for key in files
+    }
+    owned: dict[str, dict[str, str]] = {surface: {} for surface in set(owners.values())}
+    files = list((ROOT / "src/openrouter_video").rglob("*")) + list((ROOT / "web").glob("*.js"))
+    for path in files:
+        if path.suffix not in {".py", ".json", ".js"}:
+            continue
+        key = path.relative_to(ROOT).as_posix().replace("/", "~1").replace(".", "_")
+        surface = owners.get(key, "capabilities")
+        text = path.read_text(encoding="utf-8").replace("\r\n", "\n")
+        owned[surface][key] = hashlib.sha256(text.encode()).hexdigest()
+    current["surfaces"]["product_owned"] = owned
+    return current
+
+
+def test_live_accepted_source_has_no_undeclared_protected_delta() -> None:
+    accepted = _load(SHIELD)
+    delta_path = os.environ.get("OPENROUTER_VIDEO_CONTRACT_DELTA")
+    delta = _load(ROOT / delta_path) if delta_path else _load(SHIELD_DELTA)
+    assert delta["baseline_sha"] == accepted["subject_sha"]
+    result = guard.semantic_diff(accepted, _shield_current(accepted), delta)
+    assert result["STATUS"] == "PASS", result["UNAUTHORIZED_DELTA"]
+
+
+def test_every_protected_surface_rejects_unexpected_delta() -> None:
+    accepted = _load(SHIELD)
+    for surface, files in accepted["surfaces"]["product_owned"].items():
+        current = copy.deepcopy(accepted)
+        current["surfaces"]["product_owned"][surface][next(iter(files))] = "regression"
+        result = guard.semantic_diff(accepted, current, _load(SHIELD_DELTA))
+        assert result["STATUS"] == "FAIL", surface
+        assert result["UNAUTHORIZED_DELTA"]
+
+
+def test_shield_snapshot_cannot_be_rewritten_to_hide_source_regression() -> None:
+    accepted = _load(SHIELD)
+    assert accepted["subject_sha"] == "0f05665cb302fe4bc8398f2e9e04b08a5116a313"
+    reader = exporter.TreeReader(ROOT, accepted["subject_sha"])
+    for files in accepted["surfaces"]["product_owned"].values():
+        for key, expected in files.items():
+            stem, extension = key.rsplit("_", 1)
+            relative = stem.replace("~1", "/") + "." + extension
+            text = reader.text(relative).replace("\r\n", "\n")
+            assert hashlib.sha256(text.encode()).hexdigest() == expected, relative
+
+
+def test_live_receipt_is_bound_to_certified_product_not_shield_commit() -> None:
+    receipt = _load(ROOT / "contracts/product/evidence/native-media-e2e-live-acceptance-v1.json")
+    assert receipt["LIVE_TESTED_PRODUCT_SHA"] == _load(SHIELD)["subject_sha"]
+    assert receipt["PAID_POST_COUNT"] == 1
+    assert receipt["ACTUAL_COST_USD"] == "0.169617"
+    assert receipt["FINAL_RESULT"] == "OPENROUTER_VIDEO_NATIVE_MEDIA_E2E_ACCEPTED"
+    assert receipt["provenance"]["binary_committed"] is False
+    assert receipt["provenance"]["native_inputs"] == ["IMAGE", "VIDEO", "AUDIO"]
+    assert receipt["RESUBMIT_OCCURRED"] == "NO"
+
+
+def test_regression_contract_has_executable_coverage_and_no_paid_ci() -> None:
+    contract = _load(ROOT / "contracts/product/accepted/native-media-e2e-v1.invariants.json")
+    assert contract["paid_ci"] is False
+    assert set(contract["invariants"]) == set(contract["executable_coverage"])
+    for paths in contract["executable_coverage"].values():
+        assert paths
+        for path in paths:
+            assert (ROOT / path).is_file()
+            assert "def test_" in (ROOT / path).read_text(encoding="utf-8")
