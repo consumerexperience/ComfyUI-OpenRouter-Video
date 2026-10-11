@@ -79,3 +79,128 @@ test("native DOM setter preserves semantic seconds without INT callback recursio
     range.events.click();
     assert.equal(item.serializeValue(),4);
 });
+
+function minimalSliderFixture(value = 0) {
+    const elements = [];
+    const document = { createElement(tag) {
+        const element = { tag, style: {}, attributes: {}, children: [], events: {},
+            setAttribute(name, value) { this.attributes[name] = value; },
+            append(...children) { this.children.push(...children); },
+            addEventListener(name, callback) { this.events[name] = callback; },
+        };
+        elements.push(element);
+        return element;
+    } };
+    const scoped = { app: { registerExtension() {} }, api: {}, document };
+    vm.runInNewContext(source, scoped);
+    const previous = { name: "duration", value };
+    let chained = 0;
+    const unrelatedMenu = { content: "Existing node action" };
+    const node = {
+        widgets: [previous], __orvCapabilityStatus: { value: "" },
+        getExtraMenuOptions() { chained++; return [unrelatedMenu]; },
+        addDOMWidget(name, type, element, options) {
+            const widget = { name, type, element, options };
+            Object.defineProperty(widget, "value", {
+                get: options.getValue,
+                set(next) { options.setValue(next); widget.callback?.(next); },
+            });
+            this.widgets.push(widget);
+            return widget;
+        },
+    };
+    scoped.createDurationSlider(node, previous);
+    const item = node.widgets[0];
+    item.__orvComputeSize = item.computeSize; // applyPresentation caches this in the real node
+    const range = elements.find(e => e.type === "range");
+    const output = elements.filter(e => e.tag === "span")[1];
+    return { scoped, node, item, range, output, elements, chained: () => chained, unrelatedMenu };
+}
+
+for (const values of [[5, 10], [4, 6, 8], Array.from({ length: 30 }, (_, i) => i + 1)]) {
+    test(`minimal visible surface and drag preserves ${values.length} discrete values`, () => {
+        const { scoped, node, item, range, output, elements } = minimalSliderFixture();
+        scoped.configureDuration(node, values);
+        assert.equal(output.textContent, "Default");
+        assert.equal(item.value, 0); // fresh node keeps omission, never selects minimum implicitly
+        assert.deepEqual(elements.map(e => e.tag), ["div", "div", "span", "span", "input"]);
+        assert.equal(elements.some(e => e.tag === "button" || e.tag === "datalist"), false);
+        assert.equal(item.element.children.length, 2); // header + track only, no footer
+        assert.ok(item.computeSize()[1] < 70);
+        for (let position = 0; position < values.length; position++) {
+            range.value = position;
+            range.events.input();
+            assert.equal(item.value, values[position]);
+            assert.equal(output.textContent, `${values[position]}s`);
+            assert.equal(item.serializeValue(), values[position]);
+        }
+        range.value = 0;
+        range.events.click();
+        assert.equal(item.serializeValue(), values[0]);
+    });
+}
+
+test("native contextual reset preserves previous node actions and Default omission sentinel", () => {
+    const f = minimalSliderFixture(8);
+    f.scoped.configureDuration(f.node, [4, 6, 8]);
+    const options = f.node.getExtraMenuOptions({}, []);
+    assert.equal(f.chained(), 1);
+    assert.equal(options[1], f.unrelatedMenu);
+    assert.equal(options[0].content, "Reset Duration to model default");
+    options[0].callback();
+    assert.equal(f.output.textContent, "Default");
+    assert.equal(f.item.serializeValue(), 0);
+    assert.equal(f.node.__orvCapabilityStatus.value, ""); // no permanent instructional hint
+    const restored = minimalSliderFixture(JSON.parse(JSON.stringify(f.item.serializeValue())));
+    restored.scoped.configureDuration(restored.node, [4, 6, 8]);
+    assert.equal(restored.output.textContent, "Default");
+    assert.equal(restored.item.serializeValue(), 0);
+});
+
+test("explicit semantic seconds survive save/reload independently of slider index", () => {
+    const f = minimalSliderFixture(8);
+    f.scoped.configureDuration(f.node, [4, 6, 8]);
+    assert.equal(f.range.value, 2);
+    const saved = JSON.stringify(f.item.serializeValue());
+    assert.equal(saved, "8");
+    const restored = minimalSliderFixture(JSON.parse(saved));
+    restored.scoped.configureDuration(restored.node, [4, 6, 8]);
+    assert.equal(restored.item.value, 8);
+    assert.equal(restored.output.textContent, "8s");
+    assert.equal(restored.range.value, 2);
+});
+
+test("sparse keyboard and model/method reprojection keep the same semantic domain", () => {
+    const f = minimalSliderFixture(2);
+    const event = key => ({ key, preventDefault() {}, stopPropagation() {} });
+    f.scoped.configureDuration(f.node, [1, 2, 5, 10]);
+    f.range.events.keydown(event("ArrowRight"));
+    assert.equal(f.item.value, 5);
+    f.range.events.keydown(event("Home"));
+    assert.equal(f.item.value, 1);
+    f.range.events.keydown(event("End"));
+    assert.equal(f.item.value, 10);
+    f.scoped.configureDuration(f.node, [4, 6, 8]); // model change preserves incompatible intent
+    assert.equal(f.item.value, 10);
+    assert.match(f.node.__orvCapabilityStatus.value, /incompatible/);
+    const capability = {
+        supported_durations: [4, 6, 8], supported_resolutions: ["720p", "1080p"],
+        configuration_relations: [{ axes: ["resolution", "duration"], when: { inference_method: ["I2V"] }, complete: true,
+            allowed: [{ resolution: ["1080p"], duration: [4, 6] }, { resolution: ["720p"], duration: [4, 6, 8] }], forbidden: [] }],
+    };
+    for (const [method, expected] of [["T2V", [4, 6, 8]], ["I2V", [4, 6]]]) {
+        const projected = f.scoped.configurationOptions(capability, { resolution: "1080p" }, { inference_method: method });
+        f.scoped.configureDuration(f.node, projected.options.duration);
+        assert.deepEqual(plain(f.item.__orvDomain.allowed_values), expected);
+        assert.equal(f.item.value, 10);
+    }
+});
+
+test("polish preserves classifier, adaptation, wire, native media and all non-Duration functions", async () => {
+    const { execFileSync } = await import("node:child_process");
+    const root = new URL("../../", import.meta.url);
+    const baseline = execFileSync("git", ["show", "574ed24669e0662976569c87329ec7a0c01b7a88:web/openrouter_video.js"], { cwd: root, encoding: "utf8" });
+    const functions = text => Object.fromEntries(text.replace(/\r\n/g, "\n").split(/(?=^function |^async function )/m).slice(1).map(part => [part.match(/function (\w+)/)[1], part.slice(0, part.lastIndexOf("}") + 1).trim()]));
+    const before = functions(baseline), after = functions(source);
+    for (const name of Object.keys(before)) if (!["createDurationSlider", "configureDuration"].includes(name)) assert.equal(after[name], before[name], name);
+});

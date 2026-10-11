@@ -515,38 +515,32 @@ function createDurationSlider(node, previous) {
     let item;
     if (typeof document !== "undefined" && node.addDOMWidget) {
         const element = document.createElement("div");
-        element.style.cssText = "box-sizing:border-box;padding:5px 12px;color:var(--input-text,#ddd);background:var(--comfy-input-bg,#222);border-radius:8px;font:12px sans-serif;";
+        element.style.cssText = "box-sizing:border-box;padding:3px 12px;color:var(--input-text,#ddd);font:12px sans-serif;";
         const header = document.createElement("div");
-        header.style.cssText = "display:flex;align-items:center;gap:8px;margin-bottom:4px";
+        header.style.cssText = "display:flex;align-items:center;margin-bottom:2px";
         const label = document.createElement("span");
         label.textContent = "Duration";
         label.style.flex = "1";
         const output = document.createElement("span");
-        const auto = document.createElement("button");
-        auto.textContent = "AUTO";
-        auto.title = "Model default — duration field omitted";
-        auto.style.cssText = "font:inherit;color:inherit;background:transparent;border:1px solid #555;border-radius:4px;padding:1px 5px;cursor:pointer";
         const range = document.createElement("input");
         range.type = "range";
         range.setAttribute("aria-label", "Duration in seconds");
         range.style.cssText = "width:100%;margin:0;accent-color:var(--p-primary-color,#8baaa4)";
-        const scale = document.createElement("div");
-        scale.style.cssText = "display:flex;justify-content:space-between;color:#aaa;font-size:10px";
-        header.append(label, output, auto);
-        element.append(header, range, scale);
+        range.title = "Reset Duration to model default from the node context menu";
+        header.append(label, output);
+        element.append(header, range);
         let value = previous.value ?? 0;
         item = node.addDOMWidget("duration", "orv-duration-slider", element, {
             getValue: () => value,
             setValue: (next) => { value = next; item?.__orvRefresh?.(); },
             hideOnZoom: false,
         });
-        item.computeSize = () => [0, 70];
+        item.computeSize = () => [0, 42];
         item.__orvRefresh = () => {
             const domain = item.__orvDomain || { kind: "UNKNOWN" };
             const values = domain.allowed_values;
             const current = Number(item.value ?? 0);
-            output.textContent = current === 0 ? "Model default" : `${current}s`;
-            auto.setAttribute("aria-pressed", String(current === 0));
+            output.textContent = current === 0 ? "Default" : `${current}s`;
             range.disabled = domain.kind === "UNKNOWN";
             range.min = values ? 0 : domain.min ?? 0;
             range.max = values ? Math.max(0, values.length - 1) : domain.max ?? 0;
@@ -554,13 +548,6 @@ function createDurationSlider(node, previous) {
             range.value = values ? Math.max(0, values.indexOf(current)) : current || domain.min || 0;
             range.setAttribute("aria-valuetext", current === 0 ? "Model default" : `${current} seconds`);
             range.style.opacity = current === 0 || (values && !values.includes(current)) ? "0.45" : "1";
-            scale.replaceChildren();
-            const ticks = values && values.length <= 6 ? values : domain.kind === "UNKNOWN" ? []
-                : [domain.min, ...(values && values.length > 6 ? [values[Math.floor(values.length / 2)]] : []), domain.max];
-            for (const tick of [...new Set(ticks)]) {
-                const span = document.createElement("span"); span.textContent = `${tick}s`; scale.append(span);
-            }
-            if (!ticks.length) scale.textContent = "Duration domain unverified";
         };
         const select = (next) => {
             if (next == null) return;
@@ -584,7 +571,14 @@ function createDurationSlider(node, previous) {
             else position += ["ArrowRight", "ArrowUp"].includes(event.key) ? 1 : -1;
             select(durationAtPosition(item.__orvDomain, position));
         });
-        auto.addEventListener("click", () => select(0));
+        const previousMenuOptions = node.getExtraMenuOptions;
+        node.getExtraMenuOptions = function (canvas, options) {
+            const extra = previousMenuOptions?.call(this, canvas, options);
+            return [
+                { content: "Reset Duration to model default", callback: () => select(0) },
+                ...(Array.isArray(extra) ? extra : []),
+            ];
+        };
         element.addEventListener("pointerdown", event => event.stopPropagation());
     } else {
         item = node.addWidget("orv-duration-slider", "duration", previous.value ?? 0, previous.callback, {});
@@ -617,8 +611,6 @@ function configureDuration(node, supported) {
         disclose(node, "DURATION: saved value is not verified by catalogue");
     } else if (current > 0 && (domain.allowed_values ? !values.includes(current) : current < domain.min || current > domain.max)) {
         disclose(node, "DURATION: incompatible saved value preserved; Generate blocked");
-    } else if (current === 0 && values.length > 1) {
-        disclose(node, "DURATION: select an explicit supported value");
     }
     item.__orvRefresh?.();
 }
