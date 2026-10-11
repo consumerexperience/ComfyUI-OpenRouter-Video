@@ -57,7 +57,8 @@ test("protected frontend definitions remain byte-equivalent to accepted baseline
 });
 
 test("native DOM setter preserves semantic seconds without INT callback recursion", () => {
-    const element=()=>({style:{},setAttribute(){},append(){},replaceChildren(){},addEventListener(){}});
+    const elements=[];
+    const element=()=>{const e={style:{},events:{},setAttribute(){},append(){},replaceChildren(){},addEventListener(name,handler){this.events[name]=handler;}};elements.push(e);return e;};
     const domContext={app:{registerExtension(){}},api:{},document:{createElement:element}};
     vm.runInNewContext(source,domContext);
     const previous={name:"duration",value:10,callback(next){this.value=next;}};
@@ -73,4 +74,8 @@ test("native DOM setter preserves semantic seconds without INT callback recursio
     assert.equal(item.serializeValue(),10);
     item.value=0;
     assert.equal(item.serializeValue(),0);
+    domContext.configureDuration(node,[4]);
+    const range=elements.find(e=>e.type==="range");
+    range.events.click();
+    assert.equal(item.serializeValue(),4);
 });

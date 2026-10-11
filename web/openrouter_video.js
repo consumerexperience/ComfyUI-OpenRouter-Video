@@ -570,6 +570,9 @@ function createDurationSlider(node, previous) {
             node.setDirtyCanvas?.(true, true);
         };
         range.addEventListener("input", () => select(durationAtPosition(item.__orvDomain, Number(range.value))));
+        // Selecting the minimum (or a singleton domain) from AUTO may not
+        // change the range index, so native input alone cannot confirm intent.
+        range.addEventListener("click", () => select(durationAtPosition(item.__orvDomain, Number(range.value))));
         range.addEventListener("keydown", event => {
             const values = item.__orvDomain?.allowed_values;
             if (!values || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) return;
