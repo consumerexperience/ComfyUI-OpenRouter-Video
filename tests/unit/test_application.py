@@ -608,3 +608,17 @@ def test_progress_failure_cannot_change_durable_result_or_post_count(tmp_path: P
         ExecutionPhase.DONE,
     ]
     assert client.submit_calls == 1
+
+
+def test_ambiguous_geometry_fails_before_submit_authority(tmp_path: Path) -> None:
+    client = ScenarioClient(submit=RemoteJobSnapshot("must-not-submit", "pending"), polls=[])
+    service, store = _generate_service(tmp_path, client)
+    request = GenerationRequest(
+        "vendor/model", "prompt", resolution="720p", aspect_ratio="16:9", size="1280x720"
+    )
+    result = asyncio.run(service.generate("ambiguous-geometry", request))
+    assert result.state is LocalLifecycleState.NOT_SUBMITTED
+    assert result.error is not None
+    assert result.error.code is ProductErrorCode.UNSUPPORTED_PARAMETER
+    assert client.submit_calls == 0
+    assert store.get_by_operation_id("ambiguous-geometry") is None

@@ -93,7 +93,7 @@ test('compact layout, explicit Size/control visibility and real block gap',()=>{
  assert.equal(node.size[0],400);assert.equal(widgets[5].computeSize()[1],24);assert.equal(widgets[6].computeSize()[1],20);
  assert.equal(widgets[2].computeSize()[1],58);
  widgets[8].hidden=true;widgets[9].hidden=true;widgets[9].label='control after generate';
- context.syncAdvancedControls(node);assert.equal(widgets[8].hidden,false);assert.equal(widgets[9].hidden,false);
+ context.syncAdvancedControls(node);assert.equal(widgets[8].hidden,true);assert.equal(widgets[9].hidden,false);
 });
 test('protected frontend functions retain immediate baseline definitions',()=>{
  const before=execFileSync('git',['show','a86df3bb825a04bc2852966b69ce65848b22de3b:web/openrouter_video.js'],{cwd:root,encoding:'utf8'});

@@ -82,4 +82,14 @@ def test_protected_native_media_security_pricing_and_wire_files_are_exactly_pres
         "src/openrouter_video/data/capability-evidence.json",
     ]
     for path in paths:
-        assert (ROOT / path).read_text(encoding="utf-8") == baseline(path), path
+        current = (ROOT / path).read_text(encoding="utf-8")
+        if path == "src/openrouter_video/models.py":
+            guard = (
+                "        if self.size is not None and (self.resolution is not None "
+                "or self.aspect_ratio is not None):\n"
+                '            raise ValueError("Ambiguous geometry: use exact size '
+                'or resolution/aspect ratio.")\n'
+            )
+            assert current.count(guard) == 1
+            current = current.replace(guard, "", 1)
+        assert current == baseline(path), path

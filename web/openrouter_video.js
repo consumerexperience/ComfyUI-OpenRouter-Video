@@ -200,9 +200,10 @@ function syncAdvancedControls(node) {
     // Projection finishes here after setting support-specific widget metadata.
     const seed = widget(node, "seed");
     if (seed?.options) seed.options.min = -1;
+    setVisible(node.__orvAdvanced, Boolean(node.__orvGeometryAlternative));
     let changed = false;
     for (const item of node.widgets || []) {
-        if (item.name === "size" || /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`)) {
+        if (/control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`)) {
             item.options ||= {};
             Object.assign(item.options, { advanced: false });
             if (item.hidden) { setVisible(item, true); changed = true; }
@@ -806,7 +807,9 @@ function configureGenerationConfiguration(node, capability) {
         source_video_present: inputByName(node, "source_video")?.link != null,
     };
     const unconstrained = configurationOptions(capability, {}, context);
-    const axes = ["resolution", "aspect_ratio", "duration"];
+    const exact = selections.size !== null;
+    if (exact) { selections.resolution = null; selections.aspect_ratio = null; }
+    const axes = exact ? ["duration"] : ["resolution", "aspect_ratio", "duration"];
     for (const axis of axes) {
         const values = unconstrained.options[axis];
         if (values !== null && !values.includes(selections[axis])) selections[axis] = null;
@@ -1144,9 +1147,23 @@ function configureGeometry(node, capability) {
     const resolution = widget(node, "resolution");
     const aspect = widget(node, "aspect_ratio");
     const size = widget(node, "size");
-    setVisible(resolution, true);
-    setVisible(aspect, true);
-    setVisible(size, true);
+    // An explicit saved/selected size is exact intent, never a preset-to-pixel mapping.
+    const exact = normalizedValue(size) !== null;
+    const normalizedAvailable = [capability.supported_resolutions, capability.supported_aspect_ratios]
+        .every(values => Array.isArray(values) && values.length > 0);
+    const sizeAvailable = Array.isArray(capability.supported_sizes) && capability.supported_sizes.length > 0;
+    if (exact) {
+        if (resolution) resolution.value = "";
+        if (aspect) aspect.value = "";
+    }
+    setVisible(resolution, !exact && capability.supported_resolutions?.length !== 0);
+    setVisible(aspect, !exact && capability.supported_aspect_ratios?.length !== 0);
+    if (size) {
+        size.options ||= {};
+        size.options.advanced = false;
+        setVisible(size, exact || !normalizedAvailable || (sizeAvailable && Boolean(node.__orvShowExact)));
+    }
+    node.__orvGeometryAlternative = !exact && normalizedAvailable && sizeAvailable;
 }
 
 function selectedReferenceKinds(node) {
@@ -1362,7 +1379,13 @@ app.registerExtension({
             createGeometryCombos(this);
             this.__orvIsNewNode = true;
             // Hidden nonserialized compatibility slot preserves legacy positional order.
-            this.__orvAdvanced = this.addWidget("button", "Advanced", "", null);
+            this.__orvAdvanced = this.addWidget("button", "Advanced", "", () => {
+                this.__orvShowExact = !this.__orvShowExact;
+                if (this.__orvCapability) configureGenerationConfiguration(this, this.__orvCapability);
+                syncAdvancedControls(this);
+                fitPresentationWidth(this);
+            });
+            this.__orvAdvanced.label = "Exact Size…";
             this.__orvAdvanced.serialize = false;
             setVisible(this.__orvAdvanced, false);
             this.__orvSummary = addReadOnlyWidget(this, "REFERENCES", "");

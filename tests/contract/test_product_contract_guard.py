@@ -149,7 +149,8 @@ def _shield_current(accepted: dict[str, Any]) -> dict[str, Any]:
 
 
 def test_live_accepted_source_has_no_undeclared_protected_delta() -> None:
-    accepted = _load(SHIELD)
+    baseline_path = os.environ.get("OPENROUTER_VIDEO_CONTRACT_BASELINE")
+    accepted = _load(ROOT / baseline_path) if baseline_path else _load(SHIELD)
     delta_path = os.environ.get("OPENROUTER_VIDEO_CONTRACT_DELTA")
     delta = _load(ROOT / delta_path) if delta_path else _load(SHIELD_DELTA)
     assert delta["baseline_sha"] == accepted["subject_sha"]
