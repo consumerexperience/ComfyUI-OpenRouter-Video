@@ -89,7 +89,7 @@ test("Prompt styling is scoped to this Generate widget", () => {
     prompt.element = { placeholder: "prompt", style: {} };
     context.stylePrompt(target);
     assert.equal(prompt.element.placeholder, "Prompt");
-    assert.equal(prompt.element.style.borderRadius, "9px");
+    assert.equal(prompt.element.style.borderRadius, "4px");
     assert.equal(target.widgets.find((item) => item.name === "model").element, undefined);
 });
 

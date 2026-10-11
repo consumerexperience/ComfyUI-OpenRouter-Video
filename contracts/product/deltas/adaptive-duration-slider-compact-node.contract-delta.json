@@ -1,0 +1,51 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "adaptive-duration-slider-compact-node",
+  "baseline_checkpoint": "duration-polish-a86df3b",
+  "baseline_sha": "a86df3bb825a04bc2852966b69ce65848b22de3b",
+  "risk_tier": "B",
+  "intended_delta": [
+    "Owner authorized compact native layout and explicit confirmed-domain product defaults; legacy AUTO migration and invalid model/method selections resolve supported defaults. Size optional visible; control after generate visible. All capabilities, coupling, wire conversion and billing authorities otherwise protected."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Owner authorized compact node/native bar, visible optional Size/control after generate, removal of Advanced dependency, named fresh-workflow guard and confirmed explicit primary defaults. All other persistence/media/billing functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/controls/default_selection",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Explicit Owner authorization: confirmed explicit product defaults, legacy AUTO migration and invalid model/method selection repair; optional Exact Size remains unset."
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned"
+  ],
+  "expected_components": [
+    "compact shared layout tokens",
+    "confirmed-domain primary default resolver",
+    "native ComfyUI slider coordinate adapter",
+    "named fresh-workflow migration guard",
+    "focused frontend regression and source negative-space checks",
+    "measured real DEV visual evidence and semantic policy comparison"
+  ],
+  "required_gates": [
+    "baseline_declaration",
+    "semantic_diff",
+    "negative_space_tests",
+    "full_tests",
+    "real_8189_browser",
+    "save_reload",
+    "zero_paid_posts",
+    "ruff",
+    "mypy",
+    "build"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

@@ -1,11 +1,11 @@
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
-
 const EXTENSION = "openrouter-video.capability-driven-ui";
 const GENERATE_NODE = "OpenRouterVideoGenerate";
 const SELECT_MODEL = "SELECT MODEL";
 const AUTO = "AUTO / MODEL DEFAULT";
 const UI_CONTRACT_VERSION = 4;
+const COMPACT_LAYOUT = Object.freeze({ width: 400, row: 20, gap: 4, section: 8, prompt: 42, domInset: 16, inset: 15 });
 const SELECT_METHOD = "Select model first";
 const METHODS = [
     "T2V", "I2V", "FLF2V", "IR2V", "MI2V", "VR2V", "AR2V", "MMR2V",
@@ -23,7 +23,6 @@ const METHOD_LABELS = {
     V2V_EDIT: "V2V_EDIT — Source Video → Edited Video",
     V2V_EXTEND: "V2V_EXTEND — Source Video → Extended Video",
 };
-
 let capabilityPromise;
 
 function widget(node, name) {
@@ -36,15 +35,15 @@ function createGeometryCombos(node) {
     // named/positional serialization slot and the backend STRING contract.
     for (const name of ["resolution", "aspect_ratio", "size", "duration"]) {
         const previous = widget(node, name);
-        if (!previous || previous.type === "combo" || previous.type === "orv-duration-slider") continue;
+        if (!previous || previous.type === "combo" || previous.type === "slider") continue;
         if (name === "duration") {
             createDurationSlider(node, previous);
             continue;
         }
         const index = node.widgets.indexOf(previous);
         const replacement = node.addWidget(
-            "combo", name, previous.value || (name === "duration" ? 0 : AUTO), previous.callback,
-            { ...previous.options, values: [name === "duration" ? 0 : AUTO] },
+            "combo", name, name === "size" && (!previous.value || previous.value === AUTO) ? "" : previous.value || AUTO, previous.callback,
+            { ...previous.options, values: [name === "size" ? "" : AUTO] },
         );
         const appended = node.widgets.indexOf(replacement);
         node.widgets.splice(appended, 1);
@@ -79,12 +78,18 @@ function setMinimumWidgetHeight(item, minimum) {
 }
 
 function sizePrimaryControls(node) {
-    for (const name of [
-        "model", "inference_method", "resolution", "aspect_ratio",
-        "duration", "seed", "generate_audio",
-    ]) setMinimumWidgetHeight(widget(node, name), 38);
-    setMinimumWidgetHeight(widget(node, "prompt"), 92);
-    setMinimumWidgetHeight(node.__orvAdvanced, 40);
+    for (const item of node.widgets || []) {
+        if (["model", "inference_method", "resolution", "aspect_ratio", "duration", "seed", "generate_audio", "size", "randomize"].includes(item.name)) {
+            const section = ["inference_method", "duration"].includes(item.name);
+            item.__orvComputeSize = () => [0, COMPACT_LAYOUT.row + (section ? COMPACT_LAYOUT.section - COMPACT_LAYOUT.gap : 0)];
+            setVisible(item, !item.hidden);
+        }
+    }
+    const prompt = widget(node, "prompt");
+    if (prompt) {
+        prompt.__orvComputeSize = () => [0, COMPACT_LAYOUT.prompt + COMPACT_LAYOUT.domInset];
+        setVisible(prompt, !prompt.hidden);
+    }
 }
 
 function stylePrompt(node) {
@@ -93,10 +98,10 @@ function stylePrompt(node) {
     element.placeholder = "Prompt";
     element.style.background = "#20272a";
     element.style.border = "1px solid #354540";
-    element.style.borderRadius = "9px";
+    element.style.borderRadius = "4px";
     element.style.color = "#e4ece9";
-    element.style.fontSize = "14px";
-    element.style.padding = "9px 11px";
+    element.style.fontSize = "12px";
+    element.style.padding = "4px 6px";
 }
 
 function orderPresentationWidgets(node) {
@@ -132,7 +137,7 @@ function applyPresentation(node) {
     const labels = {
         model: "Model", inference_method: "Inference Method",
         resolution: "Resolution", aspect_ratio: "Aspect Ratio", duration: "Duration",
-        seed: "Seed", generate_audio: "Generate Audio",
+        seed: "Seed", generate_audio: "Generate Audio", size: "Size",
     };
     for (const item of node.widgets || []) {
         if (labels[item.name]) item.label = labels[item.name];
@@ -181,28 +186,17 @@ function applyPresentation(node) {
 
 function syncAdvancedControls(node) {
     let changed = false;
-    const show = Boolean(node.__orvAdvancedOpen && canonicalModel(node));
     for (const item of node.widgets || []) {
-        const identity = `${item.name || ""} ${item.label || ""}`;
-        if (/control[ _]?after[ _]?generate/i.test(identity) && Boolean(item.hidden) === show) {
-            setVisible(item, show);
-            changed = true;
+        if (item.name === "size" || /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`)) {
+            if (item.hidden) { setVisible(item, true); changed = true; }
         }
-    }
-    const size = widget(node, "size");
-    const sizeVerified = Array.isArray(node.__orvCapability?.supported_sizes) &&
-        node.__orvCapability.supported_sizes.length > 0;
-    const showSize = show && (sizeVerified || normalizedValue(size) !== null);
-    if (size && Boolean(size.hidden) === showSize) {
-        setVisible(size, showSize);
-        changed = true;
     }
     return changed;
 }
 
 function fitPresentationWidth(node) {
     const measured = node.computeSize?.();
-    if (measured) node.setSize?.([Math.max(560, measured[0]), measured[1]]);
+    if (measured) node.setSize?.([COMPACT_LAYOUT.width, measured[1]]);
 }
 
 function canonicalModel(node) {
@@ -338,7 +332,7 @@ function restorePhase10Values(node, serializedValues) {
 
 function restorePhase10NamedValues(node, namedValues) {
     if (!namedValues || typeof namedValues !== "object" ||
-        !METHODS.includes(namedValues.inference_method)) return false;
+        !(METHODS.includes(namedValues.inference_method) || namedValues.inference_method === SELECT_METHOD)) return false;
     for (const name of [
         "model", "inference_method", "prompt", "resolution", "aspect_ratio",
         "duration", "size", "seed", "generate_audio", "first_frame_url",
@@ -442,23 +436,38 @@ function canonicalOptions(axis, values) {
     });
 }
 
+function productDefault(axis, values, confirmedDefault) {
+    if (!Array.isArray(values) || !values.length) return null;
+    if (values.includes(confirmedDefault)) return confirmedDefault;
+    if (axis === "resolution") return values.includes("720p") ? "720p" : canonicalOptions(axis, values)[0];
+    if (axis === "aspect_ratio") {
+        const ratio = value => { const match = /^([0-9]+):([0-9]+)$/.exec(String(value)); return match && Number(match[2]) > 0 ? Number(match[1]) / Number(match[2]) : null; };
+        const candidates = canonicalOptions(axis, values).filter(value => ratio(value) !== null);
+        return candidates.sort((a, b) => Math.abs(ratio(a) - 16 / 9) - Math.abs(ratio(b) - 16 / 9))[0] ?? values[0];
+    }
+    if (axis === "duration") return canonicalOptions(axis, values)[0];
+    return null;
+}
+
 function configureEnum(node, item, supported, label) {
     if (!item) return;
     const current = normalizedValue(item);
     item.type = "combo";
     item.options = item.options || {};
+    const optional = item.name === "size";
     if (supported === null) {
-        item.options.values = current === null ? [AUTO] : [AUTO, current];
+        item.options.values = current === null ? [""] : [current];
         if (current !== null) disclose(node, `${label}: saved value is not verified by catalogue`);
+        else item.value = "";
         return;
     }
-    item.options.values = canonicalOptions(item.name, [AUTO, ...supported]);
-    if (current !== null && !supported.includes(current)) {
-        item.options.values = canonicalOptions(item.name, [...item.options.values, current]);
-        disclose(node, `${label}: incompatible saved value preserved; Generate blocked`);
-    } else if (current === null) {
-        item.value = AUTO;
-    }
+    item.options.values = canonicalOptions(item.name, optional ? ["", ...supported] : supported);
+    if (optional) {
+        if (current !== null && !supported.includes(current)) {
+            item.options.values.push(current);
+            disclose(node, `${label}: incompatible saved value preserved; Generate blocked`);
+        } else item.value = current ?? "";
+    } else if (!supported.includes(current)) item.value = productDefault(item.name, supported) ?? "";
 }
 
 function arithmeticStep(values) {
@@ -512,85 +521,62 @@ function durationAtPosition(domain, position) {
 
 function createDurationSlider(node, previous) {
     const index = node.widgets.indexOf(previous);
-    let item;
-    if (typeof document !== "undefined" && node.addDOMWidget) {
-        const element = document.createElement("div");
-        element.style.cssText = "box-sizing:border-box;padding:3px 12px;color:var(--input-text,#ddd);font:12px sans-serif;";
-        const header = document.createElement("div");
-        header.style.cssText = "display:flex;align-items:center;margin-bottom:2px";
-        const label = document.createElement("span");
-        label.textContent = "Duration";
-        label.style.flex = "1";
-        const output = document.createElement("span");
-        const range = document.createElement("input");
-        range.type = "range";
-        range.setAttribute("aria-label", "Duration in seconds");
-        range.style.cssText = "width:100%;margin:0;accent-color:var(--p-primary-color,#8baaa4)";
-        range.title = "Reset Duration to model default from the node context menu";
-        header.append(label, output);
-        element.append(header, range);
-        let value = previous.value ?? 0;
-        item = node.addDOMWidget("duration", "orv-duration-slider", element, {
-            getValue: () => value,
-            setValue: (next) => { value = next; item?.__orvRefresh?.(); },
-            hideOnZoom: false,
-        });
-        item.computeSize = () => [0, 42];
-        item.__orvRefresh = () => {
-            const domain = item.__orvDomain || { kind: "UNKNOWN" };
-            const values = domain.allowed_values;
-            const current = Number(item.value ?? 0);
-            output.textContent = current === 0 ? "Default" : `${current}s`;
-            range.disabled = domain.kind === "UNKNOWN";
-            range.min = values ? 0 : domain.min ?? 0;
-            range.max = values ? Math.max(0, values.length - 1) : domain.max ?? 0;
-            range.step = values ? 1 : 10 ** -(domain.precision ?? 0);
-            range.value = values ? Math.max(0, values.indexOf(current)) : current || domain.min || 0;
-            range.setAttribute("aria-valuetext", current === 0 ? "Model default" : `${current} seconds`);
-            range.style.opacity = current === 0 || (values && !values.includes(current)) ? "0.45" : "1";
-        };
-        const select = (next) => {
-            if (next == null) return;
-            item.value = next;
-            item.__orvRefresh();
-            item.callback?.(next);
-            node.setDirtyCanvas?.(true, true);
-        };
-        range.addEventListener("input", () => select(durationAtPosition(item.__orvDomain, Number(range.value))));
-        // Selecting the minimum (or a singleton domain) from AUTO may not
-        // change the range index, so native input alone cannot confirm intent.
-        range.addEventListener("click", () => select(durationAtPosition(item.__orvDomain, Number(range.value))));
-        range.addEventListener("keydown", event => {
-            const values = item.__orvDomain?.allowed_values;
-            if (!values || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) return;
-            event.preventDefault(); event.stopPropagation();
-            let position = values.indexOf(Number(item.value));
-            if (event.key === "Home") position = 0;
-            else if (event.key === "End") position = values.length - 1;
-            else if (position < 0) position = 0;
-            else position += ["ArrowRight", "ArrowUp"].includes(event.key) ? 1 : -1;
-            select(durationAtPosition(item.__orvDomain, position));
-        });
-        const previousMenuOptions = node.getExtraMenuOptions;
-        node.getExtraMenuOptions = function (canvas, options) {
-            const extra = previousMenuOptions?.call(this, canvas, options);
-            return [
-                { content: "Reset Duration to model default", callback: () => select(0) },
-                ...(Array.isArray(extra) ? extra : []),
-            ];
-        };
-        element.addEventListener("pointerdown", event => event.stopPropagation());
-    } else {
-        item = node.addWidget("orv-duration-slider", "duration", previous.value ?? 0, previous.callback, {});
-    }
-    // Native INT onValueChange writes this.value; on a DOM widget that would
-    // recursively re-enter its setter. The semantic slider needs no INT coercion.
-    item.callback = null;
+    const item = node.addWidget("slider", "duration", previous.value ?? 0, null, { min: 0, max: 1, step: 1, precision: 0 });
+    let valueOwner = item;
+    while (valueOwner && !Object.getOwnPropertyDescriptor(valueOwner, "value")) valueOwner = Object.getPrototypeOf(valueOwner);
+    const nativeValue = valueOwner && Object.getOwnPropertyDescriptor(valueOwner, "value");
+    let fallbackValue = item.value;
+    Object.defineProperty(item, "value", { configurable: true, get() {
+        return nativeValue?.get ? nativeValue.get.call(item) : fallbackValue;
+    }, set(next) {
+        const values = item.__orvDomain?.allowed_values;
+        const numeric = Number(next);
+        if (values?.length && Number.isFinite(numeric) && !values.includes(numeric)) {
+            next = values.reduce((best, value) => Math.abs(value - numeric) < Math.abs(best - numeric) ? value : best, values[0]);
+        }
+        if (nativeValue?.set) nativeValue.set.call(item, next);
+        else fallbackValue = next;
+    } });
+    const nativeOptions = () => item.__orvDomain?.allowed_values ?
+        { ...item.options, min: 0, max: Math.max(1, item.__orvDomain.allowed_values.length - 1), step: 1 } : item.options;
+    const nativeDraw = item.drawWidget;
+    const nativeClick = item.onClick;
+    const nativeDrag = item.onDrag;
+    const view = Object.create(item);
+    Object.defineProperty(view, "value", { get() {
+        const domain = item.__orvDomain;
+        return domain?.allowed_values ? Math.max(0, domain.allowed_values.indexOf(Number(item.value))) : Number(item.value);
+    } });
+    Object.defineProperty(view, "height", { value: COMPACT_LAYOUT.row });
+    view.setValue = position => {
+        const next = durationAtPosition(item.__orvDomain || { kind: "UNKNOWN" }, position);
+        if (next == null) return;
+        item.value = next;
+        item.callback?.(next);
+        node.setDirtyCanvas?.(true, true);
+    };
+    // Delegate geometry, fill and pointer interaction to the public native slider.
+    // Only its display coordinate differs from the product's semantic seconds.
+    if (nativeDraw) item.drawWidget = function (ctx, options) {
+        view.y = item.y;
+        view.options = nativeOptions();
+        view.width = item.width;
+        view.label = "Duration";
+        const text = Number(item.value) > 0 ? `Duration ${item.value}s` : "Duration —";
+        const drawContext = new Proxy(ctx, { get(target, key) {
+            if (key === "fillText") return (_nativeText, ...args) => target.fillText(text, ...args);
+            const value = Reflect.get(target, key, target);
+            return typeof value === "function" ? value.bind(target) : value;
+        }, set(target, key, value) { target[key] = value; return true; } });
+        nativeDraw.call(view, drawContext, options);
+    };
+    if (nativeClick) item.onClick = event => { view.options = nativeOptions(); view.width = item.width; nativeClick.call(view, event); };
+    if (nativeDrag) item.onDrag = event => { view.options = nativeOptions(); view.width = item.width; return nativeDrag.call(view, event); };
     const appended = node.widgets.indexOf(item);
     node.widgets.splice(appended, 1);
     node.widgets[index] = item;
-    // This slot always carries seconds (or 0 for omitted), never UI position.
     item.serializeValue = function () { return this.value; };
+    item.__orvSelectPosition = position => view.setValue(position);
 }
 
 function configureDuration(node, supported) {
@@ -598,21 +584,20 @@ function configureDuration(node, supported) {
     if (!item) return;
     node.__orvDurationValues = supported;
     item.options = item.options || {};
-    item.options.getOptionLabel = (value) => value == null || String(value) === "0" ? AUTO : String(value);
-    const current = Number(item.value || 0);
     const domain = durationDomain(supported);
     item.__orvDomain = domain;
-    item.type = "orv-duration-slider";
+    item.type = "slider";
     setVisible(item, true);
     const values = domain.allowed_values || [];
-    // Retain option truth for existing projection consumers; renderer uses the domain.
-    item.options.values = canonicalOptions("duration", [0, ...values, ...(current > 0 && !values.includes(current) ? [current] : [])]);
-    if (domain.kind === "UNKNOWN" && current > 0) {
-        disclose(node, "DURATION: saved value is not verified by catalogue");
-    } else if (current > 0 && (domain.allowed_values ? !values.includes(current) : current < domain.min || current > domain.max)) {
-        disclose(node, "DURATION: incompatible saved value preserved; Generate blocked");
-    }
-    item.__orvRefresh?.();
+    const current = Number(item.value || 0);
+    const valid = values.length ? values.includes(current) : domain.kind !== "UNKNOWN" && current >= domain.min && current <= domain.max;
+    if (!valid && domain.kind !== "UNKNOWN") item.value = productDefault("duration", values) ?? domain.min;
+    item.options.values = values;
+    item.options.min = domain.min ?? 0;
+    item.options.max = domain.max === domain.min ? domain.max + 1 : domain.max ?? 1;
+    item.options.step = values.length ? arithmeticStep(values) ?? 1 : 10 ** -(domain.precision ?? 0);
+    item.options.read_only = domain.kind === "UNKNOWN";
+    if (domain.kind === "UNKNOWN" && current > 0) disclose(node, "DURATION: saved value is not verified by catalogue");
 }
 
 function configurationScope(relation, context) {
@@ -693,6 +678,23 @@ function configureGenerationConfiguration(node, capability) {
         reference_count: kinds === null ? null : kinds.length + Number(inputByName(node, "source_video")?.link != null),
         source_video_present: inputByName(node, "source_video")?.link != null,
     };
+    const unconstrained = configurationOptions(capability, {}, context);
+    const axes = ["resolution", "aspect_ratio", "duration"];
+    for (const axis of axes) {
+        const values = unconstrained.options[axis];
+        if (values !== null && !values.includes(selections[axis])) selections[axis] = null;
+    }
+    if (configurationOptions(capability, selections, context).status === "CONFIRMED_INCOMPATIBLE") {
+        for (const axis of axes) selections[axis] = null;
+    }
+    for (const axis of axes) {
+        const options = configurationOptions(capability, selections, context).options[axis];
+        if (options !== null && !options.includes(selections[axis])) {
+            selections[axis] = productDefault(axis, options);
+            const item = widget(node, axis);
+            if (item) item.value = selections[axis] ?? (axis === "duration" ? 0 : "");
+        }
+    }
     const projected = configurationOptions(capability, selections, context);
     configureDuration(node, projected.options.duration);
     configureGeometry(node, {
@@ -1012,13 +1014,12 @@ function configureGeometry(node, capability) {
         "ASPECT RATIO",
     );
     configureEnum(node, widget(node, "size"), capability.supported_sizes, "EXACT SIZE");
-
     const resolution = widget(node, "resolution");
     const aspect = widget(node, "aspect_ratio");
     const size = widget(node, "size");
     setVisible(resolution, true);
     setVisible(aspect, true);
-    setVisible(size, normalizedValue(size) !== null);
+    setVisible(size, true);
 }
 
 function selectedReferenceKinds(node) {
@@ -1186,7 +1187,7 @@ async function projectSelectedModel(node, force = false) {
         setVisible(node.__orvCapabilityStatus, true);
         node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
     }
-    setVisible(node.__orvAdvanced, Boolean(canonicalModel(node)));
+    setVisible(node.__orvAdvanced, false);
     syncAdvancedControls(node);
     fitPresentationWidth(node);
     node.setDirtyCanvas?.(true, true);
@@ -1233,15 +1234,10 @@ app.registerExtension({
             const result = previousCreated?.apply(this, args);
             createGeometryCombos(this);
             this.__orvIsNewNode = true;
-            this.__orvAdvancedOpen = false;
-            this.__orvAdvanced = this.addWidget("button", "Advanced", "›", () => {
-                this.__orvAdvancedOpen = !this.__orvAdvancedOpen;
-                this.__orvAdvanced.value = this.__orvAdvancedOpen ? "⌄" : "›";
-                syncAdvancedControls(this);
-                fitPresentationWidth(this);
-                this.setDirtyCanvas?.(true, true);
-            });
+            // Hidden nonserialized compatibility slot preserves legacy positional order.
+            this.__orvAdvanced = this.addWidget("button", "Advanced", "", null);
             this.__orvAdvanced.serialize = false;
+            setVisible(this.__orvAdvanced, false);
             this.__orvSummary = addReadOnlyWidget(this, "REFERENCES", "");
             this.__orvSummary.label = " ";
             this.__orvSummary.__orvComputeSize = () => [0, 22];
@@ -1271,7 +1267,6 @@ app.registerExtension({
             setTimeout(() => projectSelectedModel(this), 0);
             return result;
         };
-
         const previousConfigure = nodeType.prototype.onConfigure;
         nodeType.prototype.onConfigure = function (...args) {
             this.__orvIsNewNode = false;

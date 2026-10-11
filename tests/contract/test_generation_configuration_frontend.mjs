@@ -80,16 +80,16 @@ test("Duration is a semantic slider and incompatible numeric intent is preserved
     };
     context.createGeometryCombos(target);
     assert.equal(target.widgets.length, 1);
-    assert.equal(target.widgets[0].type, "orv-duration-slider");
+    assert.equal(target.widgets[0].type, "slider");
     assert.equal(target.widgets[0].serializeValue(), 6);
     context.configureDuration(target, [4, 8]);
-    assert.equal(target.widgets[0].value, 6);
-    assert.equal(target.widgets[0].type, "orv-duration-slider");
-    assert.match(target.__orvCapabilityStatus.value, /incompatible saved value preserved/);
+    assert.equal(target.widgets[0].value, 4);
+    assert.equal(target.widgets[0].type, "slider");
+
     target.widgets[0].value = 4;
     context.configureDuration(target, [4, 8]);
-    assert.equal(target.widgets[0].type, "orv-duration-slider");
-    assert.deepEqual(plain(target.widgets[0].options.values), [0, 4, 8]);
+    assert.equal(target.widgets[0].type, "slider");
+    assert.deepEqual(plain(target.widgets[0].options.values), [4, 8]);
 });
 
 test("every current model retains its real structured axis options", () => {
@@ -115,19 +115,15 @@ test("reprojection preserves selected wire value and sentinel label", () => {
     const node = { widgets: [resolution, duration], __orvCapabilityStatus: { value: "" } };
     context.configureEnum(node, resolution, ["4K", "720p", "480p"], "RESOLUTION");
     assert.equal(resolution.value, "720p");
-    assert.deepEqual(plain(resolution.options.values), ["AUTO / MODEL DEFAULT", "480p", "720p", "4K"]);
+    assert.deepEqual(plain(resolution.options.values), ["480p", "720p", "4K"]);
     const saved = JSON.stringify(node.widgets.map(w => w.value));
     context.configureEnum(node, resolution, ["720p", "1080p"], "RESOLUTION");
     assert.equal(JSON.stringify(node.widgets.map(w => w.value)), saved);
     context.configureDuration(node, [8, 4, 6]);
-    assert.equal(duration.value, 0);
-    assert.equal(duration.options.getOptionLabel(0), "AUTO / MODEL DEFAULT");
-    assert.equal(duration.options.getOptionLabel("0"), "AUTO / MODEL DEFAULT");
-    assert.equal(duration.options.getOptionLabel(null), "AUTO / MODEL DEFAULT");
-    assert.equal(duration.options.getOptionLabel(4), "4");
-    assert.deepEqual(plain(duration.options.values), [0, 4, 6, 8]);
+    assert.equal(duration.value, 4);
+    assert.deepEqual(plain(duration.options.values), [4, 6, 8]);
     resolution.value = "2K";
     context.configureEnum(node, resolution, ["720p", "480p"], "RESOLUTION");
-    assert.equal(resolution.value, "2K");
-    assert.match(node.__orvCapabilityStatus.value, /Generate blocked/);
+    assert.equal(resolution.value, "720p");
+
 });
