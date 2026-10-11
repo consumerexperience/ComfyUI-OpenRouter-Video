@@ -10,7 +10,8 @@ permissions:
   contents: read
 
 env:
-  OPENROUTER_VIDEO_CONTRACT_DELTA: contracts/product/deltas/adaptive-generation-controls.contract-delta.json
+  OPENROUTER_VIDEO_CONTRACT_BASELINE: docs/geometry-ux-polish/baseline-contract.json
+  OPENROUTER_VIDEO_CONTRACT_DELTA: contracts/product/deltas/geometry-unknown-resolution-polish.contract-delta.json
 
 jobs:
   quality:
@@ -65,4 +66,4 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
-      - run: node --test tests/contract/test_duration_slider_frontend.mjs tests/contract/test_generation_configuration_frontend.mjs tests/contract/test_phase10_frontend_migration.mjs
+      - run: node --test tests/contract/*.mjs
