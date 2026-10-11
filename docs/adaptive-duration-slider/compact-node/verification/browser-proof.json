@@ -1,0 +1,17 @@
+{
+  "head": "408fb6de18e935c566c850252c3c93b9ce0b8e6e",
+  "browserTab": 7,
+  "model": "google/veo-3.1",
+  "resolution": "720p",
+  "aspect": "16:9",
+  "durationSeconds": 8,
+  "size": "",
+  "controlAfterGenerate": "randomize",
+  "zoomPercent": 100,
+  "nodeWidth": 400,
+  "referenceWidth": 403.015625,
+  "promptRenderedHeight": 42,
+  "nativeRowHeight": 20,
+  "paidSubmitInvoked": false,
+  "observation": "Saved workflow loaded through native file chooser; visible native sliders side by side"
+}

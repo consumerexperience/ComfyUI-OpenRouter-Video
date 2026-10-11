@@ -1,0 +1,48 @@
+{
+  "STATUS": "PASS",
+  "AUTHORIZED_DELTA": [
+    {
+      "path": "/surfaces/product_owned/controls/default_selection/aspect_ratio",
+      "operation": "replace",
+      "before": "UPSTREAM_OMISSION",
+      "after": "closest_supported_to_16_9"
+    },
+    {
+      "path": "/surfaces/product_owned/controls/default_selection/duration",
+      "operation": "replace",
+      "before": "UPSTREAM_OMISSION",
+      "after": "lowest_confirmed"
+    },
+    {
+      "path": "/surfaces/product_owned/controls/default_selection/invalid_switch",
+      "operation": "replace",
+      "before": "preserve_invalid_and_block",
+      "after": "resolve_supported_default"
+    },
+    {
+      "path": "/surfaces/product_owned/controls/default_selection/legacy",
+      "operation": "replace",
+      "before": "PRESERVE_AUTO_SENTINELS",
+      "after": "RESOLVE_AUTO_TO_SUPPORTED_EXPLICIT"
+    },
+    {
+      "path": "/surfaces/product_owned/controls/default_selection/mode",
+      "operation": "replace",
+      "before": "UPSTREAM_OMISSION",
+      "after": "CONFIRMED_EXPLICIT_PRODUCT_DEFAULTS"
+    },
+    {
+      "path": "/surfaces/product_owned/controls/default_selection/resolution",
+      "operation": "replace",
+      "before": "UPSTREAM_OMISSION",
+      "after": "prefer_720p_else_lowest_confirmed"
+    }
+  ],
+  "UNAUTHORIZED_DELTA": [],
+  "UNCHANGED_PROTECTED_SURFACES": [],
+  "UNKNOWN_DYNAMIC_SURFACES": [],
+  "OBSERVED_EVIDENCE_CHANGES": [],
+  "ACCEPTED_CONTRACT_DIGEST": "sha256:0523b88299d2ca4e5acd40dd6b75ee8ff174fe0c408fd6b8235ff6e1d40a4905",
+  "CURRENT_CONTRACT_DIGEST": "sha256:a5030d49aa93f8b36bb23133ef4ba3fde798999e1f22cd9ffbef79a86f05a476",
+  "CONTRACT_DELTA_DIGEST": "sha256:314abffc3d564766d2ca36539eeca276ccb267f856df3ab056927ab50fac0431"
+}
