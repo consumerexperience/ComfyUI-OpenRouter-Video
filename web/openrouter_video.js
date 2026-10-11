@@ -208,6 +208,16 @@ function syncAdvancedControls(node) {
             if (item.hidden) { setVisible(item, true); changed = true; }
         }
     }
+    for (const item of node.widgets || []) {
+        const signature = JSON.stringify(item.options);
+        if (item.__orvPresentationOptions === signature) continue;
+        item.__orvPresentationOptions = signature;
+        // Public label setter invalidates native Beta's cached display projection.
+        // Preserve the label and value; never write private renderer stores.
+        const label = item.label;
+        item.label = `${label ?? item.name} `;
+        item.label = label;
+    }
     return changed;
 }
 
