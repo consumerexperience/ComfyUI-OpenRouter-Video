@@ -36,7 +36,11 @@ function createGeometryCombos(node) {
     // named/positional serialization slot and the backend STRING contract.
     for (const name of ["resolution", "aspect_ratio", "size", "duration"]) {
         const previous = widget(node, name);
-        if (!previous || previous.type === "combo") continue;
+        if (!previous || previous.type === "combo" || previous.type === "orv-duration-slider") continue;
+        if (name === "duration") {
+            createDurationSlider(node, previous);
+            continue;
+        }
         const index = node.widgets.indexOf(previous);
         const replacement = node.addWidget(
             "combo", name, previous.value || (name === "duration" ? 0 : AUTO), previous.callback,
@@ -467,6 +471,131 @@ function arithmeticStep(values) {
     return step;
 }
 
+// UI domain only: finite evidence is never inferred to be continuous.
+function durationDomain(evidence) {
+    if (Array.isArray(evidence)) {
+        const values = canonicalOptions("duration", evidence);
+        if (!values.length || values.some(v => typeof v !== "number" || !Number.isFinite(v) || v <= 0)) {
+            return { kind: "UNKNOWN" };
+        }
+        return { kind: "DISCRETE", allowed_values: values, min: values[0], max: values.at(-1) };
+    }
+    if (!evidence || !Number.isFinite(evidence.min) || !Number.isFinite(evidence.max)
+        || evidence.min <= 0 || evidence.max < evidence.min) return { kind: "UNKNOWN" };
+    // Reserved structured UI contract. Current projection supplies lists only.
+    if (evidence.kind === "STEPPED_RANGE" && Number.isFinite(evidence.step) && evidence.step > 0) {
+        const count = (evidence.max - evidence.min) / evidence.step;
+        if (Math.abs(count - Math.round(count)) > 1e-8 || count > 10000) return { kind: "UNKNOWN" };
+        const precision = evidence.precision ?? 8;
+        if (!Number.isInteger(precision) || precision < 0 || precision > 8) return { kind: "UNKNOWN" };
+        const values = Array.from({ length: Math.round(count) + 1 }, (_, i) =>
+            Number((evidence.min + i * evidence.step).toFixed(precision)));
+        if (new Set(values).size !== values.length) return { kind: "UNKNOWN" };
+        return { kind: "STEPPED_RANGE", allowed_values: values, min: evidence.min, max: evidence.max, step: evidence.step };
+    }
+    if (evidence.kind === "CONTINUOUS_RANGE" && evidence.continuous === true
+        && Number.isInteger(evidence.precision) && evidence.precision >= 0 && evidence.precision <= 8) {
+        return { kind: "CONTINUOUS_RANGE", min: evidence.min, max: evidence.max, precision: evidence.precision };
+    }
+    return { kind: "UNKNOWN" };
+}
+
+function durationAtPosition(domain, position) {
+    if (domain.allowed_values) {
+        return domain.allowed_values[Math.max(0, Math.min(domain.allowed_values.length - 1, Math.round(position)))];
+    }
+    if (domain.kind === "CONTINUOUS_RANGE") {
+        return Number(Math.max(domain.min, Math.min(domain.max, position)).toFixed(domain.precision));
+    }
+    return null;
+}
+
+function createDurationSlider(node, previous) {
+    const index = node.widgets.indexOf(previous);
+    let item;
+    if (typeof document !== "undefined" && node.addDOMWidget) {
+        const element = document.createElement("div");
+        element.style.cssText = "box-sizing:border-box;padding:5px 12px;color:var(--input-text,#ddd);background:var(--comfy-input-bg,#222);border-radius:8px;font:12px sans-serif;";
+        const header = document.createElement("div");
+        header.style.cssText = "display:flex;align-items:center;gap:8px;margin-bottom:4px";
+        const label = document.createElement("span");
+        label.textContent = "Duration";
+        label.style.flex = "1";
+        const output = document.createElement("span");
+        const auto = document.createElement("button");
+        auto.textContent = "AUTO";
+        auto.title = "Model default — duration field omitted";
+        auto.style.cssText = "font:inherit;color:inherit;background:transparent;border:1px solid #555;border-radius:4px;padding:1px 5px;cursor:pointer";
+        const range = document.createElement("input");
+        range.type = "range";
+        range.setAttribute("aria-label", "Duration in seconds");
+        range.style.cssText = "width:100%;margin:0;accent-color:var(--p-primary-color,#8baaa4)";
+        const scale = document.createElement("div");
+        scale.style.cssText = "display:flex;justify-content:space-between;color:#aaa;font-size:10px";
+        header.append(label, output, auto);
+        element.append(header, range, scale);
+        let value = previous.value ?? 0;
+        item = node.addDOMWidget("duration", "orv-duration-slider", element, {
+            getValue: () => value,
+            setValue: (next) => { value = next; item?.__orvRefresh?.(); },
+            hideOnZoom: false,
+        });
+        item.computeSize = () => [0, 70];
+        item.__orvRefresh = () => {
+            const domain = item.__orvDomain || { kind: "UNKNOWN" };
+            const values = domain.allowed_values;
+            const current = Number(item.value ?? 0);
+            output.textContent = current === 0 ? "Model default" : `${current}s`;
+            auto.setAttribute("aria-pressed", String(current === 0));
+            range.disabled = domain.kind === "UNKNOWN";
+            range.min = values ? 0 : domain.min ?? 0;
+            range.max = values ? Math.max(0, values.length - 1) : domain.max ?? 0;
+            range.step = values ? 1 : 10 ** -(domain.precision ?? 0);
+            range.value = values ? Math.max(0, values.indexOf(current)) : current || domain.min || 0;
+            range.setAttribute("aria-valuetext", current === 0 ? "Model default" : `${current} seconds`);
+            range.style.opacity = current === 0 || (values && !values.includes(current)) ? "0.45" : "1";
+            scale.replaceChildren();
+            const ticks = values && values.length <= 6 ? values : domain.kind === "UNKNOWN" ? []
+                : [domain.min, ...(values && values.length > 6 ? [values[Math.floor(values.length / 2)]] : []), domain.max];
+            for (const tick of [...new Set(ticks)]) {
+                const span = document.createElement("span"); span.textContent = `${tick}s`; scale.append(span);
+            }
+            if (!ticks.length) scale.textContent = "Duration domain unverified";
+        };
+        const select = (next) => {
+            if (next == null) return;
+            item.value = next;
+            item.__orvRefresh();
+            item.callback?.(next);
+            node.setDirtyCanvas?.(true, true);
+        };
+        range.addEventListener("input", () => select(durationAtPosition(item.__orvDomain, Number(range.value))));
+        range.addEventListener("keydown", event => {
+            const values = item.__orvDomain?.allowed_values;
+            if (!values || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) return;
+            event.preventDefault(); event.stopPropagation();
+            let position = values.indexOf(Number(item.value));
+            if (event.key === "Home") position = 0;
+            else if (event.key === "End") position = values.length - 1;
+            else if (position < 0) position = 0;
+            else position += ["ArrowRight", "ArrowUp"].includes(event.key) ? 1 : -1;
+            select(durationAtPosition(item.__orvDomain, position));
+        });
+        auto.addEventListener("click", () => select(0));
+        element.addEventListener("pointerdown", event => event.stopPropagation());
+    } else {
+        item = node.addWidget("orv-duration-slider", "duration", previous.value ?? 0, previous.callback, {});
+    }
+    // Native INT onValueChange writes this.value; on a DOM widget that would
+    // recursively re-enter its setter. The semantic slider needs no INT coercion.
+    item.callback = null;
+    const appended = node.widgets.indexOf(item);
+    node.widgets.splice(appended, 1);
+    node.widgets[index] = item;
+    // This slot always carries seconds (or 0 for omitted), never UI position.
+    item.serializeValue = function () { return this.value; };
+}
+
 function configureDuration(node, supported) {
     const item = widget(node, "duration");
     if (!item) return;
@@ -474,26 +603,21 @@ function configureDuration(node, supported) {
     item.options = item.options || {};
     item.options.getOptionLabel = (value) => value == null || String(value) === "0" ? AUTO : String(value);
     const current = Number(item.value || 0);
-    item.options = item.options || {};
+    const domain = durationDomain(supported);
+    item.__orvDomain = domain;
+    item.type = "orv-duration-slider";
     setVisible(item, true);
-    if (supported === null) {
-        item.type = "combo";
-        item.options.values = current > 0 ? [0, current] : [0];
-        if (current > 0) disclose(node, "DURATION: saved value is not verified by catalogue");
-        return;
-    }
-    const values = canonicalOptions("duration", supported);
-    if (current > 0 && !values.includes(current)) {
-        item.type = "combo";
-        item.options.values = canonicalOptions("duration", [0, ...values, current]);
+    const values = domain.allowed_values || [];
+    // Retain option truth for existing projection consumers; renderer uses the domain.
+    item.options.values = canonicalOptions("duration", [0, ...values, ...(current > 0 && !values.includes(current) ? [current] : [])]);
+    if (domain.kind === "UNKNOWN" && current > 0) {
+        disclose(node, "DURATION: saved value is not verified by catalogue");
+    } else if (current > 0 && (domain.allowed_values ? !values.includes(current) : current < domain.min || current > domain.max)) {
         disclose(node, "DURATION: incompatible saved value preserved; Generate blocked");
-        return;
-    }
-    item.type = "combo";
-    item.options.values = [0, ...values];
-    if (current === 0 && values.length > 1) {
+    } else if (current === 0 && values.length > 1) {
         disclose(node, "DURATION: select an explicit supported value");
     }
+    item.__orvRefresh?.();
 }
 
 function configurationScope(relation, context) {

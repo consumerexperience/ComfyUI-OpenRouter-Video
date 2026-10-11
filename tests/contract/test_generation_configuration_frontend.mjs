@@ -67,7 +67,7 @@ test("future relation-only model gets options without adding an ID to UI code", 
     assert.deepEqual(result.options.duration, [4]);
 });
 
-test("Duration is a real combo and incompatible numeric intent is preserved", () => {
+test("Duration is a semantic slider and incompatible numeric intent is preserved", () => {
     const previous = { name: "duration", type: "number", value: 6, serializeValue() { return this.value; } };
     const target = {
         widgets: [previous],
@@ -80,15 +80,15 @@ test("Duration is a real combo and incompatible numeric intent is preserved", ()
     };
     context.createGeometryCombos(target);
     assert.equal(target.widgets.length, 1);
-    assert.equal(target.widgets[0].type, "combo");
+    assert.equal(target.widgets[0].type, "orv-duration-slider");
     assert.equal(target.widgets[0].serializeValue(), 6);
     context.configureDuration(target, [4, 8]);
     assert.equal(target.widgets[0].value, 6);
-    assert.equal(target.widgets[0].type, "combo");
+    assert.equal(target.widgets[0].type, "orv-duration-slider");
     assert.match(target.__orvCapabilityStatus.value, /incompatible saved value preserved/);
     target.widgets[0].value = 4;
     context.configureDuration(target, [4, 8]);
-    assert.equal(target.widgets[0].type, "combo");
+    assert.equal(target.widgets[0].type, "orv-duration-slider");
     assert.deepEqual(plain(target.widgets[0].options.values), [0, 4, 8]);
 });
 

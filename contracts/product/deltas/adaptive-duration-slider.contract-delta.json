@@ -1,0 +1,38 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "adaptive-duration-slider",
+  "baseline_checkpoint": "adaptive-generation-controls-v1",
+  "baseline_sha": "8ec71ba94575f8b02105a0cd0e5feba7d7083b87",
+  "risk_tier": "B",
+  "intended_delta": [
+    "Owner-authorized Duration dropdown to capability-driven slider only; semantic seconds/AUTO and accepted projection preserved."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Duration widget renderer/domain adapter only; all unrelated frontend definitions byte-equivalent."
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned"
+  ],
+  "expected_components": [
+    "Duration frontend widget",
+    "focused tests",
+    "visual review artifacts"
+  ],
+  "required_gates": [
+    "baseline_declaration",
+    "semantic_diff",
+    "negative_space_tests",
+    "full_tests",
+    "real_8189_browser",
+    "save_reload",
+    "zero_paid_posts"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}
