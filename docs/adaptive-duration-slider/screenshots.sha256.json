@@ -1,0 +1,18 @@
+{
+  "00-before-dropdown.png": "1c09276131cede6160d5101af93f9bb46546c0e105cd028836e698a372ba8ae7",
+  "01-fresh-auto.png": "9ecf9e715eeedce0789ca9156f18cd183293282a9064cf7944183447dce6aede",
+  "02-two-value-discrete.png": "c540ae9a4a09d4d8557fecc40f515fbc8d88103fc1de5d1587e86df65da679be",
+  "03-sparse-discrete.png": "4f26b88c0a61846c6b58f1ebf1f936d68f2ff3f0f6b6de99db1f3288326d0573",
+  "04-dense-discrete.png": "b0086a112f981e431dd4ec4e19e7e4c3beea5323410caade28984d8793bc56ee",
+  "05-minimum.png": "6fdda5638a35c37839debddffdb61aa8e2ccf5f7e38f8c80db7522e3c3dfb680",
+  "06-middle.png": "b432235addefeb957f9a9c192a0a01995c8b36081ec25e270bde950b32c3e2db",
+  "07-maximum.png": "f501ba6bc793d70d2c2122d24ae70a2669247df39434f85ad42d5eeb1cb9e6ea",
+  "08-model-switch.png": "b213ce22924699e808afe71d67f4a3861f4ca671e96f59c76574a3cea2ef713f",
+  "09-method-switch.png": "9ed7c809b5eb6fd7317d90666cf5bf57c2b623265e3f0eea50fb907f63aff6cf",
+  "10-save.png": "887f49c099422bead769ae1321f03b7ebc5b145ca85112d8866fb75f2e85842a",
+  "11-reload.png": "4f6459cf85ed1bf36a8737f1bed55098a4170e7288bebb57d1e35eb02661791b",
+  "12-auto-default.png": "bac6d1a010eadd99873b32cdc13f5684da2dff66b169a5bbf5606fb592fc94e1",
+  "13-incompatible.png": "b213ce22924699e808afe71d67f4a3861f4ca671e96f59c76574a3cea2ef713f",
+  "14-product-owner-preview.png": "1a5631f99f90d5f60bcc185c0a27de387ccddadb32a386c55cc524498743f731",
+  "15-auto-to-minimum-click.png": "9388b7daf128527688930862f601fc35a54c5f54cac468fb4e50330080dff02e"
+}

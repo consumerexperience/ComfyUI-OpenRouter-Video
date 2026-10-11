@@ -1,0 +1,45 @@
+✔ discrete domain and snapping 2 values (2.1181ms)
+✔ discrete domain and snapping 3 values (0.1866ms)
+✔ discrete domain and snapping 6 values (0.1864ms)
+✔ discrete domain and snapping 30 values (0.3514ms)
+✔ unknown and unconfirmed range fail closed (0.1597ms)
+✔ future explicitly confirmed range fixtures remain UI architecture only (0.2557ms)
+✔ model/method/coupled reprojection preserves saved intent and unrelated values (0.489ms)
+✔ protected frontend definitions remain byte-equivalent to accepted baseline (40.8829ms)
+✔ native DOM setter preserves semantic seconds without INT callback recursion (1.2372ms)
+✔ independent parameters preserve the existing Cartesian availability (2.0127ms)
+✔ Resolution and Aspect Ratio immediately constrain remaining values (0.4964ms)
+✔ invalid saved intent remains repairable without creating a false tuple (0.1768ms)
+✔ known incomplete coupling fails closed only for the specific unknown tuple (0.7485ms)
+✔ method and mode scopes reproject without a model-specific branch (0.403ms)
+✔ future relation-only model gets options without adding an ID to UI code (0.2039ms)
+✔ Duration is a semantic slider and incompatible numeric intent is preserved (1.2776ms)
+✔ every current model retains its real structured axis options (6.1566ms)
+✔ canonical resolution order: ["4K","480p","1080p","720p"] (0.2178ms)
+✔ canonical resolution order: ["8K","future-z","4K","1440p","2K","AUTO / MODEL DEFAULT","1080p","future-a"] (0.1974ms)
+✔ canonical aspect_ratio order: ["16:9","1:1","9:21","3:4","9:16"] (0.1082ms)
+✔ canonical aspect_ratio order: ["21:9","3:2","4:3","2:3","AUTO / MODEL DEFAULT"] (0.1449ms)
+✔ canonical duration order: [8,4,6] (0.1021ms)
+✔ canonical duration order: [8,0,6,4] (0.0917ms)
+✔ canonical size order: ["1280x720","960x960","720x1280","480x480","future-z","future-a"] (0.1433ms)
+✔ canonical size order: ["640x480","480x640","640×480","480x480","AUTO / MODEL DEFAULT"] (0.1222ms)
+✔ canonical resolution order: ["720p","720p","1080p","odd","Odd"] (0.1106ms)
+✔ reprojection preserves selected wire value and sentinel label (0.4974ms)
+✔ Phase 8 remote-options values restore by field, not Phase 10 widget position (1.0776ms)
+✔ unresolved numeric legacy model stays unresolved (0.2678ms)
+✔ presentation order keeps reference summary above Model and Advanced above its controls (0.747ms)
+✔ primary control sizing preserves original widget measurement and visibility (0.2556ms)
+✔ Prompt styling is scoped to this Generate widget (0.1811ms)
+✔ named Phase 10 values win over presentation positions (0.2211ms)
+✔ prior Phase 10 positional values restore by field after presentation reorder (0.2538ms)
+✔ new presentation order restores the same intent on reload (0.1647ms)
+✔ visible reference sockets lead hidden widget inputs and preserve link slots (1.9053ms)
+✔ native Load Image is recognized as IMAGE while existing URL helper remains valid (0.3893ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 119.7985
