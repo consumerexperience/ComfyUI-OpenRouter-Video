@@ -75,7 +75,6 @@ def test_protected_native_media_security_pricing_and_wire_files_are_exactly_pres
         "src/openrouter_video/s3_upload.py",
         "src/openrouter_video/local_media.py",
         "src/openrouter_video/image_transport.py",
-        "src/openrouter_video/comfy/nodes.py",
         "src/openrouter_video/comfy/native_media.py",
         "src/openrouter_video/comfy/runtime.py",
         "src/openrouter_video/comfy/compat.py",

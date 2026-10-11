@@ -200,7 +200,8 @@ function syncAdvancedControls(node) {
     // Projection finishes here after setting support-specific widget metadata.
     const seed = widget(node, "seed");
     if (seed?.options) seed.options.min = -1;
-    setVisible(node.__orvAdvanced, Boolean(node.__orvGeometryAlternative));
+    setVisible(node.__orvAdvanced, false);
+    setVisible(widget(node, "geometry_authority"), false);
     let changed = false;
     for (const item of node.widgets || []) {
         if (/control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`)) {
@@ -464,7 +465,7 @@ function restorePhase10NamedValues(node, namedValues) {
     for (const name of [
         "model", "inference_method", "prompt", "resolution", "aspect_ratio",
         "duration", "size", "seed", "generate_audio", "first_frame_url",
-        "last_frame_url",
+        "last_frame_url", "geometry_authority",
     ]) {
         if (Object.hasOwn(namedValues, name)) {
             const item = widget(node, name);
@@ -793,6 +794,16 @@ function configurationOptions(capability, selections, context) {
 }
 
 function configureGenerationConfiguration(node, capability) {
+    if (!geometryAuthority(node)) {
+        const size = normalizedValue(widget(node, "size"));
+        const resolution = normalizedValue(widget(node, "resolution"));
+        const aspect = normalizedValue(widget(node, "aspect_ratio"));
+        const matches = (capability.geometry_profile?.tuples || []).filter(tuple =>
+            tuple.confidence === "CONFIRMED" && tuple.size === size &&
+            tuple.resolution === resolution && tuple.aspect_ratio === aspect);
+        setGeometryAuthority(node, size && (resolution || aspect)
+            ? matches.length === 1 ? "EXACT" : "AMBIGUOUS" : size ? "EXACT" : "NORMALIZED");
+    }
     const selections = Object.fromEntries(["resolution", "aspect_ratio", "duration", "size"].map(
         (axis) => [axis, normalizedValue(widget(node, axis))]));
     const kinds = selectedReferenceKinds(node);
@@ -807,7 +818,8 @@ function configureGenerationConfiguration(node, capability) {
         source_video_present: inputByName(node, "source_video")?.link != null,
     };
     const unconstrained = configurationOptions(capability, {}, context);
-    const exact = selections.size !== null;
+    const exact = geometryAuthority(node) === "EXACT";
+    if (!exact) selections.size = null;
     if (exact) { selections.resolution = null; selections.aspect_ratio = null; }
     const axes = exact ? ["duration"] : ["resolution", "aspect_ratio", "duration"];
     for (const axis of axes) {
@@ -826,7 +838,11 @@ function configureGenerationConfiguration(node, capability) {
         }
     }
     const projected = configurationOptions(capability, selections, context);
-    configureDuration(node, projected.options.duration);
+    const explicitSizeDurationRelation = (capability.configuration_relations || [])
+        .some(relation => relation.axes?.includes("size") && relation.axes?.includes("duration"));
+    if (node.__orvGeometryEdited !== "size" || explicitSizeDurationRelation) {
+        configureDuration(node, projected.options.duration);
+    }
     configureGeometry(node, {
         ...capability, supported_resolutions: projected.options.resolution,
         supported_aspect_ratios: projected.options.aspect_ratio,
@@ -1135,35 +1151,98 @@ function bindInferenceMethod(node) {
     };
 }
 
+function geometryAuthority(node) {
+    return widget(node, "geometry_authority")?.value || node.__orvGeometryAuthority || "";
+}
+
+function setGeometryAuthority(node, authority) {
+    node.__orvGeometryAuthority = authority;
+    const item = widget(node, "geometry_authority");
+    if (item) item.value = authority;
+    setVisible(item, false);
+}
+
+function orderedGeometryTuples(tuples) {
+    const axes = ["resolution", "aspect_ratio", "size"];
+    const orders = Object.fromEntries(axes.map(axis => [axis, canonicalOptions(axis,
+        [...new Set(tuples.map(tuple => tuple[axis]).filter(value => value !== null))])]));
+    return [...tuples].sort((a, b) => {
+        for (const axis of axes) {
+            const difference = orders[axis].indexOf(a[axis]) - orders[axis].indexOf(b[axis]);
+            if (difference) return difference;
+        }
+        return 0;
+    });
+}
+
 function configureGeometry(node, capability) {
-    configureEnum(node, widget(node, "resolution"), capability.supported_resolutions, "RESOLUTION");
-    configureEnum(
-        node,
-        widget(node, "aspect_ratio"),
-        capability.supported_aspect_ratios,
-        "ASPECT RATIO",
-    );
-    configureEnum(node, widget(node, "size"), capability.supported_sizes, "EXACT SIZE");
-    const resolution = widget(node, "resolution");
-    const aspect = widget(node, "aspect_ratio");
-    const size = widget(node, "size");
-    // An explicit saved/selected size is exact intent, never a preset-to-pixel mapping.
-    const exact = normalizedValue(size) !== null;
-    const normalizedAvailable = [capability.supported_resolutions, capability.supported_aspect_ratios]
-        .every(values => Array.isArray(values) && values.length > 0);
-    const sizeAvailable = Array.isArray(capability.supported_sizes) && capability.supported_sizes.length > 0;
-    if (exact) {
-        if (resolution) resolution.value = "";
-        if (aspect) aspect.value = "";
+    const resolution = widget(node, "resolution"), aspect = widget(node, "aspect_ratio"), size = widget(node, "size");
+    const old = { resolution: normalizedValue(resolution), aspect_ratio: normalizedValue(aspect), size: normalizedValue(size) };
+    const tuples = orderedGeometryTuples((capability.geometry_profile?.tuples || [])
+        .filter(tuple => ["CONFIRMED", "SAFE_DERIVED"].includes(tuple.confidence)));
+    const confirmed = tuples.filter(tuple => tuple.confidence === "CONFIRMED" && tuple.resolution !== null);
+    const modelChanged = node.__orvGeometryModel != null && node.__orvGeometryModel !== canonicalModel(node);
+    let authority = geometryAuthority(node);
+    if (!authority) {
+        if (old.size && (old.resolution || old.aspect_ratio)) {
+            const matching = confirmed.filter(tuple => tuple.size === old.size && tuple.resolution === old.resolution && tuple.aspect_ratio === old.aspect_ratio);
+            authority = matching.length === 1 ? "EXACT" : "AMBIGUOUS";
+        } else authority = old.size ? "EXACT" : "NORMALIZED";
     }
-    setVisible(resolution, !exact && capability.supported_resolutions?.length !== 0);
-    setVisible(aspect, !exact && capability.supported_aspect_ratios?.length !== 0);
-    if (size) {
-        size.options ||= {};
-        size.options.advanced = false;
-        setVisible(size, exact || !normalizedAvailable || (sizeAvailable && Boolean(node.__orvShowExact)));
+    configureEnum(node, resolution, capability.supported_resolutions, "RESOLUTION");
+    configureEnum(node, aspect, capability.supported_aspect_ratios, "ASPECT RATIO");
+    if (modelChanged && old.size && Array.isArray(capability.supported_sizes) && !capability.supported_sizes.includes(old.size)) {
+        if (size) size.value = authority === "EXACT" ? canonicalOptions("size", capability.supported_sizes)[0] ?? "" : "";
     }
-    node.__orvGeometryAlternative = !exact && normalizedAvailable && sizeAvailable;
+    configureEnum(node, size, capability.supported_sizes, "EXACT SIZE");
+    const edited = node.__orvGeometryEdited;
+    if (authority === "EXACT" && normalizedValue(size)) {
+        const matching = tuples.filter(tuple => tuple.size === normalizedValue(size));
+        const full = matching.filter(tuple => tuple.confidence === "CONFIRMED" && tuple.resolution !== null);
+        const preferred = full.find(tuple => tuple.resolution === normalizedValue(resolution) && tuple.aspect_ratio === normalizedValue(aspect)) || full[0];
+        if (preferred) { if (resolution) resolution.value = preferred.resolution; if (aspect) aspect.value = preferred.aspect_ratio; }
+        else {
+            const provenAspects = [...new Set(matching.map(tuple => tuple.aspect_ratio).filter(Boolean))];
+            if (provenAspects.length === 1 && aspect) aspect.value = provenAspects[0];
+            else if (old.aspect_ratio === null && aspect) {
+                aspect.value = "";
+                aspect.options.values = ["", ...(capability.supported_aspect_ratios || [])];
+            }
+            if (old.resolution === null && resolution) {
+                resolution.value = "";
+                resolution.options.values = ["", ...(capability.supported_resolutions || [])];
+            }
+        }
+    } else if (authority === "NORMALIZED" && size) {
+        let compatible = confirmed.filter(tuple => tuple.resolution === normalizedValue(resolution) && tuple.aspect_ratio === normalizedValue(aspect));
+        if (!compatible.length && edited === "resolution") {
+            const alternatives = confirmed.filter(tuple => tuple.resolution === normalizedValue(resolution));
+            const next = canonicalOptions("aspect_ratio", [...new Set(alternatives.map(tuple => tuple.aspect_ratio))])[0];
+            if (next && aspect) aspect.value = next;
+        } else if (!compatible.length && edited === "aspect_ratio") {
+            const alternatives = confirmed.filter(tuple => tuple.aspect_ratio === normalizedValue(aspect));
+            const next = canonicalOptions("resolution", [...new Set(alternatives.map(tuple => tuple.resolution))])[0];
+            if (next && resolution) resolution.value = next;
+        }
+        compatible = confirmed.filter(tuple => tuple.resolution === normalizedValue(resolution) && tuple.aspect_ratio === normalizedValue(aspect));
+        const sizes = canonicalOptions("size", [...new Set(compatible.map(tuple => tuple.size))]);
+        size.value = sizes.includes(normalizedValue(size)) ? size.value : sizes[0] ?? "";
+        size.options.values = ["", ...sizes];
+        // Keep all current confirmed sizes selectable as explicit EXACT intent, even
+        // when normalized-to-pixel mapping is unknown. No automatic tuple promotion.
+        if (!sizes.length && Array.isArray(capability.supported_sizes)) size.options.values = ["", ...canonicalOptions("size", capability.supported_sizes)];
+        size.options.__orvProjection = sizes.length ? "CONFIRMED" : "UNKNOWN_RESOLUTION_SIZE_RELATION";
+    }
+    setVisible(resolution, Boolean(capability.supported_resolutions?.length) ||
+        (capability.supported_resolutions === null && Boolean(old.resolution)));
+    setVisible(aspect, Boolean(capability.supported_aspect_ratios?.length) ||
+        (capability.supported_aspect_ratios === null && Boolean(old.aspect_ratio)));
+    if (size) { size.options.advanced = false; setVisible(size, Boolean(capability.supported_sizes?.length) || Boolean(old.size)); }
+    node.__orvGeometryAlternative = false;
+    setGeometryAuthority(node, authority);
+    node.__orvGeometryModel = canonicalModel(node);
+    node.__orvGeometryEdited = null;
+    if (authority === "AMBIGUOUS") disclose(node, "UNRESOLVED LEGACY GEOMETRY: explicitly edit Resolution, Aspect Ratio or Exact Size; Generate blocked");
 }
 
 function selectedReferenceKinds(node) {
@@ -1188,9 +1267,9 @@ async function refreshEstimate(node) {
     const payload = {
         model_id: model,
         duration: normalizedValue(widget(node, "duration")),
-        resolution: normalizedValue(widget(node, "resolution")),
-        aspect_ratio: normalizedValue(widget(node, "aspect_ratio")),
-        size: normalizedValue(widget(node, "size")),
+        resolution: geometryAuthority(node) === "EXACT" ? null : normalizedValue(widget(node, "resolution")),
+        aspect_ratio: geometryAuthority(node) === "EXACT" ? null : normalizedValue(widget(node, "aspect_ratio")),
+        size: geometryAuthority(node) === "NORMALIZED" ? null : normalizedValue(widget(node, "size")),
         generate_audio: Boolean(widget(node, "generate_audio")?.value),
         inference_method: widget(node, "inference_method")?.value,
         reference_kinds: referenceKinds,
@@ -1221,6 +1300,10 @@ function bindEstimateRefresh(node) {
         const previous = item.callback;
         item.callback = function (...args) {
             previous?.apply(this, args);
+            if (["resolution", "aspect_ratio", "size"].includes(item.name)) {
+                node.__orvGeometryEdited = item.name;
+                setGeometryAuthority(node, item.name === "size" && normalizedValue(item) ? "EXACT" : "NORMALIZED");
+            }
             if (node.__orvCapability && item.name !== "model") {
                 configureGenerationConfiguration(node, node.__orvCapability);
             }
@@ -1232,7 +1315,10 @@ function bindEstimateRefresh(node) {
                 configureDuration(node, node.__orvDurationValues);
             }
             clearTimeout(node.__orvEstimateTimer);
-            node.__orvEstimateTimer = setTimeout(() => projectSelectedModel(node), 120);
+            node.__orvEstimateTimer = setTimeout(() => {
+                if (["resolution", "aspect_ratio", "size"].includes(item.name)) refreshEstimate(node);
+                else projectSelectedModel(node);
+            }, 120);
         };
     }
 }
@@ -1379,13 +1465,7 @@ app.registerExtension({
             createGeometryCombos(this);
             this.__orvIsNewNode = true;
             // Hidden nonserialized compatibility slot preserves legacy positional order.
-            this.__orvAdvanced = this.addWidget("button", "Advanced", "", () => {
-                this.__orvShowExact = !this.__orvShowExact;
-                if (this.__orvCapability) configureGenerationConfiguration(this, this.__orvCapability);
-                syncAdvancedControls(this);
-                fitPresentationWidth(this);
-            });
-            this.__orvAdvanced.label = "Exact Size…";
+            this.__orvAdvanced = this.addWidget("button", "Advanced", "", null);
             this.__orvAdvanced.serialize = false;
             setVisible(this.__orvAdvanced, false);
             this.__orvSummary = addReadOnlyWidget(this, "REFERENCES", "");

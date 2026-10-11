@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "policy": "Only reviewed exact-document tuples with provenance and source_reference; no resolution-tier heuristics. Empty after current catalogue and Seedance page audit.",
+  "profiles": {}
+}

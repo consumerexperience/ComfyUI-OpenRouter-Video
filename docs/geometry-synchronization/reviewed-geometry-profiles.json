@@ -1,0 +1,1320 @@
+{
+  "version": 1,
+  "source": "canonical current OpenRouter domains; safe aspect derivation only",
+  "profiles": {
+    "alibaba/happyhorse-1.0": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "720x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "720x960",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "960x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "720x1280",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1280x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "1080x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:21",
+          "size": "720x1680",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "21:9",
+          "size": "1680x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "1080x1440",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "1440x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "1080x1920",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1920x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:21",
+          "size": "1080x2520",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "21:9",
+          "size": "2520x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    },
+    "alibaba/happyhorse-1.1": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "720x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "720x960",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "960x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "720x1280",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1280x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "1080x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:21",
+          "size": "720x1680",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "21:9",
+          "size": "1680x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "1080x1440",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "1440x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "1080x1920",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1920x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:21",
+          "size": "1080x2520",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "21:9",
+          "size": "2520x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    },
+    "alibaba/wan-2.6": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "720x1280",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1280x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "1080x1920",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1920x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    },
+    "alibaba/wan-2.7": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "720x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "720x960",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "960x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "720x1280",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1280x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "1080x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "1080x1440",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "1440x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "1080x1920",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1920x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    },
+    "alibaba/wan-3.0": {
+      "version": 1,
+      "tuples": []
+    },
+    "alibaba/wan-3.0-prime": {
+      "version": 1,
+      "tuples": []
+    },
+    "black-forest-labs/flux-3-video": {
+      "version": 1,
+      "tuples": []
+    },
+    "black-forest-labs/flux-video-edit": {
+      "version": 1,
+      "tuples": []
+    },
+    "black-forest-labs/flux-video-upscale": {
+      "version": 1,
+      "tuples": []
+    },
+    "bytedance/seedance-1-5-pro": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "480x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "480x640",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "640x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "480x854",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "854x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "720x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:21",
+          "size": "480x1120",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "21:9",
+          "size": "1120x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "720x960",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "960x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "720x1280",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1280x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "1080x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:21",
+          "size": "720x1680",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "21:9",
+          "size": "1680x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "1080x1440",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "1440x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "1080x1920",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1920x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:21",
+          "size": "1080x2520",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "21:9",
+          "size": "2520x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    },
+    "bytedance/seedance-2.0": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "480x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "480x640",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "640x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "480x854",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "854x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "720x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "21:9",
+          "size": "1120x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "720x960",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "960x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "720x1280",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1280x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "1080x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:21",
+          "size": "720x1680",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "21:9",
+          "size": "1680x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "1080x1440",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "1440x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "1080x1920",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1920x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "21:9",
+          "size": "2520x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "2160x2160",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "2160x2880",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "2880x2160",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "2160x3840",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "3840x2160",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "21:9",
+          "size": "5040x2160",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    },
+    "bytedance/seedance-2.0-fast": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "480x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "480x640",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "640x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "480x854",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "854x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "720x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "21:9",
+          "size": "1120x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "720x960",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "960x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "720x1280",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1280x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:21",
+          "size": "720x1680",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "21:9",
+          "size": "1680x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    },
+    "bytedance/seedance-2.0-mini": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "480x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "480x640",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "640x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "480x854",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "854x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "720x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "21:9",
+          "size": "1120x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "720x960",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "960x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "720x1280",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1280x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:21",
+          "size": "720x1680",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "21:9",
+          "size": "1680x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    },
+    "bytedance/seedance-2.5": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "640x640",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "480x854",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "854x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": null,
+          "size": "560x752",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "UNKNOWN"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": null,
+          "size": "752x560",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "UNKNOWN"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": null,
+          "size": "992x432",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "UNKNOWN"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "720x1280",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "960x960",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1280x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "21:9",
+          "size": "1470x630",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "834x1112",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "1112x834",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    },
+    "google/veo-3.1": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "720x1280",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1280x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "1080x1920",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1920x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "2160x3840",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "3840x2160",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    },
+    "google/veo-3.1-fast": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "720x1280",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1280x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "1080x1920",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1920x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "2160x3840",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "3840x2160",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    },
+    "google/veo-3.1-lite": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "720x1280",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1280x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "1080x1920",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1920x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    },
+    "heygen/avatar-iv": {
+      "version": 1,
+      "tuples": []
+    },
+    "heygen/heygen-video-1": {
+      "version": 1,
+      "tuples": []
+    },
+    "kwaivgi/kling-v3.0-pro": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "720x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "720x1280",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1280x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    },
+    "kwaivgi/kling-v3.0-std": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "720x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "720x1280",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1280x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    },
+    "kwaivgi/kling-video-o1": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "720x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "720x1280",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1280x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    },
+    "minimax/hailuo-2.3": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1920x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    },
+    "minimax/hailuo-3": {
+      "version": 1,
+      "tuples": []
+    },
+    "minimax/hailuo-3-max": {
+      "version": 1,
+      "tuples": []
+    },
+    "runway/aleph-2": {
+      "version": 1,
+      "tuples": []
+    },
+    "runway/gen-4.5": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "720x1280",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1280x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    },
+    "x-ai/grok-imagine-video": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "480x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "480x640",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "640x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "2:3",
+          "size": "480x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:2",
+          "size": "720x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "480x854",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "854x480",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "720x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:4",
+          "size": "720x960",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "4:3",
+          "size": "960x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "2:3",
+          "size": "720x1080",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "3:2",
+          "size": "1080x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "720x1280",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1280x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    },
+    "x-ai/grok-imagine-video-1.5": {
+      "version": 1,
+      "tuples": []
+    },
+    "x-ai/grok-imagine-video-1.5-lite": {
+      "version": 1,
+      "tuples": []
+    }
+  }
+}

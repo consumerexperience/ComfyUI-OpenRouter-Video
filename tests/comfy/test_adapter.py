@@ -174,6 +174,7 @@ def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
         "source_video",
         "direct_references",
         "input_references",
+        "geometry_authority",
     ]
     assert [item.name for item in resume.inputs] == ["job_id"]
     assert generate.hidden == resume.hidden == ["UNIQUE_ID"]
@@ -253,6 +254,7 @@ def test_generate_normalizes_once_and_returns_exact_output(
             resolution=" 720p ",
             aspect_ratio=" ",
             size=" 1280x720 ",
+            geometry_authority="EXACT",
             seed=" 42 ",
             generate_audio=True,
             first_frame_url=" https://example.invalid/first.png ",
@@ -265,7 +267,7 @@ def test_generate_normalizes_once_and_returns_exact_output(
     assert node_id == "node-7"
     assert request.model == "vendor/model"
     assert request.duration == 5
-    assert request.resolution == "720p"
+    assert request.resolution is None
     assert request.aspect_ratio is None
     assert request.size == "1280x720"
     assert request.seed == 42
@@ -876,3 +878,21 @@ def test_model_validation_accepts_reconstructed_native_autogrow() -> None:
         )
         is True
     )
+
+
+def test_ambiguous_geometry_never_acquires_runtime(monkeypatch: pytest.MonkeyPatch) -> None:
+    def forbidden_runtime() -> None:
+        pytest.fail("Ambiguous geometry must fail before acquiring submit runtime")
+
+    monkeypatch.setattr(nodes, "get_runtime", forbidden_runtime)
+    with pytest.raises(nodes.AdapterExecutionError, match="Ambiguous saved geometry"):
+        asyncio.run(
+            nodes.OpenRouterVideoGenerate.execute(
+                "vendor/model",
+                "prompt",
+                resolution="720p",
+                aspect_ratio="16:9",
+                size="1280x720",
+                geometry_authority="AMBIGUOUS",
+            )
+        )

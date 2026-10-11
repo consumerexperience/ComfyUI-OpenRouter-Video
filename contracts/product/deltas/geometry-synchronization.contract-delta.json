@@ -1,0 +1,81 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "geometry-synchronization",
+  "baseline_checkpoint": "geometry-alternatives-7af8197",
+  "baseline_sha": "7af8197bea0bc9f7b1fb3e1776f653ded41ab0c7",
+  "risk_tier": "B",
+  "intended_delta": [
+    "Owner 2026-10-11 prompt supersedes exact-only UI: primary controls retained, synchronized only on CONFIRMED tuples or SAFE_DERIVED aspect-only facts; no guessed resolution tiers; persisted local wire authority; strict legacy ambiguity and generic model switching."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Explicit owner geometry synchronization scope; protected non-geometry source guarded by AST and regression tests"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01geometry_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Explicit owner geometry synchronization scope; protected non-geometry source guarded by AST and regression tests"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01data~01geometry-relations_json",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Explicit owner geometry synchronization scope; protected non-geometry source guarded by AST and regression tests"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01nodes_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Explicit owner geometry synchronization scope; protected non-geometry source guarded by AST and regression tests"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01projection_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Explicit owner geometry synchronization scope; protected non-geometry source guarded by AST and regression tests"
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned/billing",
+    "/surfaces/product_owned/media",
+    "/surfaces/product_owned/duration",
+    "/surfaces/product_owned/credentials"
+  ],
+  "expected_components": [
+    "generic geometry relation and reviewed data loader",
+    "sanitized geometry profile projection",
+    "thin adapter geometry-only request field selection",
+    "geometry primary widgets and callback projection",
+    "hidden local workflow authority with named restore",
+    "catalogue audit and Classic/Beta native save/reload evidence",
+    "focused tests and exact negative-space adapter AST"
+  ],
+  "required_gates": [
+    "semantic_diff",
+    "full_tests",
+    "real_8189_browser",
+    "save_reload",
+    "zero_paid_posts",
+    "ruff",
+    "mypy",
+    "build",
+    "baseline_declaration",
+    "negative_space_tests"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}
