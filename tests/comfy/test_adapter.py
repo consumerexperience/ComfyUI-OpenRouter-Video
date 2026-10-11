@@ -733,7 +733,7 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
     assert _schema_inputs(generate)["model"].options["options"] == ["SELECT MODEL"]
     projected = payload["models"][0]
     assert projected["supported_resolutions"] == ("480p", "768p")
-    assert projected["supported_aspect_ratios"] == ("16:9", "5:4")
+    assert projected["supported_aspect_ratios"] == ("5:4", "16:9")
     assert projected["supports_seed"] is None
     assert projected["supported_reference_kinds"] == ("image", "video")
     assert projected["max_reference_count"] == 50

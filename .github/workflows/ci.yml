@@ -9,6 +9,9 @@ on:
 permissions:
   contents: read
 
+env:
+  OPENROUTER_VIDEO_CONTRACT_DELTA: contracts/product/deltas/adaptive-generation-controls.contract-delta.json
+
 jobs:
   quality:
     name: quality
@@ -59,3 +62,7 @@ jobs:
       - run: python -m pip install -r requirements-dev.lock
       - run: python -m pip install --no-deps -e .
       - run: python -m pytest
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22"
+      - run: node --test tests/contract/test_generation_configuration_frontend.mjs tests/contract/test_phase10_frontend_migration.mjs

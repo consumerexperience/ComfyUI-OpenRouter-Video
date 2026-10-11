@@ -1,0 +1,229 @@
+running egg_info
+writing src\openrouter_video.egg-info\PKG-INFO
+writing dependency_links to src\openrouter_video.egg-info\dependency_links.txt
+writing requirements to src\openrouter_video.egg-info\requires.txt
+writing top-level names to src\openrouter_video.egg-info\top_level.txt
+reading manifest file 'src\openrouter_video.egg-info\SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file 'src\openrouter_video.egg-info\SOURCES.txt'
+running sdist
+running egg_info
+writing src\openrouter_video.egg-info\PKG-INFO
+writing dependency_links to src\openrouter_video.egg-info\dependency_links.txt
+writing requirements to src\openrouter_video.egg-info\requires.txt
+writing top-level names to src\openrouter_video.egg-info\top_level.txt
+reading manifest file 'src\openrouter_video.egg-info\SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file 'src\openrouter_video.egg-info\SOURCES.txt'
+running check
+creating openrouter_video-0.1.0
+creating openrouter_video-0.1.0\src\openrouter_video
+creating openrouter_video-0.1.0\src\openrouter_video.egg-info
+creating openrouter_video-0.1.0\src\openrouter_video\comfy
+creating openrouter_video-0.1.0\src\openrouter_video\data
+copying files to openrouter_video-0.1.0...
+copying LICENSE -> openrouter_video-0.1.0
+copying README.md -> openrouter_video-0.1.0
+copying pyproject.toml -> openrouter_video-0.1.0
+copying src\openrouter_video\__init__.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\app_identity.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\application.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\capabilities.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\capability_overlays.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\client.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\configuration.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\errors.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\evidence_registry.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\execution_hooks.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\image_transport.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\lifecycle.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\local_media.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\media.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\models.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\observability.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\persistence.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\policy.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\pricing.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\pricing_profile.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\py.typed -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\recipes.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\request_policy.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\s3_upload.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\secrets.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\staging.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video\transport.py -> openrouter_video-0.1.0\src\openrouter_video
+copying src\openrouter_video.egg-info\PKG-INFO -> openrouter_video-0.1.0\src\openrouter_video.egg-info
+copying src\openrouter_video.egg-info\SOURCES.txt -> openrouter_video-0.1.0\src\openrouter_video.egg-info
+copying src\openrouter_video.egg-info\dependency_links.txt -> openrouter_video-0.1.0\src\openrouter_video.egg-info
+copying src\openrouter_video.egg-info\requires.txt -> openrouter_video-0.1.0\src\openrouter_video.egg-info
+copying src\openrouter_video.egg-info\top_level.txt -> openrouter_video-0.1.0\src\openrouter_video.egg-info
+copying src\openrouter_video\comfy\__init__.py -> openrouter_video-0.1.0\src\openrouter_video\comfy
+copying src\openrouter_video\comfy\compat.py -> openrouter_video-0.1.0\src\openrouter_video\comfy
+copying src\openrouter_video\comfy\extension.py -> openrouter_video-0.1.0\src\openrouter_video\comfy
+copying src\openrouter_video\comfy\image.py -> openrouter_video-0.1.0\src\openrouter_video\comfy
+copying src\openrouter_video\comfy\native_media.py -> openrouter_video-0.1.0\src\openrouter_video\comfy
+copying src\openrouter_video\comfy\nodes.py -> openrouter_video-0.1.0\src\openrouter_video\comfy
+copying src\openrouter_video\comfy\projection.py -> openrouter_video-0.1.0\src\openrouter_video\comfy
+copying src\openrouter_video\comfy\routes.py -> openrouter_video-0.1.0\src\openrouter_video\comfy
+copying src\openrouter_video\comfy\runtime.py -> openrouter_video-0.1.0\src\openrouter_video\comfy
+copying src\openrouter_video\comfy\video.py -> openrouter_video-0.1.0\src\openrouter_video\comfy
+copying src\openrouter_video\data\capability-evidence.json -> openrouter_video-0.1.0\src\openrouter_video\data
+copying src\openrouter_video.egg-info\SOURCES.txt -> openrouter_video-0.1.0\src\openrouter_video.egg-info
+Writing openrouter_video-0.1.0\setup.cfg
+Creating tar archive
+removing 'openrouter_video-0.1.0' (and everything under it)
+running egg_info
+writing src\openrouter_video.egg-info\PKG-INFO
+writing dependency_links to src\openrouter_video.egg-info\dependency_links.txt
+writing requirements to src\openrouter_video.egg-info\requires.txt
+writing top-level names to src\openrouter_video.egg-info\top_level.txt
+reading manifest file 'src\openrouter_video.egg-info\SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file 'src\openrouter_video.egg-info\SOURCES.txt'
+running bdist_wheel
+running build
+running build_py
+creating build\lib\openrouter_video
+copying src\openrouter_video\application.py -> build\lib\openrouter_video
+copying src\openrouter_video\app_identity.py -> build\lib\openrouter_video
+copying src\openrouter_video\capabilities.py -> build\lib\openrouter_video
+copying src\openrouter_video\capability_overlays.py -> build\lib\openrouter_video
+copying src\openrouter_video\client.py -> build\lib\openrouter_video
+copying src\openrouter_video\configuration.py -> build\lib\openrouter_video
+copying src\openrouter_video\errors.py -> build\lib\openrouter_video
+copying src\openrouter_video\evidence_registry.py -> build\lib\openrouter_video
+copying src\openrouter_video\execution_hooks.py -> build\lib\openrouter_video
+copying src\openrouter_video\image_transport.py -> build\lib\openrouter_video
+copying src\openrouter_video\lifecycle.py -> build\lib\openrouter_video
+copying src\openrouter_video\local_media.py -> build\lib\openrouter_video
+copying src\openrouter_video\media.py -> build\lib\openrouter_video
+copying src\openrouter_video\models.py -> build\lib\openrouter_video
+copying src\openrouter_video\observability.py -> build\lib\openrouter_video
+copying src\openrouter_video\persistence.py -> build\lib\openrouter_video
+copying src\openrouter_video\policy.py -> build\lib\openrouter_video
+copying src\openrouter_video\pricing.py -> build\lib\openrouter_video
+copying src\openrouter_video\pricing_profile.py -> build\lib\openrouter_video
+copying src\openrouter_video\recipes.py -> build\lib\openrouter_video
+copying src\openrouter_video\request_policy.py -> build\lib\openrouter_video
+copying src\openrouter_video\s3_upload.py -> build\lib\openrouter_video
+copying src\openrouter_video\secrets.py -> build\lib\openrouter_video
+copying src\openrouter_video\staging.py -> build\lib\openrouter_video
+copying src\openrouter_video\transport.py -> build\lib\openrouter_video
+copying src\openrouter_video\__init__.py -> build\lib\openrouter_video
+creating build\lib\openrouter_video\comfy
+copying src\openrouter_video\comfy\compat.py -> build\lib\openrouter_video\comfy
+copying src\openrouter_video\comfy\extension.py -> build\lib\openrouter_video\comfy
+copying src\openrouter_video\comfy\image.py -> build\lib\openrouter_video\comfy
+copying src\openrouter_video\comfy\native_media.py -> build\lib\openrouter_video\comfy
+copying src\openrouter_video\comfy\nodes.py -> build\lib\openrouter_video\comfy
+copying src\openrouter_video\comfy\projection.py -> build\lib\openrouter_video\comfy
+copying src\openrouter_video\comfy\routes.py -> build\lib\openrouter_video\comfy
+copying src\openrouter_video\comfy\runtime.py -> build\lib\openrouter_video\comfy
+copying src\openrouter_video\comfy\video.py -> build\lib\openrouter_video\comfy
+copying src\openrouter_video\comfy\__init__.py -> build\lib\openrouter_video\comfy
+running egg_info
+writing src\openrouter_video.egg-info\PKG-INFO
+writing dependency_links to src\openrouter_video.egg-info\dependency_links.txt
+writing requirements to src\openrouter_video.egg-info\requires.txt
+writing top-level names to src\openrouter_video.egg-info\top_level.txt
+reading manifest file 'src\openrouter_video.egg-info\SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file 'src\openrouter_video.egg-info\SOURCES.txt'
+copying src\openrouter_video\py.typed -> build\lib\openrouter_video
+creating build\lib\openrouter_video\data
+copying src\openrouter_video\data\capability-evidence.json -> build\lib\openrouter_video\data
+installing to build\bdist.win-amd64\wheel
+running install
+running install_lib
+creating build\bdist.win-amd64\wheel
+creating build\bdist.win-amd64\wheel\openrouter_video
+copying build\lib\openrouter_video\application.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\app_identity.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\capabilities.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\capability_overlays.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\client.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+creating build\bdist.win-amd64\wheel\openrouter_video\comfy
+copying build\lib\openrouter_video\comfy\compat.py -> build\bdist.win-amd64\wheel\.\openrouter_video\comfy
+copying build\lib\openrouter_video\comfy\extension.py -> build\bdist.win-amd64\wheel\.\openrouter_video\comfy
+copying build\lib\openrouter_video\comfy\image.py -> build\bdist.win-amd64\wheel\.\openrouter_video\comfy
+copying build\lib\openrouter_video\comfy\native_media.py -> build\bdist.win-amd64\wheel\.\openrouter_video\comfy
+copying build\lib\openrouter_video\comfy\nodes.py -> build\bdist.win-amd64\wheel\.\openrouter_video\comfy
+copying build\lib\openrouter_video\comfy\projection.py -> build\bdist.win-amd64\wheel\.\openrouter_video\comfy
+copying build\lib\openrouter_video\comfy\routes.py -> build\bdist.win-amd64\wheel\.\openrouter_video\comfy
+copying build\lib\openrouter_video\comfy\runtime.py -> build\bdist.win-amd64\wheel\.\openrouter_video\comfy
+copying build\lib\openrouter_video\comfy\video.py -> build\bdist.win-amd64\wheel\.\openrouter_video\comfy
+copying build\lib\openrouter_video\comfy\__init__.py -> build\bdist.win-amd64\wheel\.\openrouter_video\comfy
+copying build\lib\openrouter_video\configuration.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+creating build\bdist.win-amd64\wheel\openrouter_video\data
+copying build\lib\openrouter_video\data\capability-evidence.json -> build\bdist.win-amd64\wheel\.\openrouter_video\data
+copying build\lib\openrouter_video\errors.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\evidence_registry.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\execution_hooks.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\image_transport.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\lifecycle.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\local_media.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\media.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\models.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\observability.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\persistence.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\policy.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\pricing.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\pricing_profile.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\py.typed -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\recipes.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\request_policy.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\s3_upload.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\secrets.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\staging.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\transport.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+copying build\lib\openrouter_video\__init__.py -> build\bdist.win-amd64\wheel\.\openrouter_video
+running install_egg_info
+Copying src\openrouter_video.egg-info to build\bdist.win-amd64\wheel\.\openrouter_video-0.1.0-py3.12.egg-info
+running install_scripts
+creating build\bdist.win-amd64\wheel\openrouter_video-0.1.0.dist-info\WHEEL
+creating 'E:\\_ARENAS_lab\\Bizdev\\AI\\OPENROUTER\\adaptive-generation-controls\\dist\\.tmp-cxg3jr0q\\openrouter_video-0.1.0-py3-none-any.whl' and adding 'build\\bdist.win-amd64\\wheel' to it
+adding 'openrouter_video/__init__.py'
+adding 'openrouter_video/app_identity.py'
+adding 'openrouter_video/application.py'
+adding 'openrouter_video/capabilities.py'
+adding 'openrouter_video/capability_overlays.py'
+adding 'openrouter_video/client.py'
+adding 'openrouter_video/configuration.py'
+adding 'openrouter_video/errors.py'
+adding 'openrouter_video/evidence_registry.py'
+adding 'openrouter_video/execution_hooks.py'
+adding 'openrouter_video/image_transport.py'
+adding 'openrouter_video/lifecycle.py'
+adding 'openrouter_video/local_media.py'
+adding 'openrouter_video/media.py'
+adding 'openrouter_video/models.py'
+adding 'openrouter_video/observability.py'
+adding 'openrouter_video/persistence.py'
+adding 'openrouter_video/policy.py'
+adding 'openrouter_video/pricing.py'
+adding 'openrouter_video/pricing_profile.py'
+adding 'openrouter_video/py.typed'
+adding 'openrouter_video/recipes.py'
+adding 'openrouter_video/request_policy.py'
+adding 'openrouter_video/s3_upload.py'
+adding 'openrouter_video/secrets.py'
+adding 'openrouter_video/staging.py'
+adding 'openrouter_video/transport.py'
+adding 'openrouter_video/comfy/__init__.py'
+adding 'openrouter_video/comfy/compat.py'
+adding 'openrouter_video/comfy/extension.py'
+adding 'openrouter_video/comfy/image.py'
+adding 'openrouter_video/comfy/native_media.py'
+adding 'openrouter_video/comfy/nodes.py'
+adding 'openrouter_video/comfy/projection.py'
+adding 'openrouter_video/comfy/routes.py'
+adding 'openrouter_video/comfy/runtime.py'
+adding 'openrouter_video/comfy/video.py'
+adding 'openrouter_video/data/capability-evidence.json'
+adding 'openrouter_video-0.1.0.dist-info/licenses/LICENSE'
+adding 'openrouter_video-0.1.0.dist-info/METADATA'
+adding 'openrouter_video-0.1.0.dist-info/WHEEL'
+adding 'openrouter_video-0.1.0.dist-info/top_level.txt'
+adding 'openrouter_video-0.1.0.dist-info/RECORD'
+removing build\bdist.win-amd64\wheel
+Successfully built openrouter_video-0.1.0.tar.gz and openrouter_video-0.1.0-py3-none-any.whl

@@ -2,15 +2,57 @@
 
 from __future__ import annotations
 
+import math
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+from typing import TypeVar
 
 from openrouter_video.capabilities import CapabilityModeStatus, inference_method_matrix
+from openrouter_video.configuration import profile_constraints
 from openrouter_video.evidence_registry import preferred_method
 from openrouter_video.models import InferenceMethod, ModelCapabilities
 
 _UI_METHODS = tuple(InferenceMethod)
+_Option = TypeVar("_Option", int, str)
+
+
+def _option_order(axis: str, value: int | str) -> tuple[int, float, float, int, int, str]:
+    """Nominal display hierarchy only; never a preset-to-pixel mapping."""
+    text = str(value)
+    if text == "AUTO / MODEL DEFAULT" or (axis == "duration" and value == 0):
+        return (-1, 0, 0, 0, 0, text)
+    if axis == "resolution":
+        match = re.fullmatch(r"([0-9]+(?:\.[0-9]+)?)(p|k)", text, re.IGNORECASE)
+        if match:
+            nominal = float(match[1]) * (1000 if match[2].lower() == "k" else 1)
+            if math.isfinite(nominal) and nominal > 0:
+                return (0, nominal, 0, 0, 0, text)
+    elif axis in {"aspect_ratio", "size"}:
+        separator = ":" if axis == "aspect_ratio" else "[x×]"
+        match = re.fullmatch(r"([0-9]+)" + separator + r"([0-9]+)", text)
+        if match:
+            width, height = int(match[1]), int(match[2])
+            if width > 0 and height > 0:
+                try:
+                    ratio = width / height
+                    area = float(width) * float(height) if axis == "size" else ratio
+                except OverflowError:
+                    return (1, 0, 0, 0, 0, text)
+                if math.isfinite(area) and math.isfinite(ratio):
+                    return (0, area, ratio, width, height, text)
+    elif axis == "duration":
+        if re.fullmatch(r"[0-9]+(?:\.[0-9]+)?", text):
+            seconds = float(text)
+            if math.isfinite(seconds) and seconds > 0:
+                return (0, seconds, 0, 0, 0, text)
+    return (1, 0, 0, 0, 0, text)
+
+
+def canonical_options(axis: str, values: tuple[_Option, ...] | None) -> tuple[_Option, ...] | None:
+    """Order a copy of UI values without changing evidence, membership or wire types."""
+    return None if values is None else tuple(sorted(values, key=lambda v: _option_order(axis, v)))
 
 
 def _evidence_json(value: object) -> object:
@@ -50,6 +92,7 @@ class UiModelCapabilities:
     observed_at: datetime
     capability_evidence: tuple[dict[str, object], ...] = ()
     unmapped_capabilities: tuple[str, ...] = ()
+    configuration_relations: tuple[dict[str, object], ...] = ()
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -76,6 +119,7 @@ class UiModelCapabilities:
             "observed_at": self.observed_at.isoformat(),
             "capability_evidence": self.capability_evidence,
             "unmapped_upstream_capabilities": self.unmapped_capabilities,
+            "configuration_relations": self.configuration_relations,
         }
 
 
@@ -88,10 +132,12 @@ def project_model(capabilities: ModelCapabilities, observed_at: datetime) -> UiM
     return UiModelCapabilities(
         model_id=capabilities.model_id,
         display_name=capabilities.name or capabilities.model_id,
-        supported_durations=capabilities.supported_durations,
-        supported_resolutions=capabilities.supported_resolutions,
-        supported_aspect_ratios=capabilities.supported_aspect_ratios,
-        supported_sizes=capabilities.supported_sizes,
+        supported_durations=canonical_options("duration", capabilities.supported_durations),
+        supported_resolutions=canonical_options("resolution", capabilities.supported_resolutions),
+        supported_aspect_ratios=canonical_options(
+            "aspect_ratio", capabilities.supported_aspect_ratios
+        ),
+        supported_sizes=canonical_options("size", capabilities.supported_sizes),
         supported_frame_types=(
             tuple(sorted(frame.value for frame in frames)) if frames is not None else None
         ),
@@ -136,6 +182,7 @@ def project_model(capabilities: ModelCapabilities, observed_at: datetime) -> UiM
             for fact in capabilities.evidence_facts
         ),
         unmapped_capabilities=capabilities.unmapped_capability_keys,
+        configuration_relations=profile_constraints(capabilities),
     )
 
 

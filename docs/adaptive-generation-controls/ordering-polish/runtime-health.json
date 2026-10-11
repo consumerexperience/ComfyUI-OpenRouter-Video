@@ -1,0 +1,37 @@
+{
+  "authenticated_catalogue_required": true,
+  "catalogue_model_count": 30,
+  "fingerprint_file_count": 40,
+  "health": {
+    "catalogue_model_count": 30,
+    "catalogue_revision": "bb6118f2d9a1d04781ad18510556b9fb4552179c5919ae02eddcdc5f093548e7",
+    "catalogue_state": "FRESH",
+    "credential_state": "PRESENT",
+    "database_state": "READY",
+    "plugin_loaded": true,
+    "plugin_version": "0.1.0",
+    "runtime_state": "READY",
+    "schema_version": 1,
+    "ui_contract_version": 4
+  },
+  "key_evidence": "AVAILABLE_TO_PROCESS_NOT_DISCLOSED",
+  "listener_pid": 51268,
+  "reason": "Canonical DEV session passed live revalidation",
+  "route_results": {},
+  "runtime_snapshot": {
+    "catalogue": "FRESH",
+    "code": "CURRENT",
+    "credential": "PRESENT",
+    "next_action": "REUSE",
+    "overall_status": "HEALTHY",
+    "ownership": "PROVEN",
+    "plugin": "READY",
+    "process": "RUNNING",
+    "reason": "RUNNING_HEALTHY",
+    "ui": "UNKNOWN",
+    "upstream": "HEALTHY"
+  },
+  "runtime_source_fingerprint": "83b1d45af342d14a7835b7f20661ad51ce37cc904ff18dd83252b58841d36fd5",
+  "runtime_url": "http://127.0.0.1:8189",
+  "state": "RUNNING_HEALTHY"
+}

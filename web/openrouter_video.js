@@ -34,13 +34,13 @@ function createGeometryCombos(node) {
     // A String widget's event handler survives a later `type = "combo"`.
     // Create the correct renderer before callback binding and preserve its
     // named/positional serialization slot and the backend STRING contract.
-    for (const name of ["resolution", "aspect_ratio", "size"]) {
+    for (const name of ["resolution", "aspect_ratio", "size", "duration"]) {
         const previous = widget(node, name);
         if (!previous || previous.type === "combo") continue;
         const index = node.widgets.indexOf(previous);
         const replacement = node.addWidget(
-            "combo", name, previous.value || AUTO, previous.callback,
-            { ...previous.options, values: [AUTO] },
+            "combo", name, previous.value || (name === "duration" ? 0 : AUTO), previous.callback,
+            { ...previous.options, values: [name === "duration" ? 0 : AUTO] },
         );
         const appended = node.widgets.indexOf(replacement);
         node.widgets.splice(appended, 1);
@@ -404,6 +404,40 @@ function disclose(node, message) {
     node.setDirtyCanvas?.(true, true);
 }
 
+function canonicalOptions(axis, values) {
+    if (values === null) return null;
+    const key = (value) => {
+        const text = String(value);
+        if (value === AUTO || (axis === "duration" && value === 0)) return [-1, 0, 0, 0, 0, text];
+        let match;
+        if (axis === "resolution" && (match = /^([0-9]+(?:\.[0-9]+)?)(p|k)$/i.exec(text))) {
+            const nominal = Number(match[1]) * (match[2].toLowerCase() === "k" ? 1000 : 1);
+            // Nominal class ranking only; never a preset-to-pixel mapping.
+            if (Number.isFinite(nominal) && nominal > 0) return [0, nominal, 0, 0, 0, text];
+        } else if (["aspect_ratio", "size"].includes(axis)) {
+            match = (axis === "size" ? /^([0-9]+)[x×]([0-9]+)$/ : /^([0-9]+):([0-9]+)$/).exec(text);
+            if (match) {
+                const [width, height] = [Number(match[1]), Number(match[2])];
+                const ratio = width / height, area = axis === "size" ? width * height : ratio;
+                if (width > 0 && height > 0 && Number.isFinite(area) && Number.isFinite(ratio))
+                    return [0, area, ratio, width, height, text];
+            }
+        } else if (axis === "duration" && /^[0-9]+(?:\.[0-9]+)?$/.test(text)) {
+            const seconds = Number(text);
+            if (Number.isFinite(seconds) && seconds > 0) return [0, seconds, 0, 0, 0, text];
+        }
+        return [1, 0, 0, 0, 0, text];
+    };
+    return [...values].sort((left, right) => {
+        const a = key(left), b = key(right);
+        for (let i = 0; i < a.length; i++) {
+            if (a[i] < b[i]) return -1;
+            if (a[i] > b[i]) return 1;
+        }
+        return 0;
+    });
+}
+
 function configureEnum(node, item, supported, label) {
     if (!item) return;
     const current = normalizedValue(item);
@@ -414,9 +448,9 @@ function configureEnum(node, item, supported, label) {
         if (current !== null) disclose(node, `${label}: saved value is not verified by catalogue`);
         return;
     }
-    item.options.values = [AUTO, ...supported];
+    item.options.values = canonicalOptions(item.name, [AUTO, ...supported]);
     if (current !== null && !supported.includes(current)) {
-        item.options.values.push(current);
+        item.options.values = canonicalOptions(item.name, [...item.options.values, current]);
         disclose(node, `${label}: incompatible saved value preserved; Generate blocked`);
     } else if (current === null) {
         item.value = AUTO;
@@ -437,6 +471,8 @@ function configureDuration(node, supported) {
     const item = widget(node, "duration");
     if (!item) return;
     node.__orvDurationValues = supported;
+    item.options = item.options || {};
+    item.options.getOptionLabel = (value) => value == null || String(value) === "0" ? AUTO : String(value);
     const current = Number(item.value || 0);
     item.options = item.options || {};
     setVisible(item, true);
@@ -446,28 +482,109 @@ function configureDuration(node, supported) {
         if (current > 0) disclose(node, "DURATION: saved value is not verified by catalogue");
         return;
     }
-    const values = [...supported].sort((left, right) => left - right);
+    const values = canonicalOptions("duration", supported);
     if (current > 0 && !values.includes(current)) {
         item.type = "combo";
-        item.options.values = [0, ...values, current];
+        item.options.values = canonicalOptions("duration", [0, ...values, current]);
         disclose(node, "DURATION: incompatible saved value preserved; Generate blocked");
         return;
     }
-    const step = arithmeticStep(values);
+    item.type = "combo";
+    item.options.values = [0, ...values];
     if (current === 0 && values.length > 1) {
-        item.type = "combo";
-        item.options.values = [0, ...values];
         disclose(node, "DURATION: select an explicit supported value");
-    } else if (values.length > 1 && step !== null) {
-        item.type = "number";
-        item.options.min = values[0];
-        item.options.max = values.at(-1);
-        item.options.step = step;
-        item.options.precision = 0;
-    } else {
-        item.type = "combo";
-        item.options.values = values;
-        if (values.length === 1 && current === 0) item.value = values[0];
+    }
+}
+
+function configurationScope(relation, context) {
+    let unknown = false;
+    for (const [key, domain] of Object.entries(relation.when || {})) {
+        const value = context[key];
+        if (value == null) unknown = true;
+        else if (key === "reference_kinds") {
+            if (!Array.isArray(value) || value.some((v) => !domain.includes(v))) return false;
+        } else if (!domain.includes(value)) return false;
+    }
+    return unknown ? null : true;
+}
+
+function configurationStatus(relations, selections, context) {
+    let unknown = false;
+    for (const relation of relations) {
+        const scope = configurationScope(relation, context);
+        if (scope === false) continue;
+        if (scope === null || relation.conflict ||
+            relation.axes.some((axis) => selections[axis] == null)) {
+            unknown = true;
+            continue;
+        }
+        const matches = (row) => relation.axes.every((axis) => row[axis].includes(selections[axis]));
+        if (relation.forbidden.some(matches)) return "CONFIRMED_INCOMPATIBLE";
+        if (relation.allowed.some(matches)) continue;
+        if (relation.complete) return "CONFIRMED_INCOMPATIBLE";
+        if (relation.allowed.length) unknown = true;
+    }
+    return unknown ? "UNKNOWN_COMBINATION" : "READY";
+}
+
+function configurationOptions(capability, selections, context) {
+    const relations = capability.configuration_relations || [];
+    const names = {
+        resolution: "supported_resolutions", aspect_ratio: "supported_aspect_ratios",
+        duration: "supported_durations", size: "supported_sizes",
+    };
+    const domains = Object.fromEntries(Object.entries(names).map(([axis, key]) =>
+        [axis, capability[key] ?? null]));
+    const applicable = relations.filter((r) => configurationScope(r, context) !== false);
+    for (const axis of Object.keys(names)) {
+        if (domains[axis] === null) {
+            const confirmed = [...new Set(applicable.flatMap((r) => r.allowed.flatMap((row) => row[axis] || [])))];
+            if (confirmed.length) domains[axis] = confirmed;
+        }
+    }
+    const involved = [...new Set(applicable.flatMap((r) => r.axes))].sort();
+    const permitsCompletion = (selected) => {
+        const missing = involved.filter((axis) => selected[axis] == null);
+        if (missing.reduce((n, axis) => n * (domains[axis]?.length || 0), 1) > 100000) return false;
+        const visit = (index, current) => {
+            if (index === missing.length) return configurationStatus(relations, current, context) === "READY";
+            const axis = missing[index];
+            return (domains[axis] || []).some((value) => visit(index + 1, { ...current, [axis]: value }));
+        };
+        return visit(0, selected);
+    };
+    return {
+        options: Object.fromEntries(Object.entries(domains).map(([axis, values]) =>
+            [axis, values === null ? null : canonicalOptions(axis, values.filter((value) => permitsCompletion({ ...selections, [axis]: value })))])),
+        status: configurationStatus(relations, selections, context),
+    };
+}
+
+function configureGenerationConfiguration(node, capability) {
+    const selections = Object.fromEntries(["resolution", "aspect_ratio", "duration", "size"].map(
+        (axis) => [axis, normalizedValue(widget(node, axis))]));
+    const kinds = selectedReferenceKinds(node);
+    const context = {
+        inference_method: widget(node, "inference_method")?.value,
+        mode: widget(node, "mode")?.value ?? null,
+        generate_audio: Boolean(widget(node, "generate_audio")?.value),
+        reference_kinds: kinds === null ? null : [
+            ...kinds, ...(inputByName(node, "source_video")?.link != null ? ["video"] : []),
+        ],
+        reference_count: kinds === null ? null : kinds.length + Number(inputByName(node, "source_video")?.link != null),
+        source_video_present: inputByName(node, "source_video")?.link != null,
+    };
+    const projected = configurationOptions(capability, selections, context);
+    configureDuration(node, projected.options.duration);
+    configureGeometry(node, {
+        ...capability, supported_resolutions: projected.options.resolution,
+        supported_aspect_ratios: projected.options.aspect_ratio,
+        supported_sizes: projected.options.size,
+    });
+    node.__orvConfigurationStatus = projected.status;
+    if (projected.status !== "READY") disclose(node, `${projected.status}: select a compatible configuration; Generate blocked`);
+    if ((capability.unmapped_upstream_capabilities || []).includes("configuration_constraints")) {
+        disclose(node, "UNMAPPED_UPSTREAM_CAPABILITY: configuration constraints require review; Generate blocked");
     }
 }
 
@@ -840,6 +957,9 @@ function bindEstimateRefresh(node) {
         const previous = item.callback;
         item.callback = function (...args) {
             previous?.apply(this, args);
+            if (node.__orvCapability && item.name !== "model") {
+                configureGenerationConfiguration(node, node.__orvCapability);
+            }
             if (item.name === "model") {
                 projectSelectedModel(node);
                 return;
@@ -924,8 +1044,6 @@ async function projectSelectedModel(node, force = false) {
         }
         node.__orvCapabilityStatus.value = "";
         setVisible(node.__orvCapabilityStatus, false);
-        configureDuration(node, capability.supported_durations);
-        configureGeometry(node, capability);
         const seed = widget(node, "seed");
         setVisible(seed, capability.supports_seed === true);
         if (capability.supports_seed === true) {
@@ -942,6 +1060,7 @@ async function projectSelectedModel(node, force = false) {
         node.__orvCapability = capability;
         const method = configureInferenceMethod(node, capability);
         if (method) configureReferenceTopology(node, capability, method);
+        configureGenerationConfiguration(node, capability);
         await refreshEstimate(node);
     } catch {
         node.__orvCapabilityStatus.value = "ERROR — CAPABILITIES UNAVAILABLE";

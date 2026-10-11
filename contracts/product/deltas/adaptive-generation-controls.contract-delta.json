@@ -1,0 +1,98 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "adaptive-generation-controls",
+  "baseline_checkpoint": "capability-catalog-rebase-v1",
+  "baseline_sha": "0f05665cb302fe4bc8398f2e9e04b08a5116a313",
+  "risk_tier": "B",
+  "intended_delta": [
+    "Owner approved adaptive Resolution/Aspect Ratio/Duration with independent domains and explicit coupled constraints; preserve accepted Generate semantics and exact workflow values",
+    "Owner approved bounded presentation-only canonical option ordering on 2026-10-11: resolution nominal class, ratio numeric, duration seconds, exact size area; unchanged option sets/evidence/wire values."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01configuration_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Only approved configuration representation, validation, projection, finite duration combo and evidence-data ingestion; protected behavior within these modules remains regression-tested"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01client_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Only approved configuration representation, validation, projection, finite duration combo and evidence-data ingestion; protected behavior within these modules remains regression-tested"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01capabilities_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Only approved configuration representation, validation, projection, finite duration combo and evidence-data ingestion; protected behavior within these modules remains regression-tested"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01projection_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Only approved configuration representation, validation, projection, finite duration combo and evidence-data ingestion; protected behavior within these modules remains regression-tested"
+    },
+    {
+      "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01evidence_registry_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Only approved configuration representation, validation, projection, finite duration combo and evidence-data ingestion; protected behavior within these modules remains regression-tested"
+    },
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Only approved configuration representation, validation, projection, finite duration combo and evidence-data ingestion; protected behavior within these modules remains regression-tested"
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned/AppIdentity",
+    "/surfaces/product_owned/submit_resume",
+    "/surfaces/product_owned/native_media",
+    "/surfaces/product_owned/storage",
+    "/surfaces/product_owned/database_migrations",
+    "/surfaces/product_owned/pricing",
+    "/surfaces/product_owned/recipes",
+    "/surfaces/product_owned/credentials"
+  ],
+  "expected_components": [
+    "configuration",
+    "client catalogue parser",
+    "capability validator",
+    "projection",
+    "evidence registry",
+    "frontend",
+    "tests",
+    "audit tooling"
+  ],
+  "required_gates": [
+    "main baseline 72998e931e5e9e59a277b63c2f2b0cd4cb513164 source-equivalent accepted snapshot",
+    "semantic_diff",
+    "negative_space_tests",
+    "full_tests",
+    "ruff",
+    "mypy",
+    "build",
+    "dependency_audit",
+    "real_8189_browser",
+    "save_reload",
+    "future_structured_model",
+    "zero_paid_posts",
+    "baseline_declaration"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

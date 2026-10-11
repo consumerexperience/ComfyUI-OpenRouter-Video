@@ -1,0 +1,26 @@
+✔ independent parameters preserve the existing Cartesian availability (1.387ms)
+✔ Resolution and Aspect Ratio immediately constrain remaining values (0.4623ms)
+✔ invalid saved intent remains repairable without creating a false tuple (0.1806ms)
+✔ known incomplete coupling fails closed only for the specific unknown tuple (0.1283ms)
+✔ method and mode scopes reproject without a model-specific branch (0.3143ms)
+✔ future relation-only model gets options without adding an ID to UI code (0.2161ms)
+✔ Duration is a real combo and incompatible numeric intent is preserved (0.4622ms)
+✔ every current model retains its real structured axis options (1.9707ms)
+✔ Phase 8 remote-options values restore by field, not Phase 10 widget position (1.0436ms)
+✔ unresolved numeric legacy model stays unresolved (0.2028ms)
+✔ presentation order keeps reference summary above Model and Advanced above its controls (0.6811ms)
+✔ primary control sizing preserves original widget measurement and visibility (0.2301ms)
+✔ Prompt styling is scoped to this Generate widget (0.1832ms)
+✔ named Phase 10 values win over presentation positions (0.2279ms)
+✔ prior Phase 10 positional values restore by field after presentation reorder (0.2648ms)
+✔ new presentation order restores the same intent on reload (0.1721ms)
+✔ visible reference sockets lead hidden widget inputs and preserve link slots (1.4587ms)
+✔ native Load Image is recognized as IMAGE while existing URL helper remains valid (0.3815ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 76.6251
