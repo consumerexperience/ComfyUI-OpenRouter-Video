@@ -1,0 +1,62 @@
+{
+  "results": {
+    "Nodes2_Media_Beta_Beta": {
+      "values": true,
+      "named_link_endpoints_and_occurrence_order": true,
+      "media_paths": true
+    },
+    "Nodes2_Media_Beta_Classic": {
+      "values": true,
+      "named_link_endpoints_and_occurrence_order": true,
+      "media_paths": true
+    },
+    "Nodes2_Media_Classic_Classic": {
+      "values": true,
+      "named_link_endpoints_and_occurrence_order": true,
+      "media_paths": true
+    },
+    "Nodes2_Media_Classic_Beta": {
+      "values": true,
+      "named_link_endpoints_and_occurrence_order": true,
+      "media_paths": true
+    }
+  },
+  "canonical_named_links": [
+    [
+      32,
+      "IMAGE",
+      31,
+      "direct_references.reference_0",
+      "IMAGE"
+    ],
+    [
+      33,
+      "VIDEO",
+      31,
+      "direct_references.reference_1",
+      "VIDEO"
+    ],
+    [
+      34,
+      "AUDIO",
+      31,
+      "direct_references.reference_2",
+      "AUDIO"
+    ],
+    [
+      33,
+      "VIDEO",
+      31,
+      "direct_references.reference_3",
+      "VIDEO"
+    ],
+    [
+      31,
+      "VIDEO",
+      37,
+      "video",
+      "VIDEO"
+    ]
+  ],
+  "note": "Raw slot indices change with restored unlinked optional schema inputs; named endpoints, reference order and repeated video occurrences remain identical."
+}

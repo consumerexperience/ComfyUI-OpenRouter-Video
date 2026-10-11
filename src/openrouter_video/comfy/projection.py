@@ -12,6 +12,7 @@ from typing import TypeVar
 from openrouter_video.capabilities import CapabilityModeStatus, inference_method_matrix
 from openrouter_video.configuration import profile_constraints
 from openrouter_video.evidence_registry import preferred_method
+from openrouter_video.geometry import geometry_profile, reviewed_geometry
 from openrouter_video.models import InferenceMethod, ModelCapabilities
 
 _UI_METHODS = tuple(InferenceMethod)
@@ -120,6 +121,13 @@ class UiModelCapabilities:
             "capability_evidence": self.capability_evidence,
             "unmapped_upstream_capabilities": self.unmapped_capabilities,
             "configuration_relations": self.configuration_relations,
+            "geometry_profile": geometry_profile(
+                self.supported_resolutions,
+                self.supported_aspect_ratios,
+                self.supported_sizes,
+                self.configuration_relations,
+                reviewed_geometry(self.model_id),
+            ),
         }
 
 

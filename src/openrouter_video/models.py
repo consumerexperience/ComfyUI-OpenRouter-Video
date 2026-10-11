@@ -195,6 +195,8 @@ class GenerationRequest:
     input_references: InputReferenceCollection | None = None
 
     def to_openrouter_payload(self) -> dict[str, object]:
+        if self.size is not None and (self.resolution is not None or self.aspect_ratio is not None):
+            raise ValueError("Ambiguous geometry: use exact size or resolution/aspect ratio.")
         references = self.input_references.references if self.input_references else ()
         if any(item.local_media is not None for item in references) or (
             self.source_video is not None and self.source_video.local_media is not None

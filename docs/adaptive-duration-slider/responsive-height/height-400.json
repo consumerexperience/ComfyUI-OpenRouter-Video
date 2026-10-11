@@ -1,0 +1,205 @@
+{
+  "id": "78c7547a-35af-46ed-8303-6a70406f55ed",
+  "revision": 0,
+  "last_node_id": 2,
+  "last_link_id": 0,
+  "nodes": [
+    {
+      "id": 2,
+      "type": "OpenRouterVideoGenerate",
+      "pos": [
+        100,
+        100
+      ],
+      "size": [
+        400,
+        400
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "COMBO",
+          "widget": {
+            "name": "model"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "inference_method",
+          "name": "inference_method",
+          "type": "COMBO",
+          "widget": {
+            "name": "inference_method"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "prompt"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "resolution",
+          "name": "resolution",
+          "type": "STRING",
+          "widget": {
+            "name": "resolution"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "aspect_ratio",
+          "name": "aspect_ratio",
+          "type": "STRING",
+          "widget": {
+            "name": "aspect_ratio"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "duration",
+          "name": "duration",
+          "type": "INT",
+          "widget": {
+            "name": "duration"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "size",
+          "name": "size",
+          "type": "STRING",
+          "widget": {
+            "name": "size"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "generate_audio",
+          "name": "generate_audio",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "generate_audio"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "first_frame_url",
+          "name": "first_frame_url",
+          "type": "STRING",
+          "widget": {
+            "name": "first_frame_url"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "last_frame_url",
+          "name": "last_frame_url",
+          "type": "STRING",
+          "widget": {
+            "name": "last_frame_url"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "VIDEO",
+          "name": "VIDEO",
+          "type": "VIDEO",
+          "links": null
+        },
+        {
+          "localized_name": "JOB_ID",
+          "name": "JOB_ID",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "localized_name": "MODEL",
+          "name": "MODEL",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "localized_name": "ACTUAL_COST_USD",
+          "name": "ACTUAL_COST_USD",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "localized_name": "STATUS",
+          "name": "STATUS",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OpenRouterVideoGenerate"
+      },
+      "widgets_values": [
+        null,
+        "google/veo-3.1",
+        "T2V",
+        "",
+        "720p",
+        "16:9",
+        8,
+        -1,
+        false,
+        null,
+        "",
+        "randomize",
+        "",
+        ""
+      ],
+      "widgets_values_named": {
+        "model": "google/veo-3.1",
+        "inference_method": "T2V",
+        "prompt": "",
+        "resolution": "720p",
+        "aspect_ratio": "16:9",
+        "duration": 8,
+        "seed": -1,
+        "generate_audio": false,
+        "size": "",
+        "randomize": "randomize",
+        "first_frame_url": "",
+        "last_frame_url": ""
+      },
+      "color": "#173c33",
+      "bgcolor": "#1b2024",
+      "boxcolor": "#45dca5"
+    }
+  ],
+  "links": [],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1,
+      "offset": [
+        210,
+        272
+      ]
+    }
+  },
+  "version": 0.4
+}

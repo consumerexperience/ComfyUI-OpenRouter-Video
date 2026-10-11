@@ -1,0 +1,470 @@
+[
+  {
+    "method": "T2V",
+    "headerBadges": 1,
+    "promptHeight": 78.34912109375,
+    "rows": [
+      {
+        "height": 31.33966064453125,
+        "text": "ModelByteDance: Seedance 2.5"
+      },
+      {
+        "height": 31.339630126953125,
+        "text": "Inference MethodT2V — Text → Video"
+      },
+      {
+        "height": 78.34912109375,
+        "text": "Prompt"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Resolution720p"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Aspect Ratio16:9"
+      },
+      {
+        "height": 37.8687744140625,
+        "text": "Duration"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Seed"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Generate Audio"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Exact Size "
+      }
+    ],
+    "text": "OpenRouter Video GenerateESTIMATE UNAVAILABLEVIDEOJOB_IDMODELACTUAL_COST_USDSTATUSModelByteDance: Seedance 2.5Inference MethodT2V — Text → VideoPromptResolution720pAspect Ratio16:9DurationSeedGenerate AudioExact Size OpenRouter-Video Show advanced inputs"
+  },
+  {
+    "method": "I2V",
+    "headerBadges": 1,
+    "promptHeight": 78.34912109375,
+    "rows": [
+      {
+        "height": 31.33966064453125,
+        "text": "ModelByteDance: Seedance 2.5"
+      },
+      {
+        "height": 31.339630126953125,
+        "text": "Inference MethodI2V — First Frame → Video"
+      },
+      {
+        "height": 78.34912109375,
+        "text": "Prompt"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Resolution720p"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Aspect Ratio16:9"
+      },
+      {
+        "height": 37.8687744140625,
+        "text": "Duration"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Seed"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Generate Audio"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Exact Size "
+      }
+    ],
+    "text": "OpenRouter Video GenerateESTIMATE UNAVAILABLEfirst_frameVIDEOJOB_IDMODELACTUAL_COST_USDSTATUSModelByteDance: Seedance 2.5Inference MethodI2V — First Frame → VideoPromptResolution720pAspect Ratio16:9DurationSeedGenerate AudioExact Size OpenRouter-Video Show advanced inputs"
+  },
+  {
+    "method": "FLF2V",
+    "headerBadges": 1,
+    "promptHeight": 78.34912109375,
+    "rows": [
+      {
+        "height": 31.33966064453125,
+        "text": "ModelByteDance: Seedance 2.5"
+      },
+      {
+        "height": 31.339630126953125,
+        "text": "Inference MethodFLF2V — First + Last Frame → Video"
+      },
+      {
+        "height": 78.34912109375,
+        "text": "Prompt"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Resolution720p"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Aspect Ratio16:9"
+      },
+      {
+        "height": 37.8687744140625,
+        "text": "Duration"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Seed"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Generate Audio"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Exact Size "
+      }
+    ],
+    "text": "OpenRouter Video GenerateESTIMATE UNAVAILABLEfirst_framelast_frameVIDEOJOB_IDMODELACTUAL_COST_USDSTATUSModelByteDance: Seedance 2.5Inference MethodFLF2V — First + Last Frame → VideoPromptResolution720pAspect Ratio16:9DurationSeedGenerate AudioExact Size OpenRouter-Video Show advanced inputs"
+  },
+  {
+    "method": "IR2V",
+    "headerBadges": 1,
+    "promptHeight": 78.34906005859375,
+    "rows": [
+      {
+        "height": 41.78619384765625,
+        "text": " "
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "ModelByteDance: Seedance 2.5"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Inference MethodIR2V — Single Image Reference → Video"
+      },
+      {
+        "height": 78.34906005859375,
+        "text": "Prompt"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Resolution720p"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Aspect Ratio16:9"
+      },
+      {
+        "height": 37.8687744140625,
+        "text": "Duration"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Seed"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Generate Audio"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Exact Size "
+      }
+    ],
+    "text": "OpenRouter Video GenerateESTIMATE UNAVAILABLEimage_1VIDEOJOB_IDMODELACTUAL_COST_USDSTATUS ModelByteDance: Seedance 2.5Inference MethodIR2V — Single Image Reference → VideoPromptResolution720pAspect Ratio16:9DurationSeedGenerate AudioExact Size OpenRouter-Video Show advanced inputs"
+  },
+  {
+    "method": "MI2V",
+    "headerBadges": 1,
+    "promptHeight": 78.34906005859375,
+    "rows": [
+      {
+        "height": 41.78619384765625,
+        "text": " "
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "ModelByteDance: Seedance 2.5"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Inference MethodMI2V — Multiple Image References → Video"
+      },
+      {
+        "height": 78.34906005859375,
+        "text": "Prompt"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Resolution720p"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Aspect Ratio16:9"
+      },
+      {
+        "height": 37.8687744140625,
+        "text": "Duration"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Seed"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Generate Audio"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Exact Size "
+      }
+    ],
+    "text": "OpenRouter Video GenerateESTIMATE UNAVAILABLEimage_1VIDEOJOB_IDMODELACTUAL_COST_USDSTATUS ModelByteDance: Seedance 2.5Inference MethodMI2V — Multiple Image References → VideoPromptResolution720pAspect Ratio16:9DurationSeedGenerate AudioExact Size OpenRouter-Video Show advanced inputs"
+  },
+  {
+    "method": "MMR2V",
+    "headerBadges": 1,
+    "promptHeight": 78.34906005859375,
+    "rows": [
+      {
+        "height": 41.78619384765625,
+        "text": " "
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "ModelByteDance: Seedance 2.5"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Inference MethodMMR2V — Mixed Multimodal References → Video"
+      },
+      {
+        "height": 78.34906005859375,
+        "text": "Prompt"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Resolution720p"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Aspect Ratio16:9"
+      },
+      {
+        "height": 37.8687744140625,
+        "text": "Duration"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Seed"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Generate Audio"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Exact Size "
+      }
+    ],
+    "text": "OpenRouter Video GenerateESTIMATE UNAVAILABLEreference_1VIDEOJOB_IDMODELACTUAL_COST_USDSTATUS ModelByteDance: Seedance 2.5Inference MethodMMR2V — Mixed Multimodal References → VideoPromptResolution720pAspect Ratio16:9DurationSeedGenerate AudioExact Size OpenRouter-Video Show advanced inputs"
+  },
+  {
+    "method": "VR2V",
+    "headerBadges": 1,
+    "promptHeight": 78.34906005859375,
+    "rows": [
+      {
+        "height": 41.78619384765625,
+        "text": " "
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "ModelByteDance: Seedance 2.5"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Inference MethodVR2V — Video Reference → Video"
+      },
+      {
+        "height": 78.34906005859375,
+        "text": "Prompt"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Resolution720p"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Aspect Ratio16:9"
+      },
+      {
+        "height": 37.8687744140625,
+        "text": "Duration"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Seed"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Generate Audio"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Exact Size "
+      }
+    ],
+    "text": "OpenRouter Video GenerateESTIMATE UNAVAILABLEvideo_1VIDEOJOB_IDMODELACTUAL_COST_USDSTATUS ModelByteDance: Seedance 2.5Inference MethodVR2V — Video Reference → VideoPromptResolution720pAspect Ratio16:9DurationSeedGenerate AudioExact Size OpenRouter-Video Show advanced inputs"
+  },
+  {
+    "method": "AR2V",
+    "headerBadges": 1,
+    "promptHeight": 78.34906005859375,
+    "rows": [
+      {
+        "height": 41.78619384765625,
+        "text": " "
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "ModelByteDance: Seedance 2.5"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Inference MethodAR2V — Audio Reference → Video"
+      },
+      {
+        "height": 78.34906005859375,
+        "text": "Prompt"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Resolution720p"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Aspect Ratio16:9"
+      },
+      {
+        "height": 37.8687744140625,
+        "text": "Duration"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Seed"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Generate Audio"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Exact Size "
+      }
+    ],
+    "text": "OpenRouter Video GenerateESTIMATE UNAVAILABLEaudio_1VIDEOJOB_IDMODELACTUAL_COST_USDSTATUS ModelByteDance: Seedance 2.5Inference MethodAR2V — Audio Reference → VideoPromptResolution720pAspect Ratio16:9DurationSeedGenerate AudioExact Size OpenRouter-Video Show advanced inputs"
+  },
+  {
+    "method": "V2V_EDIT",
+    "headerBadges": 1,
+    "promptHeight": 78.34906005859375,
+    "rows": [
+      {
+        "height": 41.78619384765625,
+        "text": " "
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "ModelByteDance: Seedance 2.5"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Inference MethodV2V_EDIT — Source Video → Edited Video"
+      },
+      {
+        "height": 78.34906005859375,
+        "text": "Prompt"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Resolution720p"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Aspect Ratio16:9"
+      },
+      {
+        "height": 37.8687744140625,
+        "text": "Duration"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Seed"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Generate Audio"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Exact Size "
+      }
+    ],
+    "text": "OpenRouter Video GenerateESTIMATE UNAVAILABLEsource_videoreference_1VIDEOJOB_IDMODELACTUAL_COST_USDSTATUS ModelByteDance: Seedance 2.5Inference MethodV2V_EDIT — Source Video → Edited VideoPromptResolution720pAspect Ratio16:9DurationSeedGenerate AudioExact Size OpenRouter-Video Show advanced inputs"
+  },
+  {
+    "method": "V2V_EXTEND",
+    "headerBadges": 1,
+    "promptHeight": 78.34906005859375,
+    "rows": [
+      {
+        "height": 41.78619384765625,
+        "text": " "
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "ModelByteDance: Seedance 2.5"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Inference MethodV2V_EXTEND — Source Video → Extended Video"
+      },
+      {
+        "height": 78.34906005859375,
+        "text": "Prompt"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Resolution720p"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Aspect Ratio16:9"
+      },
+      {
+        "height": 37.8687744140625,
+        "text": "Duration"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Seed"
+      },
+      {
+        "height": 31.33966064453125,
+        "text": "Generate Audio"
+      },
+      {
+        "height": 31.339599609375,
+        "text": "Exact Size "
+      }
+    ],
+    "text": "OpenRouter Video GenerateESTIMATE UNAVAILABLEsource_videoreference_1VIDEOJOB_IDMODELACTUAL_COST_USDSTATUS ModelByteDance: Seedance 2.5Inference MethodV2V_EXTEND — Source Video → Extended VideoPromptResolution720pAspect Ratio16:9DurationSeedGenerate AudioExact Size OpenRouter-Video Show advanced inputs"
+  }
+]

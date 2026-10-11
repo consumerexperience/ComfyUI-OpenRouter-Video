@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from openrouter_video.application import OperationInterrupted
 from openrouter_video.capabilities import infer_legacy_inference_method
 from openrouter_video.execution_hooks import ExecutionPhase
+from openrouter_video.geometry import wire_geometry
 from openrouter_video.local_media import NativeMediaError
 from openrouter_video.models import (
     FrameReference,
@@ -390,6 +391,9 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                     optional=True,
                     advanced=True,
                 ),
+                compat.IO.String.Input(
+                    "geometry_authority", default="", optional=True, advanced=True
+                ),
             ],
             outputs=_outputs(),
             hidden=[compat.IO.Hidden.unique_id],
@@ -439,6 +443,7 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         direct_references: Mapping[str, object] | None = None,
         input_references: InputReferenceCollection | None = None,
         inference_method: str = "",
+        geometry_authority: str = "",
     ) -> object:
         if direct_references and input_references is not None:
             raise AdapterExecutionError(
@@ -460,14 +465,23 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                 last_frame=last_reference,
                 references=references,
             )
+        try:
+            wire_resolution, wire_aspect, wire_size = wire_geometry(
+                geometry_authority,
+                _optional_text(resolution),
+                _optional_text(aspect_ratio),
+                _optional_text(size),
+            )
+        except ValueError as exc:
+            raise AdapterExecutionError(str(exc)) from None
         request = GenerationRequest(
             model=_model(model),
             prompt=prompt if prompt.strip() else None,
             inference_method=method,
             duration=_duration(duration),
-            resolution=_optional_text(resolution),
-            aspect_ratio=_optional_text(aspect_ratio),
-            size=_optional_text(size),
+            resolution=wire_resolution,
+            aspect_ratio=wire_aspect,
+            size=wire_size,
             seed=_seed(seed),
             generate_audio=generate_audio,
             first_frame=first_reference,

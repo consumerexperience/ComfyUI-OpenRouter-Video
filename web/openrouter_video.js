@@ -1,11 +1,11 @@
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
-
 const EXTENSION = "openrouter-video.capability-driven-ui";
 const GENERATE_NODE = "OpenRouterVideoGenerate";
 const SELECT_MODEL = "SELECT MODEL";
 const AUTO = "AUTO / MODEL DEFAULT";
 const UI_CONTRACT_VERSION = 4;
+const COMPACT_LAYOUT = Object.freeze({ width: 400, row: 20, gap: 4, section: 8, prompt: 42, domInset: 16, inset: 15 });
 const SELECT_METHOD = "Select model first";
 const METHODS = [
     "T2V", "I2V", "FLF2V", "IR2V", "MI2V", "VR2V", "AR2V", "MMR2V",
@@ -23,7 +23,6 @@ const METHOD_LABELS = {
     V2V_EDIT: "V2V_EDIT — Source Video → Edited Video",
     V2V_EXTEND: "V2V_EXTEND — Source Video → Extended Video",
 };
-
 let capabilityPromise;
 
 function widget(node, name) {
@@ -36,11 +35,15 @@ function createGeometryCombos(node) {
     // named/positional serialization slot and the backend STRING contract.
     for (const name of ["resolution", "aspect_ratio", "size", "duration"]) {
         const previous = widget(node, name);
-        if (!previous || previous.type === "combo") continue;
+        if (!previous || previous.type === "combo" || previous.type === "slider") continue;
+        if (name === "duration") {
+            createDurationSlider(node, previous);
+            continue;
+        }
         const index = node.widgets.indexOf(previous);
         const replacement = node.addWidget(
-            "combo", name, previous.value || (name === "duration" ? 0 : AUTO), previous.callback,
-            { ...previous.options, values: [name === "duration" ? 0 : AUTO] },
+            "combo", name, name === "size" && (!previous.value || previous.value === AUTO) ? "" : previous.value || AUTO, previous.callback,
+            { ...previous.options, values: [name === "size" ? "" : AUTO] },
         );
         const appended = node.widgets.indexOf(replacement);
         node.widgets.splice(appended, 1);
@@ -52,6 +55,8 @@ function createGeometryCombos(node) {
 function setVisible(item, visible) {
     if (!item) return;
     item.hidden = !visible;
+    item.options ||= {};
+    Object.assign(item.options, { hidden: !visible });
     item.computeSize = visible ? item.__orvComputeSize : () => [0, -4];
 }
 
@@ -60,6 +65,7 @@ function addReadOnlyWidget(node, name, initial) {
     item.serialize = false;
     item.options = item.options || {};
     item.options.readOnly = true;
+    item.options.read_only = true;
     return item;
 }
 
@@ -75,12 +81,23 @@ function setMinimumWidgetHeight(item, minimum) {
 }
 
 function sizePrimaryControls(node) {
-    for (const name of [
-        "model", "inference_method", "resolution", "aspect_ratio",
-        "duration", "seed", "generate_audio",
-    ]) setMinimumWidgetHeight(widget(node, name), 38);
-    setMinimumWidgetHeight(widget(node, "prompt"), 92);
-    setMinimumWidgetHeight(node.__orvAdvanced, 40);
+    for (const item of node.widgets || []) {
+        if (["model", "inference_method", "resolution", "aspect_ratio", "duration", "seed", "generate_audio", "size", "randomize"].includes(item.name)) {
+            const section = ["inference_method", "duration"].includes(item.name);
+            item.__orvComputeSize = () => [0, COMPACT_LAYOUT.row + (section ? COMPACT_LAYOUT.section - COMPACT_LAYOUT.gap : 0)];
+            setVisible(item, !item.hidden);
+        }
+    }
+    const prompt = widget(node, "prompt");
+    if (prompt) {
+        prompt.__orvComputeSize = () => {
+            const minimum = COMPACT_LAYOUT.prompt + COMPACT_LAYOUT.domInset;
+            if (node.__orvMeasuringMinimum) return [0, minimum];
+            const contentHeight = node.computeSize?.()?.[1] || node.size?.[1] || 0;
+            return [0, minimum + Math.max(0, (node.size?.[1] || 0) - contentHeight)];
+        };
+        setVisible(prompt, !prompt.hidden);
+    }
 }
 
 function stylePrompt(node) {
@@ -89,10 +106,10 @@ function stylePrompt(node) {
     element.placeholder = "Prompt";
     element.style.background = "#20272a";
     element.style.border = "1px solid #354540";
-    element.style.borderRadius = "9px";
+    element.style.borderRadius = "4px";
     element.style.color = "#e4ece9";
-    element.style.fontSize = "14px";
-    element.style.padding = "9px 11px";
+    element.style.fontSize = "12px";
+    element.style.padding = "4px 6px";
 }
 
 function orderPresentationWidgets(node) {
@@ -128,15 +145,19 @@ function applyPresentation(node) {
     const labels = {
         model: "Model", inference_method: "Inference Method",
         resolution: "Resolution", aspect_ratio: "Aspect Ratio", duration: "Duration",
-        seed: "Seed", generate_audio: "Generate Audio",
+        seed: "Seed", generate_audio: "Generate Audio", size: "Exact Size",
     };
     for (const item of node.widgets || []) {
         if (labels[item.name]) item.label = labels[item.name];
     }
+    // Preserve the backend-supported -1 sentinel when native Beta inputs blur.
+    const seed = widget(node, "seed");
+    if (seed?.options) seed.options.min = -1;
     sizePrimaryControls(node);
+    installResponsiveHeight(node);
+    installBetaPresentation(node);
     stylePrompt(node);
     syncAdvancedControls(node);
-    setVisible(node.__orvEstimate, false);
     if (node.__orvCapabilityStatus) node.__orvCapabilityStatus.label = " ";
     if (node.__orvPresentationDrawInstalled) return;
     node.__orvPresentationDrawInstalled = true;
@@ -176,29 +197,135 @@ function applyPresentation(node) {
 }
 
 function syncAdvancedControls(node) {
+    // Projection finishes here after setting support-specific widget metadata.
+    const seed = widget(node, "seed");
+    if (seed?.options) seed.options.min = -1;
+    setVisible(node.__orvAdvanced, false);
+    setVisible(widget(node, "geometry_authority"), false);
     let changed = false;
-    const show = Boolean(node.__orvAdvancedOpen && canonicalModel(node));
     for (const item of node.widgets || []) {
-        const identity = `${item.name || ""} ${item.label || ""}`;
-        if (/control[ _]?after[ _]?generate/i.test(identity) && Boolean(item.hidden) === show) {
-            setVisible(item, show);
-            changed = true;
+        if (/control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`)) {
+            item.options ||= {};
+            Object.assign(item.options, { advanced: false });
+            if (item.hidden) { setVisible(item, true); changed = true; }
         }
     }
-    const size = widget(node, "size");
-    const sizeVerified = Array.isArray(node.__orvCapability?.supported_sizes) &&
-        node.__orvCapability.supported_sizes.length > 0;
-    const showSize = show && (sizeVerified || normalizedValue(size) !== null);
-    if (size && Boolean(size.hidden) === showSize) {
-        setVisible(size, showSize);
-        changed = true;
+    for (const item of node.widgets || []) {
+        const signature = JSON.stringify(item.options);
+        if (item.__orvPresentationOptions === signature) continue;
+        item.__orvPresentationOptions = signature;
+        // Public label setter invalidates native Beta's cached display projection.
+        // Preserve the label and value; never write private renderer stores.
+        const label = item.label;
+        item.label = `${label ?? item.name} `;
+        item.label = label;
     }
     return changed;
 }
 
+function installResponsiveHeight(node) {
+    if (node.__orvResponsiveHeightInstalled) return;
+    node.__orvResponsiveHeightInstalled = true;
+    const previousCompute = node.computeSize;
+    node.computeSize = function (...args) {
+        // Native content sizing measures current sockets and fixed widget rows.
+        // Keep that minimum independent of the user's flexible height.
+        this.__orvMeasuringMinimum = true;
+        try { return previousCompute?.apply(this, args); }
+        finally { this.__orvMeasuringMinimum = false; }
+    };
+    const previousResize = node.onResize;
+    node.onResize = function (size, ...args) {
+        const minimum = this.computeSize?.()?.[1];
+        if (Number.isFinite(minimum)) size[1] = Math.max(size[1], minimum);
+        previousResize?.call(this, size, ...args);
+    };
+}
+
 function fitPresentationWidth(node) {
     const measured = node.computeSize?.();
-    if (measured) node.setSize?.([Math.max(560, measured[0]), measured[1]]);
+    if (measured) node.setSize?.([COMPACT_LAYOUT.width, Math.max(node.size?.[1] || 0, measured[1])]);
+}
+
+function createEstimateState() {
+    let value = "ESTIMATE UNAVAILABLE — SELECT MODEL";
+    return Object.defineProperty({}, "value", {
+        get: () => value,
+        set: (next) => { value = next; scheduleBetaPresentation(); },
+    });
+}
+
+function scheduleBetaPresentation() {
+    if (!installBetaPresentation.nodes || installBetaPresentation.pending) return;
+    installBetaPresentation.pending = true;
+    queueMicrotask(() => {
+        installBetaPresentation.pending = false;
+        for (const node of installBetaPresentation.nodes) syncBetaPresentation(node);
+    });
+}
+
+function installBetaPresentation(node) {
+    if (typeof document === "undefined" || typeof MutationObserver === "undefined") return;
+    if (!installBetaPresentation.nodes) {
+        installBetaPresentation.nodes = new Set();
+        // Nodes 2.0 has no public arbitrary-USD header badge slot. Its generic
+        // badges are footer content; price_badge converts USD to Comfy credits.
+        // This guarded adapter inserts a normal-flow header span, not an overlay.
+        const style = document.createElement("style");
+        style.textContent = `
+            .orv-nodes2 .orv-estimate { flex:0 1 auto; max-width:50%; overflow:hidden;
+                text-overflow:ellipsis; white-space:nowrap; border:1px solid #328761;
+                border-radius:9px; padding:2px 6px; color:#73e9b8; font-size:12px; }
+            .orv-nodes2 .orv-prompt-row { min-height:42px; }
+            .orv-nodes2 .orv-prompt-row textarea { min-height:42px; height:100%;
+                padding:20px 6px 4px; font-size:12px; overflow:auto; }
+        `;
+        document.head.append(style);
+        installBetaPresentation.observer = new MutationObserver(scheduleBetaPresentation);
+        installBetaPresentation.observer.observe(document.body, { childList: true, subtree: true });
+    }
+    if (!installBetaPresentation.nodes.has(node)) {
+        installBetaPresentation.nodes.add(node);
+        const previousRemoved = node.onRemoved;
+        node.onRemoved = function (...args) {
+            installBetaPresentation.nodes.delete(this);
+            return previousRemoved?.apply(this, args);
+        };
+    }
+    scheduleBetaPresentation();
+}
+
+function syncBetaPresentation(node) {
+    const root = [...document.querySelectorAll(".lg-node[data-node-id]")].find(
+        (element) => element.dataset.nodeId === String(node.id),
+    );
+    if (!root) return; // Classic has no Vue node DOM; never touch its canvas.
+    root.classList.add("orv-nodes2");
+    const header = root.querySelector(".lg-node-header > div");
+    if (header) {
+        let badge = header.querySelector(".orv-estimate");
+        if (!badge) {
+            badge = document.createElement("span");
+            badge.className = "orv-estimate";
+            header.append(badge);
+        }
+        const text = String(node.__orvEstimate?.value || "ESTIMATE UNAVAILABLE");
+        if (badge.textContent !== text) badge.textContent = text;
+        if (badge.title !== text) badge.title = text;
+    }
+    const grid = root.querySelector('[data-testid="node-widgets"]');
+    if (!grid) return;
+    const rows = [...grid.querySelectorAll(':scope > [data-testid="node-widget"]')];
+    const templates = rows.map((row) => {
+        const textarea = row.querySelector("textarea");
+        if (!textarea) return "max-content";
+        row.classList.add("orv-prompt-row");
+        if (textarea.rows !== 2) textarea.rows = 2;
+        return "minmax(42px, 1fr)";
+    });
+    const template = templates.join(" ");
+    if (grid.style.gridTemplateRows !== template) grid.style.gridTemplateRows = template;
+    if (grid.style.flex !== "1 1 auto") grid.style.flex = "1 1 auto";
 }
 
 function canonicalModel(node) {
@@ -334,11 +461,11 @@ function restorePhase10Values(node, serializedValues) {
 
 function restorePhase10NamedValues(node, namedValues) {
     if (!namedValues || typeof namedValues !== "object" ||
-        !METHODS.includes(namedValues.inference_method)) return false;
+        !(METHODS.includes(namedValues.inference_method) || namedValues.inference_method === SELECT_METHOD)) return false;
     for (const name of [
         "model", "inference_method", "prompt", "resolution", "aspect_ratio",
         "duration", "size", "seed", "generate_audio", "first_frame_url",
-        "last_frame_url",
+        "last_frame_url", "geometry_authority",
     ]) {
         if (Object.hasOwn(namedValues, name)) {
             const item = widget(node, name);
@@ -385,7 +512,8 @@ async function loadCapabilities(force = false) {
 }
 
 function normalizedValue(item) {
-    if (!item || item.value === "" || item.value === AUTO || item.value === 0) return null;
+    if (!item || item.value === "" || item.value === AUTO || item.value === 0
+        || (item.name === "resolution" && item.value === "—")) return null;
     return item.value;
 }
 
@@ -438,23 +566,38 @@ function canonicalOptions(axis, values) {
     });
 }
 
+function productDefault(axis, values, confirmedDefault) {
+    if (!Array.isArray(values) || !values.length) return null;
+    if (values.includes(confirmedDefault)) return confirmedDefault;
+    if (axis === "resolution") return values.includes("720p") ? "720p" : canonicalOptions(axis, values)[0];
+    if (axis === "aspect_ratio") {
+        const ratio = value => { const match = /^([0-9]+):([0-9]+)$/.exec(String(value)); return match && Number(match[2]) > 0 ? Number(match[1]) / Number(match[2]) : null; };
+        const candidates = canonicalOptions(axis, values).filter(value => ratio(value) !== null);
+        return candidates.sort((a, b) => Math.abs(ratio(a) - 16 / 9) - Math.abs(ratio(b) - 16 / 9))[0] ?? values[0];
+    }
+    if (axis === "duration") return canonicalOptions(axis, values)[0];
+    return null;
+}
+
 function configureEnum(node, item, supported, label) {
     if (!item) return;
     const current = normalizedValue(item);
     item.type = "combo";
     item.options = item.options || {};
+    const optional = item.name === "size";
     if (supported === null) {
-        item.options.values = current === null ? [AUTO] : [AUTO, current];
+        item.options.values = current === null ? [""] : [current];
         if (current !== null) disclose(node, `${label}: saved value is not verified by catalogue`);
+        else item.value = "";
         return;
     }
-    item.options.values = canonicalOptions(item.name, [AUTO, ...supported]);
-    if (current !== null && !supported.includes(current)) {
-        item.options.values = canonicalOptions(item.name, [...item.options.values, current]);
-        disclose(node, `${label}: incompatible saved value preserved; Generate blocked`);
-    } else if (current === null) {
-        item.value = AUTO;
-    }
+    item.options.values = canonicalOptions(item.name, optional ? ["", ...supported] : supported);
+    if (optional) {
+        if (current !== null && !supported.includes(current)) {
+            item.options.values.push(current);
+            disclose(node, `${label}: incompatible saved value preserved; Generate blocked`);
+        } else item.value = current ?? "";
+    } else if (!supported.includes(current)) item.value = productDefault(item.name, supported) ?? "";
 }
 
 function arithmeticStep(values) {
@@ -467,33 +610,124 @@ function arithmeticStep(values) {
     return step;
 }
 
+// UI domain only: finite evidence is never inferred to be continuous.
+function durationDomain(evidence) {
+    if (Array.isArray(evidence)) {
+        const values = canonicalOptions("duration", evidence);
+        if (!values.length || values.some(v => typeof v !== "number" || !Number.isFinite(v) || v <= 0)) {
+            return { kind: "UNKNOWN" };
+        }
+        return { kind: "DISCRETE", allowed_values: values, min: values[0], max: values.at(-1) };
+    }
+    if (!evidence || !Number.isFinite(evidence.min) || !Number.isFinite(evidence.max)
+        || evidence.min <= 0 || evidence.max < evidence.min) return { kind: "UNKNOWN" };
+    // Reserved structured UI contract. Current projection supplies lists only.
+    if (evidence.kind === "STEPPED_RANGE" && Number.isFinite(evidence.step) && evidence.step > 0) {
+        const count = (evidence.max - evidence.min) / evidence.step;
+        if (Math.abs(count - Math.round(count)) > 1e-8 || count > 10000) return { kind: "UNKNOWN" };
+        const precision = evidence.precision ?? 8;
+        if (!Number.isInteger(precision) || precision < 0 || precision > 8) return { kind: "UNKNOWN" };
+        const values = Array.from({ length: Math.round(count) + 1 }, (_, i) =>
+            Number((evidence.min + i * evidence.step).toFixed(precision)));
+        if (new Set(values).size !== values.length) return { kind: "UNKNOWN" };
+        return { kind: "STEPPED_RANGE", allowed_values: values, min: evidence.min, max: evidence.max, step: evidence.step };
+    }
+    if (evidence.kind === "CONTINUOUS_RANGE" && evidence.continuous === true
+        && Number.isInteger(evidence.precision) && evidence.precision >= 0 && evidence.precision <= 8) {
+        return { kind: "CONTINUOUS_RANGE", min: evidence.min, max: evidence.max, precision: evidence.precision };
+    }
+    return { kind: "UNKNOWN" };
+}
+
+function durationAtPosition(domain, position) {
+    if (domain.allowed_values) {
+        return domain.allowed_values[Math.max(0, Math.min(domain.allowed_values.length - 1, Math.round(position)))];
+    }
+    if (domain.kind === "CONTINUOUS_RANGE") {
+        return Number(Math.max(domain.min, Math.min(domain.max, position)).toFixed(domain.precision));
+    }
+    return null;
+}
+
+function createDurationSlider(node, previous) {
+    const index = node.widgets.indexOf(previous);
+    const item = node.addWidget("slider", "duration", previous.value ?? 0, null, { min: 0, max: 1, step: 1, precision: 0 });
+    let valueOwner = item;
+    while (valueOwner && !Object.getOwnPropertyDescriptor(valueOwner, "value")) valueOwner = Object.getPrototypeOf(valueOwner);
+    const nativeValue = valueOwner && Object.getOwnPropertyDescriptor(valueOwner, "value");
+    let fallbackValue = item.value;
+    Object.defineProperty(item, "value", { configurable: true, get() {
+        return nativeValue?.get ? nativeValue.get.call(item) : fallbackValue;
+    }, set(next) {
+        const values = item.__orvDomain?.allowed_values;
+        const numeric = Number(next);
+        if (values?.length && Number.isFinite(numeric) && !values.includes(numeric)) {
+            next = values.reduce((best, value) => Math.abs(value - numeric) < Math.abs(best - numeric) ? value : best, values[0]);
+        }
+        if (nativeValue?.set) nativeValue.set.call(item, next);
+        else fallbackValue = next;
+    } });
+    const nativeOptions = () => item.__orvDomain?.allowed_values ?
+        { ...item.options, min: 0, max: Math.max(1, item.__orvDomain.allowed_values.length - 1), step: 1 } : item.options;
+    const nativeDraw = item.drawWidget;
+    const nativeClick = item.onClick;
+    const nativeDrag = item.onDrag;
+    const view = Object.create(item);
+    Object.defineProperty(view, "value", { get() {
+        const domain = item.__orvDomain;
+        return domain?.allowed_values ? Math.max(0, domain.allowed_values.indexOf(Number(item.value))) : Number(item.value);
+    } });
+    Object.defineProperty(view, "height", { value: COMPACT_LAYOUT.row });
+    view.setValue = position => {
+        const next = durationAtPosition(item.__orvDomain || { kind: "UNKNOWN" }, position);
+        if (next == null) return;
+        item.value = next;
+        item.callback?.(next);
+        node.setDirtyCanvas?.(true, true);
+    };
+    // Delegate geometry, fill and pointer interaction to the public native slider.
+    // Only its display coordinate differs from the product's semantic seconds.
+    if (nativeDraw) item.drawWidget = function (ctx, options) {
+        view.y = item.y;
+        view.options = nativeOptions();
+        view.width = item.width;
+        view.label = "Duration";
+        const text = Number(item.value) > 0 ? `Duration ${item.value}s` : "Duration —";
+        const drawContext = new Proxy(ctx, { get(target, key) {
+            if (key === "fillText") return (_nativeText, ...args) => target.fillText(text, ...args);
+            const value = Reflect.get(target, key, target);
+            return typeof value === "function" ? value.bind(target) : value;
+        }, set(target, key, value) { target[key] = value; return true; } });
+        nativeDraw.call(view, drawContext, options);
+    };
+    if (nativeClick) item.onClick = event => { view.options = nativeOptions(); view.width = item.width; nativeClick.call(view, event); };
+    if (nativeDrag) item.onDrag = event => { view.options = nativeOptions(); view.width = item.width; return nativeDrag.call(view, event); };
+    const appended = node.widgets.indexOf(item);
+    node.widgets.splice(appended, 1);
+    node.widgets[index] = item;
+    item.serializeValue = function () { return this.value; };
+    item.__orvSelectPosition = position => view.setValue(position);
+}
+
 function configureDuration(node, supported) {
     const item = widget(node, "duration");
     if (!item) return;
     node.__orvDurationValues = supported;
     item.options = item.options || {};
-    item.options.getOptionLabel = (value) => value == null || String(value) === "0" ? AUTO : String(value);
-    const current = Number(item.value || 0);
-    item.options = item.options || {};
+    const domain = durationDomain(supported);
+    item.__orvDomain = domain;
+    item.type = "slider";
     setVisible(item, true);
-    if (supported === null) {
-        item.type = "combo";
-        item.options.values = current > 0 ? [0, current] : [0];
-        if (current > 0) disclose(node, "DURATION: saved value is not verified by catalogue");
-        return;
-    }
-    const values = canonicalOptions("duration", supported);
-    if (current > 0 && !values.includes(current)) {
-        item.type = "combo";
-        item.options.values = canonicalOptions("duration", [0, ...values, current]);
-        disclose(node, "DURATION: incompatible saved value preserved; Generate blocked");
-        return;
-    }
-    item.type = "combo";
-    item.options.values = [0, ...values];
-    if (current === 0 && values.length > 1) {
-        disclose(node, "DURATION: select an explicit supported value");
-    }
+    const values = domain.allowed_values || [];
+    const current = Number(item.value || 0);
+    const valid = values.length ? values.includes(current) : domain.kind !== "UNKNOWN" && current >= domain.min && current <= domain.max;
+    if (!valid && domain.kind !== "UNKNOWN") item.value = productDefault("duration", values) ?? domain.min;
+    item.options.values = values;
+    item.options.min = domain.min ?? 0;
+    item.options.max = domain.max === domain.min ? domain.max + 1 : domain.max ?? 1;
+    item.options.step = values.length ? arithmeticStep(values) ?? 1 : 10 ** -(domain.precision ?? 0);
+    item.options.read_only = domain.kind === "UNKNOWN";
+    if (domain.kind === "UNKNOWN" && current > 0) disclose(node, "DURATION: saved value is not verified by catalogue");
 }
 
 function configurationScope(relation, context) {
@@ -561,6 +795,16 @@ function configurationOptions(capability, selections, context) {
 }
 
 function configureGenerationConfiguration(node, capability) {
+    if (!geometryAuthority(node)) {
+        const size = normalizedValue(widget(node, "size"));
+        const resolution = normalizedValue(widget(node, "resolution"));
+        const aspect = normalizedValue(widget(node, "aspect_ratio"));
+        const matches = (capability.geometry_profile?.tuples || []).filter(tuple =>
+            tuple.confidence === "CONFIRMED" && tuple.size === size &&
+            tuple.resolution === resolution && tuple.aspect_ratio === aspect);
+        setGeometryAuthority(node, size && (resolution || aspect)
+            ? matches.length === 1 ? "EXACT" : "AMBIGUOUS" : size ? "EXACT" : "NORMALIZED");
+    }
     const selections = Object.fromEntries(["resolution", "aspect_ratio", "duration", "size"].map(
         (axis) => [axis, normalizedValue(widget(node, axis))]));
     const kinds = selectedReferenceKinds(node);
@@ -574,8 +818,32 @@ function configureGenerationConfiguration(node, capability) {
         reference_count: kinds === null ? null : kinds.length + Number(inputByName(node, "source_video")?.link != null),
         source_video_present: inputByName(node, "source_video")?.link != null,
     };
+    const unconstrained = configurationOptions(capability, {}, context);
+    const exact = geometryAuthority(node) === "EXACT";
+    if (!exact) selections.size = null;
+    if (exact) { selections.resolution = null; selections.aspect_ratio = null; }
+    const axes = exact ? ["duration"] : ["resolution", "aspect_ratio", "duration"];
+    for (const axis of axes) {
+        const values = unconstrained.options[axis];
+        if (values !== null && !values.includes(selections[axis])) selections[axis] = null;
+    }
+    if (configurationOptions(capability, selections, context).status === "CONFIRMED_INCOMPATIBLE") {
+        for (const axis of axes) selections[axis] = null;
+    }
+    for (const axis of axes) {
+        const options = configurationOptions(capability, selections, context).options[axis];
+        if (options !== null && !options.includes(selections[axis])) {
+            selections[axis] = productDefault(axis, options);
+            const item = widget(node, axis);
+            if (item) item.value = selections[axis] ?? (axis === "duration" ? 0 : "");
+        }
+    }
     const projected = configurationOptions(capability, selections, context);
-    configureDuration(node, projected.options.duration);
+    const explicitSizeDurationRelation = (capability.configuration_relations || [])
+        .some(relation => relation.axes?.includes("size") && relation.axes?.includes("duration"));
+    if (node.__orvGeometryEdited !== "size" || explicitSizeDurationRelation) {
+        configureDuration(node, projected.options.duration);
+    }
     configureGeometry(node, {
         ...capability, supported_resolutions: projected.options.resolution,
         supported_aspect_ratios: projected.options.aspect_ratio,
@@ -884,22 +1152,98 @@ function bindInferenceMethod(node) {
     };
 }
 
-function configureGeometry(node, capability) {
-    configureEnum(node, widget(node, "resolution"), capability.supported_resolutions, "RESOLUTION");
-    configureEnum(
-        node,
-        widget(node, "aspect_ratio"),
-        capability.supported_aspect_ratios,
-        "ASPECT RATIO",
-    );
-    configureEnum(node, widget(node, "size"), capability.supported_sizes, "EXACT SIZE");
+function geometryAuthority(node) {
+    return widget(node, "geometry_authority")?.value || node.__orvGeometryAuthority || "";
+}
 
-    const resolution = widget(node, "resolution");
-    const aspect = widget(node, "aspect_ratio");
-    const size = widget(node, "size");
-    setVisible(resolution, true);
-    setVisible(aspect, true);
-    setVisible(size, normalizedValue(size) !== null);
+function setGeometryAuthority(node, authority) {
+    node.__orvGeometryAuthority = authority;
+    const item = widget(node, "geometry_authority");
+    if (item) item.value = authority;
+    setVisible(item, false);
+}
+
+function orderedGeometryTuples(tuples) {
+    const axes = ["resolution", "aspect_ratio", "size"];
+    const orders = Object.fromEntries(axes.map(axis => [axis, canonicalOptions(axis,
+        [...new Set(tuples.map(tuple => tuple[axis]).filter(value => value !== null))])]));
+    return [...tuples].sort((a, b) => {
+        for (const axis of axes) {
+            const difference = orders[axis].indexOf(a[axis]) - orders[axis].indexOf(b[axis]);
+            if (difference) return difference;
+        }
+        return 0;
+    });
+}
+
+function configureGeometry(node, capability) {
+    const resolution = widget(node, "resolution"), aspect = widget(node, "aspect_ratio"), size = widget(node, "size");
+    const old = { resolution: normalizedValue(resolution), aspect_ratio: normalizedValue(aspect), size: normalizedValue(size) };
+    const tuples = orderedGeometryTuples((capability.geometry_profile?.tuples || [])
+        .filter(tuple => ["CONFIRMED", "SAFE_DERIVED"].includes(tuple.confidence)));
+    const confirmed = tuples.filter(tuple => tuple.confidence === "CONFIRMED" && tuple.resolution !== null);
+    const modelChanged = node.__orvGeometryModel != null && node.__orvGeometryModel !== canonicalModel(node);
+    let authority = geometryAuthority(node);
+    if (!authority) {
+        if (old.size && (old.resolution || old.aspect_ratio)) {
+            const matching = confirmed.filter(tuple => tuple.size === old.size && tuple.resolution === old.resolution && tuple.aspect_ratio === old.aspect_ratio);
+            authority = matching.length === 1 ? "EXACT" : "AMBIGUOUS";
+        } else authority = old.size ? "EXACT" : "NORMALIZED";
+    }
+    configureEnum(node, resolution, capability.supported_resolutions, "RESOLUTION");
+    configureEnum(node, aspect, capability.supported_aspect_ratios, "ASPECT RATIO");
+    if (modelChanged && old.size && Array.isArray(capability.supported_sizes) && !capability.supported_sizes.includes(old.size)) {
+        if (size) size.value = authority === "EXACT" ? canonicalOptions("size", capability.supported_sizes)[0] ?? "" : "";
+    }
+    configureEnum(node, size, capability.supported_sizes, "EXACT SIZE");
+    const edited = node.__orvGeometryEdited;
+    if (authority === "EXACT" && normalizedValue(size)) {
+        const matching = tuples.filter(tuple => tuple.size === normalizedValue(size));
+        const full = matching.filter(tuple => tuple.confidence === "CONFIRMED" && tuple.resolution !== null);
+        const preferred = full.find(tuple => tuple.resolution === normalizedValue(resolution) && tuple.aspect_ratio === normalizedValue(aspect)) || full[0];
+        if (preferred) { if (resolution) resolution.value = preferred.resolution; if (aspect) aspect.value = preferred.aspect_ratio; }
+        else {
+            const provenAspects = [...new Set(matching.map(tuple => tuple.aspect_ratio).filter(Boolean))];
+            if (provenAspects.length === 1 && aspect) aspect.value = provenAspects[0];
+            else if (old.aspect_ratio === null && aspect) {
+                aspect.value = "";
+                aspect.options.values = ["", ...(capability.supported_aspect_ratios || [])];
+            }
+            if (resolution) {
+                resolution.value = "—";
+                resolution.options.values = ["—", ...canonicalOptions("resolution", capability.supported_resolutions || [])];
+            }
+        }
+    } else if (authority === "NORMALIZED" && size) {
+        let compatible = confirmed.filter(tuple => tuple.resolution === normalizedValue(resolution) && tuple.aspect_ratio === normalizedValue(aspect));
+        if (!compatible.length && edited === "resolution") {
+            const alternatives = confirmed.filter(tuple => tuple.resolution === normalizedValue(resolution));
+            const next = canonicalOptions("aspect_ratio", [...new Set(alternatives.map(tuple => tuple.aspect_ratio))])[0];
+            if (next && aspect) aspect.value = next;
+        } else if (!compatible.length && edited === "aspect_ratio") {
+            const alternatives = confirmed.filter(tuple => tuple.aspect_ratio === normalizedValue(aspect));
+            const next = canonicalOptions("resolution", [...new Set(alternatives.map(tuple => tuple.resolution))])[0];
+            if (next && resolution) resolution.value = next;
+        }
+        compatible = confirmed.filter(tuple => tuple.resolution === normalizedValue(resolution) && tuple.aspect_ratio === normalizedValue(aspect));
+        const sizes = canonicalOptions("size", [...new Set(compatible.map(tuple => tuple.size))]);
+        size.value = sizes.includes(normalizedValue(size)) ? size.value : sizes[0] ?? "";
+        size.options.values = ["", ...sizes];
+        // Keep all current confirmed sizes selectable as explicit EXACT intent, even
+        // when normalized-to-pixel mapping is unknown. No automatic tuple promotion.
+        if (!sizes.length && Array.isArray(capability.supported_sizes)) size.options.values = ["", ...canonicalOptions("size", capability.supported_sizes)];
+        size.options.__orvProjection = sizes.length ? "CONFIRMED" : "UNKNOWN_RESOLUTION_SIZE_RELATION";
+    }
+    setVisible(resolution, Boolean(capability.supported_resolutions?.length) ||
+        (capability.supported_resolutions === null && Boolean(old.resolution)));
+    setVisible(aspect, Boolean(capability.supported_aspect_ratios?.length) ||
+        (capability.supported_aspect_ratios === null && Boolean(old.aspect_ratio)));
+    if (size) { size.options.advanced = false; setVisible(size, Boolean(capability.supported_sizes?.length) || Boolean(old.size)); }
+    node.__orvGeometryAlternative = false;
+    setGeometryAuthority(node, authority);
+    node.__orvGeometryModel = canonicalModel(node);
+    node.__orvGeometryEdited = null;
+    if (authority === "AMBIGUOUS") disclose(node, "UNRESOLVED LEGACY GEOMETRY: explicitly edit Resolution, Aspect Ratio or Exact Size; Generate blocked");
 }
 
 function selectedReferenceKinds(node) {
@@ -924,9 +1268,9 @@ async function refreshEstimate(node) {
     const payload = {
         model_id: model,
         duration: normalizedValue(widget(node, "duration")),
-        resolution: normalizedValue(widget(node, "resolution")),
-        aspect_ratio: normalizedValue(widget(node, "aspect_ratio")),
-        size: normalizedValue(widget(node, "size")),
+        resolution: geometryAuthority(node) === "EXACT" ? null : normalizedValue(widget(node, "resolution")),
+        aspect_ratio: geometryAuthority(node) === "EXACT" ? null : normalizedValue(widget(node, "aspect_ratio")),
+        size: geometryAuthority(node) === "NORMALIZED" ? null : normalizedValue(widget(node, "size")),
         generate_audio: Boolean(widget(node, "generate_audio")?.value),
         inference_method: widget(node, "inference_method")?.value,
         reference_kinds: referenceKinds,
@@ -957,6 +1301,10 @@ function bindEstimateRefresh(node) {
         const previous = item.callback;
         item.callback = function (...args) {
             previous?.apply(this, args);
+            if (["resolution", "aspect_ratio", "size"].includes(item.name)) {
+                node.__orvGeometryEdited = item.name;
+                setGeometryAuthority(node, item.name === "size" && normalizedValue(item) ? "EXACT" : "NORMALIZED");
+            }
             if (node.__orvCapability && item.name !== "model") {
                 configureGenerationConfiguration(node, node.__orvCapability);
             }
@@ -968,7 +1316,10 @@ function bindEstimateRefresh(node) {
                 configureDuration(node, node.__orvDurationValues);
             }
             clearTimeout(node.__orvEstimateTimer);
-            node.__orvEstimateTimer = setTimeout(() => projectSelectedModel(node), 120);
+            node.__orvEstimateTimer = setTimeout(() => {
+                if (["resolution", "aspect_ratio", "size"].includes(item.name)) refreshEstimate(node);
+                else projectSelectedModel(node);
+            }, 120);
         };
     }
 }
@@ -1067,7 +1418,7 @@ async function projectSelectedModel(node, force = false) {
         setVisible(node.__orvCapabilityStatus, true);
         node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
     }
-    setVisible(node.__orvAdvanced, Boolean(canonicalModel(node)));
+    setVisible(node.__orvAdvanced, false);
     syncAdvancedControls(node);
     fitPresentationWidth(node);
     node.setDirtyCanvas?.(true, true);
@@ -1114,15 +1465,10 @@ app.registerExtension({
             const result = previousCreated?.apply(this, args);
             createGeometryCombos(this);
             this.__orvIsNewNode = true;
-            this.__orvAdvancedOpen = false;
-            this.__orvAdvanced = this.addWidget("button", "Advanced", "›", () => {
-                this.__orvAdvancedOpen = !this.__orvAdvancedOpen;
-                this.__orvAdvanced.value = this.__orvAdvancedOpen ? "⌄" : "›";
-                syncAdvancedControls(this);
-                fitPresentationWidth(this);
-                this.setDirtyCanvas?.(true, true);
-            });
+            // Hidden nonserialized compatibility slot preserves legacy positional order.
+            this.__orvAdvanced = this.addWidget("button", "Advanced", "", null);
             this.__orvAdvanced.serialize = false;
+            setVisible(this.__orvAdvanced, false);
             this.__orvSummary = addReadOnlyWidget(this, "REFERENCES", "");
             this.__orvSummary.label = " ";
             this.__orvSummary.__orvComputeSize = () => [0, 22];
@@ -1137,11 +1483,8 @@ app.registerExtension({
             setVisible(this.__orvSummary, false);
             this.__orvCapabilityStatus = addReadOnlyWidget(this, "STATE", "");
             setVisible(this.__orvCapabilityStatus, false);
-            this.__orvEstimate = addReadOnlyWidget(
-                this,
-                "COST",
-                "ESTIMATE UNAVAILABLE — SELECT MODEL",
-            );
+            // Estimate is presentation state, never a workflow/body widget.
+            this.__orvEstimate = createEstimateState();
             orderPresentationWidgets(this);
             applyPresentation(this);
             migratePhase8Values(this);
@@ -1152,7 +1495,6 @@ app.registerExtension({
             setTimeout(() => projectSelectedModel(this), 0);
             return result;
         };
-
         const previousConfigure = nodeType.prototype.onConfigure;
         nodeType.prototype.onConfigure = function (...args) {
             this.__orvIsNewNode = false;

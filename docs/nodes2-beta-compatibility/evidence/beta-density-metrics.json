@@ -1,0 +1,86 @@
+{
+  "tall": {
+    "height": 730.0000169273437,
+    "promptHeight": 303.0000331292299,
+    "rows": [
+      {
+        "height": 23.999999032723217,
+        "text": "ModelGoogle: Veo 3.1"
+      },
+      {
+        "height": 24.00002321464283,
+        "text": "Inference MethodT2V — Text → Video"
+      },
+      {
+        "height": 303.0000331292299,
+        "text": "Prompt"
+      },
+      {
+        "height": 24.00002321464283,
+        "text": "Resolution720p"
+      },
+      {
+        "height": 24.00002321464283,
+        "text": "Aspect Ratio16:9"
+      },
+      {
+        "height": 29.00002200554685,
+        "text": "Duration"
+      },
+      {
+        "height": 23.999974850803603,
+        "text": "Seed"
+      },
+      {
+        "height": 23.999974850803603,
+        "text": "Generate Audio"
+      },
+      {
+        "height": 23.999974850803603,
+        "text": "Exact Size "
+      }
+    ]
+  },
+  "compact": {
+    "height": 486.9999948584989,
+    "promptHeight": 60.00000934818386,
+    "rows": [
+      {
+        "height": 24.000013087457404,
+        "text": "ModelGoogle: Veo 3.1"
+      },
+      {
+        "height": 23.999989716997757,
+        "text": "Inference MethodT2V — Text → Video"
+      },
+      {
+        "height": 60.00000934818386,
+        "text": "Prompt"
+      },
+      {
+        "height": 24.000013087457404,
+        "text": "Resolution720p"
+      },
+      {
+        "height": 24.000013087457404,
+        "text": "Aspect Ratio16:9"
+      },
+      {
+        "height": 29.000029446779156,
+        "text": "Duration"
+      },
+      {
+        "height": 24.000013087457404,
+        "text": "Seed"
+      },
+      {
+        "height": 23.999966346538113,
+        "text": "Generate Audio"
+      },
+      {
+        "height": 23.999966346538113,
+        "text": "Exact Size "
+      }
+    ]
+  }
+}

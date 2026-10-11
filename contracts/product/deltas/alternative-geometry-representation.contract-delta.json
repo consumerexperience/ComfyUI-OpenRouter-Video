@@ -1,0 +1,54 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "alternative-geometry-representation",
+  "baseline_checkpoint": "final-po-c86accb",
+  "baseline_sha": "c86accb3837c2916f45c536f856ff99c372777f4",
+  "risk_tier": "B",
+  "intended_delta": [
+    "Owner prompt 2026-10-11: alternative geometry representations; normalized default, explicit legacy size exact, omit inactive fields, reject ambiguous serializer. No preset pixel mapping."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Owner-authorized alternative geometry only; negative-space tests protect other behavior"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01models_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Owner-authorized alternative geometry only; negative-space tests protect other behavior"
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned/billing",
+    "/surfaces/product_owned/media",
+    "/surfaces/product_owned/duration",
+    "/surfaces/product_owned/credentials"
+  ],
+  "expected_components": [
+    "configureGeometry",
+    "configureGenerationConfiguration",
+    "syncAdvancedControls",
+    "existing Advanced disclosure callback",
+    "GenerationRequest.to_openrouter_payload ambiguity guard",
+    "focused geometry and preserved-surface tests"
+  ],
+  "required_gates": [
+    "semantic_diff",
+    "full_tests",
+    "real_8189_browser",
+    "save_reload",
+    "zero_paid_posts",
+    "ruff",
+    "mypy",
+    "build",
+    "baseline_declaration",
+    "negative_space_tests"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

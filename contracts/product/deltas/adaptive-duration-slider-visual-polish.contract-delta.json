@@ -1,0 +1,38 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "adaptive-duration-slider-visual-polish",
+  "baseline_checkpoint": "duration-slider-functional-review-574ed24",
+  "baseline_sha": "574ed24669e0662976569c87329ec7a0c01b7a88",
+  "risk_tier": "B",
+  "intended_delta": [
+    "Owner authorized minimal Duration header/current seconds/slider only; remove AUTO button and secondary labels, retain Default via native node context menu."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Only Duration presentation, removal of instructional Default hint and native context-menu reset; classifier/adaptation/persistence/wire unchanged."
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned"
+  ],
+  "expected_components": [
+    "Duration DOM renderer and reset menu",
+    "focused frontend tests",
+    "review evidence"
+  ],
+  "required_gates": [
+    "baseline_declaration",
+    "semantic_diff",
+    "negative_space_tests",
+    "full_tests",
+    "real_8189_browser",
+    "save_reload",
+    "zero_paid_posts"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}
