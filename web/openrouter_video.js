@@ -512,7 +512,8 @@ async function loadCapabilities(force = false) {
 }
 
 function normalizedValue(item) {
-    if (!item || item.value === "" || item.value === AUTO || item.value === 0) return null;
+    if (!item || item.value === "" || item.value === AUTO || item.value === 0
+        || (item.name === "resolution" && item.value === "—")) return null;
     return item.value;
 }
 
@@ -1208,9 +1209,9 @@ function configureGeometry(node, capability) {
                 aspect.value = "";
                 aspect.options.values = ["", ...(capability.supported_aspect_ratios || [])];
             }
-            if (old.resolution === null && resolution) {
-                resolution.value = "";
-                resolution.options.values = ["", ...(capability.supported_resolutions || [])];
+            if (resolution) {
+                resolution.value = "—";
+                resolution.options.values = ["—", ...canonicalOptions("resolution", capability.supported_resolutions || [])];
             }
         }
     } else if (authority === "NORMALIZED" && size) {

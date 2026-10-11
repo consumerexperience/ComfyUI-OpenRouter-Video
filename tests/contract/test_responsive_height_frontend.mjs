@@ -24,6 +24,6 @@ test('saved tall and compact dimensions reconstruct without pixel persistence',(
 test('all non-layout source functions and protected values retain current baseline',()=>{
  const baseline=execFileSync('git',['show','25451ff:web/openrouter_video.js'],{cwd:new URL('../../',import.meta.url),encoding:'utf8'}).replace(/\r\n/g,'\n').replace(/^import .*;\n/gm,'');
  const functions=t=>Object.fromEntries(t.split(/(?=^function |^async function )/m).slice(1).map(p=>[p.match(/function (\w+)/)[1],p.slice(0,p.indexOf('\n}')+2)]));
- const a=functions(baseline),b=functions(source);for(const name of Object.keys(a))if(!['setVisible','addReadOnlyWidget','syncAdvancedControls','sizePrimaryControls','applyPresentation','fitPresentationWidth','configureGeometry','configureGenerationConfiguration','restorePhase10NamedValues','bindEstimateRefresh','refreshEstimate'].includes(name))assert.equal(b[name],a[name],name);
+ const a=functions(baseline),b=functions(source);for(const name of Object.keys(a))if(!['setVisible','addReadOnlyWidget','syncAdvancedControls','sizePrimaryControls','applyPresentation','fitPresentationWidth','configureGeometry','normalizedValue','configureGenerationConfiguration','restorePhase10NamedValues','bindEstimateRefresh','refreshEstimate'].includes(name))assert.equal(b[name],a[name],name);
  assert.equal(source.split('function widget')[0],baseline.split('function widget')[0]);
 });
