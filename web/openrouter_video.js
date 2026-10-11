@@ -87,7 +87,12 @@ function sizePrimaryControls(node) {
     }
     const prompt = widget(node, "prompt");
     if (prompt) {
-        prompt.__orvComputeSize = () => [0, COMPACT_LAYOUT.prompt + COMPACT_LAYOUT.domInset];
+        prompt.__orvComputeSize = () => {
+            const minimum = COMPACT_LAYOUT.prompt + COMPACT_LAYOUT.domInset;
+            if (node.__orvMeasuringMinimum) return [0, minimum];
+            const contentHeight = node.computeSize?.()?.[1] || node.size?.[1] || 0;
+            return [0, minimum + Math.max(0, (node.size?.[1] || 0) - contentHeight)];
+        };
         setVisible(prompt, !prompt.hidden);
     }
 }
@@ -143,6 +148,7 @@ function applyPresentation(node) {
         if (labels[item.name]) item.label = labels[item.name];
     }
     sizePrimaryControls(node);
+    installResponsiveHeight(node);
     stylePrompt(node);
     syncAdvancedControls(node);
     setVisible(node.__orvEstimate, false);
@@ -194,9 +200,28 @@ function syncAdvancedControls(node) {
     return changed;
 }
 
+function installResponsiveHeight(node) {
+    if (node.__orvResponsiveHeightInstalled) return;
+    node.__orvResponsiveHeightInstalled = true;
+    const previousCompute = node.computeSize;
+    node.computeSize = function (...args) {
+        // Native content sizing measures current sockets and fixed widget rows.
+        // Keep that minimum independent of the user's flexible height.
+        this.__orvMeasuringMinimum = true;
+        try { return previousCompute?.apply(this, args); }
+        finally { this.__orvMeasuringMinimum = false; }
+    };
+    const previousResize = node.onResize;
+    node.onResize = function (size, ...args) {
+        const minimum = this.computeSize?.()?.[1];
+        if (Number.isFinite(minimum)) size[1] = Math.max(size[1], minimum);
+        previousResize?.call(this, size, ...args);
+    };
+}
+
 function fitPresentationWidth(node) {
     const measured = node.computeSize?.();
-    if (measured) node.setSize?.([COMPACT_LAYOUT.width, measured[1]]);
+    if (measured) node.setSize?.([COMPACT_LAYOUT.width, Math.max(node.size?.[1] || 0, measured[1])]);
 }
 
 function canonicalModel(node) {

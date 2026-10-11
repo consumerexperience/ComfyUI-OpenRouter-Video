@@ -1,0 +1,35 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "responsive-node-height",
+  "baseline_checkpoint": "compact-node-25451ff",
+  "baseline_sha": "25451ff91905cb0d6aa972cfdf46167bafcde10a",
+  "risk_tier": "B",
+  "intended_delta": [
+    "Owner authorized layout only: fixed top, flexible Prompt, rigid bottom anchored stack, measured minimum, preserved saved height. No control/wire/default/domain changes."
+  ],
+  "allowed_semantic_changes": [],
+  "protected_surfaces": [
+    "/surfaces/product_owned"
+  ],
+  "expected_components": [
+    "sizePrimaryControls Prompt height only",
+    "installResponsiveHeight native content minimum and resize clamp",
+    "fitPresentationWidth preserve current height",
+    "applyPresentation install layout",
+    "layout tests and browser measurements"
+  ],
+  "required_gates": [
+    "baseline_declaration",
+    "semantic_diff",
+    "negative_space_tests",
+    "full_tests",
+    "real_8189_browser",
+    "save_reload",
+    "zero_paid_posts",
+    "ruff",
+    "mypy",
+    "build"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}
