@@ -197,6 +197,9 @@ function applyPresentation(node) {
 }
 
 function syncAdvancedControls(node) {
+    // Projection finishes here after setting support-specific widget metadata.
+    const seed = widget(node, "seed");
+    if (seed?.options) seed.options.min = -1;
     let changed = false;
     for (const item of node.widgets || []) {
         if (item.name === "size" || /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`)) {
