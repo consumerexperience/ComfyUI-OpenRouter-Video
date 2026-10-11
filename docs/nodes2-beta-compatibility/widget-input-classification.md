@@ -3,7 +3,7 @@
 PRIMARY: model, inference_method, prompt, resolution, aspect_ratio, duration, seed, generate_audio; optional exact geometry size; control after generate (Classic combo, Beta native seed-linked control).
 SOCKET_ONLY: first_frame, last_frame, source_video, reference_N (IMAGE/VIDEO/AUDIO/INPUT_REFERENCE union native inputs as method permits). Legacy input_references collection retains link/serialized semantics, no phantom body widget.
 OUTPUT_ONLY: VIDEO, JOB_ID, MODEL, ACTUAL_COST_USD, STATUS.
-INTERNAL_HIDDEN: first_frame_url, last_frame_url legacy STRING backing slots (serialize=true, old workflow compatibility); Advanced compatibility button (serialize=false); COST estimate state (serialize=false); empty REFERENCES summary (serialize=false); empty STATE capability disclosure (serialize=false).
+INTERNAL_HIDDEN: first_frame_url, last_frame_url legacy STRING backing slots (serialize=true, old workflow compatibility); Advanced compatibility button (serialize=false); COST estimate plain state (not a widget, no serializer slot); empty REFERENCES summary (serialize=false); empty STATE capability disclosure (serialize=false).
 INTENTIONAL_READONLY_DISCLOSURE: nonempty reference summary and capability validation states. Not editable controls.
 ADVANCED: no hidden implementation backing state may appear when native Show advanced inputs is open. Existing native non-widget source/legacy media inputs are projected by method/link authority; not converted to form fields.
 
