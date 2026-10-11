@@ -55,6 +55,8 @@ function createGeometryCombos(node) {
 function setVisible(item, visible) {
     if (!item) return;
     item.hidden = !visible;
+    item.options ||= {};
+    Object.assign(item.options, { hidden: !visible });
     item.computeSize = visible ? item.__orvComputeSize : () => [0, -4];
 }
 
@@ -63,6 +65,7 @@ function addReadOnlyWidget(node, name, initial) {
     item.serialize = false;
     item.options = item.options || {};
     item.options.readOnly = true;
+    item.options.read_only = true;
     return item;
 }
 
@@ -142,16 +145,16 @@ function applyPresentation(node) {
     const labels = {
         model: "Model", inference_method: "Inference Method",
         resolution: "Resolution", aspect_ratio: "Aspect Ratio", duration: "Duration",
-        seed: "Seed", generate_audio: "Generate Audio", size: "Size",
+        seed: "Seed", generate_audio: "Generate Audio", size: "Exact Size",
     };
     for (const item of node.widgets || []) {
         if (labels[item.name]) item.label = labels[item.name];
     }
     sizePrimaryControls(node);
     installResponsiveHeight(node);
+    installBetaPresentation(node);
     stylePrompt(node);
     syncAdvancedControls(node);
-    setVisible(node.__orvEstimate, false);
     if (node.__orvCapabilityStatus) node.__orvCapabilityStatus.label = " ";
     if (node.__orvPresentationDrawInstalled) return;
     node.__orvPresentationDrawInstalled = true;
@@ -194,6 +197,8 @@ function syncAdvancedControls(node) {
     let changed = false;
     for (const item of node.widgets || []) {
         if (item.name === "size" || /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`)) {
+            item.options ||= {};
+            Object.assign(item.options, { advanced: false });
             if (item.hidden) { setVisible(item, true); changed = true; }
         }
     }
@@ -222,6 +227,87 @@ function installResponsiveHeight(node) {
 function fitPresentationWidth(node) {
     const measured = node.computeSize?.();
     if (measured) node.setSize?.([COMPACT_LAYOUT.width, Math.max(node.size?.[1] || 0, measured[1])]);
+}
+
+function createEstimateState() {
+    let value = "ESTIMATE UNAVAILABLE — SELECT MODEL";
+    return Object.defineProperty({}, "value", {
+        get: () => value,
+        set: (next) => { value = next; scheduleBetaPresentation(); },
+    });
+}
+
+function scheduleBetaPresentation() {
+    if (!installBetaPresentation.nodes || installBetaPresentation.pending) return;
+    installBetaPresentation.pending = true;
+    queueMicrotask(() => {
+        installBetaPresentation.pending = false;
+        for (const node of installBetaPresentation.nodes) syncBetaPresentation(node);
+    });
+}
+
+function installBetaPresentation(node) {
+    if (typeof document === "undefined" || typeof MutationObserver === "undefined") return;
+    if (!installBetaPresentation.nodes) {
+        installBetaPresentation.nodes = new Set();
+        // Nodes 2.0 has no public arbitrary-USD header badge slot. Its generic
+        // badges are footer content; price_badge converts USD to Comfy credits.
+        // This guarded adapter inserts a normal-flow header span, not an overlay.
+        const style = document.createElement("style");
+        style.textContent = `
+            .orv-nodes2 .orv-estimate { flex:0 1 auto; max-width:50%; overflow:hidden;
+                text-overflow:ellipsis; white-space:nowrap; border:1px solid #328761;
+                border-radius:9px; padding:2px 6px; color:#73e9b8; font-size:12px; }
+            .orv-nodes2 .orv-prompt-row { min-height:42px; }
+            .orv-nodes2 .orv-prompt-row textarea { min-height:42px; height:100%;
+                padding:20px 6px 4px; font-size:12px; overflow:auto; }
+        `;
+        document.head.append(style);
+        installBetaPresentation.observer = new MutationObserver(scheduleBetaPresentation);
+        installBetaPresentation.observer.observe(document.body, { childList: true, subtree: true });
+    }
+    if (!installBetaPresentation.nodes.has(node)) {
+        installBetaPresentation.nodes.add(node);
+        const previousRemoved = node.onRemoved;
+        node.onRemoved = function (...args) {
+            installBetaPresentation.nodes.delete(this);
+            return previousRemoved?.apply(this, args);
+        };
+    }
+    scheduleBetaPresentation();
+}
+
+function syncBetaPresentation(node) {
+    const root = [...document.querySelectorAll(".lg-node[data-node-id]")].find(
+        (element) => element.dataset.nodeId === String(node.id),
+    );
+    if (!root) return; // Classic has no Vue node DOM; never touch its canvas.
+    root.classList.add("orv-nodes2");
+    const header = root.querySelector(".lg-node-header > div");
+    if (header) {
+        let badge = header.querySelector(".orv-estimate");
+        if (!badge) {
+            badge = document.createElement("span");
+            badge.className = "orv-estimate";
+            header.append(badge);
+        }
+        const text = String(node.__orvEstimate?.value || "ESTIMATE UNAVAILABLE");
+        if (badge.textContent !== text) badge.textContent = text;
+        if (badge.title !== text) badge.title = text;
+    }
+    const grid = root.querySelector('[data-testid="node-widgets"]');
+    if (!grid) return;
+    const rows = [...grid.querySelectorAll(':scope > [data-testid="node-widget"]')];
+    const templates = rows.map((row) => {
+        const textarea = row.querySelector("textarea");
+        if (!textarea) return "max-content";
+        row.classList.add("orv-prompt-row");
+        if (textarea.rows !== 2) textarea.rows = 2;
+        return "minmax(42px, 1fr)";
+    });
+    const template = templates.join(" ");
+    if (grid.style.gridTemplateRows !== template) grid.style.gridTemplateRows = template;
+    if (grid.style.flex !== "1 1 auto") grid.style.flex = "1 1 auto";
 }
 
 function canonicalModel(node) {
@@ -1277,11 +1363,8 @@ app.registerExtension({
             setVisible(this.__orvSummary, false);
             this.__orvCapabilityStatus = addReadOnlyWidget(this, "STATE", "");
             setVisible(this.__orvCapabilityStatus, false);
-            this.__orvEstimate = addReadOnlyWidget(
-                this,
-                "COST",
-                "ESTIMATE UNAVAILABLE — SELECT MODEL",
-            );
+            // Estimate is presentation state, never a workflow/body widget.
+            this.__orvEstimate = createEstimateState();
             orderPresentationWidgets(this);
             applyPresentation(this);
             migratePhase8Values(this);
