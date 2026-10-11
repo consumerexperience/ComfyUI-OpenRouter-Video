@@ -150,6 +150,9 @@ function applyPresentation(node) {
     for (const item of node.widgets || []) {
         if (labels[item.name]) item.label = labels[item.name];
     }
+    // Preserve the backend-supported -1 sentinel when native Beta inputs blur.
+    const seed = widget(node, "seed");
+    if (seed?.options) seed.options.min = -1;
     sizePrimaryControls(node);
     installResponsiveHeight(node);
     installBetaPresentation(node);

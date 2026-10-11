@@ -28,3 +28,5 @@ Baseline e89b513da94ec74640ecff15f227e675bbc75533; canonical DEV8189, installed 
 
 ## Beta reactive metadata finding
 Installed BaseWidget registers its initial options object in WidgetValueStore. Replacing widget.options detaches reactive metadata: Duration stayed 0..1, and advanced/hidden flags remained stale. Mutate the retained options object with Object.assign; do not import or write private Vue stores. Real fresh-page Beta shows Google Veo 3.1, supported Duration 8; typing 7 snaps to 6. Opening Advanced no longer exposes legacy URL form fields.
+
+Beta numeric blur also clamped the accepted seed -1 sentinel to 0. Presentation restores native seed min -1, exactly matching backend schema and _seed(-1) => None; no wire/parser change. The first test run was stopped before acceptance and superseded by a fresh run.
