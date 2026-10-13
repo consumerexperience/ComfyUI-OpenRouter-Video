@@ -809,6 +809,7 @@ function configureGenerationConfiguration(node, capability) {
         (axis) => [axis, normalizedValue(widget(node, axis))]));
     const kinds = selectedReferenceKinds(node);
     const context = {
+        geometry_authority: geometryAuthority(node),
         inference_method: widget(node, "inference_method")?.value,
         mode: widget(node, "mode")?.value ?? null,
         generate_audio: Boolean(widget(node, "generate_audio")?.value),

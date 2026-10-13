@@ -127,3 +127,14 @@ test("reprojection preserves selected wire value and sentinel label", () => {
     assert.equal(resolution.value, "720p");
 
 });
+
+test("live exact constraints never spill into normalized authority", () => {
+    const relation = [{ axes: ["size", "duration"], when: { inference_method: ["FLF2V"], geometry_authority: ["EXACT"], generate_audio: [false] }, complete: false, allowed: [], forbidden: [{ size: ["480x480"], duration: [4] }] }];
+    const capability = { ...domains, supported_sizes: ["480x480", "480x640"], supported_durations: [4, 5], configuration_relations: relation };
+    const scope = { inference_method: "FLF2V", geometry_authority: "EXACT", generate_audio: false };
+    assert.equal(context.configurationStatus(relation, { size: "480x480", duration: 4 }, scope), "CONFIRMED_INCOMPATIBLE");
+    assert.deepEqual(plain(context.configurationOptions(capability, { duration: 4 }, scope)).options.size, ["480x640"]);
+    assert.equal(context.configurationStatus(relation, { duration: 4, resolution: "720p" }, { ...scope, geometry_authority: "NORMALIZED" }), "READY");
+    assert.equal(context.configurationStatus(relation, { size: "480x480", duration: 4 }, { ...scope, inference_method: "I2V" }), "READY");
+    assert.match(source, /geometry_authority: geometryAuthority\(node\)/);
+});

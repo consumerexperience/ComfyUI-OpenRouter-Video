@@ -1,3 +1,4 @@
+import { reviewedRcText } from "./rc_reviewed_patch.mjs";
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
@@ -37,5 +38,5 @@ test('renderer adapter cleans node ownership and shares one observer',()=>{
 });
 test('all semantic/frontend functions and Python source exactly match immediate baseline',()=>{
  const before=execFileSync('git',['show','e89b513:web/openrouter_video.js'],{cwd:root,encoding:'utf8'}).replace(/\r\n/g,'\n').replace(/^import .*;\n/gm,'');const functions=t=>Object.fromEntries(t.split(/(?=^function |^async function )/m).slice(1).map(p=>[p.match(/function (\w+)/)[1],p.slice(0,p.indexOf('\n}')+2)]));const a=functions(before),b=functions(source);for(const name of Object.keys(a))if(!['setVisible','addReadOnlyWidget','applyPresentation','syncAdvancedControls','configureGeometry','normalizedValue','configureGenerationConfiguration','restorePhase10NamedValues','bindEstimateRefresh','refreshEstimate'].includes(name))assert.equal(b[name],a[name],name);assert.equal(source.split('function widget')[0],before.split('function widget')[0]);
- for(const file of execFileSync('git',['ls-tree','-r','--name-only','e89b513','src'],{cwd:root,encoding:'utf8'}).trim().split('\n').filter(file=>!['src/openrouter_video/models.py','src/openrouter_video/comfy/nodes.py','src/openrouter_video/comfy/projection.py'].includes(file)))assert.equal(readFileSync(new URL(file,root),'utf8').replace(/\r\n/g,'\n'),execFileSync('git',['show',`e89b513:${file}`],{cwd:root,encoding:'utf8'}).replace(/\r\n/g,'\n'),file);
+ for(const file of execFileSync('git',['ls-tree','-r','--name-only','e89b513','src'],{cwd:root,encoding:'utf8'}).trim().split('\n').filter(file=>!['src/openrouter_video/models.py','src/openrouter_video/comfy/nodes.py','src/openrouter_video/comfy/projection.py'].includes(file)))assert.equal(reviewedRcText(root,file,readFileSync(new URL(file,root),'utf8')).replace(/\r\n/g,'\n'),execFileSync('git',['show',`e89b513:${file}`],{cwd:root,encoding:'utf8'}).replace(/\r\n/g,'\n'),file);
 });

@@ -15,6 +15,7 @@ from openrouter_video.models import CapabilityFactState, ModelCapabilities
 CONFIGURATION_KEY = "configuration_constraints"
 AXES = ("resolution", "aspect_ratio", "duration", "size")
 CONTEXT = (
+    "geometry_authority",
     "inference_method",
     "mode",
     "generate_audio",

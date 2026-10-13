@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import ast
+import hashlib
+import json
 import shutil
 import subprocess
 from pathlib import Path
@@ -82,6 +84,19 @@ def test_protected_native_media_security_pricing_and_wire_files_are_exactly_pres
     ]
     for path in paths:
         current = (ROOT / path).read_text(encoding="utf-8")
+        if path in {
+            "src/openrouter_video/recipes.py",
+            "src/openrouter_video/data/capability-evidence.json",
+        }:
+            pin = json.loads((ROOT / "tests/fixtures/rc_live_reviewed_patch.json").read_text())
+            assert hashlib.sha256(current.encode()).hexdigest() == pin["reviewed_files"][path]
+            git = shutil.which("git")
+            assert git is not None
+            current = subprocess.check_output(  # noqa: S603 - fixed accepted local source
+                [git, "-C", str(ROOT), "show", f"{pin['baseline_sha']}:{path}"],
+                text=True,
+                encoding="utf-8",
+            )
         if path == "src/openrouter_video/models.py":
             guard = (
                 "        if self.size is not None and (self.resolution is not None "

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "artifact_version": "2026-10-10.1",
+  "artifact_version": "2026-10-13.rc-live-conflicts-v1",
   "review_status": "PRODUCT_OWNER_APPROVED_AUDIT",
   "models": [
     {
@@ -228,6 +228,71 @@
           "source_reference": "https://openrouter.ai/bytedance/seedance-2.0-mini",
           "observed_at": "2026-10-10T16:37:05.412933+00:00",
           "scope": "OpenRouter video model"
+        },
+        "configuration_constraints": {
+          "authority": "OBSERVED_LIVE_CONFORMANCE",
+          "source_reference": "https://openrouter.ai/api/v1/videos/gen-vid-1791891083-TCWv3pEgV9p3zFkWf4oE",
+          "observed_at": "2026-10-13T11:35:00+00:00",
+          "scope": "VR2V; duration=4; generate_audio=false; EXACT 480x480; output=640x640; canonical workflow+serializer reconstruction, raw outbound body unavailable",
+          "value": {
+            "schema_version": 1,
+            "relations": [
+              {
+                "axes": [
+                  "size",
+                  "duration"
+                ],
+                "when": {
+                  "inference_method": [
+                    "VR2V"
+                  ],
+                  "geometry_authority": [
+                    "EXACT"
+                  ],
+                  "generate_audio": [
+                    false
+                  ]
+                },
+                "complete": false,
+                "forbidden": [
+                  {
+                    "size": [
+                      "480x480"
+                    ],
+                    "duration": [
+                      4
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "exact_size_conformance": {
+          "authority": "OBSERVED_LIVE_CONFORMANCE",
+          "source_reference": "https://openrouter.ai/api/v1/videos/gen-vid-1791891083-TCWv3pEgV9p3zFkWf4oE",
+          "observed_at": "2026-10-13T11:35:00+00:00",
+          "scope": "VR2V; duration=4; generate_audio=false; EXACT 480x480; output=640x640; canonical workflow+serializer reconstruction, raw outbound body unavailable",
+          "value": {
+            "method": "VR2V",
+            "requested": "480x480",
+            "observed": "640x640"
+          },
+          "conflicting_evidence": [
+            "Live structured catalogue advertises 480x480; OpenAPI defines size as exact dimensions."
+          ]
+        },
+        "inference_method_conformance": {
+          "authority": "OBSERVED_DEFINITE_SUBMIT_REJECTION",
+          "source_reference": "https://openrouter.ai/api/v1/videos",
+          "observed_at": "2026-10-13T11:35:00+00:00",
+          "scope": "Standalone AUDIO, 2s mono PCM WAV, AR2V duration=4 EXACT 480x480 audio=false; UNSUPPORTED_PARAMETER; precise field unknown; MMR2V accepted separately.",
+          "value": {
+            "method": "AR2V"
+          },
+          "conflicting_evidence": [
+            "OpenRouter official model page confirms AUDIO references; canonical API AUDIO wire is schema-compliant."
+          ]
         }
       }
     },
@@ -740,7 +805,61 @@
     },
     {
       "exact_model_id": "bytedance/seedance-1-5-pro",
-      "facts": {}
+      "facts": {
+        "configuration_constraints": {
+          "authority": "OBSERVED_LIVE_CONFORMANCE",
+          "source_reference": "https://openrouter.ai/api/v1/videos/gen-vid-1791891000-RPAlYuK2XId9m62Ol0WW",
+          "observed_at": "2026-10-13T11:35:00+00:00",
+          "scope": "FLF2V; duration=4; generate_audio=false; EXACT 480x480; output=864x496; canonical workflow+serializer reconstruction, raw outbound body unavailable",
+          "value": {
+            "schema_version": 1,
+            "relations": [
+              {
+                "axes": [
+                  "size",
+                  "duration"
+                ],
+                "when": {
+                  "inference_method": [
+                    "FLF2V"
+                  ],
+                  "geometry_authority": [
+                    "EXACT"
+                  ],
+                  "generate_audio": [
+                    false
+                  ]
+                },
+                "complete": false,
+                "forbidden": [
+                  {
+                    "size": [
+                      "480x480"
+                    ],
+                    "duration": [
+                      4
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "exact_size_conformance": {
+          "authority": "OBSERVED_LIVE_CONFORMANCE",
+          "source_reference": "https://openrouter.ai/api/v1/videos/gen-vid-1791891000-RPAlYuK2XId9m62Ol0WW",
+          "observed_at": "2026-10-13T11:35:00+00:00",
+          "scope": "FLF2V; duration=4; generate_audio=false; EXACT 480x480; output=864x496; canonical workflow+serializer reconstruction, raw outbound body unavailable",
+          "value": {
+            "method": "FLF2V",
+            "requested": "480x480",
+            "observed": "864x496"
+          },
+          "conflicting_evidence": [
+            "Live structured catalogue advertises 480x480; OpenAPI defines size as exact dimensions."
+          ]
+        }
+      }
     },
     {
       "exact_model_id": "google/veo-3.1",
@@ -769,5 +888,5 @@
       }
     }
   ],
-  "content_hash": "4b628c0feffc1c792be528599241f26a84665ff52a7ca89d4a5b42e6a04d0e82"
+  "content_hash": "88da5cd6255899b741b207cfd40829f50579ef12e6e51535e352da8ed8017980"
 }

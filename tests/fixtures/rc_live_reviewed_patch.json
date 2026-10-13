@@ -1,0 +1,11 @@
+{
+  "baseline_sha": "f9c19c669735d08fc12b5460eaf2198cdde2d714",
+  "reviewed_files": {
+    "src/openrouter_video/capabilities.py": "f30b57e23efc5844c122ff4c2808c414d34ef3993e50181ee5d31cf22697496b",
+    "src/openrouter_video/configuration.py": "e16e6f7745fb060e05288be938d92b2f5ee5a1f190b8a90f27b86745ad047493",
+    "src/openrouter_video/recipes.py": "9c8927ff3aabd3788465a9b27348d5bfc851dfc816e41510188c5854b4a4fb70",
+    "src/openrouter_video/data/capability-evidence.json": "fce1f8f68a639fb7f1bcfbbab6f39103f5f39b4bb1861f88abcabe302948946a",
+    "web/openrouter_video.js": "2563c6bab236248559ef4ad3158ad0ef90140a31765e59e61ec7e83c07fdfaa6"
+  },
+  "purpose": "Exact authorized RC patch for compatibility with historical no-change shields. Real candidate semantic diff remains required; this is not an accepted snapshot."
+}

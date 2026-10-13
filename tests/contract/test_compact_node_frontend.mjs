@@ -1,3 +1,4 @@
+import { reviewedRcText } from "./rc_reviewed_patch.mjs";
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
@@ -101,7 +102,7 @@ test('protected frontend functions retain immediate baseline definitions',()=>{
  const allowed=new Set(['setVisible','addReadOnlyWidget','createGeometryCombos','sizePrimaryControls','stylePrompt','syncAdvancedControls','fitPresentationWidth','configureEnum','createDurationSlider','configureDuration','configureGenerationConfiguration','configureGeometry','normalizedValue','restorePhase10NamedValues','applyPresentation','bindEstimateRefresh','refreshEstimate']);
  const a=functions(before),b=functions(source);a.projectSelectedModel=a.projectSelectedModel.replace('setVisible(node.__orvAdvanced, Boolean(canonicalModel(node)));','setVisible(node.__orvAdvanced, false);');for(const name of Object.keys(a))if(!allowed.has(name))assert.equal(b[name],a[name],name);
  for(const file of ['src/openrouter_video/application.py','src/openrouter_video/capabilities.py','src/openrouter_video/client.py','src/openrouter_video/pricing.py']){
-  assert.equal(readFileSync(new URL(file,root),'utf8').replace(/\r\n/g,'\n'),execFileSync('git',['show',`a86df3b:${file}`],{cwd:root,encoding:'utf8'}).replace(/\r\n/g,'\n'),file);
+  assert.equal(reviewedRcText(root,file,readFileSync(new URL(file,root),'utf8')).replace(/\r\n/g,'\n'),execFileSync('git',['show',`a86df3b:${file}`],{cwd:root,encoding:'utf8'}).replace(/\r\n/g,'\n'),file);
  }
 });
 

@@ -363,6 +363,7 @@ class RequestValidator:
                 "size": request.size,
             },
             {
+                "geometry_authority": "EXACT" if request.size is not None else "NORMALIZED",
                 "inference_method": request.inference_method.value,
                 "generate_audio": request.generate_audio,
                 "reference_count": len(references_for_config) + (request.source_video is not None),
