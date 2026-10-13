@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "artifact_version": "2026-10-13.rc-live-conflicts-v1",
+  "artifact_version": "2026-10-13.rc-live-conflicts-v2",
   "review_status": "PRODUCT_OWNER_APPROVED_AUDIT",
   "models": [
     {
@@ -767,6 +767,18 @@
           "source_reference": "https://openrouter.ai/bytedance/seedance-2.0-fast",
           "observed_at": "2026-10-10T16:37:05.412933+00:00",
           "scope": "OpenRouter video model"
+        },
+        "inference_method_conformance": {
+          "authority": "OBSERVED_DEFINITE_SUBMIT_REJECTION",
+          "source_reference": "https://openrouter.ai/api/v1/videos",
+          "observed_at": "2026-10-13T12:23:17.518502+00:00",
+          "scope": "One authorized AR2V revalidation: standalone 2s mono PCM WAV, duration=4 NORMALIZED 480p/1:1, generate_audio=false; UNSUPPORTED_PARAMETER; precise rejected field unknown. No retry.",
+          "value": {
+            "method": "AR2V"
+          },
+          "conflicting_evidence": [
+            "First-party schema explicitly supports AUDIO reference object and Seedance generation 2+; current reviewed exact-model AUDIO capability projects AR2V READY, but standalone live submit was definitively rejected."
+          ]
         }
       }
     },
@@ -888,5 +900,5 @@
       }
     }
   ],
-  "content_hash": "88da5cd6255899b741b207cfd40829f50579ef12e6e51535e352da8ed8017980"
+  "content_hash": "fd61491cbba889572ed5aed39b366365ed3ed368f0e3f8c704d65aeb78a66779"
 }

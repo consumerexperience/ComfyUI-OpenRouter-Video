@@ -1,97 +1,48 @@
 {
-  "schema_version": 1,
-  "baseline_sha": "f9c19c669735d08fc12b5460eaf2198cdde2d714",
-  "classification": {
-    "FLF2V_GENERATION_PATH": "LIVE_VERIFIED",
-    "VR2V_GENERATION_PATH": "LIVE_VERIFIED",
-    "EXACT_SIZE_CONFORMANCE": "CONFLICT_SCOPED_TO_OBSERVED_REQUESTS",
-    "AR2V_MINI": "CONFLICT: precise rejected field unknown; AUDIO primitive and MMR2V not denied"
-  },
-  "fingerprint_proof": [
-    {
-      "case": "FLF2V",
-      "job_id": "gen-vid-1791891000-RPAlYuK2XId9m62Ol0WW",
-      "stored_structural_fingerprint": "v3:86cfaffb53bfe207754cb6b7d1f844751d17401ad8aa9174c4579281113e22dc",
-      "reconstructed_fingerprint": "v3:86cfaffb53bfe207754cb6b7d1f844751d17401ad8aa9174c4579281113e22dc",
-      "geometry_and_role_fingerprint_match": true,
-      "serializer_shape": {
-        "model": "bytedance/seedance-1-5-pro",
-        "generate_audio": false,
-        "prompt": "present",
-        "duration": 4,
-        "size": "480x480",
-        "frame_images": [
-          {
-            "type": "image_url",
-            "image_url": {
-              "url": "https://example.com/first.png"
-            },
-            "frame_type": "first_frame"
-          },
-          {
-            "type": "image_url",
-            "image_url": {
-              "url": "https://example.com/last.png"
-            },
-            "frame_type": "last_frame"
-          }
-        ]
-      },
-      "geometry_exact": true,
-      "wire_capture": "NOT_CAPTURED; structural pre-staging state proven by durable fingerprint and unchanged serializer",
-      "error_payload": null
+  "schema_version": 2,
+  "baseline": "f9c19c669735d08fc12b5460eaf2198cdde2d714",
+  "root_causes": {
+    "FLF2V_GEOMETRY": {
+      "classification": [
+        "UPSTREAM_CONTRACT_CONFLICT",
+        "LOCAL_CAPABILITY_OVEREXPOSURE"
+      ],
+      "explanation": "Persisted structural fingerprint proves EXACT 480x480, normalized fields omitted; unchanged serializer conforms to OpenAPI. Catalogue advertises 480x480; actual MP4 864x496. Raw historical outbound capture absent; provider internal normalization cause unknown."
     },
-    {
-      "case": "VR2V",
-      "job_id": "gen-vid-1791891083-TCWv3pEgV9p3zFkWf4oE",
-      "stored_structural_fingerprint": "v3:a34826ff08f554eac205d1938150c1ab18c8742124b092ab94e9b7912b7385d2",
-      "reconstructed_fingerprint": "v3:a34826ff08f554eac205d1938150c1ab18c8742124b092ab94e9b7912b7385d2",
-      "geometry_and_role_fingerprint_match": true,
-      "serializer_shape": {
-        "model": "bytedance/seedance-2.0-mini",
-        "generate_audio": false,
-        "prompt": "present",
-        "duration": 4,
-        "size": "480x480",
-        "input_references": [
-          {
-            "type": "video_url",
-            "video_url": {
-              "url": "https://example.com/reference"
-            }
-          }
-        ]
-      },
-      "geometry_exact": true,
-      "wire_capture": "NOT_CAPTURED; structural pre-staging state proven by durable fingerprint and unchanged serializer",
-      "error_payload": null
+    "VR2V_GEOMETRY": {
+      "classification": [
+        "UPSTREAM_CONTRACT_CONFLICT",
+        "LOCAL_CAPABILITY_OVEREXPOSURE"
+      ],
+      "explanation": "Same structural proof; requested EXACT 480x480, observed MP4 640x640. No local serialization conflict found; advertised exact conformance contradicted. Provider internal cause unknown."
     },
-    {
-      "case": "AR2V",
-      "job_id": null,
-      "stored_structural_fingerprint": "v3:d3809fba4709cd3f96ef137838d1c1c3241cac8df85f1be67ddc893e8798fe1f",
-      "reconstructed_fingerprint": "v3:d3809fba4709cd3f96ef137838d1c1c3241cac8df85f1be67ddc893e8798fe1f",
-      "geometry_and_role_fingerprint_match": true,
-      "serializer_shape": {
-        "model": "bytedance/seedance-2.0-mini",
-        "generate_audio": false,
-        "prompt": "present",
-        "duration": 4,
-        "size": "480x480",
-        "input_references": [
-          {
-            "type": "audio_url",
-            "audio_url": {
-              "url": "https://example.com/reference"
-            }
-          }
-        ]
-      },
-      "geometry_exact": true,
-      "wire_capture": "NOT_CAPTURED; structural pre-staging state proven by durable fingerprint and unchanged serializer",
-      "error_payload": "NOT_RETAINED_BY_CANONICAL_HTTP_ERROR"
+    "AR2V": {
+      "classification": [
+        "CAPABILITY_OVEREXPOSURE",
+        "UPSTREAM_CONTRACT_CONFLICT"
+      ],
+      "explanation": "Primitive AUDIO/mixed reference documentation was projected as standalone AR2V READY. Schema-compliant audio_url object under input_references is definitively rejected on Mini EXACT and Fast NORMALIZED. Exact rejected parameter is UNKNOWN: complete safe error body was never retained. This does not prove AUDIO unsupported and does not invalidate accepted MMR2V."
     }
-  ],
+  },
+  "generation_surfaces": {
+    "T2V": "LIVE_VERIFIED",
+    "I2V": "LIVE_VERIFIED",
+    "FLF2V": "LIVE_VERIFIED",
+    "MI2V": "LIVE_VERIFIED",
+    "VR2V": "LIVE_VERIFIED",
+    "AR2V": "FAIL",
+    "MMR2V": "LIVE_VERIFIED"
+  },
+  "cross_cutting": {
+    "EXACT_SIZE_CONFORMANCE": "CONSTRAINED",
+    "NORMALIZED_GEOMETRY": "PASS",
+    "NATIVE_IMAGE": "PASS",
+    "NATIVE_VIDEO": "PASS",
+    "NATIVE_AUDIO": "PASS",
+    "GENERATE_BILLING_SAFETY": "PASS",
+    "RESUME_BILLING_SAFETY": "PASS",
+    "BILLING_SAFETY": "PASS"
+  },
   "verification": {
     "python": {
       "exit_code": 0,
@@ -99,7 +50,7 @@
         "SKIPPED [1] tests\\contract\\test_higgsfield_golden_pack.py:89: Official third-party media is not materialized; run the fetch command in README.md",
         "SKIPPED [1] tests\\contract\\test_higgsfield_multimodal_pack.py:43: MATERIALIZATION_REQUIRED: run python scripts/materialize_higgsfield_multimodal_pack.py; missing=('car_sheet', 'street_environment', 'car_chasing_playblast', 'passing_car_urban_ambience')",
         "SKIPPED [1] tests\\contract\\test_higgsfield_multimodal_pack.py:83: MATERIALIZATION_REQUIRED: run python scripts/materialize_higgsfield_multimodal_pack.py; missing=('car_sheet', 'street_environment', 'car_chasing_playblast', 'passing_car_urban_ambience')",
-        "395 passed, 3 skipped in 28.95s"
+        "395 passed, 3 skipped in 29.28s"
       ]
     },
     "frontend": {
@@ -108,7 +59,7 @@
         "\u2139 cancelled 0",
         "\u2139 skipped 0",
         "\u2139 todo 0",
-        "\u2139 duration_ms 1560.5389"
+        "\u2139 duration_ms 1614.8752"
       ]
     },
     "ruff": {
@@ -139,245 +90,46 @@
     },
     "all_nonpaid_gates_pass": true
   },
-  "browser": {
+  "paid_revalidation": {
+    "model": "bytedance/seedance-2.0-fast",
+    "duration": 4,
+    "resolution": "480p",
+    "aspect_ratio": "1:1",
+    "size": null,
+    "geometry_authority": "NORMALIZED",
+    "audio_input": "existing 2s mono PCM16 24k WAV",
+    "job_id": null,
+    "state": "SUBMIT_REJECTED",
+    "error_code": "UNSUPPORTED_PARAMETER",
+    "structural_fingerprint": "v3:8065eed2ec0bede76ae1f613ffcf43ef8db003567faf2e3dde6c394e6bc716db",
+    "fingerprint_verified": true,
+    "semantic_wire_shape": {
+      "model": "bytedance/seedance-2.0-fast",
+      "generate_audio": false,
+      "prompt": "present",
+      "duration": 4,
+      "resolution": "480p",
+      "aspect_ratio": "1:1",
+      "input_references": [
+        {
+          "type": "audio_url",
+          "audio_url": {
+            "url": "https://example.com/reference.wav"
+          }
+        }
+      ]
+    },
+    "paid_post_count": 1,
+    "cleanup_objects_remaining": 0,
+    "replacement_selection": "Fast is lowest reference component among nonconflicting Seedance-generation2+ AR2V projections; Mini known conflicting excluded. HeyGen AUDIO claim conflicts with generic schema honoring rules, so not chosen as stronger standalone proof. Rates are reference-only, not certified totals."
+  },
+  "renderer": {
     "PASS": true,
-    "paid_posts": 0,
     "states": [
       {
         "renderer": "Classic",
-        "FLF2V": {
-          "model": {
-            "value": "bytedance/seedance-1-5-pro",
-            "options": [
-              "SELECT MODEL",
-              "alibaba/happyhorse-1.0",
-              "alibaba/happyhorse-1.1",
-              "alibaba/wan-2.6",
-              "alibaba/wan-2.7",
-              "alibaba/wan-3.0",
-              "alibaba/wan-3.0-prime",
-              "black-forest-labs/flux-video-edit",
-              "black-forest-labs/flux-video-upscale",
-              "black-forest-labs/flux-3-video",
-              "bytedance/seedance-1-5-pro",
-              "bytedance/seedance-2.0",
-              "bytedance/seedance-2.0-fast",
-              "bytedance/seedance-2.0-mini",
-              "bytedance/seedance-2.5",
-              "google/veo-3.1",
-              "google/veo-3.1-fast",
-              "google/veo-3.1-lite",
-              "heygen/avatar-iv",
-              "heygen/heygen-video-1",
-              "kwaivgi/kling-video-o1",
-              "kwaivgi/kling-v3.0-pro",
-              "kwaivgi/kling-v3.0-std",
-              "minimax/hailuo-3",
-              "minimax/hailuo-3-max",
-              "minimax/hailuo-2.3",
-              "runway/aleph-2",
-              "runway/gen-4.5",
-              "x-ai/grok-imagine-video",
-              "x-ai/grok-imagine-video-1.5",
-              "x-ai/grok-imagine-video-1.5-lite"
-            ],
-            "hidden": false
-          },
-          "inference_method": {
-            "value": "FLF2V",
-            "options": [
-              "I2V",
-              "FLF2V"
-            ],
-            "hidden": false
-          },
-          "resolution": {
-            "value": "\u2014",
-            "options": [
-              "\u2014",
-              "480p",
-              "720p",
-              "1080p"
-            ],
-            "hidden": false
-          },
-          "aspect_ratio": {
-            "value": "1:1",
-            "options": [
-              "9:21",
-              "9:16",
-              "3:4",
-              "1:1",
-              "4:3",
-              "16:9",
-              "21:9"
-            ],
-            "hidden": false
-          },
-          "duration": {
-            "value": 5,
-            "options": [
-              5,
-              6,
-              7,
-              8,
-              9,
-              10,
-              11,
-              12
-            ],
-            "hidden": false
-          },
-          "size": {
-            "value": "480x480",
-            "options": [
-              "480x480",
-              "480x640",
-              "640x480",
-              "480x854",
-              "854x480",
-              "720x720",
-              "480x1120",
-              "1120x480",
-              "720x960",
-              "960x720",
-              "720x1280",
-              "1280x720",
-              "1080x1080",
-              "720x1680",
-              "1680x720",
-              "1080x1440",
-              "1440x1080",
-              "1080x1920",
-              "1920x1080",
-              "1080x2520",
-              "2520x1080",
-              ""
-            ],
-            "hidden": false
-          },
-          "geometry_authority": {
-            "value": "EXACT",
-            "hidden": true
-          }
-        },
-        "reload": {
-          "model": {
-            "value": "bytedance/seedance-1-5-pro",
-            "options": [
-              "SELECT MODEL",
-              "alibaba/happyhorse-1.0",
-              "alibaba/happyhorse-1.1",
-              "alibaba/wan-2.6",
-              "alibaba/wan-2.7",
-              "alibaba/wan-3.0",
-              "alibaba/wan-3.0-prime",
-              "black-forest-labs/flux-video-edit",
-              "black-forest-labs/flux-video-upscale",
-              "black-forest-labs/flux-3-video",
-              "bytedance/seedance-1-5-pro",
-              "bytedance/seedance-2.0",
-              "bytedance/seedance-2.0-fast",
-              "bytedance/seedance-2.0-mini",
-              "bytedance/seedance-2.5",
-              "google/veo-3.1",
-              "google/veo-3.1-fast",
-              "google/veo-3.1-lite",
-              "heygen/avatar-iv",
-              "heygen/heygen-video-1",
-              "kwaivgi/kling-video-o1",
-              "kwaivgi/kling-v3.0-pro",
-              "kwaivgi/kling-v3.0-std",
-              "minimax/hailuo-3",
-              "minimax/hailuo-3-max",
-              "minimax/hailuo-2.3",
-              "runway/aleph-2",
-              "runway/gen-4.5",
-              "x-ai/grok-imagine-video",
-              "x-ai/grok-imagine-video-1.5",
-              "x-ai/grok-imagine-video-1.5-lite"
-            ],
-            "hidden": false
-          },
-          "inference_method": {
-            "value": "FLF2V",
-            "options": [
-              "I2V",
-              "FLF2V"
-            ],
-            "hidden": false
-          },
-          "resolution": {
-            "value": "\u2014",
-            "options": [
-              "\u2014",
-              "480p",
-              "720p",
-              "1080p"
-            ],
-            "hidden": false
-          },
-          "aspect_ratio": {
-            "value": "1:1",
-            "options": [
-              "9:21",
-              "9:16",
-              "3:4",
-              "1:1",
-              "4:3",
-              "16:9",
-              "21:9"
-            ],
-            "hidden": false
-          },
-          "duration": {
-            "value": 5,
-            "options": [
-              5,
-              6,
-              7,
-              8,
-              9,
-              10,
-              11,
-              12
-            ],
-            "hidden": false
-          },
-          "size": {
-            "value": "480x480",
-            "options": [
-              "480x480",
-              "480x640",
-              "640x480",
-              "480x854",
-              "854x480",
-              "720x720",
-              "480x1120",
-              "1120x480",
-              "720x960",
-              "960x720",
-              "720x1280",
-              "1280x720",
-              "1080x1080",
-              "720x1680",
-              "1680x720",
-              "1080x1440",
-              "1440x1080",
-              "1080x1920",
-              "1920x1080",
-              "1080x2520",
-              "2520x1080",
-              ""
-            ],
-            "hidden": false
-          },
-          "geometry_authority": {
-            "value": "EXACT",
-            "hidden": true
-          }
-        },
-        "MiniMethodOptions": [
+        "model": "bytedance/seedance-2.0-fast",
+        "options": [
           "T2V",
           "I2V",
           "FLF2V",
@@ -385,359 +137,12 @@
           "MI2V",
           "VR2V",
           "MMR2V"
-        ],
-        "VR2V": {
-          "model": {
-            "value": "bytedance/seedance-2.0-mini",
-            "options": [
-              "SELECT MODEL",
-              "alibaba/happyhorse-1.0",
-              "alibaba/happyhorse-1.1",
-              "alibaba/wan-2.6",
-              "alibaba/wan-2.7",
-              "alibaba/wan-3.0",
-              "alibaba/wan-3.0-prime",
-              "black-forest-labs/flux-video-edit",
-              "black-forest-labs/flux-video-upscale",
-              "black-forest-labs/flux-3-video",
-              "bytedance/seedance-1-5-pro",
-              "bytedance/seedance-2.0",
-              "bytedance/seedance-2.0-fast",
-              "bytedance/seedance-2.0-mini",
-              "bytedance/seedance-2.5",
-              "google/veo-3.1",
-              "google/veo-3.1-fast",
-              "google/veo-3.1-lite",
-              "heygen/avatar-iv",
-              "heygen/heygen-video-1",
-              "kwaivgi/kling-video-o1",
-              "kwaivgi/kling-v3.0-pro",
-              "kwaivgi/kling-v3.0-std",
-              "minimax/hailuo-3",
-              "minimax/hailuo-3-max",
-              "minimax/hailuo-2.3",
-              "runway/aleph-2",
-              "runway/gen-4.5",
-              "x-ai/grok-imagine-video",
-              "x-ai/grok-imagine-video-1.5",
-              "x-ai/grok-imagine-video-1.5-lite"
-            ],
-            "hidden": false
-          },
-          "inference_method": {
-            "value": "VR2V",
-            "options": [
-              "T2V",
-              "I2V",
-              "FLF2V",
-              "IR2V",
-              "MI2V",
-              "VR2V",
-              "MMR2V"
-            ],
-            "hidden": false
-          },
-          "resolution": {
-            "value": "\u2014",
-            "options": [
-              "\u2014",
-              "480p",
-              "720p"
-            ],
-            "hidden": false
-          },
-          "aspect_ratio": {
-            "value": "1:1",
-            "options": [
-              "9:21",
-              "9:16",
-              "3:4",
-              "1:1",
-              "4:3",
-              "16:9",
-              "21:9"
-            ],
-            "hidden": false
-          },
-          "duration": {
-            "value": 5,
-            "options": [
-              5,
-              6,
-              7,
-              8,
-              9,
-              10,
-              11,
-              12,
-              13,
-              14,
-              15
-            ],
-            "hidden": false
-          },
-          "size": {
-            "value": "480x480",
-            "options": [
-              "480x480",
-              "480x640",
-              "640x480",
-              "480x854",
-              "854x480",
-              "720x720",
-              "1120x480",
-              "720x960",
-              "960x720",
-              "720x1280",
-              "1280x720",
-              "720x1680",
-              "1680x720",
-              ""
-            ],
-            "hidden": false
-          },
-          "geometry_authority": {
-            "value": "EXACT",
-            "hidden": true
-          }
-        },
-        "configStatus": "READY"
+        ]
       },
       {
         "renderer": "Nodes 2.0",
-        "FLF2V": {
-          "model": {
-            "value": "bytedance/seedance-1-5-pro",
-            "options": [
-              "SELECT MODEL",
-              "alibaba/happyhorse-1.0",
-              "alibaba/happyhorse-1.1",
-              "alibaba/wan-2.6",
-              "alibaba/wan-2.7",
-              "alibaba/wan-3.0",
-              "alibaba/wan-3.0-prime",
-              "black-forest-labs/flux-video-edit",
-              "black-forest-labs/flux-video-upscale",
-              "black-forest-labs/flux-3-video",
-              "bytedance/seedance-1-5-pro",
-              "bytedance/seedance-2.0",
-              "bytedance/seedance-2.0-fast",
-              "bytedance/seedance-2.0-mini",
-              "bytedance/seedance-2.5",
-              "google/veo-3.1",
-              "google/veo-3.1-fast",
-              "google/veo-3.1-lite",
-              "heygen/avatar-iv",
-              "heygen/heygen-video-1",
-              "kwaivgi/kling-video-o1",
-              "kwaivgi/kling-v3.0-pro",
-              "kwaivgi/kling-v3.0-std",
-              "minimax/hailuo-3",
-              "minimax/hailuo-3-max",
-              "minimax/hailuo-2.3",
-              "runway/aleph-2",
-              "runway/gen-4.5",
-              "x-ai/grok-imagine-video",
-              "x-ai/grok-imagine-video-1.5",
-              "x-ai/grok-imagine-video-1.5-lite"
-            ],
-            "hidden": false
-          },
-          "inference_method": {
-            "value": "FLF2V",
-            "options": [
-              "I2V",
-              "FLF2V"
-            ],
-            "hidden": false
-          },
-          "resolution": {
-            "value": "\u2014",
-            "options": [
-              "\u2014",
-              "480p",
-              "720p",
-              "1080p"
-            ],
-            "hidden": false
-          },
-          "aspect_ratio": {
-            "value": "1:1",
-            "options": [
-              "9:21",
-              "9:16",
-              "3:4",
-              "1:1",
-              "4:3",
-              "16:9",
-              "21:9"
-            ],
-            "hidden": false
-          },
-          "duration": {
-            "value": 5,
-            "options": [
-              5,
-              6,
-              7,
-              8,
-              9,
-              10,
-              11,
-              12
-            ],
-            "hidden": false
-          },
-          "size": {
-            "value": "480x480",
-            "options": [
-              "480x480",
-              "480x640",
-              "640x480",
-              "480x854",
-              "854x480",
-              "720x720",
-              "480x1120",
-              "1120x480",
-              "720x960",
-              "960x720",
-              "720x1280",
-              "1280x720",
-              "1080x1080",
-              "720x1680",
-              "1680x720",
-              "1080x1440",
-              "1440x1080",
-              "1080x1920",
-              "1920x1080",
-              "1080x2520",
-              "2520x1080",
-              ""
-            ],
-            "hidden": false
-          },
-          "geometry_authority": {
-            "value": "EXACT",
-            "hidden": true
-          }
-        },
-        "reload": {
-          "model": {
-            "value": "bytedance/seedance-1-5-pro",
-            "options": [
-              "SELECT MODEL",
-              "alibaba/happyhorse-1.0",
-              "alibaba/happyhorse-1.1",
-              "alibaba/wan-2.6",
-              "alibaba/wan-2.7",
-              "alibaba/wan-3.0",
-              "alibaba/wan-3.0-prime",
-              "black-forest-labs/flux-video-edit",
-              "black-forest-labs/flux-video-upscale",
-              "black-forest-labs/flux-3-video",
-              "bytedance/seedance-1-5-pro",
-              "bytedance/seedance-2.0",
-              "bytedance/seedance-2.0-fast",
-              "bytedance/seedance-2.0-mini",
-              "bytedance/seedance-2.5",
-              "google/veo-3.1",
-              "google/veo-3.1-fast",
-              "google/veo-3.1-lite",
-              "heygen/avatar-iv",
-              "heygen/heygen-video-1",
-              "kwaivgi/kling-video-o1",
-              "kwaivgi/kling-v3.0-pro",
-              "kwaivgi/kling-v3.0-std",
-              "minimax/hailuo-3",
-              "minimax/hailuo-3-max",
-              "minimax/hailuo-2.3",
-              "runway/aleph-2",
-              "runway/gen-4.5",
-              "x-ai/grok-imagine-video",
-              "x-ai/grok-imagine-video-1.5",
-              "x-ai/grok-imagine-video-1.5-lite"
-            ],
-            "hidden": false
-          },
-          "inference_method": {
-            "value": "FLF2V",
-            "options": [
-              "I2V",
-              "FLF2V"
-            ],
-            "hidden": false
-          },
-          "resolution": {
-            "value": "\u2014",
-            "options": [
-              "\u2014",
-              "480p",
-              "720p",
-              "1080p"
-            ],
-            "hidden": false
-          },
-          "aspect_ratio": {
-            "value": "1:1",
-            "options": [
-              "9:21",
-              "9:16",
-              "3:4",
-              "1:1",
-              "4:3",
-              "16:9",
-              "21:9"
-            ],
-            "hidden": false
-          },
-          "duration": {
-            "value": 5,
-            "options": [
-              5,
-              6,
-              7,
-              8,
-              9,
-              10,
-              11,
-              12
-            ],
-            "hidden": false
-          },
-          "size": {
-            "value": "480x480",
-            "options": [
-              "480x480",
-              "480x640",
-              "640x480",
-              "480x854",
-              "854x480",
-              "720x720",
-              "480x1120",
-              "1120x480",
-              "720x960",
-              "960x720",
-              "720x1280",
-              "1280x720",
-              "1080x1080",
-              "720x1680",
-              "1680x720",
-              "1080x1440",
-              "1440x1080",
-              "1080x1920",
-              "1920x1080",
-              "1080x2520",
-              "2520x1080",
-              ""
-            ],
-            "hidden": false
-          },
-          "geometry_authority": {
-            "value": "EXACT",
-            "hidden": true
-          }
-        },
-        "MiniMethodOptions": [
+        "model": "bytedance/seedance-2.0-fast",
+        "options": [
           "T2V",
           "I2V",
           "FLF2V",
@@ -745,131 +150,9 @@
           "MI2V",
           "VR2V",
           "MMR2V"
-        ],
-        "VR2V": {
-          "model": {
-            "value": "bytedance/seedance-2.0-mini",
-            "options": [
-              "SELECT MODEL",
-              "alibaba/happyhorse-1.0",
-              "alibaba/happyhorse-1.1",
-              "alibaba/wan-2.6",
-              "alibaba/wan-2.7",
-              "alibaba/wan-3.0",
-              "alibaba/wan-3.0-prime",
-              "black-forest-labs/flux-video-edit",
-              "black-forest-labs/flux-video-upscale",
-              "black-forest-labs/flux-3-video",
-              "bytedance/seedance-1-5-pro",
-              "bytedance/seedance-2.0",
-              "bytedance/seedance-2.0-fast",
-              "bytedance/seedance-2.0-mini",
-              "bytedance/seedance-2.5",
-              "google/veo-3.1",
-              "google/veo-3.1-fast",
-              "google/veo-3.1-lite",
-              "heygen/avatar-iv",
-              "heygen/heygen-video-1",
-              "kwaivgi/kling-video-o1",
-              "kwaivgi/kling-v3.0-pro",
-              "kwaivgi/kling-v3.0-std",
-              "minimax/hailuo-3",
-              "minimax/hailuo-3-max",
-              "minimax/hailuo-2.3",
-              "runway/aleph-2",
-              "runway/gen-4.5",
-              "x-ai/grok-imagine-video",
-              "x-ai/grok-imagine-video-1.5",
-              "x-ai/grok-imagine-video-1.5-lite"
-            ],
-            "hidden": false
-          },
-          "inference_method": {
-            "value": "VR2V",
-            "options": [
-              "T2V",
-              "I2V",
-              "FLF2V",
-              "IR2V",
-              "MI2V",
-              "VR2V",
-              "MMR2V"
-            ],
-            "hidden": false
-          },
-          "resolution": {
-            "value": "\u2014",
-            "options": [
-              "\u2014",
-              "480p",
-              "720p"
-            ],
-            "hidden": false
-          },
-          "aspect_ratio": {
-            "value": "1:1",
-            "options": [
-              "9:21",
-              "9:16",
-              "3:4",
-              "1:1",
-              "4:3",
-              "16:9",
-              "21:9"
-            ],
-            "hidden": false
-          },
-          "duration": {
-            "value": 5,
-            "options": [
-              5,
-              6,
-              7,
-              8,
-              9,
-              10,
-              11,
-              12,
-              13,
-              14,
-              15
-            ],
-            "hidden": false
-          },
-          "size": {
-            "value": "480x480",
-            "options": [
-              "480x480",
-              "480x640",
-              "640x480",
-              "480x854",
-              "854x480",
-              "720x720",
-              "1120x480",
-              "720x960",
-              "960x720",
-              "720x1280",
-              "1280x720",
-              "720x1680",
-              "1680x720",
-              ""
-            ],
-            "hidden": false
-          },
-          "geometry_authority": {
-            "value": "EXACT",
-            "hidden": true
-          }
-        },
-        "configStatus": "READY"
+        ]
       }
     ]
   },
-  "builder": "75 passed; 62 subtests passed",
-  "provider_contract_sources": [
-    "https://openrouter.ai/openapi.json",
-    "https://openrouter.ai/bytedance/seedance-2.0-mini",
-    "https://openrouter.ai/bytedance/seedance-1-5-pro"
-  ],
-  "limits": "No historical raw outbound HTTP/error body exists. Fingerprints prove structural pre-staging geometry/roles. Serializer and wire schema match; actual raw HTTP not retrospectively claimed."
+  "next_gate": "BLOCKED_AR2V_UPSTREAM_PARAMETER_REJECTION"
 }

@@ -90,7 +90,10 @@ def test_standalone_audio_conflict_does_not_deny_mixed_audio_or_other_models() -
     projected = cast(dict[str, Any], project_model(mini, datetime.now(timezone.utc)).as_dict())
     assert "AR2V" not in projected["supported_inference_methods"]
     assert "MMR2V" in projected["supported_inference_methods"]
-    other = observed_model("bytedance/seedance-2.0-fast")
+    fast = observed_model("bytedance/seedance-2.0-fast")
+    assert inference_method_matrix(fast)[InferenceMethod.AR2V].value == "CONFLICT"
+    assert inference_method_matrix(fast)[InferenceMethod.MMR2V].value == "READY"
+    other = observed_model("bytedance/seedance-2.0")
     assert inference_method_matrix(other)[InferenceMethod.AR2V].value == "READY"
 
 
