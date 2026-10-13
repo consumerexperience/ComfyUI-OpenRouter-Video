@@ -158,7 +158,7 @@ test("visible reference sockets lead hidden widget inputs and preserve link slot
         links: { 7: { target_id: 42, target_slot: 2, origin_id: 9 } },
         getNodeById(id) { return id === 9 ? { type: "OpenRouterVideoImageReference" } : null; },
     };
-    context.configureReferenceTopology(target, { max_reference_count: 2 }, "MI2V");
+    context.configureReferenceTopology(target, { max_reference_count: 2, __methodProfile: { topology: { fixed: [], reference_kinds: ["image"], kind_sets: [["image"]], min: 2, max: 2, per_kind_max: { image: 2 } } } }, "MI2V");
     assert.deepEqual(
         Array.from(target.inputs.slice(0, 2), ({ name, label }) => [name, label]),
         [
@@ -171,7 +171,7 @@ test("visible reference sockets lead hidden widget inputs and preserve link slot
 
     target.inputs[1].link = 8;
     context.app.graph.links[8] = { target_id: 42, target_slot: 1, origin_id: 9 };
-    context.configureReferenceTopology(target, { max_reference_count: 2 }, "MI2V");
+    context.configureReferenceTopology(target, { max_reference_count: 2, __methodProfile: { topology: { fixed: [], reference_kinds: ["image"], kind_sets: [["image"]], min: 2, max: 2, per_kind_max: { image: 2 } } } }, "MI2V");
     assert.equal(target.inputs.filter((item) => item.name.startsWith("direct_references.")).length, 2);
     assert.equal(target.__orvReferenceSummary, "2 connected · maximum reached");
     assert.equal(context.app.graph.links[7].target_slot, 0);
@@ -191,10 +191,10 @@ test("native Load Image is recognized as IMAGE while existing URL helper remains
             return id === 12 ? { type: "LoadImage", outputs: [{ type: "IMAGE" }] } : null;
         },
     };
-    context.configureReferenceTopology(target, { max_reference_count: 2 }, "MI2V");
-    assert.equal(target.inputs[0].type, "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE");
+    context.configureReferenceTopology(target, { max_reference_count: 2, __methodProfile: { topology: { fixed: [], reference_kinds: ["image"], kind_sets: [["image"]], min: 2, max: 2, per_kind_max: { image: 2 } } } }, "MI2V");
+    assert.equal(target.inputs[0].type, "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE");
     target.inputs[0].link = 11;
-    context.configureReferenceTopology(target, { max_reference_count: 2 }, "MI2V");
+    context.configureReferenceTopology(target, { max_reference_count: 2, __methodProfile: { topology: { fixed: [], reference_kinds: ["image"], kind_sets: [["image"]], min: 2, max: 2, per_kind_max: { image: 2 } } } }, "MI2V");
     assert.equal(context.connectedReferenceKind(target.inputs[0]), "image");
     assert.equal(target.__orvReferenceInvalid, false);
     assert.equal(target.inputs[1].label, "image_2");

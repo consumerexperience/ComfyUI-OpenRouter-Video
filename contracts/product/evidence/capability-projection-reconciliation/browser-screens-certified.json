@@ -1,0 +1,209 @@
+{
+  "captures": [
+    {
+      "renderer": "Classic",
+      "surface": "mmr",
+      "path": "output/capability-truth-20261013/classic-mmr.png",
+      "state": {
+        "size": [
+          400,
+          480
+        ],
+        "widgets": [
+          "REFERENCES",
+          "model",
+          "inference_method",
+          "prompt",
+          "resolution",
+          "aspect_ratio",
+          "duration",
+          "generate_audio",
+          "randomize"
+        ],
+        "inputs": [
+          {
+            "name": "direct_references.reference_0",
+            "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE"
+          }
+        ]
+      }
+    },
+    {
+      "renderer": "Classic",
+      "surface": "flf",
+      "path": "output/capability-truth-20261013/classic-flf.png",
+      "state": {
+        "size": [
+          400,
+          480
+        ],
+        "widgets": [
+          "model",
+          "inference_method",
+          "prompt",
+          "resolution",
+          "aspect_ratio",
+          "duration",
+          "generate_audio",
+          "randomize"
+        ],
+        "inputs": [
+          {
+            "name": "first_frame",
+            "type": "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE"
+          },
+          {
+            "name": "last_frame",
+            "type": "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE"
+          }
+        ]
+      }
+    },
+    {
+      "renderer": "Classic",
+      "surface": "exact",
+      "path": "output/capability-truth-20261013/classic-exact.png",
+      "state": {
+        "size": [
+          400,
+          480
+        ],
+        "widgets": [
+          "model",
+          "inference_method",
+          "prompt",
+          "resolution",
+          "aspect_ratio",
+          "duration",
+          "size",
+          "randomize"
+        ],
+        "inputs": []
+      }
+    },
+    {
+      "renderer": "Classic",
+      "surface": "sparse",
+      "path": "output/capability-truth-20261013/classic-sparse.png",
+      "state": {
+        "size": [
+          400,
+          480
+        ],
+        "widgets": [
+          "model",
+          "inference_method",
+          "prompt",
+          "resolution",
+          "aspect_ratio",
+          "duration",
+          "randomize"
+        ],
+        "inputs": []
+      }
+    },
+    {
+      "renderer": "Nodes2",
+      "surface": "mmr",
+      "path": "output/capability-truth-20261013/nodes2-mmr.png",
+      "state": {
+        "size": [
+          400,
+          480
+        ],
+        "widgets": [
+          "REFERENCES",
+          "model",
+          "inference_method",
+          "prompt",
+          "resolution",
+          "aspect_ratio",
+          "duration",
+          "generate_audio",
+          "randomize"
+        ],
+        "inputs": [
+          {
+            "name": "direct_references.reference_0",
+            "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE"
+          }
+        ]
+      }
+    },
+    {
+      "renderer": "Nodes2",
+      "surface": "flf",
+      "path": "output/capability-truth-20261013/nodes2-flf.png",
+      "state": {
+        "size": [
+          400,
+          480
+        ],
+        "widgets": [
+          "model",
+          "inference_method",
+          "prompt",
+          "resolution",
+          "aspect_ratio",
+          "duration",
+          "generate_audio",
+          "randomize"
+        ],
+        "inputs": [
+          {
+            "name": "first_frame",
+            "type": "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE"
+          },
+          {
+            "name": "last_frame",
+            "type": "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE"
+          }
+        ]
+      }
+    },
+    {
+      "renderer": "Nodes2",
+      "surface": "exact",
+      "path": "output/capability-truth-20261013/nodes2-exact.png",
+      "state": {
+        "size": [
+          400,
+          480
+        ],
+        "widgets": [
+          "model",
+          "inference_method",
+          "prompt",
+          "resolution",
+          "aspect_ratio",
+          "duration",
+          "size",
+          "randomize"
+        ],
+        "inputs": []
+      }
+    },
+    {
+      "renderer": "Nodes2",
+      "surface": "sparse",
+      "path": "output/capability-truth-20261013/nodes2-sparse.png",
+      "state": {
+        "size": [
+          400,
+          480
+        ],
+        "widgets": [
+          "model",
+          "inference_method",
+          "prompt",
+          "resolution",
+          "aspect_ratio",
+          "duration",
+          "randomize"
+        ],
+        "inputs": []
+      }
+    }
+  ],
+  "prohibited_prompt_requests": []
+}

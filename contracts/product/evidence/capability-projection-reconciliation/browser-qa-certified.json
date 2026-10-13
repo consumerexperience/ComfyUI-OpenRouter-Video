@@ -1,0 +1,2700 @@
+{
+  "ui_contract_version": 5,
+  "models": 30,
+  "results": [
+    {
+      "renderer": "Classic",
+      "surface": "T2V",
+      "model": "x-ai/grok-imagine-video-1.5-lite",
+      "state": {
+        "method": "T2V",
+        "method_options": [
+          "T2V",
+          "I2V"
+        ],
+        "inputs": [],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "720p",
+            "hidden": false,
+            "options": [
+              "480p",
+              "720p",
+              "1080p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:16",
+              "2:3",
+              "3:4",
+              "1:1",
+              "4:3",
+              "3:2",
+              "16:9"
+            ]
+          },
+          "duration": {
+            "value": 1,
+            "hidden": false,
+            "options": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "size": {
+            "value": "",
+            "hidden": true,
+            "options": [
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": true,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "NORMALIZED",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Classic",
+      "surface": "I2V",
+      "model": "x-ai/grok-imagine-video-1.5-lite",
+      "state": {
+        "method": "I2V",
+        "method_options": [
+          "T2V",
+          "I2V"
+        ],
+        "inputs": [
+          {
+            "name": "first_frame",
+            "type": "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "label": "first_frame"
+          }
+        ],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "720p",
+            "hidden": false,
+            "options": [
+              "480p",
+              "720p",
+              "1080p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "",
+            "hidden": true,
+            "options": []
+          },
+          "duration": {
+            "value": 1,
+            "hidden": false,
+            "options": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "size": {
+            "value": "",
+            "hidden": true,
+            "options": [
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": true,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "NORMALIZED",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Classic",
+      "surface": "FLF2V",
+      "model": "bytedance/seedance-1-5-pro",
+      "state": {
+        "method": "FLF2V",
+        "method_options": [
+          "I2V",
+          "FLF2V"
+        ],
+        "inputs": [
+          {
+            "name": "first_frame",
+            "type": "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "label": "first_frame"
+          },
+          {
+            "name": "last_frame",
+            "type": "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "label": "last_frame"
+          }
+        ],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "720p",
+            "hidden": false,
+            "options": [
+              "480p",
+              "720p",
+              "1080p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:21",
+              "9:16",
+              "3:4",
+              "1:1",
+              "4:3",
+              "16:9",
+              "21:9"
+            ]
+          },
+          "duration": {
+            "value": 4,
+            "hidden": false,
+            "options": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ]
+          },
+          "size": {
+            "value": "",
+            "hidden": true,
+            "options": [
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": false,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "NORMALIZED",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Classic",
+      "surface": "MI2V",
+      "model": "x-ai/grok-imagine-video",
+      "state": {
+        "method": "MI2V",
+        "method_options": [
+          "T2V",
+          "I2V",
+          "IR2V",
+          "MI2V"
+        ],
+        "inputs": [
+          {
+            "name": "direct_references.reference_0",
+            "type": "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "label": "image_1"
+          }
+        ],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "720p",
+            "hidden": false,
+            "options": [
+              "720p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:16",
+              "2:3",
+              "3:4",
+              "1:1",
+              "4:3",
+              "3:2",
+              "16:9"
+            ]
+          },
+          "duration": {
+            "value": 4,
+            "hidden": false,
+            "options": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10
+            ]
+          },
+          "size": {
+            "value": "",
+            "hidden": true,
+            "options": [
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": true,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "NORMALIZED",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Classic",
+      "surface": "VR2V",
+      "model": "bytedance/seedance-2.0-mini",
+      "state": {
+        "method": "VR2V",
+        "method_options": [
+          "T2V",
+          "I2V",
+          "FLF2V",
+          "IR2V",
+          "MI2V",
+          "VR2V",
+          "MMR2V"
+        ],
+        "inputs": [
+          {
+            "name": "direct_references.reference_0",
+            "type": "VIDEO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "label": "video_1"
+          }
+        ],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "720p",
+            "hidden": false,
+            "options": [
+              "480p",
+              "720p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:21",
+              "9:16",
+              "3:4",
+              "1:1",
+              "4:3",
+              "16:9",
+              "21:9"
+            ]
+          },
+          "duration": {
+            "value": 4,
+            "hidden": false,
+            "options": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "size": {
+            "value": "",
+            "hidden": true,
+            "options": [
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": false,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "NORMALIZED",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Classic",
+      "surface": "MMR2V",
+      "model": "bytedance/seedance-2.0-mini",
+      "state": {
+        "method": "MMR2V",
+        "method_options": [
+          "T2V",
+          "I2V",
+          "FLF2V",
+          "IR2V",
+          "MI2V",
+          "VR2V",
+          "MMR2V"
+        ],
+        "inputs": [
+          {
+            "name": "direct_references.reference_0",
+            "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "label": "reference_1"
+          }
+        ],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "720p",
+            "hidden": false,
+            "options": [
+              "480p",
+              "720p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:21",
+              "9:16",
+              "3:4",
+              "1:1",
+              "4:3",
+              "16:9",
+              "21:9"
+            ]
+          },
+          "duration": {
+            "value": 4,
+            "hidden": false,
+            "options": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "size": {
+            "value": "",
+            "hidden": true,
+            "options": [
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": false,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "NORMALIZED",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Classic",
+      "surface": "AR2V_CONFLICT",
+      "model": "bytedance/seedance-2.0-fast",
+      "state": {
+        "method": "T2V",
+        "method_options": [
+          "T2V",
+          "I2V",
+          "FLF2V",
+          "IR2V",
+          "MI2V",
+          "VR2V",
+          "MMR2V"
+        ],
+        "inputs": [],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "720p",
+            "hidden": false,
+            "options": [
+              "480p",
+              "720p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:21",
+              "9:16",
+              "3:4",
+              "1:1",
+              "4:3",
+              "16:9",
+              "21:9"
+            ]
+          },
+          "duration": {
+            "value": 4,
+            "hidden": false,
+            "options": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "size": {
+            "value": "",
+            "hidden": true,
+            "options": [
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": false,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "NORMALIZED",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Classic",
+      "surface": "SPARSE_DURATION",
+      "model": "google/veo-3.1",
+      "state": {
+        "method": "T2V",
+        "method_options": [
+          "T2V",
+          "I2V",
+          "FLF2V"
+        ],
+        "inputs": [],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "720p",
+            "hidden": false,
+            "options": [
+              "720p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:16",
+              "16:9"
+            ]
+          },
+          "duration": {
+            "value": 4,
+            "hidden": false,
+            "options": [
+              4,
+              6,
+              8
+            ]
+          },
+          "size": {
+            "value": "",
+            "hidden": true,
+            "options": [
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": true,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "NORMALIZED",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          4,
+          6,
+          8
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Classic",
+      "surface": "RESTRICTED_RESOLUTION",
+      "model": "minimax/hailuo-2.3",
+      "state": {
+        "method": "T2V",
+        "method_options": [
+          "T2V",
+          "I2V"
+        ],
+        "inputs": [],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "1080p",
+            "hidden": false,
+            "options": [
+              "1080p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "16:9"
+            ]
+          },
+          "duration": {
+            "value": 6,
+            "hidden": false,
+            "options": [
+              6
+            ]
+          },
+          "size": {
+            "value": "",
+            "hidden": true,
+            "options": [
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": true,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "NORMALIZED",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          6
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Classic",
+      "surface": "EXACT_SIZE",
+      "model": "runway/gen-4.5",
+      "state": {
+        "method": "T2V",
+        "method_options": [
+          "T2V",
+          "I2V"
+        ],
+        "inputs": [],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "\u2014",
+            "hidden": false,
+            "options": [
+              "\u2014",
+              "720p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:16",
+              "16:9"
+            ]
+          },
+          "duration": {
+            "value": 6,
+            "hidden": false,
+            "options": [
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10
+            ]
+          },
+          "size": {
+            "value": "1280x720",
+            "hidden": false,
+            "options": [
+              "720x1280",
+              "1280x720",
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": true,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "EXACT",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Classic",
+      "surface": "SAVE_RELOAD",
+      "checks": {
+        "method_equal": true,
+        "options_equal": true,
+        "authority_equal": true,
+        "visible_equal": true
+      },
+      "before": {
+        "method": "T2V",
+        "method_options": [
+          "T2V",
+          "I2V"
+        ],
+        "inputs": [],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "\u2014",
+            "hidden": false,
+            "options": [
+              "\u2014",
+              "720p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:16",
+              "16:9"
+            ]
+          },
+          "duration": {
+            "value": 6,
+            "hidden": false,
+            "options": [
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10
+            ]
+          },
+          "size": {
+            "value": "1280x720",
+            "hidden": false,
+            "options": [
+              "720x1280",
+              "1280x720",
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": true,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "EXACT",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "after": {
+        "method": "T2V",
+        "method_options": [
+          "T2V",
+          "I2V"
+        ],
+        "inputs": [],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "\u2014",
+            "hidden": false,
+            "options": [
+              "\u2014",
+              "720p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:16",
+              "16:9"
+            ]
+          },
+          "duration": {
+            "value": 6,
+            "hidden": false,
+            "options": [
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10
+            ]
+          },
+          "size": {
+            "value": "1280x720",
+            "hidden": false,
+            "options": [
+              "720x1280",
+              "1280x720",
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": true,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "EXACT",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      }
+    },
+    {
+      "renderer": "Classic",
+      "surface": "PARKED_MEDIA_SAVE_RELOAD",
+      "checks": {
+        "incompatible_link_parked": true,
+        "compatible_link_restored": true
+      }
+    },
+    {
+      "renderer": "Nodes2",
+      "surface": "T2V",
+      "model": "x-ai/grok-imagine-video-1.5-lite",
+      "state": {
+        "method": "T2V",
+        "method_options": [
+          "T2V",
+          "I2V"
+        ],
+        "inputs": [],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "720p",
+            "hidden": false,
+            "options": [
+              "480p",
+              "720p",
+              "1080p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:16",
+              "2:3",
+              "3:4",
+              "1:1",
+              "4:3",
+              "3:2",
+              "16:9"
+            ]
+          },
+          "duration": {
+            "value": 1,
+            "hidden": false,
+            "options": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "size": {
+            "value": "",
+            "hidden": true,
+            "options": [
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": true,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "NORMALIZED",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [
+        "Model",
+        "Inference Method",
+        "Resolution",
+        "Aspect Ratio",
+        "Duration",
+        "control after generate"
+      ],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Nodes2",
+      "surface": "I2V",
+      "model": "x-ai/grok-imagine-video-1.5-lite",
+      "state": {
+        "method": "I2V",
+        "method_options": [
+          "T2V",
+          "I2V"
+        ],
+        "inputs": [
+          {
+            "name": "first_frame",
+            "type": "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "label": "first_frame"
+          }
+        ],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "720p",
+            "hidden": false,
+            "options": [
+              "480p",
+              "720p",
+              "1080p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "",
+            "hidden": true,
+            "options": []
+          },
+          "duration": {
+            "value": 1,
+            "hidden": false,
+            "options": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "size": {
+            "value": "",
+            "hidden": true,
+            "options": [
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": true,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "NORMALIZED",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [
+        "Model",
+        "Inference Method",
+        "Resolution",
+        "Duration",
+        "control after generate"
+      ],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Nodes2",
+      "surface": "FLF2V",
+      "model": "bytedance/seedance-1-5-pro",
+      "state": {
+        "method": "FLF2V",
+        "method_options": [
+          "I2V",
+          "FLF2V"
+        ],
+        "inputs": [
+          {
+            "name": "first_frame",
+            "type": "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "label": "first_frame"
+          },
+          {
+            "name": "last_frame",
+            "type": "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "label": "last_frame"
+          }
+        ],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "720p",
+            "hidden": false,
+            "options": [
+              "480p",
+              "720p",
+              "1080p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:21",
+              "9:16",
+              "3:4",
+              "1:1",
+              "4:3",
+              "16:9",
+              "21:9"
+            ]
+          },
+          "duration": {
+            "value": 4,
+            "hidden": false,
+            "options": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ]
+          },
+          "size": {
+            "value": "",
+            "hidden": true,
+            "options": [
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": false,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "NORMALIZED",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [
+        "Model",
+        "Inference Method",
+        "Resolution",
+        "Aspect Ratio",
+        "Duration",
+        "Generate Audio",
+        "control after generate"
+      ],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Nodes2",
+      "surface": "MI2V",
+      "model": "x-ai/grok-imagine-video",
+      "state": {
+        "method": "MI2V",
+        "method_options": [
+          "T2V",
+          "I2V",
+          "IR2V",
+          "MI2V"
+        ],
+        "inputs": [
+          {
+            "name": "direct_references.reference_0",
+            "type": "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "label": "image_1"
+          }
+        ],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "720p",
+            "hidden": false,
+            "options": [
+              "720p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:16",
+              "2:3",
+              "3:4",
+              "1:1",
+              "4:3",
+              "3:2",
+              "16:9"
+            ]
+          },
+          "duration": {
+            "value": 4,
+            "hidden": false,
+            "options": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10
+            ]
+          },
+          "size": {
+            "value": "",
+            "hidden": true,
+            "options": [
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": true,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "NORMALIZED",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [
+        "Model",
+        "Inference Method",
+        "Resolution",
+        "Aspect Ratio",
+        "Duration",
+        "control after generate"
+      ],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Nodes2",
+      "surface": "VR2V",
+      "model": "bytedance/seedance-2.0-mini",
+      "state": {
+        "method": "VR2V",
+        "method_options": [
+          "T2V",
+          "I2V",
+          "FLF2V",
+          "IR2V",
+          "MI2V",
+          "VR2V",
+          "MMR2V"
+        ],
+        "inputs": [
+          {
+            "name": "direct_references.reference_0",
+            "type": "VIDEO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "label": "video_1"
+          }
+        ],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "720p",
+            "hidden": false,
+            "options": [
+              "480p",
+              "720p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:21",
+              "9:16",
+              "3:4",
+              "1:1",
+              "4:3",
+              "16:9",
+              "21:9"
+            ]
+          },
+          "duration": {
+            "value": 4,
+            "hidden": false,
+            "options": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "size": {
+            "value": "",
+            "hidden": true,
+            "options": [
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": false,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "NORMALIZED",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [
+        "Model",
+        "Inference Method",
+        "Resolution",
+        "Aspect Ratio",
+        "Duration",
+        "Generate Audio",
+        "control after generate"
+      ],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Nodes2",
+      "surface": "MMR2V",
+      "model": "bytedance/seedance-2.0-mini",
+      "state": {
+        "method": "MMR2V",
+        "method_options": [
+          "T2V",
+          "I2V",
+          "FLF2V",
+          "IR2V",
+          "MI2V",
+          "VR2V",
+          "MMR2V"
+        ],
+        "inputs": [
+          {
+            "name": "direct_references.reference_0",
+            "type": "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            "label": "reference_1"
+          }
+        ],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "720p",
+            "hidden": false,
+            "options": [
+              "480p",
+              "720p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:21",
+              "9:16",
+              "3:4",
+              "1:1",
+              "4:3",
+              "16:9",
+              "21:9"
+            ]
+          },
+          "duration": {
+            "value": 4,
+            "hidden": false,
+            "options": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "size": {
+            "value": "",
+            "hidden": true,
+            "options": [
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": false,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "NORMALIZED",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [
+        "Model",
+        "Inference Method",
+        "Resolution",
+        "Aspect Ratio",
+        "Duration",
+        "Generate Audio",
+        "control after generate"
+      ],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Nodes2",
+      "surface": "AR2V_CONFLICT",
+      "model": "bytedance/seedance-2.0-fast",
+      "state": {
+        "method": "T2V",
+        "method_options": [
+          "T2V",
+          "I2V",
+          "FLF2V",
+          "IR2V",
+          "MI2V",
+          "VR2V",
+          "MMR2V"
+        ],
+        "inputs": [],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "720p",
+            "hidden": false,
+            "options": [
+              "480p",
+              "720p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:21",
+              "9:16",
+              "3:4",
+              "1:1",
+              "4:3",
+              "16:9",
+              "21:9"
+            ]
+          },
+          "duration": {
+            "value": 4,
+            "hidden": false,
+            "options": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "size": {
+            "value": "",
+            "hidden": true,
+            "options": [
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": false,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "NORMALIZED",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [
+        "Model",
+        "Inference Method",
+        "Resolution",
+        "Aspect Ratio",
+        "Duration",
+        "Generate Audio",
+        "control after generate"
+      ],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Nodes2",
+      "surface": "SPARSE_DURATION",
+      "model": "google/veo-3.1",
+      "state": {
+        "method": "T2V",
+        "method_options": [
+          "T2V",
+          "I2V",
+          "FLF2V"
+        ],
+        "inputs": [],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "720p",
+            "hidden": false,
+            "options": [
+              "720p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:16",
+              "16:9"
+            ]
+          },
+          "duration": {
+            "value": 4,
+            "hidden": false,
+            "options": [
+              4,
+              6,
+              8
+            ]
+          },
+          "size": {
+            "value": "",
+            "hidden": true,
+            "options": [
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": true,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "NORMALIZED",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          4,
+          6,
+          8
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [
+        "Model",
+        "Inference Method",
+        "Resolution",
+        "Aspect Ratio",
+        "Duration",
+        "control after generate"
+      ],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Nodes2",
+      "surface": "RESTRICTED_RESOLUTION",
+      "model": "minimax/hailuo-2.3",
+      "state": {
+        "method": "T2V",
+        "method_options": [
+          "T2V",
+          "I2V"
+        ],
+        "inputs": [],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "1080p",
+            "hidden": false,
+            "options": [
+              "1080p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "16:9"
+            ]
+          },
+          "duration": {
+            "value": 6,
+            "hidden": false,
+            "options": [
+              6
+            ]
+          },
+          "size": {
+            "value": "",
+            "hidden": true,
+            "options": [
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": true,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "NORMALIZED",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          6
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [
+        "Model",
+        "Inference Method",
+        "Resolution",
+        "Aspect Ratio",
+        "Duration",
+        "control after generate"
+      ],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Nodes2",
+      "surface": "EXACT_SIZE",
+      "model": "runway/gen-4.5",
+      "state": {
+        "method": "T2V",
+        "method_options": [
+          "T2V",
+          "I2V"
+        ],
+        "inputs": [],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "\u2014",
+            "hidden": false,
+            "options": [
+              "\u2014",
+              "720p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:16",
+              "16:9"
+            ]
+          },
+          "duration": {
+            "value": 6,
+            "hidden": false,
+            "options": [
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10
+            ]
+          },
+          "size": {
+            "value": "1280x720",
+            "hidden": false,
+            "options": [
+              "720x1280",
+              "1280x720",
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": true,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "EXACT",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "visibleLabels": [
+        "Model",
+        "Inference Method",
+        "Resolution",
+        "Aspect Ratio",
+        "Duration",
+        "Exact Size",
+        "control after generate"
+      ],
+      "checks": {
+        "method_supported": true,
+        "options_supported_only": true,
+        "no_ar_conflict_option": true,
+        "controls_match_profile": true,
+        "inputs_match_profile": true,
+        "no_status_row": true,
+        "local_control_visible": true,
+        "mmr_audio_retained": true,
+        "actual_dom_visibility": true
+      }
+    },
+    {
+      "renderer": "Nodes2",
+      "surface": "SAVE_RELOAD",
+      "checks": {
+        "method_equal": true,
+        "options_equal": true,
+        "authority_equal": true,
+        "visible_equal": true
+      },
+      "before": {
+        "method": "T2V",
+        "method_options": [
+          "T2V",
+          "I2V"
+        ],
+        "inputs": [],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "\u2014",
+            "hidden": false,
+            "options": [
+              "\u2014",
+              "720p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:16",
+              "16:9"
+            ]
+          },
+          "duration": {
+            "value": 6,
+            "hidden": false,
+            "options": [
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10
+            ]
+          },
+          "size": {
+            "value": "1280x720",
+            "hidden": false,
+            "options": [
+              "720x1280",
+              "1280x720",
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": true,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "EXACT",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      },
+      "after": {
+        "method": "T2V",
+        "method_options": [
+          "T2V",
+          "I2V"
+        ],
+        "inputs": [],
+        "controls": {
+          "prompt": {
+            "value": "",
+            "hidden": false,
+            "options": null
+          },
+          "resolution": {
+            "value": "\u2014",
+            "hidden": false,
+            "options": [
+              "\u2014",
+              "720p"
+            ]
+          },
+          "aspect_ratio": {
+            "value": "16:9",
+            "hidden": false,
+            "options": [
+              "9:16",
+              "16:9"
+            ]
+          },
+          "duration": {
+            "value": 6,
+            "hidden": false,
+            "options": [
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10
+            ]
+          },
+          "size": {
+            "value": "1280x720",
+            "hidden": false,
+            "options": [
+              "720x1280",
+              "1280x720",
+              ""
+            ]
+          },
+          "seed": {
+            "value": -1,
+            "hidden": true,
+            "options": null
+          },
+          "generate_audio": {
+            "value": false,
+            "hidden": true,
+            "options": null
+          },
+          "geometry_authority": {
+            "value": "EXACT",
+            "hidden": true,
+            "options": null
+          }
+        },
+        "duration_values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "size": [
+          400,
+          480
+        ],
+        "configuration_status": "READY",
+        "status_hidden": true
+      }
+    },
+    {
+      "renderer": "Nodes2",
+      "surface": "PARKED_MEDIA_SAVE_RELOAD",
+      "checks": {
+        "incompatible_link_parked": true,
+        "compatible_link_restored": true
+      }
+    }
+  ],
+  "all_checks_pass": true,
+  "prohibited_prompt_requests": []
+}

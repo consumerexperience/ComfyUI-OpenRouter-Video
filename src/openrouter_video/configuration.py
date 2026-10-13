@@ -10,7 +10,7 @@ from collections.abc import Mapping
 from itertools import product
 from typing import Any
 
-from openrouter_video.models import CapabilityFactState, ModelCapabilities
+from openrouter_video.models import CapabilityFactState, InferenceMethod, ModelCapabilities
 
 CONFIGURATION_KEY = "configuration_constraints"
 AXES = ("resolution", "aspect_ratio", "duration", "size")
@@ -24,6 +24,215 @@ CONTEXT = (
     "source_video_present",
 )
 MAX_VALUES = 1000
+REQUEST_SHAPES_KEY = "request_shape_profiles"
+CONTROL_FIELDS = {
+    "prompt": None,
+    "duration": "supported_durations",
+    "resolution": "supported_resolutions",
+    "aspect_ratio": "supported_aspect_ratios",
+    "size": "supported_sizes",
+    "seed": "supports_seed",
+    "generate_audio": "generate_audio",
+}
+
+
+def normalize_request_shapes(raw: object) -> dict[str, Any]:
+    """Method-scoped facts inside the existing reviewed capability profile."""
+    if not isinstance(raw, dict) or set(raw) != {"schema_version", "methods"}:
+        raise ValueError("Invalid request-shape vocabulary")
+    if raw["schema_version"] != 1 or not isinstance(raw["methods"], dict):
+        raise ValueError("Invalid request-shape schema")
+    states = {s.value for s in CapabilityFactState}
+    for method, entry in raw["methods"].items():
+        InferenceMethod(method)
+        if not isinstance(entry, dict) or entry.get("state") not in states:
+            raise ValueError("Invalid method evidence state")
+        for name, control in entry.get("controls", {}).items():
+            if name not in CONTROL_FIELDS or control.get("state") not in states:
+                raise ValueError("Invalid control evidence state")
+            if "values" in control:
+                finite_domain(control["values"], numeric=name == "duration")
+            if name == "seed" and control["state"] == "SUPPORTED":
+                bounds = control.get("integer_range", {})
+                if (
+                    set(bounds) != {"min", "max"}
+                    or any(type(v) is not int for v in bounds.values())
+                    or not 0 <= bounds["min"] <= bounds["max"]
+                ):
+                    raise ValueError("Supported seed needs a confirmed integer domain")
+        topology = entry.get("topology", {})
+        if entry["state"] == "SUPPORTED":
+            if set(topology) != {
+                "fixed",
+                "reference_kinds",
+                "kind_sets",
+                "min",
+                "max",
+                "per_kind_max",
+            }:
+                raise ValueError("Incomplete supported topology")
+            if any(
+                r not in {"first_frame", "last_frame", "source_video"} for r in topology["fixed"]
+            ):
+                raise ValueError("Invalid fixed media role")
+            kinds = {"image", "video", "audio"}
+            if not set(topology["reference_kinds"]) <= kinds:
+                raise ValueError("Invalid reference kinds")
+            if any(not set(s) <= set(topology["reference_kinds"]) for s in topology["kind_sets"]):
+                raise ValueError("Invalid reference combination")
+            low, high = topology["min"], topology["max"]
+            if type(low) is not int or type(high) is not int or not 0 <= low <= high <= 100:
+                raise ValueError("Invalid reference bounds")
+            if any(
+                k not in kinds or type(v) is not int or v < 1
+                for k, v in topology["per_kind_max"].items()
+            ):
+                raise ValueError("Invalid per-kind limit")
+        if entry.get("relations"):
+            normalize_constraints({"schema_version": 1, "relations": entry["relations"]})
+    return raw
+
+
+def request_shape_profile(model: ModelCapabilities) -> dict[str, Any]:
+    """No reviewed profile means UNKNOWN, including newly discovered models."""
+    facts = [f for f in model.evidence_facts if f.key == REQUEST_SHAPES_KEY]
+    if len(facts) != 1 or facts[0].state is not CapabilityFactState.SUPPORTED:
+        return {"schema_version": 1, "methods": {}}
+    return normalize_request_shapes(facts[0].value)
+
+
+def project_method(model: ModelCapabilities, method: str) -> dict[str, Any]:
+    """Single semantic authority; intersect reviewed scopes with dynamic domains."""
+    entry = request_shape_profile(model)["methods"].get(method, {"state": "UNKNOWN"})
+    state = entry["state"]
+    if (
+        state == "UNKNOWN"
+        and method == "T2V"
+        and (model.supports_text_only is False or model.source_required is True)
+    ):
+        state = "UNSUPPORTED"
+    topology = dict(entry.get("topology", {}))
+    if state == "SUPPORTED":
+        frames = model.supported_frame_types
+        for role in topology["fixed"]:
+            if role in {"first_frame", "last_frame"}:
+                if frames is None:
+                    state = "UNKNOWN"
+                elif role not in {frame.value for frame in frames}:
+                    state = "CONFLICT"
+        refs = model.input_reference_capabilities
+        if topology["max"]:
+            if refs is None or refs.reference_kinds is None:
+                state = "UNKNOWN"
+            elif refs.conflicts:
+                state = "CONFLICT"
+            else:
+                kinds = {kind.value for kind in refs.reference_kinds}
+                topology["reference_kinds"] = [
+                    kind for kind in topology["reference_kinds"] if kind in kinds
+                ]
+                topology["kind_sets"] = [s for s in topology["kind_sets"] if set(s) <= kinds]
+                if refs.max_reference_count is not None:
+                    topology["max"] = min(topology["max"], refs.max_reference_count)
+                topology["kind_sets"] = [
+                    s
+                    for s in topology["kind_sets"]
+                    if len(s) <= topology["max"]
+                    and (len(s) < 2 or refs.mixed_reference_kinds is not False)
+                ]
+                if not topology["kind_sets"] or topology["max"] < topology["min"]:
+                    state = "CONFLICT"
+        if method == "T2V" and (model.supports_text_only is False or model.source_required is True):
+            state = "CONFLICT"
+    controls = {}
+    for name, field in CONTROL_FIELDS.items():
+        control = dict(entry.get("controls", {}).get(name, {"state": "UNKNOWN"}))
+        if field is None:
+            controls[name] = control
+            continue
+        domain = getattr(model, field)
+        if control["state"] == "SUPPORTED":
+            if name in {"seed", "generate_audio"}:
+                if domain is not True:
+                    control["state"] = "UNSUPPORTED" if domain is False else "UNKNOWN"
+            elif domain is None:
+                control["state"] = "UNKNOWN"
+            else:
+                values = [v for v in domain if "values" not in control or v in control["values"]]
+                control["values"] = values
+                if not values:
+                    control["state"] = "UNKNOWN"
+        if control["state"] != "SUPPORTED":
+            control.pop("values", None)
+        controls[name] = control
+    relations = list(profile_constraints(model))
+    if entry.get("relations"):
+        relations.extend(
+            normalize_constraints({"schema_version": 1, "relations": entry["relations"]})[
+                "relations"
+            ]
+        )
+    return {
+        "state": state,
+        "controls": controls,
+        "topology": topology,
+        "configuration_relations": relations,
+    }
+
+
+def project_semantic_values(
+    model: ModelCapabilities, method: str, values: Mapping[str, object]
+) -> dict[str, Any]:
+    """Omit hidden raw state before parsing, validation, pricing or encoding."""
+    profile = project_method(model, method)
+    if profile["state"] != "SUPPORTED":
+        raise ValueError("Inference method is not supported by the current projection")
+    result: dict[str, Any] = {}
+    for name, control in profile["controls"].items():
+        if control["state"] != "SUPPORTED":
+            result[name] = None
+            continue
+        value = values.get(name)
+        if name == "prompt":
+            result[name] = value if isinstance(value, str) and value.strip() else None
+            continue
+        if isinstance(value, str):
+            value = value.strip() or None
+        supported = True
+        if name == "seed":
+            try:
+                parsed = int(value) if isinstance(value, str) else value
+            except ValueError:
+                parsed = None
+            bounds = control["integer_range"]
+            result[name] = (
+                parsed if type(parsed) is int and bounds["min"] <= parsed <= bounds["max"] else None
+            )
+        elif name == "generate_audio":
+            result[name] = value if supported and type(value) is bool else None
+        else:
+            typed = name != "duration" or type(value) is int
+            result[name] = value if supported and typed and value in control["values"] else None
+    authority = values.get("geometry_authority")
+    if authority == "EXACT" and result["size"] is not None:
+        result["resolution"] = result["aspect_ratio"] = None
+    elif authority == "NORMALIZED":
+        result["size"] = None
+    for role in ("first_frame", "last_frame", "source_video"):
+        result[role] = values.get(role) if role in profile["topology"]["fixed"] else None
+    for role in ("direct_references", "input_references"):
+        result[role] = values.get(role) if profile["topology"]["max"] else None
+    return result
+
+
+def projected_shape_valid(profile: Mapping[str, Any], kinds: tuple[str, ...]) -> bool:
+    """Validate complete ordered shape, without deriving a Cartesian modality set."""
+    topology = profile["topology"]
+    if not topology["min"] <= len(kinds) <= topology["max"]:
+        return False
+    if set(kinds) not in [set(s) for s in topology["kind_sets"]]:
+        return False
+    return all(kinds.count(k) <= v for k, v in topology["per_kind_max"].items())
 
 
 def finite_domain(raw: object, *, numeric: bool = False) -> list[Any]:

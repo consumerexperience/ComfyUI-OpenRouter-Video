@@ -6,6 +6,7 @@ from collections.abc import Mapping
 
 from openrouter_video.application import OperationInterrupted
 from openrouter_video.capabilities import infer_legacy_inference_method
+from openrouter_video.configuration import project_method, project_semantic_values
 from openrouter_video.execution_hooks import ExecutionPhase
 from openrouter_video.geometry import wire_geometry
 from openrouter_video.local_media import NativeMediaError
@@ -445,6 +446,76 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         inference_method: str = "",
         geometry_authority: str = "",
     ) -> object:
+        normalized_model = _model(model)
+        if geometry_authority and geometry_authority not in {"NORMALIZED", "EXACT"}:
+            raise AdapterExecutionError(
+                "Ambiguous saved geometry: explicitly edit a geometry control."
+            )
+        runtime = get_runtime()
+        observation = await runtime.effective_catalog()
+        capability = next(
+            (m for m in observation.models if normalized_model in {m.model_id, m.canonical_slug}),
+            None,
+        )
+        if capability is None:
+            raise AdapterExecutionError("UNSUPPORTED_MODEL: select a current model.")
+        if inference_method:
+            try:
+                method = InferenceMethod(inference_method)
+            except (TypeError, ValueError):
+                raise AdapterExecutionError(
+                    "UNSUPPORTED_PARAMETER: invalid inference method."
+                ) from None
+        else:
+            legacy_references = (
+                input_references or _reference_collection(direct_references)
+            ).references
+            method = infer_legacy_inference_method(
+                first_frame=FrameReference(FrameType.FIRST, "")
+                if first_frame is not None or first_frame_url
+                else None,
+                last_frame=FrameReference(FrameType.LAST, "")
+                if last_frame is not None or last_frame_url
+                else None,
+                references=legacy_references,
+            )
+        try:
+            projected = project_semantic_values(
+                capability,
+                method.value,
+                {
+                    "prompt": prompt,
+                    "duration": duration,
+                    "resolution": resolution,
+                    "aspect_ratio": aspect_ratio,
+                    "size": size,
+                    "seed": seed,
+                    "generate_audio": generate_audio,
+                    "geometry_authority": geometry_authority,
+                    "first_frame": first_frame,
+                    "last_frame": last_frame,
+                    "source_video": source_video,
+                    "direct_references": direct_references,
+                    "input_references": input_references,
+                },
+            )
+        except ValueError as exc:
+            raise AdapterExecutionError(f"CAPABILITY_SIGNAL_GAP: {exc}") from None
+        fixed = project_method(capability, method.value)["topology"]["fixed"]
+        first_frame, last_frame, source_video = (
+            projected[k] for k in ("first_frame", "last_frame", "source_video")
+        )
+        first_frame_url = first_frame_url if "first_frame" in fixed else ""
+        last_frame_url = last_frame_url if "last_frame" in fixed else ""
+        direct_references = projected["direct_references"]
+        input_references = projected["input_references"]
+        duration, resolution, aspect_ratio, size, seed, generate_audio = (
+            projected[k]
+            for k in ("duration", "resolution", "aspect_ratio", "size", "seed", "generate_audio")
+        )
+        if geometry_authority == "EXACT" and size is None:
+            geometry_authority = "NORMALIZED"
+        prompt = projected["prompt"] or ""
         if direct_references and input_references is not None:
             raise AdapterExecutionError(
                 "UNSUPPORTED_PARAMETER: use direct ordered references or the legacy "
@@ -456,21 +527,12 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         )
         first_reference = _frame_reference(first_frame, first_frame_url, FrameType.FIRST)
         last_reference = _frame_reference(last_frame, last_frame_url, FrameType.LAST)
-        references = effective_references.references if effective_references is not None else ()
-        try:
-            method = InferenceMethod(inference_method)
-        except (TypeError, ValueError):
-            method = infer_legacy_inference_method(
-                first_frame=first_reference,
-                last_frame=last_reference,
-                references=references,
-            )
         try:
             wire_resolution, wire_aspect, wire_size = wire_geometry(
                 geometry_authority,
-                _optional_text(resolution),
-                _optional_text(aspect_ratio),
-                _optional_text(size),
+                _optional_text(resolution or ""),
+                _optional_text(aspect_ratio or ""),
+                _optional_text(size or ""),
             )
         except ValueError as exc:
             raise AdapterExecutionError(str(exc)) from None
@@ -478,7 +540,7 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
             model=_model(model),
             prompt=prompt if prompt.strip() else None,
             inference_method=method,
-            duration=_duration(duration),
+            duration=_duration(duration or 0),
             resolution=wire_resolution,
             aspect_ratio=wire_aspect,
             size=wire_size,
@@ -491,7 +553,7 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         )
         node_id = compat.current_node_id(cls)
         try:
-            result = await get_runtime().generate(request, node_id)
+            result = await runtime.generate(request, node_id)
         except OperationInterrupted:
             compat.raise_host_interrupt()
         return await _node_output(result, node_id)

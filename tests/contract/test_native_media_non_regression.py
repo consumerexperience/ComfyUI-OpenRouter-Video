@@ -69,7 +69,21 @@ def test_native_media_does_not_change_capability_matrix() -> None:
             supported_frame_types=frozenset({FrameType.FIRST, FrameType.LAST}),
         )
     )
-    assert all(status.value == "READY" for status in inference_method_matrix(model).values())
+    matrix = inference_method_matrix(model)
+    assert {method.value for method, status in matrix.items() if status.value == "READY"} == {
+        "T2V",
+        "I2V",
+        "FLF2V",
+        "IR2V",
+        "MI2V",
+        "VR2V",
+        "MMR2V",
+    }
+    assert all(
+        matrix[method].value == "UNKNOWN"
+        for method in matrix
+        if method.value in {"AR2V", "V2V_EDIT", "V2V_EXTEND"}
+    )
     assert len(RECIPES) == 10
     assert not any("bytedance" in repr(recipe) for recipe in RECIPES)
 

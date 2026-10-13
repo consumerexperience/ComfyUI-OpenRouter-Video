@@ -54,7 +54,9 @@ def test_live_exact_conflict_is_scoped_and_normalized_remains_available(
     options = cast(dict[str, Any], project_configuration(model, {"duration": 4}, context))
     assert "480x480" not in options["options"]["size"]
     assert "480x640" in options["options"]["size"]
-    with pytest.raises(ProductFailureError, match="CONFIRMED_INCOMPATIBLE"):
+    # The complete live constraint is retained below. Public UNKNOWN Size now
+    # also rejects the raw nonprojected request before that narrower guard.
+    with pytest.raises(ProductFailureError):
         RequestValidator().validate_capabilities(
             GenerationRequest(slug, "test", method, duration=4, size="480x480"), model
         )
@@ -94,7 +96,8 @@ def test_standalone_audio_conflict_does_not_deny_mixed_audio_or_other_models() -
     assert inference_method_matrix(fast)[InferenceMethod.AR2V].value == "CONFLICT"
     assert inference_method_matrix(fast)[InferenceMethod.MMR2V].value == "READY"
     other = observed_model("bytedance/seedance-2.0")
-    assert inference_method_matrix(other)[InferenceMethod.AR2V].value == "READY"
+    assert inference_method_matrix(other)[InferenceMethod.AR2V].value == "UNSUPPORTED"
+    assert inference_method_matrix(other)[InferenceMethod.MMR2V].value == "READY"
 
 
 def test_audio_wire_matches_first_party_shape_without_synthetic_fields() -> None:

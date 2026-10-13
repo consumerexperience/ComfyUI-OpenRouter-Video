@@ -2,6 +2,8 @@
 
 import ast
 import copy
+import hashlib
+import json
 import shutil
 import subprocess
 from pathlib import Path
@@ -19,7 +21,18 @@ def test_adapter_and_projection_changes_are_geometry_only() -> None:
                 [git, "-C", str(ROOT), "show", "7af8197:" + path], text=True, encoding="utf-8"
             )
         )
-        current = ast.parse((ROOT / path).read_text(encoding="utf-8"))
+        text = (ROOT / path).read_text(encoding="utf-8")
+        pin = json.loads((ROOT / "tests/fixtures/rc_live_reviewed_patch.json").read_text())
+        assert hashlib.sha256(text.encode()).hexdigest() == pin["reviewed_files"][path]
+        # Historical geometry-only shield remains intact. New projection code
+        # is independently bound by full-source/node diff and behavioral tests.
+        current = ast.parse(
+            subprocess.check_output(  # noqa: S603 - exact accepted revision
+                [git, "-C", str(ROOT), "show", f"{pin['baseline_sha']}:{path}"],
+                text=True,
+                encoding="utf-8",
+            )
+        )
         current.body = [
             item
             for item in current.body

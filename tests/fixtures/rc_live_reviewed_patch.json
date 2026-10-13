@@ -1,11 +1,17 @@
 {
   "baseline_sha": "f9c19c669735d08fc12b5460eaf2198cdde2d714",
   "reviewed_files": {
-    "src/openrouter_video/capabilities.py": "f30b57e23efc5844c122ff4c2808c414d34ef3993e50181ee5d31cf22697496b",
-    "src/openrouter_video/configuration.py": "e16e6f7745fb060e05288be938d92b2f5ee5a1f190b8a90f27b86745ad047493",
+    "src/openrouter_video/capabilities.py": "a67e1980c71aa64ddde5c4e2d0f3cec59dd738175ad3297306a1b822893f013c",
+    "src/openrouter_video/configuration.py": "e8a3a63f2255d0fd36d795a5558c61e5705a8332eca35e17060b3cfb31160a0e",
     "src/openrouter_video/recipes.py": "9c8927ff3aabd3788465a9b27348d5bfc851dfc816e41510188c5854b4a4fb70",
-    "src/openrouter_video/data/capability-evidence.json": "231edb44ed011bf0d077e288de2ee134df44e6eaa58f450acf95f27b08056eaa",
-    "web/openrouter_video.js": "2563c6bab236248559ef4ad3158ad0ef90140a31765e59e61ec7e83c07fdfaa6"
+    "src/openrouter_video/data/capability-evidence.json": "b63d68beb0f0e7d3af827df72ca22f2c7bbd59741277ef3587c6fbb3b0f75973",
+    "web/openrouter_video.js": "f676c6626f21cfc338f992d48af0a302915dc35444535efd72c9295a30a40189",
+    "src/openrouter_video/evidence_registry.py": "5586744579d6ebae23c4176d78ae9f9b4a5335aa3978c781f9027adfcd2da457",
+    "src/openrouter_video/models.py": "49dba07e5569019bdcdf5066b8a6855b1aed98d2f8491bb6dd78fc8ac3b6d4b4",
+    "src/openrouter_video/comfy/nodes.py": "9ceb512a3d2b60fad0ecd8e55e39b39893e68854dc0fe7acb5e2901dac1fcf11",
+    "src/openrouter_video/comfy/projection.py": "d36602e458e47bf5fed8432882c829ed424263a7be97fde04c438013257390d5",
+    "src/openrouter_video/comfy/runtime.py": "80122b596e5c5a5af658909363606bcbb99e848d62d893cd8bf8b3b0f4350c9f",
+    "src/openrouter_video/comfy/compat.py": "8d137c8dbf0f6fffe590b0cd22940855285e80be59442d3aea80250f4864d783"
   },
-  "purpose": "Exact authorized RC patch for compatibility with historical no-change shields. Real candidate semantic diff remains required; this is not an accepted snapshot."
+  "purpose": "Exact owner-authorized projection patch; historical shields only. Actual candidate source/node-UX diff and behavioral projection gates independently required. Accepted snapshot unchanged."
 }

@@ -1,0 +1,147 @@
+{
+  "protocol": "openrouter-video-product-contract",
+  "schema_version": 1,
+  "contract_id": "openrouter-node-ux",
+  "checkpoint_id": "capability-projection-reconciliation-v1",
+  "subject_sha": "ab34768cdfdf977bafe217ad09d2ddd11b7f998e",
+  "exporter": {
+    "name": "node-ux-working-source",
+    "version": "1"
+  },
+  "surfaces": {
+    "product_owned": {
+      "node_visual": {
+        "declared_layout": {
+          "width": 400,
+          "row": 20,
+          "gap": 4,
+          "section": 8,
+          "prompt": 42,
+          "domInset": 16,
+          "inset": 15
+        },
+        "declared_widget_order": [
+          "model",
+          "inference_method",
+          "prompt",
+          "resolution",
+          "aspect_ratio",
+          "duration",
+          "seed",
+          "generate_audio",
+          "size"
+        ],
+        "classic_prompt_widget_min": 58,
+        "classic_section_row": 24,
+        "framework_owned_unmeasured": {
+          "NODE_MIN_WIDTH": null,
+          "HEADER_HEIGHT": null,
+          "BOTTOM_PADDING": null,
+          "SOCKET_ROW_HEIGHT": null,
+          "CONTROL_LABEL_GAP": null,
+          "ADVANCED_SECTION_GAP": null
+        },
+        "provenance": "EXACT_SOURCE_DECLARATIONS_NOT_SCREEN_PIXEL_MEASUREMENTS"
+      },
+      "node_extension": {
+        "complete_source": "f676c6626f21cfc338f992d48af0a302915dc35444535efd72c9295a30a40189"
+      },
+      "node_behavior": {
+        "addReadOnlyWidget": "a1e51dfa7876fc7e02a03ba3c99fcea9d2f023fbd76b7920377e3634ff087989",
+        "addTrailingReferenceInput": "d099938bff116569c5fbd488cbb2a0c7b1edecdf9d44e37b7c578bcb4b7351eb",
+        "applyPresentation": "b3aa827d2069ff0918ef744c96c642deed14c92e7401af8882812934bac78604",
+        "arithmeticStep": "0436c905bdb48f9b4d799071ba114ecb2d4c2c37e619e7ca5ad79e8093084733",
+        "bindEstimateRefresh": "ee45db4397dba8ac3ee42fb842e631611686638264c91de28b36875fb7dc45d4",
+        "bindInferenceMethod": "ec96d75102c6710e5a9ae902c2d2679ca278412d18d5873c8e119d75e1b4e571",
+        "canonicalModel": "e6666d3e6a38532f858e58aa5c36158af4791110edefd0812f02a11888e9a131",
+        "canonicalOptions": "1b10a2bc1c3d25fdfe5298a8c0aecec117866eedf8e62e499da14e168f4c0853",
+        "capabilityIntent": "c26e1175822d17e029981a92f4f0cf69b57524d3fdd888ba2746cc537ed0245d",
+        "configurationOptions": "97ffd7ded136ff751b4052422fe9f445fd0776674716e5a9084f7a9e79792163",
+        "configurationScope": "c372aa250c3e654da462926f174cf4086667615d454016043904279c4d7a03ef",
+        "configurationStatus": "206f089143e12cd7d2adf0302f381c4ae8c2003830850a41d00309562234052f",
+        "configureDuration": "27f25fae092bb72ddfcdcf96cfd22f9872e9b1528fb7d6a25b2a03e5aa1a0324",
+        "configureEnum": "0e58edb045f119ec7cd82b01c5850995ddcb5788f05f01fd80318fed08bee3ee",
+        "configureGenerationConfiguration": "1b07857776331f22e2f1d01336f193f86bb349860a67ea4e56677b6e24866140",
+        "configureGeometry": "52ff3a614eb2141fb6c0d420bf8b722032d8fecf2d59a883bffe5b34f1f0bf30",
+        "configureInferenceMethod": "b021a70f33d6f46a7d6a72cabf6f4e79304602ca053366031ec1ea04dbc19a91",
+        "configureModelPicker": "1ab360c57031608c64b0ea5db1fa33e7b323cfdb87228681ce0ae8fe5b47b5fc",
+        "configureReferenceTopology": "8481e3c3250cf2bd396c9388e056057c50cd5e771a729e6aa19f573a7584eddb",
+        "connectedReferenceKind": "40246b00aa23c4b0f312318ec94acc5585fb638a1704ee3a634b2c0efdae782a",
+        "connectedRoles": "404e50b8ef9b3126fb7d04f588be7c84a1ff9b11568b532fe94a432b004cd09e",
+        "createDurationSlider": "b6e48e4a18f17ecef6b42d8db9b7c107873a1a1879ff6ec8511f9fafdf4f8133",
+        "createEstimateState": "5692560c04f8958ebc1692c3693324433719d7a749f9cefbdde77c75c5b82cb6",
+        "createGeometryCombos": "622a6a75baa2dbcb4dde44d80e3da6aab507be3b67b8c9c69394e0826d702680",
+        "directReferenceInputs": "403308a16c89382a303862627e723cdeaa741251cd39627800c784f0b6ccea49",
+        "disclose": "e0abde67f08c7d5f9be10ef516c3e4ac916af0896cfc2b0b544dd0f0c311d78b",
+        "durationAtPosition": "b1c3b0904242a85876241cdb1048ebd11bd570bd89c11fdba02bac1b9ff43dec",
+        "durationDomain": "14c7b66f773e797a0ba0826db7c34ad3bfb5457b3f11f0b77d7941b7e14e4953",
+        "ensureFixedInput": "57831009d3df5cdf1ca144e2784da87a3589345d954509d4d8c6b09e94f0526b",
+        "fitPresentationWidth": "fcbfc68c074e11b9643621bc4e0278d7a14a1949519c2911e0e8e8a2de9ccb1b",
+        "fixedRolesForMethod": "96a76fe5848600ae4bfc298a0316eecb38816779e682aad8463caf5ef69015db",
+        "geometryAuthority": "609567818944c189f045e323d022e125a3d9da7ef6e0bb350d99a56273e23abe",
+        "inferLegacyMethodFromNode": "70d4fbf72945159a70d6fdbf46a90beb57e89fa3c305cb2edb48de5d6a2ede98",
+        "inputByName": "41d9c9f874a59123511a6ed251e38c5510245f8ee2d9ca2e63626a2372bd1214",
+        "installBetaPresentation": "6c4e537cb14dc43627f3c9c15f50754d25d20a5567d05706da43c21ad365a01e",
+        "installResponsiveHeight": "f36392e6d93be9d79f88e099f55c83aa02cda3a6f1fa8d8bcfd7ca47ca3aab08",
+        "isDirectReferenceInput": "da4fecc1cdd4cf655b8bed80bcb7ce8ad047bbca33339408684b4edc08e10ab4",
+        "legacyReferenceKinds": "f68f9359696bb664fcff04b16ec576804aef55eeda2ecc06f7c278e4882d2b10",
+        "loadCapabilities": "c4a1e6694beca84e9ce1d2362e7b430189fa01edfd28c7978b124656e6de0bd1",
+        "methodStatus": "a4e6b3cb19c6763530390b3b13d0caec0df1edc65b4ca98024d043ca60847d07",
+        "methodUsesReferences": "ea58ee4b311bd006ef165fcfc28e6ab2b78df46a3171e5d7a882d3c33886d276",
+        "migratePhase8Values": "42352d38454cf1c857694f1e94c4f346c2594e6a692a1132fa84333046d5a3d8",
+        "moveInputToFrontPreservingLinks": "0344d5e599f58a3feda5d30f140b30c241547318badad2fb54cd2c57e909f4fa",
+        "normalizedValue": "a5a6ec35604f226065382209458b99e64e2dfb68403b45651a7f36643c59ee3e",
+        "orderPresentationWidgets": "41752a5c6f0fdf23877a084930a9e1a0f57097064aede62871bea9d518e7362c",
+        "orderedGeometryTuples": "c8876435d5bca1014a31549918d94be9c0cbd712576d68177c598d0cb10054c9",
+        "parkIncompatibleMedia": "6473fa7abe908942ad58ab5a46f2c76d7aefc33a7da8aa7b2570aa9998793558",
+        "presentationPhase": "a26f1117999e542a07e923e12389228cefceb93fdb79ae4bfb8b2315796110a9",
+        "productDefault": "2b6c74aa6ef6d7f308b383defa6f9338ce0fdf8f29504c026cefc663a8c2e55b",
+        "projectSelectedModel": "6fed36db5f4c116334559cec450748db806b8625967dde4223f98b1955445b3e",
+        "projectedWidgetValue": "30d06b196d0f95b69f89bba934008702ea50b14ff09a062cc93e445e727158bf",
+        "publishSemanticProjection": "2c64471e39617b16e29a8991cbb81cce28f0f14d2bf49f1489d0a5e553788f19",
+        "referenceInputSuffix": "2f7f2f2ab9ca63a4fcfaa51138b034aa815095077d14b7becd2765cba815143e",
+        "referencePrefix": "1a86608c3902c64a2f9fdd1bbdb53d7c5324c47eb668027285a61560924fee4a",
+        "referenceShapeValid": "baa167470d2c77aff9f389a9a8c657aa951281c090412d923cd9ece593a4818c",
+        "referenceSocketType": "06edb462c28cda15681f748e97777d62f26f88fd7c669aa1fdcbe5b5f943bf6c",
+        "refreshEstimate": "a8375b90efb5f850fafbeca86b105073357eea80cb8c07eb0a5e92f1bb25a11e",
+        "removeUnusedFixedInputs": "847810bb0e861e9170f99d3b5853c00ddc73606434734909d270862f255abbf7",
+        "reprojectNodeSemantics": "8c969ccdf7159f98e9bb9ea243f087a53151b3bff6904e42ca6a60f041439302",
+        "reprojectReferenceConsumers": "72a7e8fa772291cc37f10732e3c3044483e1682a2390fc858ea9ff7d86e03cd3",
+        "restorePhase10NamedValues": "9a4b48ed18358caffffceceb1c3ebc629f803bd96a25b660eeb78e4bebba2288",
+        "restorePhase10Values": "efb49597ddd612c002edb9118bae992f5b8bf3dd3404dd99f65ea9a815c2c85f",
+        "restorePhase8RemoteOptionsValues": "9599fa7d688cc5e3421ef96b391b2c736f5d89a0a09cd22307c9cb220455fafb",
+        "restorePhase9Values": "ca4a56a403144b31806488a68d7f4bfb9d44074cd2b9e202e2e3e5c61347723b",
+        "scheduleBetaPresentation": "c02d6a5e75efadd309b34df404568d5c86ffd3fe556ffb019365124d485944b3",
+        "scopedCapability": "2b43da0523b5d2a8866b379f0bb79b31dc00d0311bb3f3a9c7e7eb5f73d8ee30",
+        "selectedReferenceKinds": "a0763304afa1455ef9fe7e8a9ec31f054ce7fee21b80539bb41d58f8b0d8970a",
+        "setGeometryAuthority": "4d89454c9fa6a0ac537ef51535ccbd6bda3b7cdaf141ece0b1ec8cc567b6cc57",
+        "setLifecycleState": "9bedba45e39260b0f812e4eae437335a9fe23d7f8c6919436bf50422af35e9ac",
+        "setMinimumWidgetHeight": "98e227b60e759d55ccc54664f42e7c24316646835e9ec9b2449172357d259b19",
+        "setVisible": "a4d16c6f280098f074d4b6f50a067f2eb4b9ef3e977b9d900ce226f49c559998",
+        "sizePrimaryControls": "9099273c214be5b3e8ef207ca0f67f83796e121b88eb7f558dd7ba524da6a738",
+        "stylePrompt": "1b3d2ad744b8d884d089c2498d83ecfb0e5e4205f1f59b65f618b448e247f340",
+        "switchWouldOrphan": "e20c9511130f6fea5ee67212fb5d3e7af5d302ed73ca09ee9001369258ede803",
+        "syncAdvancedControls": "b1a08de9fc1b0c037d7e0d1d9f5e77cdf4b1281490410e9e401df8b927c2d374",
+        "syncBetaPresentation": "4b9bd62b39f16fba0e2c75474b338c89edd27d570f8ab25993fe34a5a9aaa932",
+        "widget": "2a5f30362b5b939cc58df42a513f1b98bb970cc55eebc51c2e86608ea780e2da"
+      },
+      "node_backend": {
+        "src~1openrouter_video~1geometry.py": "1047b75ba88d498e1b8205cb89c9a14d8ee8b9f74b2ddb00d66000ae4e20a0ba",
+        "src~1openrouter_video~1models.py": "49dba07e5569019bdcdf5066b8a6855b1aed98d2f8491bb6dd78fc8ac3b6d4b4",
+        "src~1openrouter_video~1comfy~1nodes.py": "9ceb512a3d2b60fad0ecd8e55e39b39893e68854dc0fe7acb5e2901dac1fcf11",
+        "src~1openrouter_video~1comfy~1projection.py": "d36602e458e47bf5fed8432882c829ed424263a7be97fde04c438013257390d5"
+      }
+    },
+    "upstream_dynamic": {
+      "catalogue_domains_and_prices": "READ_CURRENT_EVIDENCE_NOT_FROZEN_HERE"
+    },
+    "observed_evidence": {
+      "source": {
+        "path": "web/openrouter_video.js",
+        "normalized_sha256": "f676c6626f21cfc338f992d48af0a302915dc35444535efd72c9295a30a40189"
+      },
+      "runtime_visual_measurements": null,
+      "runtime_verified": false
+    }
+  }
+}

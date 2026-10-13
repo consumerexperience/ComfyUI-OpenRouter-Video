@@ -1,0 +1,53 @@
+{
+  "tables": {
+    "jobs": 8,
+    "capability_catalog_meta": 1,
+    "capability_models": 30,
+    "staging_operations": 4,
+    "staging_objects": 0,
+    "capability_profile_evidence": 30
+  },
+  "jobs": [
+    {
+      "job_id": "gen-vid-1790369277-AXtR4K6JdpHWSJHR8bZ4",
+      "created_at": "2026-09-25T20:47:25.903270+00:00",
+      "state": "DONE"
+    },
+    {
+      "job_id": "gen-vid-1791661746-JSqWE4btXWZBdeDBkqPS",
+      "created_at": "2026-10-10T19:49:15.833443+00:00",
+      "state": "DONE"
+    },
+    {
+      "job_id": "gen-vid-1791890966-B1qkI2El43OcPZGsLlT9",
+      "created_at": "2026-10-13T11:29:49.934879+00:00",
+      "state": "DONE"
+    },
+    {
+      "job_id": "gen-vid-1791891000-RPAlYuK2XId9m62Ol0WW",
+      "created_at": "2026-10-13T11:30:25.066594+00:00",
+      "state": "DONE"
+    },
+    {
+      "job_id": "gen-vid-1791891041-Njmj7h4BaGyq7fOhyrZK",
+      "created_at": "2026-10-13T11:31:05.233676+00:00",
+      "state": "DONE"
+    },
+    {
+      "job_id": "gen-vid-1791891083-TCWv3pEgV9p3zFkWf4oE",
+      "created_at": "2026-10-13T11:31:45.298930+00:00",
+      "state": "DONE"
+    },
+    {
+      "job_id": null,
+      "created_at": "2026-10-13T11:34:40.869811+00:00",
+      "state": "SUBMIT_REJECTED"
+    },
+    {
+      "job_id": null,
+      "created_at": "2026-10-13T12:23:17.518502+00:00",
+      "state": "SUBMIT_REJECTED"
+    }
+  ],
+  "read_only": true
+}

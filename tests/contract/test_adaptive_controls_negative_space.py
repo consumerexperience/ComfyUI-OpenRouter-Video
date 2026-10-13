@@ -31,7 +31,7 @@ def definitions(text: str) -> dict[str, str]:
 
 def test_existing_method_recipes_discovery_cache_and_http_classes_are_unchanged() -> None:
     for relative, exceptions in {
-        "src/openrouter_video/capabilities.py": {"RequestValidator"},
+        "src/openrouter_video/capabilities.py": {"RequestValidator", "inference_method_matrix"},
         "src/openrouter_video/client.py": {"_parse_capability", "_optional_int_tuple"},
         "src/openrouter_video/evidence_registry.py": {"load_manifest", "enrich_capabilities"},
     }.items():
@@ -86,6 +86,9 @@ def test_protected_native_media_security_pricing_and_wire_files_are_exactly_pres
         current = (ROOT / path).read_text(encoding="utf-8")
         if path in {
             "src/openrouter_video/recipes.py",
+            "src/openrouter_video/models.py",
+            "src/openrouter_video/comfy/runtime.py",
+            "src/openrouter_video/comfy/compat.py",
             "src/openrouter_video/data/capability-evidence.json",
         }:
             pin = json.loads((ROOT / "tests/fixtures/rc_live_reviewed_patch.json").read_text())

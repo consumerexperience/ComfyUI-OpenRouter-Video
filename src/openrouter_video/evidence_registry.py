@@ -10,7 +10,12 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
-from openrouter_video.configuration import CONFIGURATION_KEY, normalize_constraints
+from openrouter_video.configuration import (
+    CONFIGURATION_KEY,
+    REQUEST_SHAPES_KEY,
+    normalize_constraints,
+    normalize_request_shapes,
+)
 from openrouter_video.models import (
     CapabilityEvidenceSource,
     CapabilityFact,
@@ -35,6 +40,7 @@ KNOWN_FACTS = frozenset(
         "supports_extend",
         "preferred_inference_method",
         CONFIGURATION_KEY,
+        REQUEST_SHAPES_KEY,
     }
 )
 
@@ -78,6 +84,8 @@ def load_manifest(path: Path = MANIFEST_PATH) -> dict[str, Any]:
                 continue
             if key == CONFIGURATION_KEY:
                 normalize_constraints(value)
+            if key == REQUEST_SHAPES_KEY:
+                normalize_request_shapes(value)
             if key in {
                 "supports_text_only",
                 "source_required",
@@ -189,7 +197,7 @@ def enrich_capabilities(
             current is None
             and effective is not None
             and not conflicts
-            and key not in {"preferred_inference_method", CONFIGURATION_KEY}
+            and key not in {"preferred_inference_method", CONFIGURATION_KEY, REQUEST_SHAPES_KEY}
         ):
             if key in reference_fields:
                 ref_changes[key] = effective
