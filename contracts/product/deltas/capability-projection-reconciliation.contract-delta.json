@@ -7,7 +7,8 @@
   "risk_tier": "B",
   "intended_delta": [
     "Owner authorized 2026-10-13: retain generation proofs, constrain exact-size combinations contradicted by live output; retain scoped AR2V conflict without denying MMR2V/audio transport.",
-    "Explicit owner implementation authority a06c010b-c73e-4dfd-aa9d-003a78dc542f: one normalized method-scoped profile, supported-only controls/topology/domains, named intent reprojection, hidden-state preparse/serializer/estimator omission; accepted visual/lifecycle/media contracts protected."
+    "Explicit owner implementation authority a06c010b-c73e-4dfd-aa9d-003a78dc542f: one normalized method-scoped profile, supported-only controls/topology/domains, named intent reprojection, hidden-state preparse/serializer/estimator omission; accepted visual/lifecycle/media contracts protected.",
+    "Owner attachment 3db6f7d9-11b1-4874-9ac4-1d9a063c67ab: correct only Seedance 2.5 V2V_EDIT and V2V_EXTEND documented input_references profiles; preserve VR2V/MMR2V/AR2V and hidden Draft, no synthetic wire fields. CI must use this cumulative current reconciliation contract."
   ],
   "allowed_semantic_changes": [
     {
@@ -29,7 +30,7 @@
       "operations": [
         "replace"
       ],
-      "reason": "Owner-approved scoped conformance repair; exact reviewed patch and focused negative-space checks."
+      "reason": "Owner-approved scoped conformance repair; exact reviewed patch and focused negative-space checks. Explicit owner correction: exact Seedance 2.5 V2V_EDIT/V2V_EXTEND reference profiles; required source VIDEO plus reserved optional counts; no Draft, other-model changes or new wire fields."
     },
     {
       "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",

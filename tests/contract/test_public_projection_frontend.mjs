@@ -10,6 +10,40 @@ const c = { app: { graph, registerExtension() {} }, api: { async fetchApi(url, i
 vm.runInNewContext(source, c);
 const plain = value => JSON.parse(JSON.stringify(value));
 const model = id => fixture.models.find(m => m.model_id === id);
+for (const method of ["V2V_EDIT", "V2V_EXTEND"]) test(`Seedance ${method} source, optional limits and saved media intent`, async () => {
+    const capability = model("bytedance/seedance-2.5");
+    const n = node(capability.model_id, method);
+    apply(n, capability);
+    assert(widget(n, "inference_method").options.values.includes(method));
+    assert(n.inputs.some(i => i.name === "source_video" && i.type.includes("VIDEO")));
+    assert(!n.inputs.some(i => ["first_frame", "last_frame"].includes(i.name)));
+    assert(!widget(n, "inference_method").options.values.some(v => /draft/i.test(v)));
+    const topology = capability.method_profiles[method].topology;
+    assert(c.referenceShapeValid(topology, []));
+    assert(!c.referenceShapeValid(topology, Array(10).fill("video")));
+    assert(!c.referenceSocketType(topology, Array(9).fill("video")).split(",").includes("VIDEO"));
+    const origin = { outputs: [{ type: "VIDEO" }], connect(slot, target, targetSlot) {
+        const id = 77;
+        graph.links[id] = { origin_id: 76, origin_slot: slot, target_id: target.id, target_slot: targetSlot, type: "VIDEO" };
+        target.inputs[targetSlot].link = id;
+    } };
+    graph.nodes[76] = origin;
+    origin.connect(0, n, n.inputs.findIndex(i => i.name === "source_video"));
+    await c.refreshEstimate(n);
+    assert.equal(payloads.at(-1).source_video_present, true);
+    assert.equal(payloads.at(-1).inference_method, method);
+    const away = model("x-ai/grok-imagine-video-1.5-lite");
+    widget(n, "model").value = away.model_id;
+    apply(n, away);
+    assert(!n.inputs.some(i => i.name === "source_video"));
+    assert(!widget(n, "inference_method").options.values.includes(method));
+    const saved = plain(n.properties);
+    const restored = node(capability.model_id, method);
+    restored.properties = saved;
+    apply(restored, capability, method);
+    assert.equal(restored.inputs.find(i => i.name === "source_video").link, 77);
+    assert.equal(widget(restored, "inference_method").value, method);
+});
 const widget = (node, name) => node.widgets.find(w => w.name === name);
 function node(modelId, method = "T2V") {
     const values = { model: modelId, inference_method: method, prompt: "prompt", resolution: "720p", aspect_ratio: "16:9", duration: 8, size: "", seed: 42, generate_audio: false, geometry_authority: "NORMALIZED", "control after generate": "fixed" };

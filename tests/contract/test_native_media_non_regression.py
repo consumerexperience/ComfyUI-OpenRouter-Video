@@ -78,12 +78,10 @@ def test_native_media_does_not_change_capability_matrix() -> None:
         "MI2V",
         "VR2V",
         "MMR2V",
+        "V2V_EDIT",
+        "V2V_EXTEND",
     }
-    assert all(
-        matrix[method].value == "UNKNOWN"
-        for method in matrix
-        if method.value in {"AR2V", "V2V_EDIT", "V2V_EXTEND"}
-    )
+    assert all(matrix[method].value == "UNKNOWN" for method in matrix if method.value in {"AR2V"})
     assert len(RECIPES) == 10
     assert not any("bytedance" in repr(recipe) for recipe in RECIPES)
 

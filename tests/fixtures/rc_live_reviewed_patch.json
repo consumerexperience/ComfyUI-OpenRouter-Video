@@ -4,7 +4,7 @@
     "src/openrouter_video/capabilities.py": "a67e1980c71aa64ddde5c4e2d0f3cec59dd738175ad3297306a1b822893f013c",
     "src/openrouter_video/configuration.py": "e8a3a63f2255d0fd36d795a5558c61e5705a8332eca35e17060b3cfb31160a0e",
     "src/openrouter_video/recipes.py": "9c8927ff3aabd3788465a9b27348d5bfc851dfc816e41510188c5854b4a4fb70",
-    "src/openrouter_video/data/capability-evidence.json": "b63d68beb0f0e7d3af827df72ca22f2c7bbd59741277ef3587c6fbb3b0f75973",
+    "src/openrouter_video/data/capability-evidence.json": "ec25bd96a4b12bdb9b0b3b0559dfd8c113c7f2ebf34824719303f044b592844a",
     "web/openrouter_video.js": "f676c6626f21cfc338f992d48af0a302915dc35444535efd72c9295a30a40189",
     "src/openrouter_video/evidence_registry.py": "5586744579d6ebae23c4176d78ae9f9b4a5335aa3978c781f9027adfcd2da457",
     "src/openrouter_video/models.py": "49dba07e5569019bdcdf5066b8a6855b1aed98d2f8491bb6dd78fc8ac3b6d4b4",

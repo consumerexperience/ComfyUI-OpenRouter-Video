@@ -1,0 +1,205 @@
+{
+  "STATUS": "PASS",
+  "AUTHORIZED_DELTA": [
+    {
+      "path": "/surfaces/product_owned/node_backend/src~01openrouter_video~01comfy~01nodes.py",
+      "operation": "replace",
+      "before": "d3d2a0b76fc963d9c86220942067f910138586dfcf052d55c5886e15c153356d",
+      "after": "9ceb512a3d2b60fad0ecd8e55e39b39893e68854dc0fe7acb5e2901dac1fcf11"
+    },
+    {
+      "path": "/surfaces/product_owned/node_backend/src~01openrouter_video~01comfy~01projection.py",
+      "operation": "replace",
+      "before": "561aefc4a79a5bad9b3590d536d2a7db605a5bd204a65318d5d50f7a3572abb0",
+      "after": "d36602e458e47bf5fed8432882c829ed424263a7be97fde04c438013257390d5"
+    },
+    {
+      "path": "/surfaces/product_owned/node_backend/src~01openrouter_video~01models.py",
+      "operation": "replace",
+      "before": "97c5f83f6cf5c6a712f890746ef119c24b08ef51b8ed659e331495b8890c08d9",
+      "after": "49dba07e5569019bdcdf5066b8a6855b1aed98d2f8491bb6dd78fc8ac3b6d4b4"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/capabilityIntent",
+      "operation": "add",
+      "before": null,
+      "after": "c26e1175822d17e029981a92f4f0cf69b57524d3fdd888ba2746cc537ed0245d"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/legacyReferenceKinds",
+      "operation": "add",
+      "before": null,
+      "after": "f68f9359696bb664fcff04b16ec576804aef55eeda2ecc06f7c278e4882d2b10"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/parkIncompatibleMedia",
+      "operation": "add",
+      "before": null,
+      "after": "6473fa7abe908942ad58ab5a46f2c76d7aefc33a7da8aa7b2570aa9998793558"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/projectedWidgetValue",
+      "operation": "add",
+      "before": null,
+      "after": "30d06b196d0f95b69f89bba934008702ea50b14ff09a062cc93e445e727158bf"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/publishSemanticProjection",
+      "operation": "add",
+      "before": null,
+      "after": "2c64471e39617b16e29a8991cbb81cce28f0f14d2bf49f1489d0a5e553788f19"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/referenceShapeValid",
+      "operation": "add",
+      "before": null,
+      "after": "baa167470d2c77aff9f389a9a8c657aa951281c090412d923cd9ece593a4818c"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/referenceSocketType",
+      "operation": "add",
+      "before": null,
+      "after": "06edb462c28cda15681f748e97777d62f26f88fd7c669aa1fdcbe5b5f943bf6c"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/reprojectNodeSemantics",
+      "operation": "add",
+      "before": null,
+      "after": "8c969ccdf7159f98e9bb9ea243f087a53151b3bff6904e42ca6a60f041439302"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/reprojectReferenceConsumers",
+      "operation": "add",
+      "before": null,
+      "after": "72a7e8fa772291cc37f10732e3c3044483e1682a2390fc858ea9ff7d86e03cd3"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/scopedCapability",
+      "operation": "add",
+      "before": null,
+      "after": "2b43da0523b5d2a8866b379f0bb79b31dc00d0311bb3f3a9c7e7eb5f73d8ee30"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/addTrailingReferenceInput",
+      "operation": "replace",
+      "before": "9651a86bc3beeba42609d48f94a2a92f9474c9fbc4a73e9d09966fe4cd99b4f8",
+      "after": "d099938bff116569c5fbd488cbb2a0c7b1edecdf9d44e37b7c578bcb4b7351eb"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/bindEstimateRefresh",
+      "operation": "replace",
+      "before": "c7b7c1093c502230c92793ebeabeef7e6e0da48474df5bcf2849235d57fcd737",
+      "after": "ee45db4397dba8ac3ee42fb842e631611686638264c91de28b36875fb7dc45d4"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/bindInferenceMethod",
+      "operation": "replace",
+      "before": "9c74e00c2353e4f03136d3f96498f88a120738dfbda634feb3618df6f26c19c8",
+      "after": "ec96d75102c6710e5a9ae902c2d2679ca278412d18d5873c8e119d75e1b4e571"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/configureEnum",
+      "operation": "replace",
+      "before": "68886961059898ee8ccd41de7e394da15dd3beb1092be6d28bb1eeb33e259562",
+      "after": "0e58edb045f119ec7cd82b01c5850995ddcb5788f05f01fd80318fed08bee3ee"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/configureGenerationConfiguration",
+      "operation": "replace",
+      "before": "66b60bbbe17473800cd70944103b033cb9f68db74077d8f063c887f3ff5e4b87",
+      "after": "1b07857776331f22e2f1d01336f193f86bb349860a67ea4e56677b6e24866140"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/configureInferenceMethod",
+      "operation": "replace",
+      "before": "582f8ee09fb6b6722a468d7aadf5eeec2ba205266ce3071c171640495f649b17",
+      "after": "b021a70f33d6f46a7d6a72cabf6f4e79304602ca053366031ec1ea04dbc19a91"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/configureReferenceTopology",
+      "operation": "replace",
+      "before": "23bfb6d21c2053fa3d2fd420329053d857c5b6b69ac86d4824eb395a6d1d7a3d",
+      "after": "8481e3c3250cf2bd396c9388e056057c50cd5e771a729e6aa19f573a7584eddb"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/isDirectReferenceInput",
+      "operation": "replace",
+      "before": "a8935c3e60f2cfa5d562fb9e082b926b935b059ff2224d578675060b978382fd",
+      "after": "da4fecc1cdd4cf655b8bed80bcb7ce8ad047bbca33339408684b4edc08e10ab4"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/projectSelectedModel",
+      "operation": "replace",
+      "before": "923c79c8278d0512fcb041768ba71f62610f8f168f1f15a5e2a9378fa88eb015",
+      "after": "6fed36db5f4c116334559cec450748db806b8625967dde4223f98b1955445b3e"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/refreshEstimate",
+      "operation": "replace",
+      "before": "4357038b070817760e543bef9740447b7c872e116b1ae8e43b2957c69dac6eef",
+      "after": "a8375b90efb5f850fafbeca86b105073357eea80cb8c07eb0a5e92f1bb25a11e"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/selectedReferenceKinds",
+      "operation": "replace",
+      "before": "714ebb6253cfb4b0d18fce14a3b3d9842ec3a58a2177e141b9ac51e1c34421c1",
+      "after": "a0763304afa1455ef9fe7e8a9ec31f054ce7fee21b80539bb41d58f8b0d8970a"
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/syncAdvancedControls",
+      "operation": "replace",
+      "before": "96020c0107771bedee3abb9c188778cb27817c30c074f69d7f185a90a76c9792",
+      "after": "b1a08de9fc1b0c037d7e0d1d9f5e77cdf4b1281490410e9e401df8b927c2d374"
+    },
+    {
+      "path": "/surfaces/product_owned/node_extension/complete_source",
+      "operation": "replace",
+      "before": "52e148a7637636ce754bb540afe377c3e9cb9aaa9c3119bdd4fa5f65a48d2c3b",
+      "after": "f676c6626f21cfc338f992d48af0a302915dc35444535efd72c9295a30a40189"
+    }
+  ],
+  "UNAUTHORIZED_DELTA": [],
+  "UNCHANGED_PROTECTED_SURFACES": [
+    "/surfaces/product_owned/database_migrations/src~01openrouter_video~01persistence_py",
+    "/surfaces/product_owned/pricing/src~01openrouter_video~01pricing_py",
+    "/surfaces/product_owned/pricing/src~01openrouter_video~01pricing_profile_py",
+    "/surfaces/product_owned/native_media/src~01openrouter_video~01comfy~01native_media_py",
+    "/surfaces/product_owned/submit_resume/src~01openrouter_video~01application_py",
+    "/surfaces/product_owned/submit_resume/src~01openrouter_video~01execution_hooks_py",
+    "/surfaces/product_owned/storage/src~01openrouter_video~01local_media_py",
+    "/surfaces/product_owned/storage/src~01openrouter_video~01s3_upload_py",
+    "/surfaces/product_owned/storage/src~01openrouter_video~01staging_py",
+    "/surfaces/product_owned/credentials/src~01openrouter_video~01secrets_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01capability_overlays_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01client_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01errors_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01geometry_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01image_transport_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01lifecycle_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01media_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01observability_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01policy_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01request_policy_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01transport_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01__init___py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01extension_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01image_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01routes_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01video_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01__init___py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01data~01geometry-relations_json",
+    "/surfaces/product_owned/AppIdentity/src~01openrouter_video~01app_identity_py"
+  ],
+  "UNKNOWN_DYNAMIC_SURFACES": [],
+  "OBSERVED_EVIDENCE_CHANGES": [
+    {
+      "path": "/surfaces/observed_evidence/source/normalized_sha256",
+      "operation": "replace",
+      "before": "52e148a7637636ce754bb540afe377c3e9cb9aaa9c3119bdd4fa5f65a48d2c3b",
+      "after": "f676c6626f21cfc338f992d48af0a302915dc35444535efd72c9295a30a40189"
+    }
+  ],
+  "ACCEPTED_CONTRACT_DIGEST": "sha256:eb3a7960546efd995723fe21eea00f5b785c747d3556d07c4a0dd7d7e23f7892",
+  "CURRENT_CONTRACT_DIGEST": "sha256:452240c9a68d62d2013040ea454f555bcb50ec051fb7ea99f8661b9d26d122df",
+  "CONTRACT_DELTA_DIGEST": "sha256:0ce5e440f37398f9897416209fcbfc0f6c53b08f9cce48005a30826ae45cddb3"
+}
