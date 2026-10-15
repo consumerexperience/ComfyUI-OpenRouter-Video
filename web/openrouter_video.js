@@ -4,7 +4,7 @@ const EXTENSION = "openrouter-video.capability-driven-ui";
 const GENERATE_NODE = "OpenRouterVideoGenerate";
 const SELECT_MODEL = "SELECT MODEL";
 const AUTO = "AUTO / MODEL DEFAULT";
-const UI_CONTRACT_VERSION = 4;
+const UI_CONTRACT_VERSION = 5;
 const COMPACT_LAYOUT = Object.freeze({ width: 400, row: 20, gap: 4, section: 8, prompt: 42, domInset: 16, inset: 15 });
 const SELECT_METHOD = "Select model first";
 const METHODS = [
@@ -207,6 +207,9 @@ function syncAdvancedControls(node) {
         if (/control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`)) {
             item.options ||= {};
             Object.assign(item.options, { advanced: false });
+            // Native Beta normally embeds this local control in the Seed row.
+            // When Seed is omitted, expose the same public widget independently.
+            item.options.canvasOnly = Boolean(seed && !seed.hidden);
             if (item.hidden) { setVisible(item, true); changed = true; }
         }
     }
@@ -586,16 +589,13 @@ function configureEnum(node, item, supported, label) {
     item.options = item.options || {};
     const optional = item.name === "size";
     if (supported === null) {
-        item.options.values = current === null ? [""] : [current];
-        if (current !== null) disclose(node, `${label}: saved value is not verified by catalogue`);
-        else item.value = "";
+        item.options.values = [];
         return;
     }
     item.options.values = canonicalOptions(item.name, optional ? ["", ...supported] : supported);
     if (optional) {
         if (current !== null && !supported.includes(current)) {
-            item.options.values.push(current);
-            disclose(node, `${label}: incompatible saved value preserved; Generate blocked`);
+            item.value = "";
         } else item.value = current ?? "";
     } else if (!supported.includes(current)) item.value = productDefault(item.name, supported) ?? "";
 }
@@ -809,6 +809,7 @@ function configureGenerationConfiguration(node, capability) {
         (axis) => [axis, normalizedValue(widget(node, axis))]));
     const kinds = selectedReferenceKinds(node);
     const context = {
+        geometry_authority: geometryAuthority(node),
         inference_method: widget(node, "inference_method")?.value,
         mode: widget(node, "mode")?.value ?? null,
         generate_audio: Boolean(widget(node, "generate_audio")?.value),
@@ -857,8 +858,173 @@ function configureGenerationConfiguration(node, capability) {
 }
 
 function isDirectReferenceInput(item) {
-    return ["OPENROUTER_VIDEO_INPUT_REFERENCE", "IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE", "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE"].includes(item?.type) &&
-        String(item?.name || "").startsWith("direct_references.reference_");
+    return String(item?.name || "").startsWith("direct_references.reference_");
+}
+
+function capabilityIntent(node) {
+    node.properties ||= {};
+    return node.properties.orv_capability_intent ||= { controls: {}, media: [], methods: {} };
+}
+
+function referenceShapeValid(topology, kinds) {
+    return Array.isArray(kinds) && kinds.length >= topology.min && kinds.length <= topology.max &&
+        topology.kind_sets.some(set => new Set(kinds).size === set.length && set.every(kind => kinds.includes(kind))) &&
+        !Object.entries(topology.per_kind_max).some(([kind, max]) => kinds.filter(value => value === kind).length > max);
+}
+
+function legacyReferenceKinds(input, savedOrigin = null) {
+    const link = savedOrigin || app.graph?.links?.[input?.link];
+    const origin = link ? app.graph?.getNodeById?.(link.origin_id) : null;
+    if ((origin?.type || origin?.comfyClass) !== "OpenRouterVideoReferenceCollection") return null;
+    const linked = (origin.inputs || []).filter(item => item.link != null && /(^|\.)reference_\d+$/.test(item.name));
+    linked.sort((a, b) => referenceInputSuffix(a) - referenceInputSuffix(b));
+    const kinds = linked.map(connectedReferenceKind);
+    return kinds.every(Boolean) ? kinds : null;
+}
+
+function reprojectReferenceConsumers(origin) {
+    for (const node of app.graph?.findNodesByType?.(GENERATE_NODE) || []) {
+        const input = inputByName(node, "input_references");
+        const active = app.graph?.links?.[input?.link]?.origin_id === origin.id;
+        const parked = capabilityIntent(node).media.some(item => item.origin_id === origin.id);
+        if (!active && !parked) continue;
+        clearTimeout(node.__orvEstimateTimer);
+        node.__orvEstimateTimer = setTimeout(() => projectSelectedModel(node), 120);
+    }
+}
+
+function scopedCapability(capability, method) {
+    const profile = capability?.method_profiles?.[method] || { state: "UNKNOWN", controls: {}, topology: {} };
+    const fields = { duration: "supported_durations", resolution: "supported_resolutions",
+        aspect_ratio: "supported_aspect_ratios", size: "supported_sizes",
+        seed: "supports_seed", generate_audio: "generate_audio" };
+    const result = { ...capability, __methodProfile: profile,
+        configuration_relations: profile.configuration_relations || [],
+        max_reference_count: profile.topology?.max ?? 0,
+        supported_reference_kinds: profile.topology?.reference_kinds || [] };
+    for (const [name, field] of Object.entries(fields)) {
+        const control = profile.controls?.[name];
+        result[field] = control?.state === "SUPPORTED"
+            ? ["seed", "generate_audio"].includes(name) ? true : control.values
+            : ["seed", "generate_audio"].includes(name) ? false : [];
+    }
+    result.geometry_profile = { ...capability?.geometry_profile,
+        tuples: (capability?.geometry_profile?.tuples || []).filter(tuple =>
+            result.supported_sizes.includes(tuple.size) &&
+            (tuple.resolution === null || result.supported_resolutions.includes(tuple.resolution))) };
+    return result;
+}
+
+function publishSemanticProjection(node) {
+    const signature = JSON.stringify({
+        widgets: (node.widgets || []).map(item => [item.name, item.hidden, item.type, item.label,
+            item.options?.hidden, item.options?.advanced, item.options?.min, item.options?.max, item.options?.values]),
+        inputs: (node.inputs || []).map(input => [input.name, input.type, input.label]),
+    });
+    if (node.__orvPublishedProjection === signature) return;
+    node.__orvPublishedProjection = signature;
+    // The pinned native manager extracts metadata from shallow-reactive public
+    // collections. Nested POJO edits alone do not invalidate that projection.
+    // Notify through those collections; retain objects, order, links and values.
+    for (const collection of [node.widgets, node.inputs]) {
+        if (!collection?.length) continue;
+        const last = collection.pop();
+        collection.push(last);
+    }
+}
+
+function reprojectNodeSemantics(node, capability, method) {
+    const key = `${capability.model_id}|${method || ""}`;
+    const intent = capabilityIntent(node);
+    const fields = ["resolution", "aspect_ratio", "duration", "size", "seed", "generate_audio", "geometry_authority"];
+    if (node.__orvProjectedKey !== key) {
+        if (node.__orvProjectedKey) intent.controls[node.__orvProjectedKey] = Object.fromEntries(fields.map(name => [name, widget(node, name)?.value]));
+        const saved = intent.controls[key];
+        if (saved) for (const name of fields) { if (widget(node, name)) widget(node, name).value = saved[name]; }
+        node.__orvProjectedKey = key;
+    }
+    const scoped = scopedCapability(capability, method);
+    node.__orvCapability = scoped;
+    if (!scoped.supported_sizes.length && geometryAuthority(node) === "EXACT") setGeometryAuthority(node, "NORMALIZED");
+    configureReferenceTopology(node, scoped, method);
+    configureGenerationConfiguration(node, scoped);
+    for (const name of ["prompt", "duration", "resolution", "aspect_ratio", "size", "seed", "generate_audio"]) {
+        setVisible(widget(node, name), scoped.__methodProfile.controls?.[name]?.state === "SUPPORTED");
+    }
+    if (scoped.supports_seed) Object.assign(widget(node, "seed").options,
+        { min: scoped.__methodProfile.controls.seed.integer_range.min,
+            max: scoped.__methodProfile.controls.seed.integer_range.max, step: 1 });
+    if (scoped.supports_seed) {
+        const seed = widget(node, "seed");
+        const value = Number(seed.value);
+        const bounds = scoped.__methodProfile.controls.seed.integer_range;
+        if (seed.value !== -1 && (!Number.isInteger(value) || value < bounds.min || value > bounds.max)) {
+            intent.inactive ||= {};
+            intent.inactive[key] ||= {};
+            intent.inactive[key].seed = seed.value;
+            seed.value = -1;
+        }
+    }
+    setVisible(node.__orvCapabilityStatus, false);
+    fitPresentationWidth(node);
+    publishSemanticProjection(node);
+    return scoped;
+}
+
+function parkIncompatibleMedia(node, topology) {
+    const intent = capabilityIntent(node);
+    let references = 0;
+    const fixed = topology.fixed || [];
+    const legacy = inputByName(node, "input_references");
+    const legacyValid = legacy?.link != null && referenceShapeValid(topology, legacyReferenceKinds(legacy));
+    const currentKinds = directReferenceInputs(node).filter(input => input.link != null).map(connectedReferenceKind);
+    const invalidFallback = node.__orvMethodFallback && currentKinds.length && !referenceShapeValid(topology, currentKinds);
+    for (const input of [...(node.inputs || [])]) {
+        const direct = isDirectReferenceInput(input);
+        if (!direct && !["first_frame", "last_frame", "source_video", "input_references"].includes(input.name)) continue;
+        const kind = connectedReferenceKind(input);
+        const allowed = direct ? !legacyValid && !invalidFallback && topology.reference_kinds?.includes(kind) && references < (topology.max || 0)
+            : input.name === "input_references" ? legacyValid
+            : fixed.includes(input.name) && (kind === null || kind === (input.name === "source_video" ? "video" : "image"));
+        if (input.link != null && !allowed) {
+            const link = app.graph?.links?.[input.link];
+            if (link && !intent.media.some(item => item.name === input.name && item.origin_id === link.origin_id && item.origin_slot === link.origin_slot)) {
+                intent.media.push({ name: input.name, kind, type: input.type, origin_id: link.origin_id, origin_slot: link.origin_slot });
+            }
+            node.removeInput?.(node.inputs.indexOf(input));
+        } else if (direct && input.link != null) references += 1;
+    }
+    for (const saved of [...intent.media]) {
+        const direct = String(saved.name).startsWith("direct_references.reference_");
+        const allowed = direct ? !invalidFallback && inputByName(node, "input_references")?.link == null && topology.reference_kinds?.includes(saved.kind) && references < (topology.max || 0)
+            : saved.name === "input_references" ? references === 0 && referenceShapeValid(topology, legacyReferenceKinds(null, saved))
+            : fixed.includes(saved.name) && saved.kind === (saved.name === "source_video" ? "video" : "image");
+        const origin = app.graph?.getNodeById?.(saved.origin_id);
+        if (!allowed || !origin || inputByName(node, saved.name)?.link != null) continue;
+        if (!inputByName(node, saved.name)) node.addInput?.(saved.name, saved.type);
+        origin.connect?.(saved.origin_slot, node, node.inputs.indexOf(inputByName(node, saved.name)));
+        if (inputByName(node, saved.name)?.link != null) {
+            intent.media.splice(intent.media.indexOf(saved), 1);
+            if (direct) references += 1;
+        }
+    }
+}
+
+function projectedWidgetValue(node, name) {
+    const control = node.__orvCapability?.__methodProfile?.controls?.[name];
+    if (control?.state !== "SUPPORTED") return null;
+    const value = normalizedValue(widget(node, name));
+    return control.values && !control.values.includes(value) ? null : value;
+}
+
+function referenceSocketType(topology, connectedKinds) {
+    const valid = (topology.reference_kinds || []).filter(kind => {
+        const next = [...connectedKinds, kind];
+        if (next.length > topology.max || next.filter(value => value === kind).length > (topology.per_kind_max?.[kind] ?? topology.max)) return false;
+        return (topology.kind_sets || []).some(set => next.every(value => set.includes(value)) &&
+            next.length + set.filter(value => !next.includes(value)).length <= topology.max);
+    });
+    return [...valid.map(kind => kind.toUpperCase()), "OPENROUTER_VIDEO_INPUT_REFERENCE"].join(",");
 }
 
 function directReferenceInputs(node) {
@@ -971,12 +1137,12 @@ function removeUnusedFixedInputs(node, keep) {
     for (const index of removable) node.removeInput?.(index);
 }
 
-function addTrailingReferenceInput(node, current) {
+function addTrailingReferenceInput(node, current, socketType = "OPENROUTER_VIDEO_INPUT_REFERENCE") {
     if (!node.addInput) return;
     if (current.length === 0) {
         node.addInput(
             "direct_references.reference_0",
-            "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE",
+            socketType,
         );
         return;
     }
@@ -989,7 +1155,9 @@ function addTrailingReferenceInput(node, current) {
 }
 
 function configureReferenceTopology(node, capability, method) {
-    const keepFixed = new Set(fixedRolesForMethod(method));
+    const topology = capability.__methodProfile?.topology || { fixed: [], reference_kinds: [], max: 0 };
+    parkIncompatibleMedia(node, topology);
+    const keepFixed = new Set(topology.fixed || []);
     for (const name of keepFixed) ensureFixedInput(node, name);
     removeUnusedFixedInputs(node, keepFixed);
     for (const name of [...keepFixed].reverse()) moveInputToFrontPreservingLinks(node, name);
@@ -1000,16 +1168,18 @@ function configureReferenceTopology(node, capability, method) {
     }
 
     const inputs = directReferenceInputs(node);
-    for (const input of inputs) input.type = "IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE";
+    const socketType = [...(topology.reference_kinds || []).map(kind => kind.toUpperCase()), "OPENROUTER_VIDEO_INPUT_REFERENCE"].join(",");
+    for (const input of inputs) input.type = socketType;
     const linked = inputs.filter((item) => item.link != null);
     const unlinked = inputs.filter((item) => item.link == null);
     const limit = capability.max_reference_count;
     const effectiveLimit = Number.isInteger(limit) && limit >= 0 ? limit : null;
     const sourceCount = inputByName(node, "source_video")?.link != null ? 1 : 0;
     const reservedSourceCount = keepFixed.has("source_video") ? 1 : 0;
-    const usesReferences = methodUsesReferences(method);
+    const usesReferences = topology.max > 0;
     const exactOne = method === "IR2V";
     const keepTrailing = usesReferences &&
+        legacy?.link == null &&
         (effectiveLimit === null || linked.length + reservedSourceCount < effectiveLimit) &&
         (!exactOne || linked.length === 0);
 
@@ -1024,11 +1194,13 @@ function configureReferenceTopology(node, capability, method) {
     }
     const afterTrim = directReferenceInputs(node);
     if (keepTrailing && afterTrim.every((item) => item.link != null)) {
-        addTrailingReferenceInput(node, afterTrim);
+        addTrailingReferenceInput(node, afterTrim, socketType);
     }
     const finalInputs = directReferenceInputs(node).sort(
         (left, right) => referenceInputSuffix(left) - referenceInputSuffix(right),
     );
+    for (const input of finalInputs) input.type = referenceSocketType(topology,
+        finalInputs.filter(other => other !== input && other.link != null).map(connectedReferenceKind).filter(Boolean));
     // Comfy uses slot indexes for canvas hit-testing. Widget-backed inputs are
     // hidden from the socket drawing, so media sockets must lead the actual
     // inputs array as well as the visual order. Otherwise dragging image_1 can
@@ -1046,7 +1218,8 @@ function configureReferenceTopology(node, capability, method) {
         finalInputs[index].label = `${referencePrefix(method, finalInputs[index])}_${index + 1}`;
     }
 
-    const currentCount = finalInputs.filter((item) => item.link != null).length;
+    const currentCount = finalInputs.filter((item) => item.link != null).length +
+        (legacy?.link != null ? legacyReferenceKinds(legacy)?.length || 0 : 0);
     node.__orvReferenceSummary = usesReferences && effectiveLimit !== null
         ? `${currentCount + sourceCount} connected · ${
             currentCount + sourceCount >= effectiveLimit
@@ -1087,7 +1260,7 @@ function methodStatus(capability, method) {
 function configureInferenceMethod(node, capability) {
     const item = widget(node, "inference_method");
     if (!item) return null;
-    const supported = capability?.supported_inference_methods || [];
+    const supported = (capability?.supported_inference_methods || []).filter(method => capability.method_profiles?.[method]?.state === "SUPPORTED");
     const current = METHODS.includes(item.value) ? item.value : null;
     item.options = item.options || {};
     item.options.getOptionLabel = (value) => METHOD_LABELS[value] || value;
@@ -1098,14 +1271,16 @@ function configureInferenceMethod(node, capability) {
         item.label = `Inference Method · ${SELECT_METHOD}`;
         return null;
     }
-    item.disabled = false;
+    item.disabled = supported.length === 0;
+    setVisible(item, supported.length > 0);
     item.label = "Inference Method";
     let selected = current;
+    node.__orvMethodFallback = Boolean(current && !supported.includes(current));
     const hasConnections = connectedRoles(node).some((role) =>
         ["first_frame", "last_frame", "source_video", "references"].includes(role),
     );
     if (
-        !selected ||
+        !supported.includes(selected) ||
         (
             node.__orvIsNewNode &&
             !node.__orvMethodInitialized &&
@@ -1115,10 +1290,9 @@ function configureInferenceMethod(node, capability) {
     ) {
         selected = capability.preferred_inference_method || supported[0] || null;
     }
-    item.options.values = selected && !supported.includes(selected)
-        ? [...supported, selected]
-        : [...supported];
-    if (selected) item.value = selected;
+    if (current && !supported.includes(current)) capabilityIntent(node).methods[capability.model_id] = current;
+    item.options.values = [...supported];
+    item.value = selected || SELECT_METHOD;
     if (selected && methodStatus(capability, selected) !== "READY") {
         node.__orvMethodBlocked = true;
         node.__orvCapabilityStatus.value = `INCOMPATIBLE · ${selected} · links preserved`;
@@ -1138,16 +1312,11 @@ function bindInferenceMethod(node) {
     item.callback = function (...args) {
         const next = item.value;
         const prior = node.__orvLastMethod;
-        if (METHODS.includes(next) && switchWouldOrphan(node, next)) {
-            item.value = prior;
-            disclose(node, "Disconnect incompatible media before changing Inference Method");
-            node.setDirtyCanvas?.(true, true);
-            return;
-        }
+        if (!node.__orvModelCapability?.supported_inference_methods?.includes(next)) return;
         previous?.apply(this, args);
         node.__orvMethodExplicit = true;
         node.__orvLastMethod = next;
-        if (node.__orvCapability) configureReferenceTopology(node, node.__orvCapability, next);
+        if (node.__orvModelCapability) reprojectNodeSemantics(node, node.__orvModelCapability, next);
         fitPresentationWidth(node);
     };
 }
@@ -1248,13 +1417,17 @@ function configureGeometry(node, capability) {
 
 function selectedReferenceKinds(node) {
     const legacy = inputByName(node, "input_references");
-    if (legacy?.link != null) return null;
+    if (legacy?.link != null) return legacyReferenceKinds(legacy);
     const connected = directReferenceInputs(node).filter((item) => item.link != null);
     const kinds = connected.map(connectedReferenceKind);
     return kinds.some((kind) => kind === null) ? null : kinds;
 }
 
 async function refreshEstimate(node) {
+    if (geometryAuthority(node) === "AMBIGUOUS") {
+        node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
+        return;
+    }
     const model = canonicalModel(node);
     if (!model) {
         node.__orvEstimate.value = "ESTIMATE UNAVAILABLE — SELECT MODEL";
@@ -1265,13 +1438,19 @@ async function refreshEstimate(node) {
         node.__orvEstimate.value = "ESTIMATE UNAVAILABLE — REFERENCE SHAPE RESOLVES AT EXECUTION";
         return;
     }
+    const profile = node.__orvCapability?.__methodProfile;
+    const topology = profile?.topology;
+    if (profile?.state !== "SUPPORTED" || !topology || !referenceShapeValid(topology, referenceKinds)) {
+        node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
+        return;
+    }
     const payload = {
         model_id: model,
-        duration: normalizedValue(widget(node, "duration")),
-        resolution: geometryAuthority(node) === "EXACT" ? null : normalizedValue(widget(node, "resolution")),
-        aspect_ratio: geometryAuthority(node) === "EXACT" ? null : normalizedValue(widget(node, "aspect_ratio")),
-        size: geometryAuthority(node) === "NORMALIZED" ? null : normalizedValue(widget(node, "size")),
-        generate_audio: Boolean(widget(node, "generate_audio")?.value),
+        duration: projectedWidgetValue(node, "duration"),
+        resolution: geometryAuthority(node) === "EXACT" ? null : projectedWidgetValue(node, "resolution"),
+        aspect_ratio: geometryAuthority(node) === "EXACT" ? null : projectedWidgetValue(node, "aspect_ratio"),
+        size: geometryAuthority(node) === "NORMALIZED" ? null : projectedWidgetValue(node, "size"),
+        generate_audio: projectedWidgetValue(node, "generate_audio") === true,
         inference_method: widget(node, "inference_method")?.value,
         reference_kinds: referenceKinds,
         reference_count: referenceKinds.length,
@@ -1305,7 +1484,7 @@ function bindEstimateRefresh(node) {
                 node.__orvGeometryEdited = item.name;
                 setGeometryAuthority(node, item.name === "size" && normalizedValue(item) ? "EXACT" : "NORMALIZED");
             }
-            if (node.__orvCapability && item.name !== "model") {
+            if (node.__orvCapability && !["model", "inference_method"].includes(item.name)) {
                 configureGenerationConfiguration(node, node.__orvCapability);
             }
             if (item.name === "model") {
@@ -1395,23 +1574,11 @@ async function projectSelectedModel(node, force = false) {
         }
         node.__orvCapabilityStatus.value = "";
         setVisible(node.__orvCapabilityStatus, false);
-        const seed = widget(node, "seed");
-        setVisible(seed, capability.supports_seed === true);
-        if (capability.supports_seed === true) {
-            seed.options.min = 0;
-        } else if (Number(seed.value) >= 0) {
-            disclose(node, "SEED: saved value is incompatible; intent preserved and Generate blocked");
-        }
-        setVisible(widget(node, "generate_audio"), capability.generate_audio === true);
-        if (capability.generate_audio !== true && widget(node, "generate_audio")?.value === true) {
-            disclose(node, "GENERATE AUDIO: incompatible saved value preserved; Generate blocked");
-        }
         setVisible(widget(node, "first_frame_url"), false);
         setVisible(widget(node, "last_frame_url"), false);
-        node.__orvCapability = capability;
+        node.__orvModelCapability = capability;
         const method = configureInferenceMethod(node, capability);
-        if (method) configureReferenceTopology(node, capability, method);
-        configureGenerationConfiguration(node, capability);
+        reprojectNodeSemantics(node, capability, method);
         await refreshEstimate(node);
     } catch {
         node.__orvCapabilityStatus.value = "ERROR — CAPABILITIES UNAVAILABLE";
@@ -1421,6 +1588,7 @@ async function projectSelectedModel(node, force = false) {
     setVisible(node.__orvAdvanced, false);
     syncAdvancedControls(node);
     fitPresentationWidth(node);
+    publishSemanticProjection(node);
     node.setDirtyCanvas?.(true, true);
 }
 
@@ -1438,6 +1606,15 @@ app.registerExtension({
         });
     },
     async beforeRegisterNodeDef(nodeType, nodeData) {
+        if (nodeData?.name === "OpenRouterVideoReferenceCollection") {
+            const previous = nodeType.prototype.onConnectionsChange;
+            nodeType.prototype.onConnectionsChange = function (...args) {
+                const result = previous?.apply(this, args);
+                reprojectReferenceConsumers(this);
+                return result;
+            };
+            return;
+        }
         if (nodeData?.name !== GENERATE_NODE) return;
         const previousConnectionsChange = nodeType.prototype.onConnectionsChange;
         nodeType.prototype.onConnectionsChange = function (...args) {

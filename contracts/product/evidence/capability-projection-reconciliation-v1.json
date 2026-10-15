@@ -1,0 +1,224 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "IMPLEMENTATION_VERIFICATION_NOT_PRODUCT_OWNER_ACCEPTANCE",
+  "starting_head": "ab34768cdfdf977bafe217ad09d2ddd11b7f998e",
+  "accepted_tag": "adaptive-duration-slider-v1",
+  "accepted_sha": "f9c19c669735d08fc12b5460eaf2198cdde2d714",
+  "audit_sha256": "a2f458350ad1b9f5b52cccaa706e92bbb0c41f67e63f454ea73b08c5f4ddeb5a",
+  "audit_unchanged": true,
+  "findings": [
+    {
+      "id": "AR_AUDIO_ONLY",
+      "root_cause": "Primitive AUDIO was treated as standalone shape.",
+      "change": "Explicit method state plus complete reference kind sets; AUDIO-only excluded.",
+      "tests": "unit/test_public_projection.py; contract/test_public_projection_frontend.mjs",
+      "status": "RESOLVED",
+      "original_evidence_state": "UNSUPPORTED"
+    },
+    {
+      "id": "AR_UNPROVEN_INTEGRATION",
+      "root_cause": "Native modality was treated as OpenRouter integration proof.",
+      "change": "UNKNOWN method profiles remain hidden, omitted and distinct from UNSUPPORTED.",
+      "tests": "unit/test_public_projection.py: all-model projection + future profile transition",
+      "status": "RESOLVED",
+      "original_evidence_state": "UNKNOWN"
+    },
+    {
+      "id": "V2V_UNPROVEN_WIRE",
+      "root_cause": "VIDEO primitive was treated as an edit/extend source role.",
+      "change": "UNKNOWN V2V methods cannot select, activate source_video or reach Generate.",
+      "tests": "unit/test_public_projection.py; comfy/test_projection_gate.py",
+      "status": "RESOLVED",
+      "original_evidence_state": "UNKNOWN"
+    },
+    {
+      "id": "HAILUO_DURATION_COUPLING",
+      "root_cause": "Global duration ignored the currently served 1080p tier.",
+      "change": "Hailuo 2.3 T2V/I2V duration domain is six only; arbitrary exact size hidden.",
+      "tests": "unit/test_public_projection.py; browser RESTRICTED_RESOLUTION",
+      "status": "RESOLVED",
+      "original_evidence_state": "UNSUPPORTED"
+    },
+    {
+      "id": "GROK_REFERENCE_DOMAIN",
+      "root_cause": "Method-global domains broadened exact live evidence.",
+      "change": "References use 720p and <=10s; only ordered two-image 480p/1s/16:9 live exception retained; count-scoped relations prevent generalization.",
+      "tests": "unit/test_public_projection.py; browser MI2V",
+      "status": "RESOLVED",
+      "original_evidence_state": "CONFLICT"
+    },
+    {
+      "id": "GROK_I2V_ASPECT",
+      "root_cause": "Source-conditioned aspect was offered as independent override.",
+      "change": "I2V aspect UNKNOWN and omitted; source owns geometry.",
+      "tests": "unit/test_public_projection.py; browser I2V",
+      "status": "RESOLVED",
+      "original_evidence_state": "UNKNOWN"
+    },
+    {
+      "id": "SEEDANCE_REFERENCE_COUNTS",
+      "root_cause": "Unbounded universal reference topology.",
+      "change": "Explicit kind sets, minimum, aggregate cap and per-kind caps; Seedance 2.0 reviewed three-item subset, not a fabricated full upstream maximum; 2.5 reviewed limits 30 IMAGE/10 VIDEO/10 AUDIO, total50.",
+      "tests": "unit/test_public_projection.py; contract/test_public_projection_frontend.mjs; browser MMR2V",
+      "status": "RESOLVED",
+      "original_evidence_state": "UNKNOWN"
+    },
+    {
+      "id": "SEEDANCE_RESOLUTION_SHAPES",
+      "root_cause": "T2V tiers leaked into frame/reference shapes.",
+      "change": "Method-scoped frame/reference 480p/720p subset; unconfirmed exact pixels hidden; previous exact FLF/VR conflicts preserved.",
+      "tests": "unit/test_public_projection.py; unit/test_rc_live_conformance.py",
+      "status": "RESOLVED",
+      "original_evidence_state": "UNKNOWN"
+    },
+    {
+      "id": "VEO_DURATION_RESOLUTION_SHAPES",
+      "root_cause": "Independent resolution/duration arrays treated as tuples.",
+      "change": "Existing constraint vocabulary: high tiers eight seconds; I2V/FLF eight seconds; unproved Lite method shapes remain UNKNOWN.",
+      "tests": "unit/test_public_projection.py; browser SPARSE_DURATION",
+      "status": "RESOLVED",
+      "original_evidence_state": "UNKNOWN"
+    },
+    {
+      "id": "KLING_PROVIDER_SIZE_CONFLICT",
+      "root_cause": "Provider/OR size contradiction leaked to UI.",
+      "change": "Unresolved method scope remains hidden; no downscale, exact-size or preset/pixel relation fabricated.",
+      "tests": "unit/test_public_projection.py: all30-model projection",
+      "status": "RESOLVED",
+      "original_evidence_state": "CONFLICT"
+    },
+    {
+      "id": "HEYGEN_REFERENCE_WIRE",
+      "root_cause": "Media marketing was treated as confirmed served request shape.",
+      "change": "Unproved model methods remain UNKNOWN; no universal reference sockets or submit.",
+      "tests": "unit/test_public_projection.py: all30-model projection",
+      "status": "RESOLVED",
+      "original_evidence_state": "UNKNOWN"
+    },
+    {
+      "id": "SAVED_METHOD_REEXPOSURE",
+      "root_cause": "Saved invalid method was appended to supported picker.",
+      "change": "Supported-only picker; preserve invalid method as named intent, existing preferred/first-supported fallback.",
+      "tests": "contract/test_public_projection_frontend.mjs; browser AR2V_CONFLICT/SAVE_RELOAD",
+      "status": "RESOLVED",
+      "original_evidence_state": "CONFLICT"
+    },
+    {
+      "id": "UNIVERSAL_REFERENCE_SOCKET",
+      "root_cause": "Every reference input used the full media union.",
+      "change": "Generic method profile selects socket types and feasible next kind sets; incompatible links parked; typed owned legacy collection checked and carriers exclusive.",
+      "tests": "contract/test_public_projection_frontend.mjs; browser PARKED_MEDIA_SAVE_RELOAD",
+      "status": "RESOLVED",
+      "original_evidence_state": "CONFLICT"
+    },
+    {
+      "id": "HIDDEN_AUDIO_WIRE",
+      "root_cause": "Serializer emitted hidden generated-audio false.",
+      "change": "Optional None omitted; explicit supported false serialized; estimator does not invent audio-specific pricing choice.",
+      "tests": "unit/test_public_projection.py; comfy/test_projection_gate.py",
+      "status": "RESOLVED",
+      "original_evidence_state": "CONFLICT"
+    },
+    {
+      "id": "HIDDEN_STATE_PREVALIDATION",
+      "root_cause": "Seed/media parsed before omission; invalid explicit method fell back.",
+      "change": "Generic projected semantic values before parsing/encoding/staging; invalid explicit method blocked, legacy empty-method inference retained.",
+      "tests": "comfy/test_projection_gate.py; unit/test_public_projection.py",
+      "status": "RESOLVED",
+      "original_evidence_state": "CONFLICT"
+    }
+  ],
+  "findings_total": 15,
+  "findings_resolved": 15,
+  "findings_blocked": 0,
+  "dated_model_count": 30,
+  "model_method_rows": 300,
+  "reviewed_evidence_manifest_hash": "15b5eab137c54d677ac37f1bef2e5d98095715e898aa24d4a9fcca56cda9059b",
+  "source_sha256": {
+    "src/openrouter_video/capabilities.py": "a67e1980c71aa64ddde5c4e2d0f3cec59dd738175ad3297306a1b822893f013c",
+    "src/openrouter_video/comfy/compat.py": "8d137c8dbf0f6fffe590b0cd22940855285e80be59442d3aea80250f4864d783",
+    "src/openrouter_video/comfy/nodes.py": "9ceb512a3d2b60fad0ecd8e55e39b39893e68854dc0fe7acb5e2901dac1fcf11",
+    "src/openrouter_video/comfy/projection.py": "d36602e458e47bf5fed8432882c829ed424263a7be97fde04c438013257390d5",
+    "src/openrouter_video/comfy/runtime.py": "80122b596e5c5a5af658909363606bcbb99e848d62d893cd8bf8b3b0f4350c9f",
+    "src/openrouter_video/configuration.py": "e8a3a63f2255d0fd36d795a5558c61e5705a8332eca35e17060b3cfb31160a0e",
+    "src/openrouter_video/data/capability-evidence.json": "b63d68beb0f0e7d3af827df72ca22f2c7bbd59741277ef3587c6fbb3b0f75973",
+    "src/openrouter_video/evidence_registry.py": "5586744579d6ebae23c4176d78ae9f9b4a5335aa3978c781f9027adfcd2da457",
+    "src/openrouter_video/models.py": "49dba07e5569019bdcdf5066b8a6855b1aed98d2f8491bb6dd78fc8ac3b6d4b4",
+    "web/openrouter_video.js": "f676c6626f21cfc338f992d48af0a302915dc35444535efd72c9295a30a40189"
+  },
+  "semantic_guard": {
+    "source": "PASS",
+    "node": "PASS",
+    "unauthorized_delta": 0
+  },
+  "tests": {
+    "python_passed": 443,
+    "python_optional_materialization_skips": 3,
+    "frontend_passed": 127,
+    "builder_passed": 75,
+    "builder_subtests_passed": 62,
+    "ruff": "PASS",
+    "format": "PASS",
+    "mypy": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "browser": {
+    "renderer_states": 24,
+    "all_checks_pass": true,
+    "renderers": [
+      "Classic",
+      "Nodes2"
+    ],
+    "screenshots": 8,
+    "paid_prompt_requests": 0,
+    "graph_initialization": "Configure empty root graph before node creation; a bare clear leaves zero UUID and can collide with stale native widget metadata."
+  },
+  "runtime": {
+    "url": "http://127.0.0.1:8189",
+    "pid": 45668,
+    "ui_contract_version": 5,
+    "catalogue": "FRESH",
+    "state": "RUNNING_HEALTHY",
+    "source_fingerprint": "53eac068a5428c8a35ad2da6486c52aee025fb02376ad96ce817579e358532d4",
+    "fingerprint_file_count": 42
+  },
+  "external_dev_helper_delta": {
+    "paths": [
+      "plugins/openrouter-video-builder/skills/openrouter-video-dev-session/scripts/dev_session.py",
+      "plugins/openrouter-video-builder/tests/test_dev_session.py"
+    ],
+    "change": "Expected additive UI contract 5; source helper and tests only. No plugin publishing.",
+    "sha256": {
+      "plugins/openrouter-video-builder/skills/openrouter-video-dev-session/scripts/dev_session.py": "adc93cd0d07e7e64489ebe27391ed874eb25229fc2558e1130dd05c39e856e29",
+      "plugins/openrouter-video-builder/tests/test_dev_session.py": "9862b82067e83b5b956f1b5528e9e2626537063e649b4fc575b1d61ed2687eaf"
+    }
+  },
+  "paid_post_count": 0,
+  "production_8188": "UNTOUCHED",
+  "pr_28": "UNTOUCHED",
+  "delivery": "LOCAL_CANDIDATE_ONLY",
+  "product_owner_acceptance": "PENDING",
+  "gate": "READY_FOR_PRODUCT_OWNER_RC_REVIEW",
+  "proof_files": {
+    "browser-qa-certified.json": "95efbd466016a5957e8e347e9314fd97ea25afa859583dc95f65310c9858369d",
+    "browser-screens-certified.json": "9a5bbb11b3cb2df73ad718fabb12e1d863b70757b5370a7e5e981792b369c364",
+    "classic-exact.png": "015cc0351cab4b5a9668746d5547ae5415064b90169fcbc3f870a4a5f3e24a64",
+    "classic-flf.png": "9f2807d9a2050b87e79b91c2b2ffdc222463bb7b7d9b7cdacf710d12222b5f41",
+    "classic-mmr.png": "afcfed2bf94d71fe9479b010b286adea8033eeb9e0247f32329fd54533c848ec",
+    "classic-sparse.png": "900da2acfaa223b239d16bbc86c4c5128c2065957d786e6dea4ab8f62eb92ec8",
+    "nodes2-exact.png": "c53d568b68030240f9941841d66e98bc917624b3198ec529475de982bd8522fe",
+    "nodes2-flf.png": "07ce834cf737dedc0196dee500cfd9fdfaf6edde022237e9b8164fbbc35f0983",
+    "nodes2-mmr.png": "7b9eacb825110499164deb0f0f38d4d249e66f336b14dadd13c69a3c846f3537",
+    "nodes2-sparse.png": "14bf0abe9d2fc5808ddab6c72434f063fbc933ee8d012af2d25e63e780ba084e",
+    "projection-node-ux-candidate-v4.json": "93b3eeffd4ca2018506a20d4089b188765a82b6a45aeea4b2158fc43b1b86b81",
+    "projection-node-ux-diff.json": "58d87708e8766b479be0150e2018bcd256f2fc5831931685beff91ecfb901e51",
+    "projection-source-contract.json": "750073ff4bf2d2f397b1df6491369507fbf0e64219fac889058c74077b32a453",
+    "projection-source-diff.json": "0d4641b0ca656f8e79baf8c7978820182f4416ac439c70158af884ae9b5b243e",
+    "projection-test-results.json": "635cf3dbc49492ff762d9cc61269497832526e7988581a38f4a42af0fb43d3ae",
+    "readonly-ledger.json": "35c14a36ffd6377c8eaf2c395ec3c1f4b67c19fb5788c8e3ef11995a1687e4b6"
+  },
+  "audit_content_hash": "e51c615e57a05bc065ac7c3dcd651ac32ceb101877a8b9f436fc19ffc299c0c0",
+  "audit_host_observed_sha256": "5a3eae69b8bad66882827a6646f66f4622cdb530490c79b89da8d4d4943de06c",
+  "proof_digest_format": "SHA256_OF_LF_NORMALIZED_BYTES_FOR_TEXT; RAW_BYTES_FOR_PNG",
+  "content_hash": "2e4804c0e31a92d2ffe6c023652c5450ad44846b34cde28e3161458dba9edc11"
+}

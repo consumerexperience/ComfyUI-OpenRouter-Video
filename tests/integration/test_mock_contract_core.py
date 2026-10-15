@@ -139,7 +139,15 @@ def test_seedance_overlay_reference_modes_use_the_existing_generate_lifecycle(
                 Operation.DISCOVERY,
                 "GET",
                 "/api/v1/videos/models",
-                json_body={"data": [{"id": "bytedance/seedance-2.5"}]},
+                json_body={
+                    "data": [
+                        {
+                            "id": "bytedance/seedance-2.5",
+                            "generate_audio": True,
+                            "supported_durations": [5],
+                        }
+                    ]
+                },
             ),
             ScenarioStep(
                 Operation.SUBMIT,
@@ -225,7 +233,15 @@ def test_default_golden_pack_multimodal_order_uses_mocked_generate_lifecycle(
                 Operation.DISCOVERY,
                 "GET",
                 "/api/v1/videos/models",
-                json_body={"data": [{"id": "bytedance/seedance-2.5"}]},
+                json_body={
+                    "data": [
+                        {
+                            "id": "bytedance/seedance-2.5",
+                            "generate_audio": True,
+                            "supported_durations": [5],
+                        }
+                    ]
+                },
             ),
             ScenarioStep(
                 Operation.SUBMIT,

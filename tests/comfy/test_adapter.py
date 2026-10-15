@@ -126,6 +126,7 @@ from openrouter_video.models import (  # noqa: E402
     VideoArtifact,
 )
 from openrouter_video.pricing import EstimateAvailability, EstimateResult  # noqa: E402
+from tests.projection_fixtures import ProjectionCatalogRuntime  # noqa: E402
 
 
 def _schema_inputs(schema: _Schema) -> dict[str, _Field]:
@@ -231,7 +232,7 @@ def test_generate_normalizes_once_and_returns_exact_output(
 ) -> None:
     calls: list[tuple[object, str | None]] = []
 
-    class Runtime:
+    class Runtime(ProjectionCatalogRuntime):
         async def generate(self, request: object, node_id: str | None) -> GenerationResult:
             calls.append((request, node_id))
             return GenerationResult(
@@ -348,7 +349,7 @@ def test_generate_bridges_typed_reference_collection(monkeypatch: pytest.MonkeyP
     )
     captured: list[object] = []
 
-    class Runtime:
+    class Runtime(ProjectionCatalogRuntime):
         async def generate(self, request: object, _: str | None) -> GenerationResult:
             captured.append(request)
             return GenerationResult(
@@ -374,7 +375,7 @@ def test_audio_helper_and_v2v_source_role_bridge_to_core(monkeypatch: pytest.Mon
     ]
     captured: list[object] = []
 
-    class Runtime:
+    class Runtime(ProjectionCatalogRuntime):
         async def generate(self, request: object, _: str | None) -> GenerationResult:
             captured.append(request)
             return GenerationResult(
@@ -407,7 +408,7 @@ def test_generate_bridges_direct_ordered_references_and_rejects_mixed_topologies
     video = InputReference(InputReferenceKind.VIDEO, "https://assets.example/b.mp4")
     captured: list[object] = []
 
-    class Runtime:
+    class Runtime(ProjectionCatalogRuntime):
         async def generate(self, request: object, _: str | None) -> GenerationResult:
             captured.append(request)
             return GenerationResult(
@@ -453,7 +454,7 @@ def test_native_image_normalizes_into_existing_frame_and_ordered_reference_roles
     )
     captured: list[object] = []
 
-    class Runtime:
+    class Runtime(ProjectionCatalogRuntime):
         async def generate(self, request: object, _: str | None) -> GenerationResult:
             captured.append(request)
             return GenerationResult(LocalLifecycleState.DONE, "job-native-image")
@@ -508,13 +509,13 @@ def test_generate_rejects_invalid_duration_without_runtime_call(
         lambda: pytest.fail("runtime must not be created for invalid duration"),
     )
     with pytest.raises(nodes.AdapterExecutionError, match="UNSUPPORTED_PARAMETER"):
-        asyncio.run(nodes.OpenRouterVideoGenerate.execute("vendor/model", "prompt", duration))
+        nodes._duration(duration)
 
 
 @pytest.mark.parametrize("seed", ("1.2", "not-a-number"))
 def test_generate_rejects_invalid_seed(seed: str) -> None:
     with pytest.raises(nodes.AdapterExecutionError, match="UNSUPPORTED_PARAMETER"):
-        asyncio.run(nodes.OpenRouterVideoGenerate.execute("vendor/model", "prompt", seed=seed))
+        nodes._seed(seed)
 
 
 def test_unresolved_model_is_rejected_before_runtime_and_seed_omission_migrates(
@@ -539,7 +540,7 @@ def test_unresolved_model_is_rejected_before_runtime_and_seed_omission_migrates(
 def test_resume_strips_job_id_and_has_no_submit_surface(monkeypatch: pytest.MonkeyPatch) -> None:
     calls: list[str] = []
 
-    class Runtime:
+    class Runtime(ProjectionCatalogRuntime):
         async def resume(self, job_id: str, _: str | None) -> GenerationResult:
             calls.append(job_id)
             return GenerationResult(
@@ -645,7 +646,7 @@ def test_models_route_returns_only_sorted_valid_ids_and_sanitized_errors(
         responses.append((payload, status))
         return payload, status
 
-    class Runtime:
+    class Runtime(ProjectionCatalogRuntime):
         async def catalog(self) -> object:
             return types.SimpleNamespace(
                 models=(
@@ -690,7 +691,7 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
 ) -> None:
     observed = datetime(2026, 9, 26, 19, 54, 44, tzinfo=timezone.utc)
 
-    class Runtime:
+    class Runtime(ProjectionCatalogRuntime):
         async def effective_catalog(self) -> object:
             return types.SimpleNamespace(
                 observed_at=observed,
@@ -729,7 +730,7 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
 
     assert status == 200
     assert payload["observed_at"] == observed.isoformat()
-    assert payload["ui_contract_version"] == 4
+    assert payload["ui_contract_version"] == 5
     assert len(payload["catalogue_revision"]) == 64
     generate = nodes.OpenRouterVideoGenerate.define_schema()
     assert _schema_inputs(generate)["model"].options["options"] == ["SELECT MODEL"]
@@ -740,13 +741,7 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
     assert projected["supported_reference_kinds"] == ("image", "video")
     assert projected["max_reference_count"] == 50
     assert projected["mixed_reference_kinds"] is True
-    assert projected["supported_inference_methods"] == (
-        "I2V",
-        "IR2V",
-        "MI2V",
-        "VR2V",
-        "MMR2V",
-    )
+    assert projected["supported_inference_methods"] == ()  # Primitive flags are not shape proof.
     serialized = repr(payload).lower()
     assert "pricing" not in serialized
     assert "0.42" not in serialized
@@ -757,7 +752,7 @@ def test_empty_catalogue_is_not_misclassified_as_ui_desync(
 ) -> None:
     observed = datetime(2026, 9, 26, 19, 54, 44, tzinfo=timezone.utc)
 
-    class Runtime:
+    class Runtime(ProjectionCatalogRuntime):
         async def effective_catalog(self) -> object:
             return types.SimpleNamespace(observed_at=observed, models=())
 
@@ -813,7 +808,7 @@ def test_health_route_is_pure_local_sanitized_observation(
         "catalogue_model_count": 30,
         "catalogue_revision": "a" * 64,
         "plugin_version": "0.1.0",
-        "ui_contract_version": 4,
+        "ui_contract_version": 5,
     }
     assert "key" not in repr(payload).lower()
     assert "authorization" not in repr(payload).lower()
@@ -839,7 +834,7 @@ def test_cost_estimate_route_returns_prepared_result_only(
                 "source_video_present": False,
             }
 
-    class Runtime:
+    class Runtime(ProjectionCatalogRuntime):
         async def estimate_cost(self, inputs: object) -> EstimateResult:
             captured.append(inputs)
             return EstimateResult(

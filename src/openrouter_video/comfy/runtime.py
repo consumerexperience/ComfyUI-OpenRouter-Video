@@ -9,7 +9,7 @@ import secrets
 import threading
 import time
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, TypeVar
 
@@ -17,6 +17,12 @@ from openrouter_video.app_identity import OFFICIAL_APP_IDENTITY
 from openrouter_video.application import GenerateService, ResumeService
 from openrouter_video.capabilities import CapabilityObservation, CapabilityService, RequestValidator
 from openrouter_video.client import OpenRouterVideoClient
+from openrouter_video.configuration import (
+    configuration_status,
+    project_method,
+    project_semantic_values,
+    projected_shape_valid,
+)
 from openrouter_video.execution_hooks import ExecutionControl, ExecutionPhase
 from openrouter_video.media import DownloadService
 from openrouter_video.models import GenerationRequest, GenerationResult
@@ -197,9 +203,79 @@ class ProcessRuntime:
                 return EstimateResult.unavailable(observation.observed_at, "pricing_evidence_stale")
             for model in observation.models:
                 if inputs.model_id in {model.model_id, model.canonical_slug}:
+                    profile = project_method(model, inputs.inference_method.value)
+                    if profile["state"] != "SUPPORTED":
+                        return EstimateResult.unavailable(
+                            observation.observed_at, "method_not_projected"
+                        )
+                    raw = {
+                        k: getattr(inputs, k)
+                        for k in (
+                            "duration",
+                            "resolution",
+                            "aspect_ratio",
+                            "size",
+                            "generate_audio",
+                        )
+                    }
+                    raw["geometry_authority"] = "EXACT" if inputs.size else "NORMALIZED"
+                    values = project_semantic_values(model, inputs.inference_method.value, raw)
+                    size = profile["controls"]["size"]
+                    if (
+                        size["state"] == "SUPPORTED"
+                        and inputs.size in size["values"]
+                        and (inputs.resolution is not None or inputs.aspect_ratio is not None)
+                    ):
+                        return EstimateResult.unavailable(
+                            observation.observed_at, "geometry_intent_conflict"
+                        )
+                    if (
+                        values["generate_audio"] is None
+                        and model.pricing_evidence
+                        and any(
+                            "with_audio" in sku.key or "without_audio" in sku.key
+                            for sku in model.pricing_evidence.skus
+                        )
+                    ):
+                        return EstimateResult.unavailable(
+                            observation.observed_at, "omitted_audio_pricing_ambiguous"
+                        )
+                    kinds = inputs.reference_kinds if profile["topology"]["max"] else ()
+                    if not projected_shape_valid(profile, tuple(k.value for k in kinds)):
+                        return EstimateResult.unavailable(
+                            observation.observed_at, "reference_shape_not_projected"
+                        )
+                    context = {
+                        "inference_method": inputs.inference_method.value,
+                        "geometry_authority": "EXACT" if values["size"] else "NORMALIZED",
+                        "generate_audio": values["generate_audio"],
+                        "reference_count": len(kinds),
+                        "reference_kinds": tuple(k.value for k in kinds),
+                        "source_video_present": inputs.source_video_present
+                        and "source_video" in profile["topology"]["fixed"],
+                    }
+                    if (
+                        configuration_status(
+                            tuple(profile["configuration_relations"]), values, context
+                        )
+                        != "READY"
+                    ):
+                        return EstimateResult.unavailable(
+                            observation.observed_at, "combination_not_projected"
+                        )
+                    effective = replace(
+                        inputs,
+                        **{
+                            k: values[k] for k in ("duration", "resolution", "aspect_ratio", "size")
+                        },
+                        generate_audio=values["generate_audio"] is True,
+                        reference_kinds=kinds,
+                        reference_count=len(kinds),
+                        source_video_present=bool(context["source_video_present"]),
+                    )
                     return PreflightCostEstimator().estimate(
                         model,
-                        inputs,
+                        effective,
                         observed_at=observation.observed_at,
                     )
             return EstimateResult.unavailable(observation.observed_at, "model_unavailable")

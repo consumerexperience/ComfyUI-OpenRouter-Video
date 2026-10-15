@@ -188,7 +188,7 @@ class GenerationRequest:
     aspect_ratio: str | None = None
     size: str | None = None
     seed: int | None = None
-    generate_audio: bool = False
+    generate_audio: bool | None = False
     first_frame: FrameReference | None = None
     last_frame: FrameReference | None = None
     source_video: InputReference | None = None
@@ -204,10 +204,11 @@ class GenerationRequest:
             raise ValueError("Native media must be staged before serialization.")
         """Return only the frozen OpenRouter request fields with no passthrough escape hatch."""
 
-        payload: dict[str, object] = {"model": self.model, "generate_audio": self.generate_audio}
+        payload: dict[str, object] = {"model": self.model}
         if self.prompt is not None:
             payload["prompt"] = self.prompt
         optional: tuple[tuple[str, object | None], ...] = (
+            ("generate_audio", self.generate_audio),
             ("duration", self.duration),
             ("resolution", self.resolution),
             ("aspect_ratio", self.aspect_ratio),

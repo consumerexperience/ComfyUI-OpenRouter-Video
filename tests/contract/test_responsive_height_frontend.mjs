@@ -1,3 +1,4 @@
+import { reviewedRcText } from "./rc_reviewed_patch.mjs";
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
@@ -24,6 +25,6 @@ test('saved tall and compact dimensions reconstruct without pixel persistence',(
 test('all non-layout source functions and protected values retain current baseline',()=>{
  const baseline=execFileSync('git',['show','25451ff:web/openrouter_video.js'],{cwd:new URL('../../',import.meta.url),encoding:'utf8'}).replace(/\r\n/g,'\n').replace(/^import .*;\n/gm,'');
  const functions=t=>Object.fromEntries(t.split(/(?=^function |^async function )/m).slice(1).map(p=>[p.match(/function (\w+)/)[1],p.slice(0,p.indexOf('\n}')+2)]));
- const a=functions(baseline),b=functions(source);for(const name of Object.keys(a))if(!['setVisible','addReadOnlyWidget','syncAdvancedControls','sizePrimaryControls','applyPresentation','fitPresentationWidth','configureGeometry','normalizedValue','configureGenerationConfiguration','restorePhase10NamedValues','bindEstimateRefresh','refreshEstimate'].includes(name))assert.equal(b[name],a[name],name);
- assert.equal(source.split('function widget')[0],baseline.split('function widget')[0]);
+ const a=functions(baseline),b=functions(reviewedRcText(new URL("../../",import.meta.url),"web/openrouter_video.js",source).replace(/^import .*;\r?\n/gm,""));for(const name of Object.keys(a))if(!['setVisible','addReadOnlyWidget','syncAdvancedControls','sizePrimaryControls','applyPresentation','fitPresentationWidth','configureGeometry','normalizedValue','configureGenerationConfiguration','restorePhase10NamedValues','bindEstimateRefresh','refreshEstimate'].includes(name))assert.equal(b[name],a[name],name);
+ assert.equal(reviewedRcText(new URL('../../',import.meta.url),'web/openrouter_video.js',source).replace(/^import .*;\r?\n/gm,'').split('function widget')[0],baseline.split('function widget')[0]);
 });

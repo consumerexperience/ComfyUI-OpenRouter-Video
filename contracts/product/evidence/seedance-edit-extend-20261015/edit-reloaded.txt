@@ -1,0 +1,123 @@
+- main:
+  - text: .. .. ..
+  - button "03_OPENROUTER_Video_Test •":
+    - generic: 03_OPENROUTER_Video_Test
+    - generic: •
+  - button "Nodes2_Media_Beta_Beta":
+    - generic: Nodes2_Media_Beta_Beta
+  - button "Seedance_Edit_Extend_Review_20261015 Close" [pressed]:
+    - generic: Seedance_Edit_Extend_Review_20261015
+    - button "Close":
+      - generic: 
+  - button "Create a new blank workflow":
+    - generic: 
+  - button "Login"
+  - navigation:
+    - button "Assets (a)"
+    - button "Node Library (n)"
+    - button "Model Library (m)"
+    - button "Workflows (w)"
+    - button "Apps"
+    - button "Templates"
+    - button "Help Center":
+      - generic: 
+    - button "Toggle Bottom Panel"
+    - button "Keyboard Shortcuts (Ctrl + Shift + k)"
+    - button "Settings (Ctrl + ,)"
+  - group "Workflow actions":
+    - button "Enter app mode":
+      - generic: App
+    - button "Graph mode, workflow actions":
+      - generic: Graph
+  - text: 
+  - region:
+    - generic: .. .. ..
+    - generic "Batch Count":
+      - textbox "Batch Count": "1"
+      - button "Increment":
+      - button "Decrement" [disabled]:
+    - button "Run": Run
+    - button "Run":
+    - button "Cancel current run" [disabled]
+    - button "0 active Expand job queue":
+      - generic: 0 active
+      - generic: Expand job queue
+  - button "Toggle properties panel"
+  - toolbar "Canvas Toolbar":
+    - button "Canvas Mode"
+    - button "Fit View (.)"
+    - button "Zoom Controls":
+      - generic: 102%
+    - button "Show Minimap (ALT + SHIFT + M)"
+    - button "Hide Links"
+  - text: 
+  - button
+  - generic: Load Video
+  - generic: VIDEO
+  - generic: file
+  - button "ORV_Canonical_QA_synthetic.mp4":
+    - generic: ORV_Canonical_QA_synthetic.mp4
+  - button "Upload"
+  - region "Video preview - Use arrow keys to navigate between videos"
+  - generic: 16 x 16
+  - button "Resize from bottom-right corner":
+  - button "Resize from top-right corner":
+  - button "Resize from bottom-left corner":
+  - button "Resize from top-left corner":
+  - button
+  - generic: OpenRouter Video Generate
+  - generic "ESTIMATE UNAVAILABLE"
+  - generic: source_video
+  - generic: reference_1
+  - generic: VIDEO
+  - generic: JOB_ID
+  - generic: MODEL
+  - generic: ACTUAL_COST_USD
+  - generic: STATUS
+  - textbox "REFERENCES": 1 connected · 48 remaining
+  - generic: Model
+  - combobox "Model":
+    - generic: "ByteDance: Seedance 2.5"
+  - button
+  - generic: Inference Method
+  - combobox "Inference Method":
+    - generic: V2V_EDIT — Source Video → Edited Video
+  - button
+  - generic: Prompt
+  - textbox "Prompt" [active]:
+    - /placeholder: ""
+    - text: Continue the existing shot with the same lighting and camera motion.
+  - generic: Resolution
+  - combobox "Resolution":
+    - generic: 720p
+  - button
+  - generic: Aspect Ratio
+  - combobox "Aspect Ratio":
+    - generic: 16:9
+  - button
+  - generic: Duration
+  - generic "duration":
+    - slider
+  - spinbutton "duration": "4"
+  - generic: Generate Audio
+  - switch "generate_audio"
+  - generic: control after generate
+  - combobox "control after generate":
+    - generic: randomize
+  - button
+  - generic: OpenRouter-Video
+  - button "Show advanced inputs":
+    - generic: Show advanced inputs
+  - button "Resize from bottom-right corner":
+  - button "Resize from top-right corner":
+  - button "Resize from bottom-left corner":
+  - button "Resize from top-left corner":
+  - region:
+    - button "Delete Selected Items"
+    - button "Node Info"
+    - button "Color":
+      - generic: 
+    - button "Convert Selection to Subgraph"
+    - button "Bypass/Unbypass Selected Nodes"
+    - button "More Options"
+  - text: 

@@ -1,0 +1,158 @@
+{
+  "schema_version": 2,
+  "baseline": "f9c19c669735d08fc12b5460eaf2198cdde2d714",
+  "root_causes": {
+    "FLF2V_GEOMETRY": {
+      "classification": [
+        "UPSTREAM_CONTRACT_CONFLICT",
+        "LOCAL_CAPABILITY_OVEREXPOSURE"
+      ],
+      "explanation": "Persisted structural fingerprint proves EXACT 480x480, normalized fields omitted; unchanged serializer conforms to OpenAPI. Catalogue advertises 480x480; actual MP4 864x496. Raw historical outbound capture absent; provider internal normalization cause unknown."
+    },
+    "VR2V_GEOMETRY": {
+      "classification": [
+        "UPSTREAM_CONTRACT_CONFLICT",
+        "LOCAL_CAPABILITY_OVEREXPOSURE"
+      ],
+      "explanation": "Same structural proof; requested EXACT 480x480, observed MP4 640x640. No local serialization conflict found; advertised exact conformance contradicted. Provider internal cause unknown."
+    },
+    "AR2V": {
+      "classification": [
+        "CAPABILITY_OVEREXPOSURE",
+        "UPSTREAM_CONTRACT_CONFLICT"
+      ],
+      "explanation": "Primitive AUDIO/mixed reference documentation was projected as standalone AR2V READY. Schema-compliant audio_url object under input_references is definitively rejected on Mini EXACT and Fast NORMALIZED. Exact rejected parameter is UNKNOWN: complete safe error body was never retained. This does not prove AUDIO unsupported and does not invalidate accepted MMR2V."
+    }
+  },
+  "generation_surfaces": {
+    "T2V": "LIVE_VERIFIED",
+    "I2V": "LIVE_VERIFIED",
+    "FLF2V": "LIVE_VERIFIED",
+    "MI2V": "LIVE_VERIFIED",
+    "VR2V": "LIVE_VERIFIED",
+    "AR2V": "FAIL",
+    "MMR2V": "LIVE_VERIFIED"
+  },
+  "cross_cutting": {
+    "EXACT_SIZE_CONFORMANCE": "CONSTRAINED",
+    "NORMALIZED_GEOMETRY": "PASS",
+    "NATIVE_IMAGE": "PASS",
+    "NATIVE_VIDEO": "PASS",
+    "NATIVE_AUDIO": "PASS",
+    "GENERATE_BILLING_SAFETY": "PASS",
+    "RESUME_BILLING_SAFETY": "PASS",
+    "BILLING_SAFETY": "PASS"
+  },
+  "verification": {
+    "python": {
+      "exit_code": 0,
+      "tail": [
+        "SKIPPED [1] tests\\contract\\test_higgsfield_golden_pack.py:89: Official third-party media is not materialized; run the fetch command in README.md",
+        "SKIPPED [1] tests\\contract\\test_higgsfield_multimodal_pack.py:43: MATERIALIZATION_REQUIRED: run python scripts/materialize_higgsfield_multimodal_pack.py; missing=('car_sheet', 'street_environment', 'car_chasing_playblast', 'passing_car_urban_ambience')",
+        "SKIPPED [1] tests\\contract\\test_higgsfield_multimodal_pack.py:83: MATERIALIZATION_REQUIRED: run python scripts/materialize_higgsfield_multimodal_pack.py; missing=('car_sheet', 'street_environment', 'car_chasing_playblast', 'passing_car_urban_ambience')",
+        "395 passed, 3 skipped in 29.28s"
+      ]
+    },
+    "frontend": {
+      "exit_code": 0,
+      "tail": [
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 1614.8752"
+      ]
+    },
+    "ruff": {
+      "exit_code": 0,
+      "tail": [
+        "All checks passed!"
+      ]
+    },
+    "format": {
+      "exit_code": 0,
+      "tail": [
+        "111 files already formatted"
+      ]
+    },
+    "mypy": {
+      "exit_code": 0,
+      "tail": [
+        "Success: no issues found in 101 source files"
+      ]
+    },
+    "source_semantic_diff": {
+      "STATUS": "PASS",
+      "UNAUTHORIZED_SEMANTIC_DELTA": 0
+    },
+    "node_ux_diff": {
+      "STATUS": "PASS",
+      "UNAUTHORIZED_SEMANTIC_DELTA": 0
+    },
+    "all_nonpaid_gates_pass": true
+  },
+  "paid_revalidation": {
+    "model": "bytedance/seedance-2.0-fast",
+    "duration": 4,
+    "resolution": "480p",
+    "aspect_ratio": "1:1",
+    "size": null,
+    "geometry_authority": "NORMALIZED",
+    "audio_input": "existing 2s mono PCM16 24k WAV",
+    "job_id": null,
+    "state": "SUBMIT_REJECTED",
+    "error_code": "UNSUPPORTED_PARAMETER",
+    "structural_fingerprint": "v3:8065eed2ec0bede76ae1f613ffcf43ef8db003567faf2e3dde6c394e6bc716db",
+    "fingerprint_verified": true,
+    "semantic_wire_shape": {
+      "model": "bytedance/seedance-2.0-fast",
+      "generate_audio": false,
+      "prompt": "present",
+      "duration": 4,
+      "resolution": "480p",
+      "aspect_ratio": "1:1",
+      "input_references": [
+        {
+          "type": "audio_url",
+          "audio_url": {
+            "url": "https://example.com/reference.wav"
+          }
+        }
+      ]
+    },
+    "paid_post_count": 1,
+    "cleanup_objects_remaining": 0,
+    "replacement_selection": "Fast is lowest reference component among nonconflicting Seedance-generation2+ AR2V projections; Mini known conflicting excluded. HeyGen AUDIO claim conflicts with generic schema honoring rules, so not chosen as stronger standalone proof. Rates are reference-only, not certified totals."
+  },
+  "renderer": {
+    "PASS": true,
+    "states": [
+      {
+        "renderer": "Classic",
+        "model": "bytedance/seedance-2.0-fast",
+        "options": [
+          "T2V",
+          "I2V",
+          "FLF2V",
+          "IR2V",
+          "MI2V",
+          "VR2V",
+          "MMR2V"
+        ]
+      },
+      {
+        "renderer": "Nodes 2.0",
+        "model": "bytedance/seedance-2.0-fast",
+        "options": [
+          "T2V",
+          "I2V",
+          "FLF2V",
+          "IR2V",
+          "MI2V",
+          "VR2V",
+          "MMR2V"
+        ]
+      }
+    ]
+  },
+  "next_gate": "BLOCKED_AR2V_UPSTREAM_PARAMETER_REJECTION"
+}

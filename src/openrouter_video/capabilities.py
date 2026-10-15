@@ -16,8 +16,12 @@ from urllib.parse import urlsplit
 from openrouter_video.client import DiscoveryClient
 from openrouter_video.configuration import (
     CONFIGURATION_KEY,
+    REQUEST_SHAPES_KEY,
     configuration_status,
     profile_constraints,
+    project_method,
+    project_semantic_values,
+    projected_shape_valid,
 )
 from openrouter_video.errors import (
     MalformedOpenRouterResponseError,
@@ -81,7 +85,15 @@ class CapabilityModeStatus(str, Enum):
 def inference_method_matrix(
     capabilities: ModelCapabilities,
 ) -> dict[InferenceMethod, CapabilityModeStatus]:
-    """Derive product methods deterministically from primitive capability evidence."""
+    """Reviewed public shapes; raw conceptual fixtures retain the global recipes."""
+
+    if any(f.key == REQUEST_SHAPES_KEY for f in capabilities.evidence_facts):
+        return {
+            method: CapabilityModeStatus.READY
+            if (state := project_method(capabilities, method.value)["state"]) == "SUPPORTED"
+            else CapabilityModeStatus(state)
+            for method in InferenceMethod
+        }
 
     from openrouter_video.recipes import RECIPES, evaluate
 
@@ -330,6 +342,47 @@ class RequestValidator:
 
         if request.model not in {capabilities.model_id, capabilities.canonical_slug}:
             self._fail(ProductErrorCode.UNSUPPORTED_MODEL, "The selected model does not match.")
+        scoped = None
+        if any(f.key == REQUEST_SHAPES_KEY for f in capabilities.evidence_facts):
+            scoped = project_method(capabilities, request.inference_method.value)
+            raw = {
+                name: getattr(request, name)
+                for name in (
+                    "prompt",
+                    "duration",
+                    "resolution",
+                    "aspect_ratio",
+                    "size",
+                    "seed",
+                    "generate_audio",
+                    "first_frame",
+                    "last_frame",
+                    "source_video",
+                    "input_references",
+                )
+            }
+            try:
+                projected = project_semantic_values(
+                    capabilities, request.inference_method.value, raw
+                )
+            except ValueError:
+                self._fail(
+                    ProductErrorCode.CAPABILITY_SIGNAL_GAP, "Method is not publicly supported."
+                )
+            if any(projected[name] != value for name, value in raw.items()):
+                self._fail(
+                    ProductErrorCode.UNSUPPORTED_PARAMETER, "Request contains nonprojected state."
+                )
+            kinds = (
+                tuple(r.kind.value for r in request.input_references.references)
+                if request.input_references
+                else ()
+            )
+            if not projected_shape_valid(scoped, kinds):
+                self._fail(
+                    ProductErrorCode.UNSUPPORTED_PARAMETER,
+                    "Reference combination is not supported.",
+                )
         self._supported(
             request.duration,
             capabilities.supported_durations,
@@ -355,7 +408,9 @@ class RequestValidator:
             request.input_references.references if request.input_references else ()
         )
         config_status = configuration_status(
-            profile_constraints(capabilities),
+            tuple(scoped["configuration_relations"])
+            if scoped
+            else profile_constraints(capabilities),
             {
                 "duration": request.duration,
                 "resolution": request.resolution,
@@ -363,6 +418,7 @@ class RequestValidator:
                 "size": request.size,
             },
             {
+                "geometry_authority": "EXACT" if request.size is not None else "NORMALIZED",
                 "inference_method": request.inference_method.value,
                 "generate_audio": request.generate_audio,
                 "reference_count": len(references_for_config) + (request.source_video is not None),

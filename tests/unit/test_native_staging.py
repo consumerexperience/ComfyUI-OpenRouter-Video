@@ -23,6 +23,7 @@ from openrouter_video.models import (
     GenerationRequest,
     InferenceMethod,
     InputReference,
+    InputReferenceCapabilities,
     InputReferenceCollection,
     InputReferenceKind,
     LocalLifecycleState,
@@ -35,7 +36,7 @@ from openrouter_video.policy import Operation
 from openrouter_video.s3_upload import StorageError
 from openrouter_video.staging import StagingManager
 
-MODEL = "bytedance/seedance-2.5"
+MODEL = "synthetic/native-staging"
 
 
 def native(kind: InputReferenceKind = InputReferenceKind.VIDEO) -> InputReference:
@@ -111,7 +112,19 @@ class Uploader:
 
 class Discovery:
     async def list_video_models(self) -> tuple[ModelCapabilities, ...]:
-        return (ModelCapabilities(model_id=MODEL), ModelCapabilities(model_id="vendor/unsupported"))
+        return (
+            ModelCapabilities(
+                model_id=MODEL,
+                supports_edit=True,
+                supports_extend=True,
+                input_reference_capabilities=InputReferenceCapabilities(
+                    reference_kinds=frozenset(InputReferenceKind),
+                    max_reference_count=50,
+                    mixed_reference_kinds=True,
+                ),
+            ),
+            ModelCapabilities(model_id="vendor/unsupported"),
+        )
 
 
 async def _no_sleep(_: float) -> None:

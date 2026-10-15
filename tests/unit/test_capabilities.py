@@ -236,7 +236,11 @@ def test_exact_id_overlay_makes_only_proven_reference_modes_ready() -> None:
     assert apply_capability_overlay(model) == model
     matrix = inference_method_matrix(model)
     for method in InferenceMethod:
-        assert matrix[method] is CapabilityModeStatus.READY
+        assert matrix[method] is (
+            CapabilityModeStatus.UNKNOWN
+            if method in {InferenceMethod.AR2V}
+            else CapabilityModeStatus.READY
+        )
     assert preferred_inference_method(model.model_id) is InferenceMethod.MI2V
 
 

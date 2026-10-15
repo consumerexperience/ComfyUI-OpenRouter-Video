@@ -9,8 +9,8 @@ from datetime import datetime
 from enum import Enum
 from typing import TypeVar
 
-from openrouter_video.capabilities import CapabilityModeStatus, inference_method_matrix
-from openrouter_video.configuration import profile_constraints
+from openrouter_video.capabilities import CapabilityModeStatus
+from openrouter_video.configuration import profile_constraints, project_method
 from openrouter_video.evidence_registry import preferred_method
 from openrouter_video.geometry import geometry_profile, reviewed_geometry
 from openrouter_video.models import InferenceMethod, ModelCapabilities
@@ -94,6 +94,7 @@ class UiModelCapabilities:
     capability_evidence: tuple[dict[str, object], ...] = ()
     unmapped_capabilities: tuple[str, ...] = ()
     configuration_relations: tuple[dict[str, object], ...] = ()
+    method_profiles: tuple[tuple[str, dict[str, object]], ...] = ()
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -121,6 +122,7 @@ class UiModelCapabilities:
             "capability_evidence": self.capability_evidence,
             "unmapped_upstream_capabilities": self.unmapped_capabilities,
             "configuration_relations": self.configuration_relations,
+            "method_profiles": dict(self.method_profiles),
             "geometry_profile": geometry_profile(
                 self.supported_resolutions,
                 self.supported_aspect_ratios,
@@ -134,7 +136,13 @@ class UiModelCapabilities:
 def project_model(capabilities: ModelCapabilities, observed_at: datetime) -> UiModelCapabilities:
     """Project effective Core truth without pricing, credentials or request data."""
 
-    matrix = inference_method_matrix(capabilities)
+    profiles = {m: project_method(capabilities, m.value) for m in _UI_METHODS}
+    matrix = {
+        m: CapabilityModeStatus.READY
+        if p["state"] == "SUPPORTED"
+        else CapabilityModeStatus(p["state"])
+        for m, p in profiles.items()
+    }
     frames = capabilities.supported_frame_types
     references = capabilities.input_reference_capabilities
     return UiModelCapabilities(
@@ -191,6 +199,7 @@ def project_model(capabilities: ModelCapabilities, observed_at: datetime) -> UiM
         ),
         unmapped_capabilities=capabilities.unmapped_capability_keys,
         configuration_relations=profile_constraints(capabilities),
+        method_profiles=tuple((m.value, profiles[m]) for m in _UI_METHODS),
     )
 
 

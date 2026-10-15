@@ -69,6 +69,16 @@ RECIPES = (
 
 
 def evaluate(model: ModelCapabilities, recipe: Recipe) -> str:
+    # Reviewed method-level observations do not deny a primitive modality or
+    # invalidate other recipes (in particular successful mixed references).
+    if any(
+        fact.key == "inference_method_conformance"
+        and fact.state is CapabilityFactState.CONFLICT
+        and isinstance(fact.value, dict)
+        and fact.value.get("method") == recipe.method.value
+        for fact in model.evidence_facts
+    ):
+        return "CONFLICT"
     refs = model.input_reference_capabilities
     states = []
     for requirement in recipe.requirements:

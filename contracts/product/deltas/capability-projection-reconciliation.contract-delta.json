@@ -1,0 +1,346 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "capability-projection-reconciliation",
+  "baseline_checkpoint": "adaptive-duration-slider-v1",
+  "baseline_sha": "f9c19c669735d08fc12b5460eaf2198cdde2d714",
+  "risk_tier": "B",
+  "intended_delta": [
+    "Owner authorized 2026-10-13: retain generation proofs, constrain exact-size combinations contradicted by live output; retain scoped AR2V conflict without denying MMR2V/audio transport.",
+    "Explicit owner implementation authority a06c010b-c73e-4dfd-aa9d-003a78dc542f: one normalized method-scoped profile, supported-only controls/topology/domains, named intent reprojection, hidden-state preparse/serializer/estimator omission; accepted visual/lifecycle/media contracts protected.",
+    "Owner attachment 3db6f7d9-11b1-4874-9ac4-1d9a063c67ab: correct only Seedance 2.5 V2V_EDIT and V2V_EXTEND documented input_references profiles; preserve VR2V/MMR2V/AR2V and hidden Draft, no synthetic wire fields. CI must use this cumulative current reconciliation contract."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/node_behavior/configureGenerationConfiguration",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Pass local geometry authority into generic existing constraint context; no visual/layout or wire change."
+    },
+    {
+      "path": "/surfaces/product_owned/recipes/src~01openrouter_video~01recipes_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Owner-approved scoped conformance repair; exact reviewed patch and focused negative-space checks."
+    },
+    {
+      "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01data~01capability-evidence_json",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Owner-approved scoped conformance repair; exact reviewed patch and focused negative-space checks. Explicit owner correction: exact Seedance 2.5 V2V_EDIT/V2V_EXTEND reference profiles; required source VIDEO plus reserved optional counts; no Draft, other-model changes or new wire fields."
+    },
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Owner-approved scoped conformance repair; exact reviewed patch and focused negative-space checks."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01capabilities_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Owner-approved scoped conformance repair; exact reviewed patch and focused negative-space checks."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01configuration_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Owner-approved scoped conformance repair; exact reviewed patch and focused negative-space checks."
+    },
+    {
+      "path": "/surfaces/product_owned/node_extension/complete_source",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Digest changes only for declared semantic projection functions, supported-only intent/topology hooks and UI contract 5. All accepted visual/layout functions and tokens independently unchanged."
+    },
+    {
+      "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01evidence_registry_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Only owner-authorized shared projection/omission correction. Fine-grained node functions and exact reviewed source pins independently guarded; no lifecycle, media, pricing formula or visual token edit."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01models_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Only owner-authorized shared projection/omission correction. Fine-grained node functions and exact reviewed source pins independently guarded; no lifecycle, media, pricing formula or visual token edit."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01nodes_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Only owner-authorized shared projection/omission correction. Fine-grained node functions and exact reviewed source pins independently guarded; no lifecycle, media, pricing formula or visual token edit."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01projection_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Only owner-authorized shared projection/omission correction. Fine-grained node functions and exact reviewed source pins independently guarded; no lifecycle, media, pricing formula or visual token edit."
+    },
+    {
+      "path": "/surfaces/product_owned/submit_resume/src~01openrouter_video~01comfy~01runtime_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Only owner-authorized shared projection/omission correction. Fine-grained node functions and exact reviewed source pins independently guarded; no lifecycle, media, pricing formula or visual token edit."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01compat_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Only owner-authorized shared projection/omission correction. Fine-grained node functions and exact reviewed source pins independently guarded; no lifecycle, media, pricing formula or visual token edit."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/configureEnum",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/isDirectReferenceInput",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/capabilityIntent",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/referenceShapeValid",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/legacyReferenceKinds",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/reprojectReferenceConsumers",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/scopedCapability",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/publishSemanticProjection",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/reprojectNodeSemantics",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/parkIncompatibleMedia",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/projectedWidgetValue",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/referenceSocketType",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/addTrailingReferenceInput",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/configureReferenceTopology",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/configureInferenceMethod",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/bindInferenceMethod",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/selectedReferenceKinds",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/refreshEstimate",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/bindEstimateRefresh",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/projectSelectedModel",
+      "operations": [
+        "replace",
+        "add"
+      ],
+      "reason": "Generic profile projection, supported-only options, parked link/parameter intent, method-scoped omission; styles/responsive functions protected."
+    },
+    {
+      "path": "/surfaces/product_owned/node_backend/src~01openrouter_video~01models.py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Explicit adapter/optional serializer omission and normalized method profile; native transport and existing wire carriers unchanged."
+    },
+    {
+      "path": "/surfaces/product_owned/node_backend/src~01openrouter_video~01comfy~01nodes.py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Explicit adapter/optional serializer omission and normalized method profile; native transport and existing wire carriers unchanged."
+    },
+    {
+      "path": "/surfaces/product_owned/node_backend/src~01openrouter_video~01comfy~01projection.py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Explicit adapter/optional serializer omission and normalized method profile; native transport and existing wire carriers unchanged."
+    },
+    {
+      "path": "/surfaces/product_owned/node_behavior/syncAdvancedControls",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Owner requires local Control After Generate to remain independent of upstream Seed. Set public canvasOnly metadata according to whether its native Seed parent is visible; retain the same local widget, value, callback and serialization. No spacing/style change."
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned/database_migrations/src~01openrouter_video~01persistence_py",
+    "/surfaces/product_owned/pricing/src~01openrouter_video~01pricing_py",
+    "/surfaces/product_owned/pricing/src~01openrouter_video~01pricing_profile_py",
+    "/surfaces/product_owned/native_media/src~01openrouter_video~01comfy~01native_media_py",
+    "/surfaces/product_owned/submit_resume/src~01openrouter_video~01application_py",
+    "/surfaces/product_owned/submit_resume/src~01openrouter_video~01execution_hooks_py",
+    "/surfaces/product_owned/storage/src~01openrouter_video~01local_media_py",
+    "/surfaces/product_owned/storage/src~01openrouter_video~01s3_upload_py",
+    "/surfaces/product_owned/storage/src~01openrouter_video~01staging_py",
+    "/surfaces/product_owned/credentials/src~01openrouter_video~01secrets_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01capability_overlays_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01client_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01errors_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01geometry_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01image_transport_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01lifecycle_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01media_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01observability_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01policy_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01request_policy_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01transport_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01__init___py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01extension_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01image_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01routes_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01video_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01__init___py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01data~01geometry-relations_json",
+    "/surfaces/product_owned/AppIdentity/src~01openrouter_video~01app_identity_py"
+  ],
+  "expected_components": [
+    "Existing reviewed evidence manifest",
+    "Existing generic configuration profile",
+    "Core capability guard",
+    "Comfy semantic adapter/UI",
+    "Estimator preflight only",
+    "Projection regression tests"
+  ],
+  "required_gates": [
+    "baseline_declaration",
+    "builder",
+    "frontend",
+    "geometry",
+    "negative_space_tests",
+    "python",
+    "semantic_diff",
+    "serializer",
+    "staging",
+    "zero_unauthorized_delta"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

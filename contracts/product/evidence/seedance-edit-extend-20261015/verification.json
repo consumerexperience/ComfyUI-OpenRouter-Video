@@ -1,0 +1,52 @@
+{
+  "python": {
+    "exit_code": 0,
+    "tail": [
+      "........................................................................ [ 95%]",
+      "......................                                                   [100%]",
+      "=========================== short test summary info ===========================",
+      "SKIPPED [1] tests\\contract\\test_higgsfield_golden_pack.py:89: Official third-party media is not materialized; run the fetch command in README.md",
+      "SKIPPED [1] tests\\contract\\test_higgsfield_multimodal_pack.py:43: MATERIALIZATION_REQUIRED: run python scripts/materialize_higgsfield_multimodal_pack.py; missing=('car_sheet', 'street_environment', 'car_chasing_playblast', 'passing_car_urban_ambience')",
+      "SKIPPED [1] tests\\contract\\test_higgsfield_multimodal_pack.py:83: MATERIALIZATION_REQUIRED: run python scripts/materialize_higgsfield_multimodal_pack.py; missing=('car_sheet', 'street_environment', 'car_chasing_playblast', 'passing_car_urban_ambience')",
+      "451 passed, 3 skipped in 38.06s"
+    ]
+  },
+  "frontend": {
+    "exit_code": 0,
+    "tail": [
+      "\u2139 suites 0",
+      "\u2139 pass 130",
+      "\u2139 fail 0",
+      "\u2139 cancelled 0",
+      "\u2139 skipped 0",
+      "\u2139 todo 0",
+      "\u2139 duration_ms 2485.5944"
+    ]
+  },
+  "ruff": {
+    "exit_code": 0,
+    "tail": [
+      "All checks passed!"
+    ]
+  },
+  "format": {
+    "exit_code": 0,
+    "tail": [
+      "204 files already formatted"
+    ]
+  },
+  "mypy": {
+    "exit_code": 0,
+    "tail": [
+      "Success: no issues found in 105 source files"
+    ]
+  },
+  "source_guard": {
+    "status": "PASS",
+    "unauthorized": 0
+  },
+  "node_guard": {
+    "status": "PASS",
+    "unauthorized": 0
+  }
+}

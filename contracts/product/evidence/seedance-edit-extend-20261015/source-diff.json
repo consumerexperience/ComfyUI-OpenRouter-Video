@@ -1,0 +1,108 @@
+{
+  "STATUS": "PASS",
+  "AUTHORIZED_DELTA": [
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01capabilities_py",
+      "operation": "replace",
+      "before": "e08a5a52a345925e00117133419f7d3b96bc1cce65421858de59141032a463f4",
+      "after": "a67e1980c71aa64ddde5c4e2d0f3cec59dd738175ad3297306a1b822893f013c"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01compat_py",
+      "operation": "replace",
+      "before": "073afc31544c1891b97793101b1bdeba8dcb226e362bc2eb2ad413595d0236ea",
+      "after": "8d137c8dbf0f6fffe590b0cd22940855285e80be59442d3aea80250f4864d783"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01nodes_py",
+      "operation": "replace",
+      "before": "d3d2a0b76fc963d9c86220942067f910138586dfcf052d55c5886e15c153356d",
+      "after": "9ceb512a3d2b60fad0ecd8e55e39b39893e68854dc0fe7acb5e2901dac1fcf11"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01projection_py",
+      "operation": "replace",
+      "before": "561aefc4a79a5bad9b3590d536d2a7db605a5bd204a65318d5d50f7a3572abb0",
+      "after": "d36602e458e47bf5fed8432882c829ed424263a7be97fde04c438013257390d5"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01configuration_py",
+      "operation": "replace",
+      "before": "8bc3b18e885048302562e4de38bad9cb8bec0bf5db2020c2b53956d6f85249e6",
+      "after": "e8a3a63f2255d0fd36d795a5558c61e5705a8332eca35e17060b3cfb31160a0e"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01models_py",
+      "operation": "replace",
+      "before": "97c5f83f6cf5c6a712f890746ef119c24b08ef51b8ed659e331495b8890c08d9",
+      "after": "49dba07e5569019bdcdf5066b8a6855b1aed98d2f8491bb6dd78fc8ac3b6d4b4"
+    },
+    {
+      "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01data~01capability-evidence_json",
+      "operation": "replace",
+      "before": "a6a771959633875f3c690859e78f6a3b07176701daace1fb1c7ceb4fc952fea0",
+      "after": "ec25bd96a4b12bdb9b0b3b0559dfd8c113c7f2ebf34824719303f044b592844a"
+    },
+    {
+      "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01evidence_registry_py",
+      "operation": "replace",
+      "before": "ce90afa2fb1f80f560a2cfac5d9fd6034cb7750fa31beb1bce7728be5371a42d",
+      "after": "5586744579d6ebae23c4176d78ae9f9b4a5335aa3978c781f9027adfcd2da457"
+    },
+    {
+      "path": "/surfaces/product_owned/recipes/src~01openrouter_video~01recipes_py",
+      "operation": "replace",
+      "before": "9cbc7dc0a65f3a1f7dcd3783d16e3a745b76abffe52f949491a9748b73fe69e6",
+      "after": "9c8927ff3aabd3788465a9b27348d5bfc851dfc816e41510188c5854b4a4fb70"
+    },
+    {
+      "path": "/surfaces/product_owned/submit_resume/src~01openrouter_video~01comfy~01runtime_py",
+      "operation": "replace",
+      "before": "6d7129cb65e3cb25cb2d24df92d6498bcf227e6e4953fd164444deacdee72c0e",
+      "after": "80122b596e5c5a5af658909363606bcbb99e848d62d893cd8bf8b3b0f4350c9f"
+    },
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operation": "replace",
+      "before": "52e148a7637636ce754bb540afe377c3e9cb9aaa9c3119bdd4fa5f65a48d2c3b",
+      "after": "f676c6626f21cfc338f992d48af0a302915dc35444535efd72c9295a30a40189"
+    }
+  ],
+  "UNAUTHORIZED_DELTA": [],
+  "UNCHANGED_PROTECTED_SURFACES": [
+    "/surfaces/product_owned/database_migrations/src~01openrouter_video~01persistence_py",
+    "/surfaces/product_owned/pricing/src~01openrouter_video~01pricing_py",
+    "/surfaces/product_owned/pricing/src~01openrouter_video~01pricing_profile_py",
+    "/surfaces/product_owned/native_media/src~01openrouter_video~01comfy~01native_media_py",
+    "/surfaces/product_owned/submit_resume/src~01openrouter_video~01application_py",
+    "/surfaces/product_owned/submit_resume/src~01openrouter_video~01execution_hooks_py",
+    "/surfaces/product_owned/storage/src~01openrouter_video~01local_media_py",
+    "/surfaces/product_owned/storage/src~01openrouter_video~01s3_upload_py",
+    "/surfaces/product_owned/storage/src~01openrouter_video~01staging_py",
+    "/surfaces/product_owned/credentials/src~01openrouter_video~01secrets_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01capability_overlays_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01client_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01errors_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01geometry_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01image_transport_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01lifecycle_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01media_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01observability_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01policy_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01request_policy_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01transport_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01__init___py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01extension_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01image_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01routes_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01video_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01__init___py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01data~01geometry-relations_json",
+    "/surfaces/product_owned/AppIdentity/src~01openrouter_video~01app_identity_py"
+  ],
+  "UNKNOWN_DYNAMIC_SURFACES": [],
+  "OBSERVED_EVIDENCE_CHANGES": [],
+  "ACCEPTED_CONTRACT_DIGEST": "sha256:40df91e9fafc3985ee6d39efbc117ff038d42f98e4dc71447294762237b4f54b",
+  "CURRENT_CONTRACT_DIGEST": "sha256:9be7e4ac408400a66d0e61d98c73b6c52a52a97f547d3eaa41f3dec86c804665",
+  "CONTRACT_DELTA_DIGEST": "sha256:0ce5e440f37398f9897416209fcbfc0f6c53b08f9cce48005a30826ae45cddb3"
+}
