@@ -773,6 +773,7 @@ def test_empty_catalogue_is_not_misclassified_as_ui_desync(
 def test_health_route_is_pure_local_sanitized_observation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setattr(routes, "version", lambda _: "9.9.9-test-only")
     monkeypatch.setattr(
         routes,
         "get_runtime",
@@ -807,7 +808,7 @@ def test_health_route_is_pure_local_sanitized_observation(
         "catalogue_state": "FRESH",
         "catalogue_model_count": 30,
         "catalogue_revision": "a" * 64,
-        "plugin_version": "0.1.0",
+        "plugin_version": "9.9.9-test-only",
         "ui_contract_version": 5,
     }
     assert "key" not in repr(payload).lower()

@@ -1,0 +1,13 @@
+include __init__.py pyproject.toml README.md LICENSE SECURITY.md CHANGELOG.md CONTRIBUTING.md
+recursive-include src/openrouter_video *.py py.typed *.json
+recursive-include web *.js
+prune tests
+prune contracts
+prune docs
+include docs/native-media-bridge.md
+include docs/development.md docs/testing.md docs/adr/ADR-032-native-media-s3-staging.md
+prune .github
+prune build
+prune dist
+prune output
+global-exclude __pycache__ *.py[cod] .env .env.* *.log *.db *.sqlite *.sqlite3

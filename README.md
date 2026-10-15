@@ -1,86 +1,105 @@
 # OpenRouter Video for ComfyUI
 
-Open-source BYOK model-agnostic OpenRouter Video gateway for ComfyUI.
+A BYOK, model-agnostic gateway from ComfyUI to OpenRouter's asynchronous Video API.
+Use your own OpenRouter account, API key and balance. Results are native ComfyUI
+VIDEO, with JOB_ID, MODEL, ACTUAL_COST_USD when available, and STATUS outputs.
 
-## Status
+## Release candidate
 
-**PRE-ALPHA — Phase 10 local implementation; Design QA and protected delivery remain open; paid validation is not authorized.**
+This is v0.1 RC preparation, not a stable release or Registry publication.
+The single version authority is project.version in pyproject.toml. Python tooling
+normalizes 0.1.0-rc.1 to PEP 440 version 0.1.0rc1.
 
-The headless core now contains typed Video API contracts, capability discovery and bounded cache,
-pre-submit validation, a durable SQLite lifecycle, one-attempt Generate, submit-incapable Resume,
-bounded polling, and durable MP4/WebM download. The Phase-4 origin-bound request policy still owns
-all authentication, attribution, destination, redirect, TLS, and zero-transport-retry controls.
+## Installation
 
-The canonical Phase-9 baseline exposes Generate, submit-incapable Resume, public-HTTPS image/video
-reference nodes, direct ordered Autogrow reference inputs, and a legacy Phase-8 collection node.
-T2V and model-proven first/last-frame modes remain available. The exact-ID evidence overlay accepted
-in ADR-030 enables multi-image, video, and mixed image/video reference modes for
-`bytedance/seedance-2.5`; unresolved models still fail with `CAPABILITY_SIGNAL_GAP` before submit
-authority. Prompt remains required for every Generate call.
+Stop ComfyUI. From its directory, clone the custom node:
 
-Phase 10 implements capability-driven local inference methods and Seedance 2.5 AUDIO/Edit/Extend
-expansion. The refined Direction 3 specification is Product Owner accepted with compact dynamic socket
-labels (`image_N`, `video_N`, `audio_N`); [Design QA](docs/phase-10-design-qa.md) remains open. See the
-[canonical Phase-10 plan](docs/phase-10-capability-driven-inference-methods-plan.md),
-[ADR-031](docs/adr/ADR-031-capability-driven-inference-methods-and-multimodal-references.md), and the
-[active checkpoint](docs/active-execution-checkpoint.md).
+```sh
+git clone https://github.com/consumerexperience/ComfyUI-OpenRouter-Video.git custom_nodes/ComfyUI-OpenRouter-Video
+python -m pip install ./custom_nodes/ComfyUI-OpenRouter-Video
+```
 
-## Product principles
+Use the interpreter that runs ComfyUI in place of python, including the bundled
+interpreter for a portable installation. Check out your intended reviewed revision
+before installing. The default remote branch does not contain an unpublished local RC.
+An unpacked source distribution can occupy the same custom-node directory; run the
+same pip installation command there. The wheel alone installs the Python Core and
+adapter, not the custom-node entrypoint and web directory needed by ComfyUI.
 
-- The user owns the OpenRouter account, API key, and wallet.
-- The product is model-agnostic and preserves a billing-safe asynchronous lifecycle.
-- The API key never enters a workflow or node input.
-- The project owns no telemetry or analytics service.
-- Official attribution is static project-level release metadata, never a user/install identifier.
-- Polling, downloading, ambiguity, or attribution failure never authorizes another paid submit.
+Python 3.10+ and ComfyUI's numbered V3 API comfy_api.v0_0_2 with native media and
+dynamic inputs are required. Historical verification anchors are ComfyUI v0.34.3
+and v0.37.0. RC installation is checked on the v0.34.3 anchor; other host versions
+require compatible APIs and are not automatically certified.
 
-## Attribution state
+## First run
 
-The Product Owner has frozen the official release identity as:
+Configure OPENROUTER_API_KEY in the launch environment, then restart ComfyUI.
+The key belongs outside nodes and workflows. Never commit a secret .env or put
+credentials into workflow JSON, source files, logs or bug reports.
 
-- `HTTP-Referer`: `https://github.com/consumerexperience/ComfyUI-OpenRouter-Video`
-- `X-OpenRouter-Title`: `OpenRouter Video for ComfyUI`
-- `X-OpenRouter-Categories`: `video-gen`
+Add OpenRouter Video Generate. Choose Model and Inference Method, enter Prompt,
+connect the required media, and select the offered parameters. Loading a workflow
+or selecting a model does not generate a video. Discovery needs the configured
+key; missing credentials produce a configuration error without a paid submit.
 
-This identity is immutable source-level project metadata. It cannot be changed through a workflow,
-environment variable, runtime preference, user, device, installation, or session value.
+Native IMAGE uses the direct image bridge. Native VIDEO/AUDIO also need your own
+private S3-compatible staging storage. Public HTTPS media reference helper nodes
+remain available. See [native media setup and cleanup](docs/native-media-bridge.md).
+The project supplies no storage service and does not collect credentials.
 
-## Headless recovery identity
+## Adaptive controls and media
 
-- `job_id` is authoritative remote generation identity after acceptance.
-- `operation_id` is authoritative local logical-operation identity.
-- `request_fingerprint` is a versioned, privacy-preserving advisory checksum and never grants
-  submit, Resume, deduplication, or idempotency authority.
+Only capabilities confirmed for the selected OpenRouter model and method appear.
+UNKNOWN and conflicting states fail closed. Provider-native support does not
+establish support through OpenRouter. Available methods vary by model:
 
-See [Headless Core II](docs/headless-core-ii.md),
-[ADR-028](docs/adr/ADR-028-local-recovery-identity-and-request-fingerprint.md),
-[ADR-029](docs/adr/ADR-029-durable-definite-submit-rejection.md),
-[ADR-030](docs/adr/ADR-030-evidence-backed-capability-overlay.md), and
-[ADR-031](docs/adr/ADR-031-capability-driven-inference-methods-and-multimodal-references.md).
+- T2V: text to video.
+- I2V and FLF2V: first frame or first and last frame.
+- IR2V and MI2V: one or multiple image references.
+- VR2V: video references.
+- MMR2V: mixed image/video/audio references.
+- Seedance 2.5 V2V_EDIT and V2V_EXTEND: Source Video plus Prompt describing the
+  change or continuation, through the existing reference-based request shape.
 
-## ComfyUI compatibility
+Load Image, Load Video and Load Audio connect where topology permits. Reference
+kinds, combinations and counts are bounded. Generate Audio is independent from
+AUDIO references. Edit/Extend omit First/Last Frame inputs. Seedance 2.5 exposes
+480p/720p in the reviewed integration; Draft is not exposed. Standalone AR2V is
+hidden where unconfirmed or conflicting. Known Exact Size conflicts are constrained.
 
-The product uses capability-first host compatibility. `v0.34.3` is the release-blocking historical
-anchor and `v0.37.0` is the frozen release-blocking current target; `v0.35.0` and `v0.36.0` are
-intermediate regression probes, not unconditional support commitments. Missing required V3 host
-capabilities fail visibly. Production imports only `comfy_api.v0_0_2`; because that adapter
-delegates into mutable `comfy_api.latest`, the numbered import alone is not treated as a stable
-contract. See the [adapter contract](docs/comfyui-adapter.md).
+Classic and Nodes 2.0 share the same adaptive semantics. Compatible values and
+links survive save/reload. Incompatible intent is retained for repair. Model
+switching can choose a supported fallback; reselect your intended method when
+returning to a compatible model.
 
-## Security warning
+## Resume, recovery and billing
 
-Never place an OpenRouter API key in a workflow, node input, fixture, bug report, log, or source
-file. See [SECURITY.md](SECURITY.md).
+Each intentional Generate operation attempts at most one paid Video submit.
+Ambiguous submission, poll interruption and download failure never trigger an
+automatic resubmit. Keep the returned job ID. OpenRouter Video Resume observes
+and downloads that known job; it submits no new generation and uploads no media.
 
-## Development
+SQLite recovery state lives in the ComfyUI user directory. Preserve it during
+updates. Staging cleanup follows remote job state and exact object ownership;
+the native-media guide covers pending cleanup and storage configuration changes.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md), [docs/development.md](docs/development.md), and
-[docs/testing.md](docs/testing.md). Canonical project documents remain outside this repository;
-their authority and locations are indexed in [docs/canonical-sources.md](docs/canonical-sources.md).
+The header estimate is not a spending cap or charge guarantee. It is unavailable
+when pricing or input-media charges cannot be bounded. Actual cost comes from
+OpenRouter when available. No project telemetry or analytics service is included;
+static application attribution has no user, device or installation identifier.
 
-## License
+## Update
 
-Original project code is licensed under the MIT License. ComfyUI is studied as a GPL-3.0
-reference and host interface; its implementation is not copied into this project.
+Stop ComfyUI. Inspect local changes and move the custom-node checkout to the
+intended reviewed revision. On a clean tracked branch use git pull --ff-only,
+then run python -m pip install . from the custom-node directory with the ComfyUI
+interpreter and restart. Preserve user data and local credential configuration;
+do not force-reset local work or delete job databases.
 
-Native VIDEO/AUDIO and local storage setup: [Native Media Bridge](docs/native-media-bridge.md).
+## Limitations and development
+
+Capabilities and availability vary by OpenRouter integration. Accepted live
+evidence is not universal model-quality certification. See [RC notes](CHANGELOG.md),
+[security guidance](SECURITY.md) and [contributing checks](CONTRIBUTING.md).
+Original project code is MIT licensed; ComfyUI's host implementation is not bundled.
+See [LICENSE](LICENSE).
