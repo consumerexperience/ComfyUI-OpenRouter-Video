@@ -138,7 +138,7 @@ def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
     resume = nodes.OpenRouterVideoResume.define_schema()
 
     assert generate.node_id == "OpenRouterVideoGenerate"
-    assert generate.display_name == "OpenRouter Video Generate"
+    assert generate.display_name == "OpenRouter Video"
     assert resume.node_id == "OpenRouterVideoResume"
     assert resume.display_name == "OpenRouter Video Resume"
     assert generate.category == resume.category == "OpenRouter/Video"
