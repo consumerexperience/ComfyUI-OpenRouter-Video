@@ -111,7 +111,7 @@ function showConnectionPanel() {
         try {
             const response = await api.fetchApi(AUTH_START_ROUTE, {
                 method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ callback_url: `${window.location.origin}/openrouter-video/v1/auth/callback` }),
+                body: JSON.stringify({}),
             });
             const payload = await response.json();
             if (!response.ok) throw new Error(payload.message || "OpenRouter sign-in is unavailable.");

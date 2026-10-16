@@ -63,8 +63,11 @@ def test_connect_persist_restart_catalogue_and_disconnect(
 
     monkeypatch.setattr(routes, "get_runtime", Runtime)
     monkeypatch.setattr(routes, "exchange_pkce", exchange)
-    handler = routes._connect_handler if flow == "manual" else routes._auth_callback_handler
-    payload, status = asyncio.run(handler(Request()))
+    if flow == "manual":
+        payload, status = asyncio.run(routes._connect_handler(Request()))
+    else:
+        success = asyncio.run(routes._complete_oauth(*Request.query.values()))
+        payload, status = routes._connection_payload(), 200 if success else 400
     assert status == 200 and payload["persistent"] is True
     assert vault.value == "TEST_ONLY_CONNECTION_CANARY"
     monkeypatch.setattr(
@@ -110,8 +113,11 @@ def test_failed_validation_keeps_existing_persistent_connection(
 
     monkeypatch.setattr(routes, "get_runtime", Runtime)
     monkeypatch.setattr(routes, "exchange_pkce", exchange)
-    handler = routes._connect_handler if flow == "manual" else routes._auth_callback_handler
-    payload, status = asyncio.run(handler(Request()))
+    if flow == "manual":
+        payload, status = asyncio.run(routes._connect_handler(Request()))
+    else:
+        success = asyncio.run(routes._complete_oauth(*Request.query.values()))
+        payload, status = routes._connection_payload(), 200 if success else 400
     assert status >= 400
     assert vault.value == "TEST_ONLY_OLD"
     assert secrets.EnvironmentSecretProvider().get_openrouter_api_key() == "TEST_ONLY_OLD"

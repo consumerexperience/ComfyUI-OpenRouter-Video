@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
 import threading
 from importlib.metadata import PackageNotFoundError, version
 from typing import Any, Final
 
 from openrouter_video.errors import OpenRouterHTTPError, ProductFailureError, RequestPolicyError
 from openrouter_video.models import InferenceMethod, InputReferenceKind
-from openrouter_video.oauth import begin as begin_pkce
 from openrouter_video.oauth import exchange as exchange_pkce
 from openrouter_video.pricing import CostEstimateInputs
 from openrouter_video.secrets import (
@@ -21,12 +21,15 @@ from openrouter_video.secrets import (
 )
 
 from . import compat
+from .oauth_loopback import LoopbackReceiver
 from .projection import project_model
 from .runtime import get_runtime, local_runtime_health
 
 _REGISTRY_ATTRIBUTE: Final = "_openrouter_video_registered_routes"
 _LOCK_ATTRIBUTE: Final = "_openrouter_video_route_registration_lock"
 _BOOTSTRAP_LOCK = threading.Lock()
+_oauth_receiver: LoopbackReceiver | None = None
+_oauth_start_lock: asyncio.Lock | None = None
 
 
 async def _models_handler(_: Any) -> Any:
@@ -214,75 +217,40 @@ async def _auth_start_handler(request: Any) -> Any:
             {"error": "environment_credential_active", "message": "Managed by environment"},
             status=409,
         )
-    try:
-        body = await request.json()
-        callback_url = body.get("callback_url") if isinstance(body, dict) else None
-        if not isinstance(callback_url, str):
-            raise RequestPolicyError("OpenRouter connection callback is invalid")
-        _, authorization_url = begin_pkce(callback_url)
-    except (RequestPolicyError, TypeError, ValueError):
-        return compat.json_response(
-            {
-                "error": "auth_unavailable",
-                "message": "OpenRouter sign-in is available only from this local ComfyUI.",
-            },
-            status=400,
-        )
+    global _oauth_receiver, _oauth_start_lock
+
+    if _oauth_start_lock is None:
+        _oauth_start_lock = asyncio.Lock()
+    async with _oauth_start_lock:
+        if _oauth_receiver is not None:
+            await _oauth_receiver.close()
+        _oauth_receiver = LoopbackReceiver(_complete_oauth)
+        try:
+            authorization_url = await _oauth_receiver.start()
+        except Exception:
+            return compat.json_response(
+                {
+                    "error": "auth_unavailable",
+                    "message": "OpenRouter sign-in could not be started.",
+                },
+                status=503,
+            )
     return compat.json_response({"authorization_url": authorization_url}, status=200)
 
 
-async def _auth_callback_handler(request: Any) -> Any:
+async def _complete_oauth(state: str, code: str) -> bool:
+    """Existing exchange, uncached credential validation and storage, status only."""
+
     if openrouter_credential_source() == "ENVIRONMENT":
-        return compat.json_response(
-            {"error": "environment_credential_active", "message": "Managed by environment"},
-            status=409,
-        )
-    query = getattr(request, "query", {})
-    state = query.get("state")
-    code = query.get("code")
-    if query.get("error"):
-        return compat.json_response(
-            {"error": "auth_declined", "message": "OpenRouter sign-in was cancelled."}, status=400
-        )
+        return False
     try:
-        key = await exchange_pkce(
-            state if isinstance(state, str) else "",
-            code if isinstance(code, str) else "",
-        )
+        key = await exchange_pkce(state, code)
         with pending_interactive_credential(key):
-            observation = await get_runtime().validate_connection()
+            await get_runtime().validate_connection()
         set_interactive_openrouter_api_key(key)
-    except ProductFailureError as exc:
-        message = (
-            "OpenRouter rejected the connected account."
-            if exc.error.code.value == "API_KEY_INVALID"
-            else "OpenRouter model catalogue is temporarily unavailable."
-        )
-        return compat.json_response({"error": "auth_failed", "message": message}, status=502)
-    except (RequestPolicyError, TypeError, ValueError):
-        return compat.json_response(
-            {"error": "auth_failed", "message": "OpenRouter sign-in could not be completed."},
-            status=400,
-        )
-    except OpenRouterHTTPError as exc:
-        return compat.json_response(
-            {
-                "error": "connection_rejected",
-                "message": "OpenRouter could not validate this connection.",
-            },
-            status=401 if exc.status_code in {401, 403} else 503,
-        )
     except Exception:
-        return compat.json_response(
-            {
-                "error": "connection_unavailable",
-                "message": "OpenRouter connection needs attention. Reconnect to continue.",
-            },
-            status=503,
-        )
-    return compat.json_response(
-        {**_connection_payload(), "model_count": len(observation.models)}, status=200
-    )
+        return False
+    return True
 
 
 async def _cost_estimate_handler(request: Any) -> Any:
@@ -402,7 +370,6 @@ def register_routes() -> None:
             ("post", compat.CONNECTION_ROUTE, _connect_handler),
             ("delete", compat.CONNECTION_ROUTE, _disconnect_handler),
             ("post", compat.AUTH_START_ROUTE, _auth_start_handler),
-            ("get", compat.AUTH_CALLBACK_ROUTE, _auth_callback_handler),
         )
         for method, path, handler in routes:
             marker = (method, path)

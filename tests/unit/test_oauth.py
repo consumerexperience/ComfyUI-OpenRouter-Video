@@ -3,6 +3,7 @@
 import asyncio
 import json
 from typing import cast
+from urllib.parse import parse_qs, urlparse
 
 import httpx
 import pytest
@@ -12,16 +13,14 @@ from openrouter_video.errors import RequestPolicyError
 
 
 def test_begin_builds_localhost_s256_authorization_url() -> None:
-    state, url = oauth.begin(
-        "http://127.0.0.1:8189/openrouter-video/v1/auth/callback", now=1000.0
-    )
+    state, url = oauth.begin("http://127.0.0.1:49152/callback", now=1000.0)
     assert state
-    assert (
-        "callback_url=http%3A%2F%2F127.0.0.1%3A8189%2Fopenrouter-video%2Fv1%2Fauth%2Fcallback"
-        in url
-    )
-    assert "code_challenge_method=S256" in url
-    assert f"state={state}" in url
+    query = parse_qs(urlparse(url).query)
+    redirect = urlparse(query["callback_url"][0])
+    assert redirect.hostname == "127.0.0.1" and redirect.port == 49152
+    assert redirect.path == "/callback"
+    assert parse_qs(redirect.query)["state"] == [state]
+    assert query["code_challenge_method"] == ["S256"]
     assert "TEST_ONLY" not in json.dumps([state, url])
 
 
@@ -34,7 +33,7 @@ def test_begin_rejects_non_local_callback(callback: str) -> None:
 
 
 def test_exchange_uses_verifier_once_without_logging_key(monkeypatch: pytest.MonkeyPatch) -> None:
-    state, _ = oauth.begin("http://localhost:8189/openrouter-video/v1/auth/callback")
+    state, _ = oauth.begin("http://127.0.0.1:49152/callback")
     captured: dict[str, object] = {}
 
     class Response:

@@ -15,7 +15,7 @@ from openrouter_video.errors import RequestPolicyError
 
 _AUTH_URL = "https://openrouter.ai/auth"
 _EXCHANGE_URL = "https://openrouter.ai/api/v1/auth/keys"
-_CALLBACK_PATH = "/openrouter-video/v1/auth/callback"
+_CALLBACK_PATH = "/callback"
 _SESSION_TTL_SECONDS = 600
 
 
@@ -34,9 +34,16 @@ def _valid_callback_url(value: object) -> str:
     if not isinstance(value, str):
         raise RequestPolicyError("OpenRouter connection callback is invalid")
     parsed = urlparse(value)
-    if parsed.scheme not in {"http", "https"} or parsed.hostname not in {"localhost", "127.0.0.1"}:
+    if (
+        parsed.scheme != "http"
+        or parsed.hostname != "127.0.0.1"
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.port is None
+        or parsed.port == 0
+    ):
         raise RequestPolicyError("OpenRouter connection is available only from this local ComfyUI")
-    if parsed.path != _CALLBACK_PATH or parsed.query or parsed.fragment:
+    if parsed.path != _CALLBACK_PATH or parsed.params or parsed.query or parsed.fragment:
         raise RequestPolicyError("OpenRouter connection callback is invalid")
     return value
 
@@ -49,19 +56,18 @@ def begin(callback_url: str, *, now: float | None = None) -> tuple[str, str]:
     callback = _valid_callback_url(callback_url)
     timestamp = time.time() if now is None else now
     verifier = secrets.token_urlsafe(48)
-    challenge = base64.urlsafe_b64encode(
-        hashlib.sha256(verifier.encode()).digest()
-    ).rstrip(b"=").decode()
+    challenge = (
+        base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b"=").decode()
+    )
     state = secrets.token_urlsafe(32)
     with _lock:
         _prune(timestamp)
         _sessions[state] = PkceSession(verifier, callback, timestamp)
     query = urlencode(
         {
-            "callback_url": callback,
+            "callback_url": f"{callback}?{urlencode({'state': state})}",
             "code_challenge": challenge,
             "code_challenge_method": "S256",
-            "state": state,
         }
     )
     return state, f"{_AUTH_URL}?{query}"
@@ -73,6 +79,13 @@ def _prune(now: float) -> None:
     ]
     for key in expired:
         _sessions.pop(key, None)
+
+
+def cancel(state: str) -> None:
+    """Discard a finished, rejected, replaced or expired transaction's verifier."""
+
+    with _lock:
+        _sessions.pop(state, None)
 
 
 async def exchange(state: str, code: str) -> str:
@@ -115,4 +128,4 @@ async def exchange(state: str, code: str) -> str:
     return key.strip()
 
 
-__all__ = ("_CALLBACK_PATH", "begin", "exchange")
+__all__ = ("_CALLBACK_PATH", "begin", "cancel", "exchange")
