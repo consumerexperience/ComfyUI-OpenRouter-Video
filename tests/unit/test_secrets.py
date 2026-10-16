@@ -1,9 +1,23 @@
 """Environment secret-provider behavior and leakage boundaries."""
 
+from collections.abc import Generator
+
 import pytest
 
 from openrouter_video.errors import RequestPolicyError
-from openrouter_video.secrets import EnvironmentSecretProvider
+from openrouter_video.secrets import (
+    EnvironmentSecretProvider,
+    clear_interactive_openrouter_api_key,
+    openrouter_credential_source,
+    set_interactive_openrouter_api_key,
+)
+
+
+@pytest.fixture(autouse=True)
+def clear_interactive_credential() -> Generator[None, None, None]:
+    clear_interactive_openrouter_api_key()
+    yield
+    clear_interactive_openrouter_api_key()
 
 
 def test_environment_provider_reads_only_explicit_present_key(
@@ -31,3 +45,15 @@ def test_missing_or_empty_key_fails_locally(
     assert str(caught.value) == "OpenRouter API credential is not configured"
     if value:
         assert value not in str(caught.value)
+
+
+def test_interactive_credential_is_process_local_and_environment_wins(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    set_interactive_openrouter_api_key("  SESSION_ONLY_KEY  ")
+    assert EnvironmentSecretProvider().get_openrouter_api_key() == "SESSION_ONLY_KEY"
+    assert openrouter_credential_source() == "INTERACTIVE"
+    monkeypatch.setenv("OPENROUTER_API_KEY", "ENVIRONMENT_KEY")
+    assert EnvironmentSecretProvider().get_openrouter_api_key() == "ENVIRONMENT_KEY"
+    assert openrouter_credential_source() == "ENVIRONMENT"

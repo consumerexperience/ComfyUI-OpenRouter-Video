@@ -1,0 +1,12 @@
+{
+  "baseline_sha": "9da76a7111c79d0dec0125d25c961f0c5007498c",
+  "candidate_files": {
+    "web/openrouter_video.js": "cadac043203b517a6ceb681f46624d511cab7d0442691d893e8e4b3ab5aa7653",
+    "src/openrouter_video/comfy/compat.py": "ca7a5416f559ed16c008a098f0e0b786930f6ddba341c910ad8de0e10f9c08d3",
+    "src/openrouter_video/comfy/nodes.py": "322d02cd0467b63684935f7042776df7b3bc75d40cd50760883b15048ea18a9d",
+    "src/openrouter_video/secrets.py": "dd190f0461dd538a0ee3a39594d8babe10540fe5d44df2225620657401e63153",
+    "src/openrouter_video/comfy/routes.py": "d8913846e64d1e568308ba938b9ec40663688588dcf3d1a3ccb3f55224004ac5",
+    "src/openrouter_video/oauth.py": "d84b2d20cf4bcb36e56a9d5ae8998cb91a942e25afc2241bead08e2d160ca49a"
+  },
+  "purpose": "Local Product Owner review candidate; accepted RC snapshots remain unchanged."
+}

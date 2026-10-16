@@ -22,6 +22,14 @@ a private disclosure channel.
 - Use a dedicated low-limit key for any separately approved live test.
 - Never disable TLS verification or introduce a user-configurable production base URL.
 - Never print complete request headers or enumerate the process environment.
+- The interactive Settings connection uses OpenRouter's documented PKCE flow or a masked
+  manual key field. The resulting credential is held only in backend process memory for the
+  current ComfyUI session; settings, workflows, queue/history, browser storage, logs and
+  receipts contain status labels only. `OPENROUTER_API_KEY` remains the headless override and
+  has precedence over the interactive value.
+- Connection validation performs only the authenticated model-catalogue GET. It never calls
+  `/videos`, never retries a paid submit, and Disconnect clears only the interactive session
+  value while leaving an environment credential active.
 
 ## Network and attribution boundary
 

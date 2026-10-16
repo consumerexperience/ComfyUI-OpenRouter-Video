@@ -142,6 +142,7 @@ def _shield_current(accepted: dict[str, Any]) -> dict[str, Any]:
             continue
         key = path.relative_to(ROOT).as_posix().replace("/", "~1").replace(".", "_")
         surface = owners.get(key, "capabilities")
+        owned.setdefault(surface, {})
         text = path.read_text(encoding="utf-8").replace("\r\n", "\n")
         owned[surface][key] = hashlib.sha256(text.encode()).hexdigest()
     current["surfaces"]["product_owned"] = owned

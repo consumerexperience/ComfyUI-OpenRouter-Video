@@ -37,7 +37,7 @@ Configure OPENROUTER_API_KEY in the launch environment, then restart ComfyUI.
 The key belongs outside nodes and workflows. Never commit a secret .env or put
 credentials into workflow JSON, source files, logs or bug reports.
 
-Add OpenRouter Video Generate. Choose Model and Inference Method, enter Prompt,
+Add OpenRouter Video. Choose Model and Inference Method, enter Prompt,
 connect the required media, and select the offered parameters. Loading a workflow
 or selecting a model does not generate a video. Discovery needs the configured
 key; missing credentials produce a configuration error without a paid submit.

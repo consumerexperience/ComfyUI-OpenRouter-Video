@@ -8,8 +8,16 @@ from typing import Any, Final
 
 from openrouter_video.errors import ProductFailureError, RequestPolicyError
 from openrouter_video.models import InferenceMethod, InputReferenceKind
+from openrouter_video.oauth import begin as begin_pkce
+from openrouter_video.oauth import exchange as exchange_pkce
 from openrouter_video.pricing import CostEstimateInputs
-from openrouter_video.secrets import openrouter_credential_state
+from openrouter_video.secrets import (
+    clear_interactive_openrouter_api_key,
+    interactive_openrouter_api_key,
+    openrouter_credential_source,
+    openrouter_credential_state,
+    set_interactive_openrouter_api_key,
+)
 
 from . import compat
 from .projection import project_model
@@ -80,11 +88,145 @@ async def _health_handler(_: Any) -> Any:
             "plugin_loaded": True,
             **local_runtime_health(),
             "credential_state": openrouter_credential_state(),
+            "credential_source": openrouter_credential_source(),
             **compat.catalogue_health_snapshot(),
             "plugin_version": plugin_version,
             "ui_contract_version": compat.UI_CONTRACT_VERSION,
         },
         status=200,
+    )
+
+
+def _connection_payload() -> dict[str, object]:
+    source = openrouter_credential_source()
+    return {
+        "state": "CONNECTED" if source != "NONE" else "DISCONNECTED",
+        "source": source,
+        "restart_required": False,
+        "persistent": False,
+    }
+
+
+async def _connection_handler(_: Any) -> Any:
+    """Return local connection state without network work or secret material."""
+
+    return compat.json_response(_connection_payload(), status=200)
+
+
+async def _connect_handler(request: Any) -> Any:
+    """Validate one user-supplied key with a catalogue GET, never a paid submit."""
+
+    if openrouter_credential_source() == "ENVIRONMENT":
+        return compat.json_response(
+            {"error": "environment_credential_active", "message": "OPENROUTER_API_KEY is active."},
+            status=409,
+        )
+    try:
+        body = await request.json()
+        key = body.get("api_key") if isinstance(body, dict) else None
+        if (
+            not isinstance(key, str)
+            or not key.strip()
+            or len(key.strip()) > 512
+            or any(ord(character) < 32 or ord(character) == 127 for character in key.strip())
+        ):
+            raise ValueError
+    except (TypeError, ValueError, AttributeError):
+        return compat.json_response(
+            {"error": "invalid_credential", "message": "Paste a valid OpenRouter API key."},
+            status=400,
+        )
+    previous = interactive_openrouter_api_key()
+    set_interactive_openrouter_api_key(key)
+    try:
+        observation = await get_runtime().catalog()
+    except ProductFailureError as exc:
+        if previous is None:
+            clear_interactive_openrouter_api_key()
+        else:
+            set_interactive_openrouter_api_key(previous)
+        if exc.error.code.value == "API_KEY_INVALID":
+            return compat.json_response(
+                {"error": "invalid_credential", "message": "OpenRouter rejected this API key."},
+                status=401,
+            )
+        return compat.json_response(
+            {
+                "error": "catalog_unavailable",
+                "message": "OpenRouter model catalogue is temporarily unavailable.",
+            },
+            status=503,
+        )
+    except RequestPolicyError:
+        if previous is None:
+            clear_interactive_openrouter_api_key()
+        else:
+            set_interactive_openrouter_api_key(previous)
+        return compat.json_response(
+            {"error": "invalid_credential", "message": "OpenRouter rejected this API key."},
+            status=401,
+        )
+    return compat.json_response(
+        {**_connection_payload(), "model_count": len(observation.models)}, status=200
+    )
+
+
+async def _disconnect_handler(_: Any) -> Any:
+    """Forget only the interactive process credential; environment credentials remain active."""
+
+    clear_interactive_openrouter_api_key()
+    return compat.json_response(_connection_payload(), status=200)
+
+
+async def _auth_start_handler(request: Any) -> Any:
+    try:
+        body = await request.json()
+        callback_url = body.get("callback_url") if isinstance(body, dict) else None
+        if not isinstance(callback_url, str):
+            raise RequestPolicyError("OpenRouter connection callback is invalid")
+        _, authorization_url = begin_pkce(callback_url)
+    except (RequestPolicyError, TypeError, ValueError):
+        return compat.json_response(
+            {
+                "error": "auth_unavailable",
+                "message": "OpenRouter sign-in is available only from this local ComfyUI.",
+            },
+            status=400,
+        )
+    return compat.json_response({"authorization_url": authorization_url}, status=200)
+
+
+async def _auth_callback_handler(request: Any) -> Any:
+    query = getattr(request, "query", {})
+    state = query.get("state")
+    code = query.get("code")
+    if query.get("error"):
+        return compat.json_response(
+            {"error": "auth_declined", "message": "OpenRouter sign-in was cancelled."}, status=400
+        )
+    try:
+        key = await exchange_pkce(
+            state if isinstance(state, str) else "",
+            code if isinstance(code, str) else "",
+        )
+        set_interactive_openrouter_api_key(key)
+        observation = await get_runtime().catalog()
+    except ProductFailureError as exc:
+        clear_interactive_openrouter_api_key()
+        message = (
+            "OpenRouter rejected the connected account."
+            if exc.error.code.value == "API_KEY_INVALID"
+            else "OpenRouter model catalogue is temporarily unavailable."
+        )
+        return compat.json_response({"error": "auth_failed", "message": message}, status=502)
+    except (RequestPolicyError, TypeError, ValueError):
+        clear_interactive_openrouter_api_key()
+        return compat.json_response(
+            {"error": "auth_failed", "message": "OpenRouter sign-in could not be completed."},
+            status=400,
+        )
+    return compat.json_response(
+        {**_connection_payload(), "model_count": len(observation.models)}, status=200
     )
 
 
@@ -198,9 +340,14 @@ def register_routes() -> None:
             setattr(server, _REGISTRY_ATTRIBUTE, registered)
         routes = (
             ("get", compat.HEALTH_ROUTE, _health_handler),
+            ("get", compat.CONNECTION_ROUTE, _connection_handler),
             ("get", compat.MODEL_ROUTE, _models_handler),
             ("get", compat.UI_CAPABILITIES_ROUTE, _ui_capabilities_handler),
             ("post", compat.COST_ESTIMATE_ROUTE, _cost_estimate_handler),
+            ("post", compat.CONNECTION_ROUTE, _connect_handler),
+            ("delete", compat.CONNECTION_ROUTE, _disconnect_handler),
+            ("post", compat.AUTH_START_ROUTE, _auth_start_handler),
+            ("get", compat.AUTH_CALLBACK_ROUTE, _auth_callback_handler),
         )
         for method, path, handler in routes:
             marker = (method, path)

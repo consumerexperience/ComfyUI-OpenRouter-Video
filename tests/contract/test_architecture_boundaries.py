@@ -106,7 +106,7 @@ def test_security_sensitive_production_ownership_is_centralized() -> None:
 
     assert env_owners == {"secrets.py"}
     assert header_owners == {"request_policy.py"}
-    assert async_client_owners == {"transport.py"}
+    assert async_client_owners == {"transport.py", "oauth.py"}
 
 
 def test_official_release_identity_is_owned_only_by_app_identity() -> None:

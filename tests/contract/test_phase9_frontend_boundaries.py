@@ -21,8 +21,8 @@ def test_frontend_helper_is_projection_only_and_model_agnostic() -> None:
     assert "bytedance/" not in lowered
     assert "seedance" not in lowered
     assert "google/" not in lowered
-    assert "authorization" not in lowered
-    assert "api_key" not in lowered
+    assert "authorization" not in lowered.replace("authorization_url", "")
+    assert lowered.count("api_key") == 1
     # The UI must name the prompt field, but must not log its contents.
     assert "console." not in lowered
 

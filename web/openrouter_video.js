@@ -5,6 +5,8 @@ const GENERATE_NODE = "OpenRouterVideoGenerate";
 const SELECT_MODEL = "SELECT MODEL";
 const AUTO = "AUTO / MODEL DEFAULT";
 const UI_CONTRACT_VERSION = 5;
+const CONNECTION_ROUTE = "/openrouter-video/v1/connection";
+const AUTH_START_ROUTE = "/openrouter-video/v1/auth/start";
 const COMPACT_LAYOUT = Object.freeze({ width: 400, row: 20, gap: 4, section: 8, prompt: 42, domInset: 16, inset: 15 });
 const SELECT_METHOD = "Select model first";
 const METHODS = [
@@ -24,6 +26,128 @@ const METHOD_LABELS = {
     V2V_EXTEND: "V2V_EXTEND — Source Video → Extended Video",
 };
 let capabilityPromise;
+let connectionPromise;
+
+function connectionNodes() {
+    return app.graph?._nodes || Object.values(app.graph?.nodes || {});
+}
+
+function setConnectionPresentation(state) {
+    const connected = state?.state === "CONNECTED";
+    for (const node of connectionNodes()) {
+        if (node?.type !== GENERATE_NODE) continue;
+        if (node.__orvConnectionCta) setVisible(node.__orvConnectionCta, !connected);
+        if (!connected && node.__orvCapabilityStatus) {
+            node.__orvCapabilityStatus.value = "CONNECT OPENROUTER TO LOAD VIDEO MODELS";
+            setVisible(node.__orvCapabilityStatus, true);
+        }
+        node.setDirtyCanvas?.(true, true);
+    }
+}
+
+async function loadConnection(force = false) {
+    if (!connectionPromise || force) {
+        connectionPromise = api.fetchApi(CONNECTION_ROUTE, { cache: "no-store" })
+            .then(async (response) => {
+                if (!response.ok) throw new Error("connection status unavailable");
+                return response.json();
+            })
+            .then((state) => { setConnectionPresentation(state); return state; })
+            .catch(() => {
+                const state = { state: "DISCONNECTED", source: "NONE" };
+                setConnectionPresentation(state);
+                return state;
+            });
+    }
+    return connectionPromise;
+}
+
+function showConnectionPanel() {
+    if (document.getElementById("orv-connection-panel")) return;
+    const overlay = document.createElement("div");
+    overlay.id = "orv-connection-panel";
+    Object.assign(overlay.style, {
+        position: "fixed", inset: "0", zIndex: "10000", background: "rgba(0,0,0,.55)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+    });
+    const panel = document.createElement("div");
+    Object.assign(panel.style, {
+        width: "min(460px, calc(100vw - 32px))", padding: "22px", borderRadius: "10px",
+        background: "#20272a", color: "#e4ece9", border: "1px solid #45dca5",
+        font: "13px sans-serif", boxShadow: "0 16px 48px rgba(0,0,0,.45)",
+    });
+    panel.innerHTML = "<h3 style='margin:0 0 8px'>Connect OpenRouter</h3>" +
+        "<p style='margin:0 0 16px;color:#b8c8c4'>Sign in with OpenRouter or enter an API key. The key stays in this ComfyUI process and is never saved in a workflow.</p>";
+    const status = document.createElement("div");
+    status.style.cssText = "min-height:20px;margin:8px 0;color:#aeb8b6";
+    const key = document.createElement("input");
+    key.type = "password"; key.autocomplete = "off"; key.placeholder = "OpenRouter API key";
+    key.style.cssText = "box-sizing:border-box;width:100%;padding:9px;background:#171b1d;color:#e4ece9;border:1px solid #536560;border-radius:4px";
+    const actions = document.createElement("div");
+    actions.style.cssText = "display:flex;gap:8px;justify-content:flex-end;margin-top:14px";
+    const oauth = document.createElement("button"); oauth.textContent = "Sign in with OpenRouter";
+    const save = document.createElement("button"); save.textContent = "Connect API key";
+    const cancel = document.createElement("button"); cancel.textContent = "Cancel";
+    for (const button of [oauth, save, cancel]) button.style.cssText = "padding:8px 11px;border:1px solid #536560;border-radius:4px;background:#27302f;color:#e4ece9;cursor:pointer";
+    const close = () => overlay.remove();
+    cancel.onclick = close;
+    save.onclick = async () => {
+        const value = key.value;
+        if (!value.trim()) { status.textContent = "Paste an OpenRouter API key."; return; }
+        save.disabled = true; oauth.disabled = true; status.textContent = "Checking the key with the model catalogue…";
+        try {
+            const response = await api.fetchApi(CONNECTION_ROUTE, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ api_key: value }),
+            });
+            const payload = await response.json();
+            if (!response.ok) throw new Error(payload.message || "OpenRouter rejected the API key.");
+            key.value = ""; close(); await loadConnection(true); capabilityPromise = null;
+            for (const node of connectionNodes()) if (node?.type === GENERATE_NODE) projectSelectedModel(node, true);
+        } catch (error) {
+            status.textContent = error?.message || "OpenRouter connection failed.";
+            save.disabled = false; oauth.disabled = false;
+        }
+    };
+    oauth.onclick = async () => {
+        oauth.disabled = true; save.disabled = true; status.textContent = "Opening OpenRouter sign-in…";
+        try {
+            const response = await api.fetchApi(AUTH_START_ROUTE, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ callback_url: `${window.location.origin}/openrouter-video/v1/auth/callback` }),
+            });
+            const payload = await response.json();
+            if (!response.ok) throw new Error(payload.message || "OpenRouter sign-in is unavailable.");
+            window.open(payload.authorization_url, "openrouter-video-auth", "popup,width=520,height=700");
+            status.textContent = "Complete sign-in in the OpenRouter window…";
+            let attempts = 0;
+            const poll = setInterval(async () => {
+                attempts += 1;
+                const state = await loadConnection(true);
+                if (state.state === "CONNECTED" || attempts >= 120) {
+                    clearInterval(poll); oauth.disabled = false; save.disabled = false;
+                    if (state.state === "CONNECTED") { close(); capabilityPromise = null; for (const node of connectionNodes()) if (node?.type === GENERATE_NODE) projectSelectedModel(node, true); }
+                }
+            }, 1000);
+        } catch (error) {
+            status.textContent = error?.message || "OpenRouter sign-in failed.";
+            oauth.disabled = false; save.disabled = false;
+        }
+    };
+    actions.append(oauth, save, cancel); panel.append(status, key, actions); overlay.append(panel); document.body.append(overlay); key.focus();
+}
+
+function connectionSettingRenderer() {
+    const root = document.createElement("div");
+    const label = document.createElement("div"); label.style.cssText = "margin-bottom:8px;color:#aeb8b6";
+    const connect = document.createElement("button"); connect.textContent = "Connect OpenRouter";
+    const disconnect = document.createElement("button"); disconnect.textContent = "Disconnect";
+    for (const button of [connect, disconnect]) button.style.cssText = "margin-right:8px;padding:6px 9px";
+    const paint = (state) => { label.textContent = state?.state === "CONNECTED" ? `Connected (${state.source})` : "Disconnected"; disconnect.hidden = state?.source !== "INTERACTIVE"; connect.textContent = state?.state === "CONNECTED" ? "Reconnect" : "Connect OpenRouter"; };
+    connect.onclick = () => showConnectionPanel();
+    disconnect.onclick = async () => { await api.fetchApi(CONNECTION_ROUTE, { method: "DELETE" }); await loadConnection(true); };
+    root.append(label, connect, disconnect); loadConnection().then(paint); return root;
+}
 
 function widget(node, name) {
     return node.widgets?.find((item) => item.name === name);
@@ -1530,6 +1654,15 @@ async function projectSelectedModel(node, force = false) {
     node.__orvCapabilityStatus.value = "";
     setVisible(node.__orvCapabilityStatus, false);
     try {
+        const connection = await loadConnection(force);
+        if (connection.state !== "CONNECTED") {
+            setVisible(node.__orvConnectionCta, true);
+            node.__orvCapabilityStatus.value = "CONNECT OPENROUTER TO LOAD VIDEO MODELS";
+            setVisible(node.__orvCapabilityStatus, true);
+            fitPresentationWidth(node);
+            return;
+        }
+        setVisible(node.__orvConnectionCta, false);
         const projection = await loadCapabilities(force);
         if (projection.ui_contract_version !== UI_CONTRACT_VERSION) {
             node.__orvCapabilityStatus.value =
@@ -1594,7 +1727,27 @@ async function projectSelectedModel(node, force = false) {
 
 app.registerExtension({
     name: EXTENSION,
+    settings: [
+        {
+            id: "OpenRouter Video.Connection",
+            name: "Connection",
+            category: ["OpenRouter Video", "Connection"],
+            type: connectionSettingRenderer,
+            defaultValue: null,
+            telemetry: { trackChanges: false },
+        },
+        {
+            id: "OpenRouter Video.About",
+            name: "About",
+            category: ["OpenRouter Video", "About"],
+            type: "text",
+            defaultValue: "OpenRouter Video 0.1.0-rc.1 by ARENAS®lab",
+            attrs: { readonly: true },
+            telemetry: { trackChanges: false },
+        },
+    ],
     setup() {
+        loadConnection();
         api.addEventListener("progress", (event) => {
             const detail = event.detail || {};
             const phase = presentationPhase(detail);
@@ -1660,6 +1813,11 @@ app.registerExtension({
             setVisible(this.__orvSummary, false);
             this.__orvCapabilityStatus = addReadOnlyWidget(this, "STATE", "");
             setVisible(this.__orvCapabilityStatus, false);
+            this.__orvConnectionCta = this.addWidget("button", "Connect OpenRouter", "", () => showConnectionPanel());
+            this.__orvConnectionCta.serialize = false;
+            this.__orvConnectionCta.options ||= {};
+            this.__orvConnectionCta.options.primary = true;
+            setVisible(this.__orvConnectionCta, false);
             // Estimate is presentation state, never a workflow/body widget.
             this.__orvEstimate = createEstimateState();
             orderPresentationWidgets(this);
