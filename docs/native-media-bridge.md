@@ -1,6 +1,6 @@
 # Native Media Bridge
 
-Connect Load Video, Load Audio or Load Image directly to the ordered reference sockets of OpenRouter Video Generate. Choose VR2V for video references, AR2V for audio references, MMR2V for mixed types, or Source Video for edit/extend. Model capabilities still decide which methods, types and counts are available. URL reference helper nodes remain compatible; connected occurrences and duplicates survive workflow reload.
+Connect Load Video, Load Audio or Load Image directly to the ordered reference sockets of OpenRouter Video Generate. Choose VR2V for video references, MMR2V for confirmed mixed types, or V2V_EDIT/V2V_EXTEND for Seedance 2.5 Source Video. Standalone AR2V stays hidden where unconfirmed or conflicting. Model capabilities still decide which methods, types and counts are available. URL reference helper nodes remain compatible; connected occurrences and duplicates survive workflow reload.
 
 IMAGE uses the existing direct PNG bridge. VIDEO becomes MP4/H.264; AUDIO becomes WAV PCM16 with its original rate and mono/stereo channels. Batches larger than one, empty media, non-finite audio and unsupported shapes fail locally. Objects are limited to 256 MiB and total encoded VIDEO/AUDIO to 512 MiB. Files are converted after capability validation, streamed to private storage, and removed locally on every normal/error/cancellation exit.
 

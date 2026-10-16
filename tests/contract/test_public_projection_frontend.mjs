@@ -59,6 +59,33 @@ function apply(n, capability, method = widget(n, "inference_method").value) {
     return c.reprojectNodeSemantics(n, capability, selected);
 }
 
+for (const method of ["T2V", "I2V", "FLF2V", "MI2V", "VR2V", "MMR2V"]) test(`RC upgrade preserves accepted ${method} values and compatible links`, () => {
+    const capability = model("bytedance/seedance-2.5");
+    const before = node(capability.model_id, method);
+    apply(before, capability);
+    const media = before.inputs.find(input => input.name === "first_frame" || input.name.startsWith("direct_references."));
+    if (media) {
+        const type = method === "VR2V" ? "VIDEO" : "IMAGE";
+        graph.nodes[901] = { outputs: [{ type }] };
+        graph.links[902] = { origin_id: 901, origin_slot: 0, target_id: before.id, target_slot: before.inputs.indexOf(media), type };
+        media.link = 902;
+    }
+    const saved = plain({ properties: before.properties, widgets: before.widgets.map(item => [item.name, item.value]), inputs: before.inputs });
+    const restored = node(capability.model_id, method);
+    restored.properties = saved.properties;
+    restored.inputs = saved.inputs;
+    for (const [name, value] of saved.widgets) {
+        const target = widget(restored, name);
+        if (target) target.value = value;
+    }
+    apply(restored, capability);
+    assert.equal(widget(restored, "inference_method").value, method);
+    assert.equal(widget(restored, "duration").value, widget(before, "duration").value);
+    if (media) assert(restored.inputs.some(input => input.name === media.name && input.link === 902));
+    assert(!restored.inputs.some(input => input.name === "source_video"));
+    assert(!JSON.stringify(saved).includes("api_key"));
+});
+
 for (const capability of fixture.models) test(`supported-only projection for ${capability.model_id}`, () => {
     const n = node(capability.model_id, "AR2V");
     apply(n, capability);

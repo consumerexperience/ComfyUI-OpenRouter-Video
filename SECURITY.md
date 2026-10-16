@@ -2,10 +2,11 @@
 
 ## Current posture
 
-This project is pre-alpha. Phase 4 implements the headless request-policy and HTTP transport
-boundary, but no endpoint client, paid submission, lifecycle, persistence, media handling, or
-ComfyUI product nodes exist yet. Default tests use only synthetic credentials, MockTransport, and
-loopback infrastructure.
+This release candidate contains Generate/Resume, capability projection, native media,
+private S3-compatible staging and durable SQLite recovery. Default tests use synthetic
+credentials, MockTransport and loopback infrastructure. Generate makes at most one
+intentional paid submit; Resume never submits another Video generation. Ambiguity
+never authorizes automatic resubmission. No telemetry service is included.
 
 ## Reporting a vulnerability
 
@@ -18,7 +19,7 @@ a private disclosure channel.
 
 - Never place an OpenRouter key in a workflow, node input, image/video metadata, fixture, log,
   exception, environment dump, source file, or bug report.
-- Use a dedicated low-limit key only in a future explicitly approved live test.
+- Use a dedicated low-limit key for any separately approved live test.
 - Never disable TLS verification or introduce a user-configurable production base URL.
 - Never print complete request headers or enumerate the process environment.
 
