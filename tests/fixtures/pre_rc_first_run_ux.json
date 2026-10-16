@@ -1,7 +1,7 @@
 {
   "baseline_sha": "9da76a7111c79d0dec0125d25c961f0c5007498c",
   "candidate_files": {
-    "web/openrouter_video.js": "e1f2fbce5a1cd024bf106ecf2f998a1d44edc96abb5a7f83840bdc92d09926f9",
+    "web/openrouter_video.js": "5c77a73aa9cae090bdc44327ed9f3c7a4aab8153c4491e4f6c12f94b235ff18e",
     "src/openrouter_video/comfy/compat.py": "ca7a5416f559ed16c008a098f0e0b786930f6ddba341c910ad8de0e10f9c08d3",
     "src/openrouter_video/comfy/nodes.py": "322d02cd0467b63684935f7042776df7b3bc75d40cd50760883b15048ea18a9d",
     "src/openrouter_video/secrets.py": "96fa459efe15082d1d009bdb42a5f3fae20ab7bc7507c17a7f9d3ccc6fcebcff",

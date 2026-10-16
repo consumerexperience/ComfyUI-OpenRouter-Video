@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 env:
-  OPENROUTER_VIDEO_CONTRACT_BASELINE: contracts/product/baselines/pre-rc-first-run-796697a.source-contract.json
-  OPENROUTER_VIDEO_CONTRACT_DELTA: contracts/product/deltas/secure-credential-persistence.contract-delta.json
+  OPENROUTER_VIDEO_CONTRACT_BASELINE: contracts/product/baselines/secure-credential-persistence-58c8cff.source-contract.json
+  OPENROUTER_VIDEO_CONTRACT_DELTA: contracts/product/deltas/first-run-visual-polish.contract-delta.json
 
 jobs:
   quality:
