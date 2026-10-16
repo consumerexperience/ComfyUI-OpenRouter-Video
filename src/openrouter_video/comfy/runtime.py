@@ -10,6 +10,7 @@ import threading
 import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, replace
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, TypeVar
 
@@ -175,6 +176,16 @@ class ProcessRuntime:
                 concurrent_future.result()
             raise
         return concurrent_future.result()
+
+    async def validate_connection(self) -> CapabilityObservation:
+        """Authenticate a proposed connection with one uncached GET, never LKG or submit."""
+
+        async def run(control: ExecutionControl) -> CapabilityObservation:
+            control.raise_if_interrupted()
+            models = await self._require_resources().client.list_video_models()
+            return CapabilityObservation(datetime.now(timezone.utc), models)
+
+        return await self._dispatch(run)
 
     async def catalog(self) -> CapabilityObservation:
         async def run(control: ExecutionControl) -> CapabilityObservation:

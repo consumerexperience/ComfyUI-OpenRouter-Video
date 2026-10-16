@@ -837,11 +837,12 @@ def test_connection_route_uses_catalogue_get_and_never_returns_secret(
             return {"api_key": "TEST_ONLY_INTERACTIVE_KEY"}
 
     class Runtime:
-        async def catalog(self) -> object:
+        async def validate_connection(self) -> object:
             return types.SimpleNamespace(models=(ModelCapabilities("vendor/model"),))
 
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     monkeypatch.setattr(routes, "get_runtime", Runtime)
+
     def response(payload: object, *, status: int) -> tuple[object, int]:
         responses.append((payload, status))
         return payload, status

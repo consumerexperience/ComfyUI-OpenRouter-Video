@@ -6,16 +6,17 @@ import threading
 from importlib.metadata import PackageNotFoundError, version
 from typing import Any, Final
 
-from openrouter_video.errors import ProductFailureError, RequestPolicyError
+from openrouter_video.errors import OpenRouterHTTPError, ProductFailureError, RequestPolicyError
 from openrouter_video.models import InferenceMethod, InputReferenceKind
 from openrouter_video.oauth import begin as begin_pkce
 from openrouter_video.oauth import exchange as exchange_pkce
 from openrouter_video.pricing import CostEstimateInputs
 from openrouter_video.secrets import (
     clear_interactive_openrouter_api_key,
-    interactive_openrouter_api_key,
+    interactive_credential_status,
     openrouter_credential_source,
     openrouter_credential_state,
+    pending_interactive_credential,
     set_interactive_openrouter_api_key,
 )
 
@@ -99,11 +100,15 @@ async def _health_handler(_: Any) -> Any:
 
 def _connection_payload() -> dict[str, object]:
     source = openrouter_credential_source()
+    persistent, attention = (
+        interactive_credential_status() if source != "ENVIRONMENT" else (False, False)
+    )
     return {
         "state": "CONNECTED" if source != "NONE" else "DISCONNECTED",
         "source": source,
         "restart_required": False,
-        "persistent": False,
+        "persistent": persistent,
+        "needs_attention": attention,
     }
 
 
@@ -136,15 +141,11 @@ async def _connect_handler(request: Any) -> Any:
             {"error": "invalid_credential", "message": "Paste a valid OpenRouter API key."},
             status=400,
         )
-    previous = interactive_openrouter_api_key()
-    set_interactive_openrouter_api_key(key)
     try:
-        observation = await get_runtime().catalog()
+        with pending_interactive_credential(key):
+            observation = await get_runtime().validate_connection()
+        set_interactive_openrouter_api_key(key)
     except ProductFailureError as exc:
-        if previous is None:
-            clear_interactive_openrouter_api_key()
-        else:
-            set_interactive_openrouter_api_key(previous)
         if exc.error.code.value == "API_KEY_INVALID":
             return compat.json_response(
                 {"error": "invalid_credential", "message": "OpenRouter rejected this API key."},
@@ -158,13 +159,33 @@ async def _connect_handler(request: Any) -> Any:
             status=503,
         )
     except RequestPolicyError:
-        if previous is None:
-            clear_interactive_openrouter_api_key()
-        else:
-            set_interactive_openrouter_api_key(previous)
+        if interactive_credential_status()[1]:
+            return compat.json_response(
+                {
+                    **_connection_payload(),
+                    "message": "OpenRouter connection needs attention. Reconnect to continue.",
+                },
+                status=503,
+            )
         return compat.json_response(
             {"error": "invalid_credential", "message": "OpenRouter rejected this API key."},
             status=401,
+        )
+    except OpenRouterHTTPError as exc:
+        return compat.json_response(
+            {
+                "error": "connection_rejected",
+                "message": "OpenRouter could not validate this connection.",
+            },
+            status=401 if exc.status_code in {401, 403} else 503,
+        )
+    except Exception:
+        return compat.json_response(
+            {
+                "error": "connection_unavailable",
+                "message": "OpenRouter connection needs attention. Reconnect to continue.",
+            },
+            status=503,
         )
     return compat.json_response(
         {**_connection_payload(), "model_count": len(observation.models)}, status=200
@@ -172,13 +193,27 @@ async def _connect_handler(request: Any) -> Any:
 
 
 async def _disconnect_handler(_: Any) -> Any:
-    """Forget only the interactive process credential; environment credentials remain active."""
+    """Remove persistent and session credentials; environment credentials remain active."""
 
-    clear_interactive_openrouter_api_key()
+    try:
+        clear_interactive_openrouter_api_key()
+    except RequestPolicyError:
+        return compat.json_response(
+            {
+                **_connection_payload(),
+                "message": "Stored connection could not be removed. Reconnect to continue.",
+            },
+            status=503,
+        )
     return compat.json_response(_connection_payload(), status=200)
 
 
 async def _auth_start_handler(request: Any) -> Any:
+    if openrouter_credential_source() == "ENVIRONMENT":
+        return compat.json_response(
+            {"error": "environment_credential_active", "message": "Managed by environment"},
+            status=409,
+        )
     try:
         body = await request.json()
         callback_url = body.get("callback_url") if isinstance(body, dict) else None
@@ -197,6 +232,11 @@ async def _auth_start_handler(request: Any) -> Any:
 
 
 async def _auth_callback_handler(request: Any) -> Any:
+    if openrouter_credential_source() == "ENVIRONMENT":
+        return compat.json_response(
+            {"error": "environment_credential_active", "message": "Managed by environment"},
+            status=409,
+        )
     query = getattr(request, "query", {})
     state = query.get("state")
     code = query.get("code")
@@ -209,10 +249,10 @@ async def _auth_callback_handler(request: Any) -> Any:
             state if isinstance(state, str) else "",
             code if isinstance(code, str) else "",
         )
+        with pending_interactive_credential(key):
+            observation = await get_runtime().validate_connection()
         set_interactive_openrouter_api_key(key)
-        observation = await get_runtime().catalog()
     except ProductFailureError as exc:
-        clear_interactive_openrouter_api_key()
         message = (
             "OpenRouter rejected the connected account."
             if exc.error.code.value == "API_KEY_INVALID"
@@ -220,10 +260,25 @@ async def _auth_callback_handler(request: Any) -> Any:
         )
         return compat.json_response({"error": "auth_failed", "message": message}, status=502)
     except (RequestPolicyError, TypeError, ValueError):
-        clear_interactive_openrouter_api_key()
         return compat.json_response(
             {"error": "auth_failed", "message": "OpenRouter sign-in could not be completed."},
             status=400,
+        )
+    except OpenRouterHTTPError as exc:
+        return compat.json_response(
+            {
+                "error": "connection_rejected",
+                "message": "OpenRouter could not validate this connection.",
+            },
+            status=401 if exc.status_code in {401, 403} else 503,
+        )
+    except Exception:
+        return compat.json_response(
+            {
+                "error": "connection_unavailable",
+                "message": "OpenRouter connection needs attention. Reconnect to continue.",
+            },
+            status=503,
         )
     return compat.json_response(
         {**_connection_payload(), "model_count": len(observation.models)}, status=200

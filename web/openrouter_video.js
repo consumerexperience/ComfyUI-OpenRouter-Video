@@ -27,12 +27,14 @@ const METHOD_LABELS = {
 };
 let capabilityPromise;
 let connectionPromise;
+const connectionListeners = new Set();
 
 function connectionNodes() {
     return app.graph?._nodes || Object.values(app.graph?.nodes || {});
 }
 
 function setConnectionPresentation(state) {
+    for (const paint of connectionListeners) paint(state);
     const connected = state?.state === "CONNECTED";
     for (const node of connectionNodes()) {
         if (node?.type !== GENERATE_NODE) continue;
@@ -77,7 +79,7 @@ function showConnectionPanel() {
         font: "13px sans-serif", boxShadow: "0 16px 48px rgba(0,0,0,.45)",
     });
     panel.innerHTML = "<h3 style='margin:0 0 8px'>Connect OpenRouter</h3>" +
-        "<p style='margin:0 0 16px;color:#b8c8c4'>Sign in with OpenRouter or enter an API key. The key stays in this ComfyUI process and is never saved in a workflow.</p>";
+        "<p style='margin:0 0 16px;color:#b8c8c4'>Sign in with OpenRouter or enter an API key. Your connection is remembered securely when available and is never saved in a workflow.</p>";
     const status = document.createElement("div");
     status.style.cssText = "min-height:20px;margin:8px 0;color:#aeb8b6";
     const key = document.createElement("input");
@@ -89,7 +91,7 @@ function showConnectionPanel() {
     const save = document.createElement("button"); save.textContent = "Connect API key";
     const cancel = document.createElement("button"); cancel.textContent = "Cancel";
     for (const button of [oauth, save, cancel]) button.style.cssText = "padding:8px 11px;border:1px solid #536560;border-radius:4px;background:#27302f;color:#e4ece9;cursor:pointer";
-    const close = () => overlay.remove();
+    const close = () => { key.value = ""; overlay.remove(); };
     cancel.onclick = close;
     save.onclick = async () => {
         const value = key.value;
@@ -134,7 +136,17 @@ function showConnectionPanel() {
             oauth.disabled = false; save.disabled = false;
         }
     };
-    actions.append(oauth, save, cancel); panel.append(status, key, actions); overlay.append(panel); document.body.append(overlay); key.focus();
+    const advanced = document.createElement("details");
+    const summary = document.createElement("summary"); summary.textContent = "Use existing API key";
+    advanced.append(summary, key, save);
+    actions.append(oauth, cancel); panel.append(status, actions, advanced); overlay.append(panel); document.body.append(overlay); oauth.focus();
+}
+
+function connectionLabel(state) {
+    if (state?.source === "ENVIRONMENT") return "OpenRouter — Connected ✓ · Managed by environment";
+    if (state?.needs_attention) return "OpenRouter connection needs attention. Reconnect to continue.";
+    if (state?.state !== "CONNECTED") return "OpenRouter isn’t connected";
+    return state.persistent ? "OpenRouter — Connected ✓" : "OpenRouter — Connected for this session · Reconnect after restart";
 }
 
 function connectionSettingRenderer() {
@@ -143,7 +155,13 @@ function connectionSettingRenderer() {
     const connect = document.createElement("button"); connect.textContent = "Connect OpenRouter";
     const disconnect = document.createElement("button"); disconnect.textContent = "Disconnect";
     for (const button of [connect, disconnect]) button.style.cssText = "margin-right:8px;padding:6px 9px";
-    const paint = (state) => { label.textContent = state?.state === "CONNECTED" ? `Connected (${state.source})` : "Disconnected"; disconnect.hidden = state?.source !== "INTERACTIVE"; connect.textContent = state?.state === "CONNECTED" ? "Reconnect" : "Connect OpenRouter"; };
+    const paint = (state) => {
+        label.textContent = connectionLabel(state);
+        disconnect.hidden = state?.source !== "INTERACTIVE" && !state?.needs_attention;
+        connect.hidden = state?.source === "ENVIRONMENT";
+        connect.textContent = state?.state === "CONNECTED" || state?.needs_attention ? "Reconnect" : "Connect OpenRouter";
+    };
+    connectionListeners.add(paint);
     connect.onclick = () => showConnectionPanel();
     disconnect.onclick = async () => { await api.fetchApi(CONNECTION_ROUTE, { method: "DELETE" }); await loadConnection(true); };
     root.append(label, connect, disconnect); loadConnection().then(paint); return root;
