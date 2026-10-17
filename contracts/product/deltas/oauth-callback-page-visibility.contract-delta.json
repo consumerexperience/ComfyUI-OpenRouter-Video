@@ -1,0 +1,36 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "oauth-callback-page-visibility",
+  "baseline_checkpoint": "oauth-loopback-806b6b9",
+  "baseline_sha": "806b6b90dc1ca1413ae44c303e9017229f64340c",
+  "risk_tier": "B",
+  "intended_delta": [
+    "Owner-authorized result-page presentation only: opaque contrast, centered Russian UTF-8 success/failure HTML."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01oauth_loopback_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Only static success/failure HTML, byte encoding and hash-authorized local styling; receiver and OAuth behavior unchanged."
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned/submit_resume",
+    "/surfaces/product_owned/security"
+  ],
+  "expected_components": [
+    "callback result HTML presentation",
+    "raw HTTP regression tests"
+  ],
+  "required_gates": [
+    "semantic_diff",
+    "callback_regression",
+    "real_popup_acceptance",
+    "baseline_declaration",
+    "negative_space_tests"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

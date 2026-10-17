@@ -9,7 +9,7 @@
     "src/openrouter_video/oauth.py": "46b9db48e487de21f97b3b5ffa0c47bead28fa4f0ce12003181c3e2a3bbd1013",
     "src/openrouter_video/comfy/runtime.py": "5690f3efb49086147a307b920841e3e6ec9f750fa0e3e9dbec51f0c5552a45c3",
     "src/openrouter_video/credential_backend.py": "3f2c2a42ae9391d2d764938b9919618ad8b8724463c259c6af9f02983b4bdd16",
-    "src/openrouter_video/comfy/oauth_loopback.py": "44cdcdb591b5b5ade1684020c940f34862eb7628cf325130d538bd34e485f7fa"
+    "src/openrouter_video/comfy/oauth_loopback.py": "62668f7c8aa060dd60ea72b82822df6ebd0b5531e699b427ccedeba37f13c77d"
   },
   "purpose": "Local secure credential persistence review candidate; accepted RC snapshots remain unchanged."
 }

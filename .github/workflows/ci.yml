@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 env:
-  OPENROUTER_VIDEO_CONTRACT_BASELINE: contracts/product/baselines/first-run-visual-polish-5b7c524.source-contract.json
-  OPENROUTER_VIDEO_CONTRACT_DELTA: contracts/product/deltas/oauth-loopback-callback-repair.contract-delta.json
+  OPENROUTER_VIDEO_CONTRACT_BASELINE: contracts/product/baselines/oauth-loopback-806b6b9.source-contract.json
+  OPENROUTER_VIDEO_CONTRACT_DELTA: contracts/product/deltas/oauth-callback-page-visibility.contract-delta.json
 
 jobs:
   quality:

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import hashlib
 import secrets
 import socket
 from collections.abc import Awaitable, Callable
@@ -11,25 +13,39 @@ from aiohttp import web
 
 from openrouter_video.oauth import begin, cancel
 
-_SUCCESS = "OpenRouter connected successfully."
-_FAILURE = "OpenRouter connection could not be completed."
+_SUCCESS = "OpenRouter успешно подключён."
+_FAILURE = "Не удалось подключить OpenRouter."
+_RETURN = "Это окно можно закрыть и вернуться в ComfyUI."
+_STYLE = (
+    "html{color-scheme:light dark;background:#111827;color:#f9fafb}"
+    "body{margin:0;min-height:100vh;box-sizing:border-box;display:grid;"
+    "place-items:center;padding:24px;background:#111827;color:#f9fafb;"
+    "font:16px/1.6 system-ui,sans-serif}"
+    "main{width:100%;max-width:32rem;text-align:center;overflow-wrap:anywhere}"
+    "h1{font-size:1.5rem;line-height:1.3;margin:0 0 16px}p{margin:0}"
+)
+_STYLE_HASH = base64.b64encode(hashlib.sha256(_STYLE.encode("utf-8")).digest()).decode("ascii")
 Complete = Callable[[str, str], Awaitable[bool]]
 
 
 def _page(success: bool, status: int = 200) -> web.Response:
     message = _SUCCESS if success else _FAILURE
     return web.Response(
-        text=(
-            "<!doctype html><html lang=en><meta charset=utf-8>"
-            "<title>OpenRouter connection</title><h1>" + message + "</h1>"
-            "<p>You can close this tab and return to ComfyUI.</p></html>"
-        ),
+        body=(
+            '<!doctype html><html lang="ru"><head><meta charset="utf-8">'
+            '<meta name="viewport" content="width=device-width,initial-scale=1">'
+            "<title>Подключение OpenRouter</title><style>" + _STYLE + "</style></head>"
+            "<body><main><h1>" + message + "</h1><p>" + _RETURN + "</p></main></body></html>"
+        ).encode("utf-8"),
         content_type="text/html",
+        charset="utf-8",
         status=status,
         headers={
             "Cache-Control": "no-store",
             "Referrer-Policy": "no-referrer",
-            "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+            "Content-Security-Policy": (
+                "default-src 'none'; frame-ancestors 'none'; style-src 'sha256-" + _STYLE_HASH + "'"
+            ),
             "X-Content-Type-Options": "nosniff",
         },
     )
