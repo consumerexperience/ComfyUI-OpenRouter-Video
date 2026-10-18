@@ -2,14 +2,15 @@
   "baseline_sha": "9da76a7111c79d0dec0125d25c961f0c5007498c",
   "candidate_files": {
     "web/openrouter_video.js": "06bb8521e1a0b673cb2f2a78fb393a1010e7b96750334c19abdc2a348daba094",
-    "src/openrouter_video/comfy/compat.py": "192ee9981fcbcf2a57e85c8a87fd8e629882ce48f51d202b441a8f7061dbd514",
+    "src/openrouter_video/comfy/compat.py": "404e53f450a78ce05dd8cfc282cc105cb647ea6d7ee53435d99689fb753587ef",
     "src/openrouter_video/comfy/nodes.py": "322d02cd0467b63684935f7042776df7b3bc75d40cd50760883b15048ea18a9d",
     "src/openrouter_video/secrets.py": "96fa459efe15082d1d009bdb42a5f3fae20ab7bc7507c17a7f9d3ccc6fcebcff",
-    "src/openrouter_video/comfy/routes.py": "dfd9fcda4ecc91449d7c06029eeff2744cb33ddd4cabac9cbc308f3eeb430a5b",
+    "src/openrouter_video/comfy/routes.py": "9481fbc4241e2b4363800c84c468cd89582367c9ecf52dfc8ef2f53d6212fff5",
     "src/openrouter_video/oauth.py": "46b9db48e487de21f97b3b5ffa0c47bead28fa4f0ce12003181c3e2a3bbd1013",
     "src/openrouter_video/comfy/runtime.py": "5690f3efb49086147a307b920841e3e6ec9f750fa0e3e9dbec51f0c5552a45c3",
     "src/openrouter_video/credential_backend.py": "3f2c2a42ae9391d2d764938b9919618ad8b8724463c259c6af9f02983b4bdd16",
-    "src/openrouter_video/comfy/oauth_loopback.py": "62668f7c8aa060dd60ea72b82822df6ebd0b5531e699b427ccedeba37f13c77d"
+    "src/openrouter_video/comfy/oauth_loopback.py": "56fd164718978b139ece0cf947e53208be1f4f08a6553040d44a28ffd49c5806",
+    "src/openrouter_video/comfy/oauth_diagnostics.py": "2f44e260509fe8746cb6210a92b1cc90233d15a025535410eb7cf6a20625c616"
   },
   "purpose": "Local secure credential persistence review candidate; accepted RC snapshots remain unchanged."
 }

@@ -642,6 +642,7 @@ def test_route_registration_is_thread_safe_lazy_and_idempotent(
         ("POST /openrouter-video/v1/connection", routes._connect_handler),
         ("DELETE /openrouter-video/v1/connection", routes._disconnect_handler),
         ("POST /openrouter-video/v1/auth/start", routes._auth_start_handler),
+        ("GET /openrouter-video/v1/auth/diagnostics", routes._oauth_diagnostics_handler),
     ]
 
 

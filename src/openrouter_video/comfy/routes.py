@@ -21,6 +21,7 @@ from openrouter_video.secrets import (
 )
 
 from . import compat
+from .oauth_diagnostics import Outcome, callback_outcomes
 from .oauth_loopback import LoopbackReceiver
 from .projection import project_model
 from .runtime import get_runtime, local_runtime_health
@@ -119,6 +120,13 @@ async def _connection_handler(_: Any) -> Any:
     """Return local connection state without network work or secret material."""
 
     return compat.json_response(_connection_payload(), status=200)
+
+
+async def _oauth_diagnostics_handler(_: Any) -> Any:
+    """Local read-only inspection; no transaction IDs, timestamps or request fields."""
+    response = compat.json_response({"outcomes": callback_outcomes.snapshot()}, status=200)
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 async def _connect_handler(request: Any) -> Any:
@@ -242,13 +250,18 @@ async def _complete_oauth(state: str, code: str) -> bool:
     """Existing exchange, uncached credential validation and storage, status only."""
 
     if openrouter_credential_source() == "ENVIRONMENT":
+        callback_outcomes.record(Outcome.ENVIRONMENT_MANAGED)
         return False
+    failure = Outcome.EXCHANGE_FAILED
     try:
         key = await exchange_pkce(state, code)
+        failure = Outcome.VALIDATION_FAILED
         with pending_interactive_credential(key):
             await get_runtime().validate_connection()
+        failure = Outcome.STORE_FAILED
         set_interactive_openrouter_api_key(key)
     except Exception:
+        callback_outcomes.record(failure)
         return False
     return True
 
@@ -370,6 +383,7 @@ def register_routes() -> None:
             ("post", compat.CONNECTION_ROUTE, _connect_handler),
             ("delete", compat.CONNECTION_ROUTE, _disconnect_handler),
             ("post", compat.AUTH_START_ROUTE, _auth_start_handler),
+            ("get", compat.AUTH_DIAGNOSTICS_ROUTE, _oauth_diagnostics_handler),
         )
         for method, path, handler in routes:
             marker = (method, path)

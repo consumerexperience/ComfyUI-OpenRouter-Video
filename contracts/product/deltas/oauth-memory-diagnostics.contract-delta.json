@@ -1,0 +1,58 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "oauth-memory-diagnostics",
+  "baseline_checkpoint": "oauth-page-9a41c5f",
+  "baseline_sha": "9a41c5fe5213fc535565bc0a71b366d00aa55794",
+  "risk_tier": "B",
+  "intended_delta": [
+    "Owner-authorized bounded memory-only predefined callback outcome categories; local no-store read-only diagnostic route."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01oauth_loopback_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Only passive predefined category recording and local read-only bounded memory inspection. No auth, credential, browser, node or generation behavior change."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01routes_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Only passive predefined category recording and local read-only bounded memory inspection. No auth, credential, browser, node or generation behavior change."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01compat_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Only passive predefined category recording and local read-only bounded memory inspection. No auth, credential, browser, node or generation behavior change."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01oauth_diagnostics_py",
+      "operations": [
+        "add"
+      ],
+      "reason": "Only passive predefined category recording and local read-only bounded memory inspection. No auth, credential, browser, node or generation behavior change."
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned/submit_resume",
+    "/surfaces/product_owned/security"
+  ],
+  "expected_components": [
+    "process-memory enum buffer",
+    "passive callback and completion stage markers",
+    "local read-only diagnostic route"
+  ],
+  "required_gates": [
+    "baseline_declaration",
+    "semantic_diff",
+    "negative_space_tests",
+    "full_tests",
+    "memory_only_secret_boundaries"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

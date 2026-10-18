@@ -13,6 +13,8 @@ from aiohttp import web
 
 from openrouter_video.oauth import begin, cancel
 
+from .oauth_diagnostics import Outcome, callback_outcomes
+
 _SUCCESS = "OpenRouter успешно подключён."
 _FAILURE = "Не удалось подключить OpenRouter."
 _RETURN = "Это окно можно закрыть и вернуться в ComfyUI."
@@ -88,29 +90,38 @@ class LoopbackReceiver:
 
     async def _expire(self) -> None:
         await asyncio.sleep(self._timeout)
+        callback_outcomes.record(Outcome.DEADLINE)
         await self.close()
 
     async def _callback(self, request: web.Request) -> web.Response:
         if self._consumed or self._closing:
+            callback_outcomes.record(Outcome.DUPLICATE)
             return _page(False, 410)
         self._consumed = True
         try:
             remaining = self._deadline - asyncio.get_running_loop().time()
             states = request.query.getall("state", [])
             codes = request.query.getall("code", [])
-            if (
-                remaining <= 0
-                or request.query.get("error")
-                or len(states) != 1
-                or len(codes) != 1
-                or not codes[0]
-                or len(codes[0]) > 4096
-                or not secrets.compare_digest(states[0], self._state)
-            ):
+            rejection = None
+            if remaining <= 0:
+                rejection = Outcome.DEADLINE
+            elif request.query.get("error"):
+                rejection = Outcome.PROVIDER_ERROR
+            elif len(states) != 1 or len(codes) != 1 or not codes[0] or len(codes[0]) > 4096:
+                rejection = Outcome.INVALID_CALLBACK_SHAPE
+            elif not secrets.compare_digest(states[0], self._state):
+                rejection = Outcome.STATE_MISMATCH
+            if rejection is not None:
+                callback_outcomes.record(rejection)
                 return _page(False, 400)
             success = await asyncio.wait_for(self._complete(states[0], codes[0]), remaining)
+            callback_outcomes.record(Outcome.SUCCESS if success else Outcome.COMPLETION_FAILED)
             return _page(success, 200 if success else 400)
+        except asyncio.TimeoutError:
+            callback_outcomes.record(Outcome.DEADLINE)
+            return _page(False, 400)
         except Exception:
+            callback_outcomes.record(Outcome.UNEXPECTED_FAILURE)
             return _page(False, 400)
         finally:
             # Cleanup must run after the response handler returns, not await itself.

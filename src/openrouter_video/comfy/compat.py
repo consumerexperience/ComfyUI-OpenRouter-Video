@@ -18,6 +18,7 @@ HEALTH_ROUTE: Final = "/openrouter-video/v1/health"
 COST_ESTIMATE_ROUTE: Final = "/openrouter-video/v1/cost-estimate"
 CONNECTION_ROUTE: Final = "/openrouter-video/v1/connection"
 AUTH_START_ROUTE: Final = "/openrouter-video/v1/auth/start"
+AUTH_DIAGNOSTICS_ROUTE: Final = "/openrouter-video/v1/auth/diagnostics"
 UI_CONTRACT_VERSION: Final = 5
 MODEL_UNRESOLVED: Final = "SELECT MODEL"
 AUTO_MODEL_DEFAULT: Final = "AUTO / MODEL DEFAULT"
