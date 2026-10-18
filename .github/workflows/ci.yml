@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 env:
-  OPENROUTER_VIDEO_CONTRACT_BASELINE: contracts/product/baselines/oauth-page-9a41c5f.source-contract.json
-  OPENROUTER_VIDEO_CONTRACT_DELTA: contracts/product/deltas/oauth-memory-diagnostics.contract-delta.json
+  OPENROUTER_VIDEO_CONTRACT_BASELINE: contracts/product/baselines/oauth-diagnostics-c5d44b1.source-contract.json
+  OPENROUTER_VIDEO_CONTRACT_DELTA: contracts/product/deltas/oauth-callback-result-consistency.contract-delta.json
 
 jobs:
   quality:

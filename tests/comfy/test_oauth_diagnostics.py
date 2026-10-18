@@ -5,12 +5,14 @@ from __future__ import annotations
 import asyncio
 import json
 from types import SimpleNamespace
+from typing import cast
 from urllib.parse import parse_qs, urlparse
 
 import aiohttp
 import pytest
+from aiohttp import web
 
-from openrouter_video.comfy import oauth_loopback, routes
+from openrouter_video.comfy import compat, oauth_loopback, routes
 from openrouter_video.comfy.oauth_diagnostics import CallbackOutcomes, Outcome
 
 
@@ -111,16 +113,26 @@ def test_duplicate_and_success_both_retained(outcomes: CallbackOutcomes) -> None
             async def first() -> int:
                 async with client.get(callback + "&code=TEST_ONLY") as response:
                     await response.read()
-                    return response.status
+                    return int(response.status)
 
             task = asyncio.create_task(first())
             await entered.wait()
-            async with client.get(callback + "&code=TEST_ONLY") as response:
-                assert response.status == 410
+
+            async def duplicate() -> int:
+                async with client.get(callback + "&code=TEST_ONLY") as response:
+                    await response.read()
+                    return int(response.status)
+
+            repeated = asyncio.create_task(duplicate())
+            await asyncio.sleep(0)
             release.set()
             assert await task == 200
+            assert await repeated == 200
         await asyncio.wait_for(receiver.closed.wait(), 2)
-        assert outcomes.snapshot() == ["DUPLICATE", "SUCCESS"]
+        observed = outcomes.snapshot()
+        assert observed.count("SUCCESS") == 1
+        assert observed.count("DUPLICATE") == 1
+        assert observed.count("RESULT_REPLAYED") == 1
 
     asyncio.run(run())
 
@@ -145,7 +157,7 @@ def test_closing_without_a_previous_callback_is_not_a_duplicate(outcomes: Callba
 
         receiver = oauth_loopback.LoopbackReceiver(complete)
         receiver._closing = True
-        response = await receiver._callback(SimpleNamespace())
+        response = await receiver._callback(cast(web.Request, SimpleNamespace()))
         assert response.status == 410
         assert outcomes.snapshot() == ["RECEIVER_CLOSING"]
 
@@ -157,7 +169,7 @@ def test_read_only_route_returns_categories_with_no_store(
 ) -> None:
     outcomes.record(Outcome.SUCCESS)
     monkeypatch.setattr(
-        routes.compat,
+        compat,
         "json_response",
         lambda payload, **kw: SimpleNamespace(payload=payload, status=kw["status"], headers={}),
     )

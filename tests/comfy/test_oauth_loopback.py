@@ -191,14 +191,21 @@ def test_duplicate_inflight_callback_does_not_exchange_twice() -> None:
             async def first() -> int:
                 async with client.get(callback + "&code=TEST_ONLY_CODE") as response:
                     await response.read()
-                    return response.status
+                    return int(response.status)
 
             task = asyncio.create_task(first())
             await entered.wait()
-            async with client.get(callback + "&code=TEST_ONLY_DUPLICATE") as response:
-                assert response.status == 410
+
+            async def duplicate() -> int:
+                async with client.get(callback + "&code=TEST_ONLY_CODE") as response:
+                    await response.read()
+                    return int(response.status)
+
+            repeated = asyncio.create_task(duplicate())
+            await asyncio.sleep(0)
             release.set()
             assert await task == 200
+            assert await repeated == 200
         await asyncio.wait_for(receiver.closed.wait(), 2)
         assert calls == 1
 

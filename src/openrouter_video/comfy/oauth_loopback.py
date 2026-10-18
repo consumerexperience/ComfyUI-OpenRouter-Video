@@ -28,6 +28,7 @@ _STYLE = (
 )
 _STYLE_HASH = base64.b64encode(hashlib.sha256(_STYLE.encode("utf-8")).digest()).decode("ascii")
 Complete = Callable[[str, str], Awaitable[bool]]
+_RESULT_TTL_SECONDS = 5.0
 
 
 def _page(success: bool, status: int = 200) -> web.Response:
@@ -65,6 +66,11 @@ class LoopbackReceiver:
         self._consumed = False
         self._closing = False
         self._deadline = 0.0
+        self._request_digest: bytes | None = None
+        self._terminal_success = False
+        self._result_deadline = 0.0
+        self._finished = asyncio.Event()
+        self._cleanup: asyncio.Task[None] | None = None
         self.closed = asyncio.Event()
         self.redirect_uri = ""
 
@@ -98,6 +104,8 @@ class LoopbackReceiver:
             callback_outcomes.record(
                 Outcome.DUPLICATE if self._consumed else Outcome.RECEIVER_CLOSING
             )
+            if self._consumed:
+                return await self._repeat(request)
             return _page(False, 410)
         self._consumed = True
         try:
@@ -116,7 +124,13 @@ class LoopbackReceiver:
             if rejection is not None:
                 callback_outcomes.record(rejection)
                 return _page(False, 400)
+            self._request_digest = self._digest(states[0], codes[0])
             success = await asyncio.wait_for(self._complete(states[0], codes[0]), remaining)
+            self._terminal_success = success
+            if success:
+                self._result_deadline = min(
+                    self._deadline, asyncio.get_running_loop().time() + _RESULT_TTL_SECONDS
+                )
             callback_outcomes.record(Outcome.SUCCESS if success else Outcome.COMPLETION_FAILED)
             return _page(success, 200 if success else 400)
         except asyncio.TimeoutError:
@@ -126,13 +140,68 @@ class LoopbackReceiver:
             callback_outcomes.record(Outcome.UNEXPECTED_FAILURE)
             return _page(False, 400)
         finally:
+            # The verifier/raw state are not retained for result replay.
+            cancel(self._state)
+            self._state = ""
+            self._finished.set()
             # Cleanup must run after the response handler returns, not await itself.
-            asyncio.create_task(self.close())
+            self._cleanup = asyncio.create_task(self._close_after_result())
+
+    @staticmethod
+    def _digest(state: str, code: str) -> bytes:
+        return hashlib.sha256(state.encode("utf-8") + b"\0" + code.encode("utf-8")).digest()
+
+    async def _repeat(self, request: web.Request) -> web.Response:
+        """Return this transaction's result only; never repeat completion work."""
+        if self._closing:
+            return _page(False, 410)
+        remaining = self._deadline - asyncio.get_running_loop().time()
+        if remaining <= 0:
+            callback_outcomes.record(Outcome.DEADLINE)
+            return _page(False, 410)
+        states = request.query.getall("state", [])
+        codes = request.query.getall("code", [])
+        if (
+            request.query.get("error")
+            or len(states) != 1
+            or len(codes) != 1
+            or not states[0]
+            or not codes[0]
+            or len(states[0]) > 128
+            or len(codes[0]) > 4096
+            or self._request_digest is None
+            or not secrets.compare_digest(self._digest(states[0], codes[0]), self._request_digest)
+        ):
+            return _page(False, 410)
+        try:
+            await asyncio.wait_for(self._finished.wait(), remaining)
+        except asyncio.TimeoutError:
+            callback_outcomes.record(Outcome.DEADLINE)
+            return _page(False, 410)
+        if (
+            self._terminal_success
+            and not self._closing
+            and asyncio.get_running_loop().time() < self._result_deadline
+        ):
+            callback_outcomes.record(Outcome.RESULT_REPLAYED)
+            return _page(True)
+        return _page(False, 410)
+
+    async def _close_after_result(self) -> None:
+        if self._terminal_success:
+            await asyncio.sleep(max(0, self._result_deadline - asyncio.get_running_loop().time()))
+        await self.close()
 
     async def close(self) -> None:
         if self._closing:
             return
         self._closing = True
+        self._finished.set()
+        self._request_digest = None
+        self._terminal_success = False
+        self._result_deadline = 0.0
+        if self._cleanup is not None and self._cleanup is not asyncio.current_task():
+            self._cleanup.cancel()
         cancel(self._state)
         self._state = ""
         if self._timer is not None and self._timer is not asyncio.current_task():
@@ -141,4 +210,9 @@ class LoopbackReceiver:
             if self._runner is not None:
                 await self._runner.cleanup()
         finally:
+            self._request_digest = None
+            self._terminal_success = False
+            self._result_deadline = 0.0
+            if self._cleanup is not None and self._cleanup is not asyncio.current_task():
+                self._cleanup.cancel()
             self.closed.set()

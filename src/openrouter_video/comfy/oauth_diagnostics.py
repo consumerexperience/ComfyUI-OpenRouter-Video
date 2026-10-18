@@ -7,6 +7,7 @@ from threading import Lock
 
 class Outcome(str, Enum):
     SUCCESS = "SUCCESS"
+    RESULT_REPLAYED = "RESULT_REPLAYED"
     DUPLICATE = "DUPLICATE"
     RECEIVER_CLOSING = "RECEIVER_CLOSING"
     DEADLINE = "DEADLINE"
