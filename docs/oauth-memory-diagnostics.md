@@ -11,7 +11,8 @@ Read-only local inspection: `GET /openrouter-video/v1/auth/diagnostics`, returni
 connection payload, Settings UI or callback result HTML. Existing ComfyUI
 middleware still governs access to this route.
 
-Categories distinguish success, duplicate/consumed receiver, deadline, provider
+Categories distinguish success, duplicate/consumed receiver, receiver closing
+without a previous callback, deadline, provider
 error, invalid callback shape, state mismatch, environment-managed completion,
 exchange failure, catalogue validation failure, credential-store failure,
 generic unsuccessful completion and unexpected callback failure. Completion

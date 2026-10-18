@@ -138,6 +138,20 @@ def test_timeout_category(outcomes: CallbackOutcomes) -> None:
     asyncio.run(run())
 
 
+def test_closing_without_a_previous_callback_is_not_a_duplicate(outcomes: CallbackOutcomes) -> None:
+    async def run() -> None:
+        async def complete(state: str, code: str) -> bool:
+            return True
+
+        receiver = oauth_loopback.LoopbackReceiver(complete)
+        receiver._closing = True
+        response = await receiver._callback(SimpleNamespace())
+        assert response.status == 410
+        assert outcomes.snapshot() == ["RECEIVER_CLOSING"]
+
+    asyncio.run(run())
+
+
 def test_read_only_route_returns_categories_with_no_store(
     monkeypatch: pytest.MonkeyPatch, outcomes: CallbackOutcomes
 ) -> None:

@@ -95,7 +95,9 @@ class LoopbackReceiver:
 
     async def _callback(self, request: web.Request) -> web.Response:
         if self._consumed or self._closing:
-            callback_outcomes.record(Outcome.DUPLICATE)
+            callback_outcomes.record(
+                Outcome.DUPLICATE if self._consumed else Outcome.RECEIVER_CLOSING
+            )
             return _page(False, 410)
         self._consumed = True
         try:
