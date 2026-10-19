@@ -8,7 +8,7 @@ VIDEO, with JOB_ID, MODEL, ACTUAL_COST_USD when available, and STATUS outputs.
 
 This is v0.1 RC preparation, not a stable release or Registry publication.
 The single version authority is project.version in pyproject.toml. Python tooling
-normalizes 0.1.0-rc.1 to PEP 440 version 0.1.0rc1.
+normalizes 0.1.0-rc.2 to PEP 440 version 0.1.0rc2.
 
 ## Installation
 

@@ -1,0 +1,41 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "rc2-version-identity",
+  "baseline_checkpoint": "rc-reconciliation-6ad02d8",
+  "baseline_sha": "6ad02d8969484984cab4661513b6b8868cd70169",
+  "risk_tier": "A",
+  "intended_delta": [
+    "Owner-approved rc.2 release metadata; exactly two About version literals change from rc.1 to rc.2. No UI design, behavior, OAuth or other product logic changes."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Only two version literals. Whole-file normalization to exact 6ad02d8 is enforced by frontend regression and release evidence."
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned/security",
+    "/surfaces/product_owned/submit_resume"
+  ],
+  "expected_components": [
+    "project.version and release notes",
+    "two About version literals",
+    "version consistency assertions and reviewed source hash",
+    "RC evidence and committed CI contract envelope"
+  ],
+  "required_gates": [
+    "focused_tests",
+    "baseline_declaration",
+    "semantic_diff",
+    "exact_two_literal_boundary",
+    "full_non_paid_regression",
+    "package_security_audit",
+    "rc1_to_rc2_upgrade",
+    "offline_about_browser_rendering"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

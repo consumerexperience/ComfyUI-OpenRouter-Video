@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.0-rc.2 — local RC identity reconciliation
+
+- Assign the reviewed Naming / First-Run UX / OAuth candidate its own RC identity.
+  The immutable v0.1.0-rc.1 tag and historical receipts remain unchanged.
+- Package metadata and both About version labels now identify 0.1.0-rc.2
+  (PEP 440: 0.1.0rc2). No new features, UI design or authentication changes.
+- Includes the previously implemented connection UX, secure credential storage,
+  loopback callback pages and transaction-scoped duplicate-result handling.
+- Existing browser limitations remain open: Codex native popup visibility and
+  the reported Yandex failure have no proven root cause. No new live OAuth or
+  paid qualification is claimed. Existing model, staging and platform limitations
+  listed below still apply; no public release or Registry publication is made.
+
 ## 0.1.0-rc.1 — local RC preparation
 
 - OpenRouter asynchronous Video generation with your own API key in ComfyUI.

@@ -207,9 +207,9 @@ function connectionSettingRenderer() {
 function aboutSettingRenderer() {
     connectionStyles();
     const root = document.createElement("div"); root.className = "orv-connection orv-stack orv-about";
-    root.setAttribute("aria-label", "OpenRouter Video 0.1.0-rc.1 by ARENAS®lab");
+    root.setAttribute("aria-label", "OpenRouter Video 0.1.0-rc.2 by ARENAS®lab");
     const title = document.createElement("strong"); title.textContent = "OpenRouter Video";
-    const version = document.createElement("span"); version.textContent = "0.1.0-rc.1";
+    const version = document.createElement("span"); version.textContent = "0.1.0-rc.2";
     const author = document.createElement("span"); author.className = "orv-helper"; author.textContent = "by ARENAS®lab";
     root.append(title, version, author); return root;
 }
