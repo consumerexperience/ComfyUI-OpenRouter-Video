@@ -31,15 +31,30 @@ dynamic inputs are required. Historical verification anchors are ComfyUI v0.34.3
 and v0.37.0. RC installation is checked on the v0.34.3 anchor; other host versions
 require compatible APIs and are not automatically certified.
 
+Real callback-page compatibility remains unresolved for the Codex native popup
+and the reported Yandex Browser failure. Controlled Chromium tests pass, but do
+not establish the cause of either real-browser issue. See the RC notes below.
+
 ## First run
 
-Configure OPENROUTER_API_KEY in the launch environment, then restart ComfyUI.
+Open Settings → OpenRouter Video → Connect OpenRouter → Sign in with OpenRouter.
+Complete the provider's authorization in your browser, then return to ComfyUI.
+The connection status updates without reloading the page. A masked Use existing
+API key option is available in the same dialog.
+
+Interactive connections use the OS credential vault when available (Windows
+Credential Manager, macOS Keychain or Linux Secret Service). If the vault is
+unavailable, the UI reports session-only storage; reconnect after restarting
+ComfyUI. Disconnect removes the interactive credential. For managed/headless use,
+configure OPENROUTER_API_KEY in the launch environment and restart ComfyUI; this
+environment credential takes precedence and is not removed by Disconnect.
+
 The key belongs outside nodes and workflows. Never commit a secret .env or put
 credentials into workflow JSON, source files, logs or bug reports.
 
 Add OpenRouter Video. Choose Model and Inference Method, enter Prompt,
 connect the required media, and select the offered parameters. Loading a workflow
-or selecting a model does not generate a video. Discovery needs the configured
+or selecting a model does not generate a video. Discovery needs a connected account or an environment
 key; missing credentials produce a configuration error without a paid submit.
 
 Native IMAGE uses the direct image bridge. Native VIDEO/AUDIO also need your own
