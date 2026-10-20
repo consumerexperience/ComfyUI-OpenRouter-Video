@@ -8,7 +8,7 @@
     "src/openrouter_video/comfy/routes.py": "9481fbc4241e2b4363800c84c468cd89582367c9ecf52dfc8ef2f53d6212fff5",
     "src/openrouter_video/oauth.py": "46b9db48e487de21f97b3b5ffa0c47bead28fa4f0ce12003181c3e2a3bbd1013",
     "src/openrouter_video/comfy/runtime.py": "5690f3efb49086147a307b920841e3e6ec9f750fa0e3e9dbec51f0c5552a45c3",
-    "src/openrouter_video/credential_backend.py": "3f2c2a42ae9391d2d764938b9919618ad8b8724463c259c6af9f02983b4bdd16",
+    "src/openrouter_video/credential_backend.py": "ddaa46fcae133aee57d09d039b91d0a840fbc8260150af6e796f56789b3f041e",
     "src/openrouter_video/comfy/oauth_loopback.py": "e2ddf1fe61e16a7bf8ae37f9c5369ac7d44b9bcb2e19cbea520ae81e368eff74",
     "src/openrouter_video/comfy/oauth_diagnostics.py": "f6f07be096153de722339e48391fc283472504a6c2f74a747eed2d71f2c39948"
   },

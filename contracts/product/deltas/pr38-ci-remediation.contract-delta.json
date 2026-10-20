@@ -1,0 +1,45 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "pr38-ci-remediation",
+  "baseline_checkpoint": "rc2-c0d9600-ci-baseline",
+  "baseline_sha": "c0d96009f11785bac92f6e9e78d7fed8014a8455",
+  "risk_tier": "B",
+  "intended_delta": [
+    "Owner-authorized CI portability remediation only: Python 3.10-compatible pinned dependency closure, explicit standalone adapter test aiohttp dependency, and a typed Linux backend constructor factory with unchanged storage behavior."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01credential_backend_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Only Callable import and typed local factory binding; AST normalization and synthetic constructor test enforce identical backend selection, construction and credential access behavior."
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned/security",
+    "/surfaces/product_owned/submit_resume",
+    "/surfaces/product_owned/credentials",
+    "/surfaces/product_owned/workflow_persistence"
+  ],
+  "expected_components": [
+    "requirements-dev.lock including platform/conditional transitive pins",
+    "aiohttp dev extra only; ComfyUI retains runtime ownership",
+    "typed Linux constructor boundary",
+    "existing credential tests and source hash review",
+    "CI Product Contract envelope and evidence"
+  ],
+  "required_gates": [
+    "baseline_declaration",
+    "semantic_diff",
+    "negative_space_tests",
+    "focused_tests",
+    "full_tests",
+    "clean_python310_python313_install",
+    "linux_mypy",
+    "dependency_security_audit",
+    "remote_five_previously_failed_jobs"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

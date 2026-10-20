@@ -5,6 +5,12 @@
 The default pytest expression excludes `live`. CI and local verification must not contact
 OpenRouter or read an OpenRouter credential.
 
+Use a clean Python 3.10-3.13 environment, install `requirements-dev.lock`, then
+install the project with `python -m pip install --no-deps -e .`. Do not borrow a
+ComfyUI environment through PYTHONPATH: ComfyUI supplies aiohttp to the adapter
+at runtime, while standalone adapter/loopback tests install its pinned dev
+dependency explicitly. The lock also pins conditional Python/OS dependencies.
+
 ```powershell
 python -m pytest
 python -m ruff check .

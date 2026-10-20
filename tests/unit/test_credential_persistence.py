@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+import sys
+import types
 
 import pytest
 
@@ -164,3 +166,31 @@ def test_explicit_os_backend_ignores_keyring_configuration(monkeypatch: pytest.M
     backend = secure_backend()
     assert not hasattr(backend, "injected_test_property")
     assert "keyrings.alt" not in type(backend).__module__
+
+
+def test_linux_factory_constructs_same_backend_once_without_vault_access(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from openrouter_video.credential_backend import secure_backend
+
+    constructed: list[object] = []
+
+    class SyntheticSecretService(Vault):
+        def __init__(self) -> None:
+            super().__init__()
+            constructed.append(self)
+            self.set_properties_from_env()
+
+        def set_properties_from_env(self) -> None:
+            raise AssertionError("Environment overrides must remain blocked")
+
+        def get_password(self, service: str, username: str) -> str | None:
+            raise AssertionError("Constructing the backend must not read the vault")
+
+    module = types.ModuleType("keyring.backends.SecretService")
+    monkeypatch.setattr(module, "Keyring", SyntheticSecretService, raising=False)
+    monkeypatch.setitem(sys.modules, module.__name__, module)
+    monkeypatch.setattr(sys, "platform", "linux")
+    backend = secure_backend()
+    assert isinstance(backend, SyntheticSecretService)
+    assert constructed == [backend]

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+from collections.abc import Callable
 from typing import Protocol
 
 SERVICE = "OpenRouter Video for ComfyUI"
@@ -47,5 +48,6 @@ def secure_backend() -> CredentialBackend:
         class LinuxVault(_FixedProperties, SecretServiceKeyring):
             pass
 
-        return LinuxVault()
+        linux_factory: Callable[[], CredentialBackend] = LinuxVault
+        return linux_factory()
     raise RuntimeError("Secure credential storage is unavailable")
