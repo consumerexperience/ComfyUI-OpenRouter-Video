@@ -1,0 +1,44 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "oauth-callback-result-consistency",
+  "baseline_checkpoint": "oauth-diagnostics-c5d44b1",
+  "baseline_sha": "c5d44b19e73533b0ac1bc634f3582b23789edc9b",
+  "risk_tier": "B",
+  "intended_delta": [
+    "Exact callback request replays the same successful terminal result without repeated completion. Pending exact duplicates wait for the original result."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01oauth_loopback_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Owner-authorized idempotent callback result handling only. No new completion, storage, auth exchange, UI or generation behavior."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01oauth_diagnostics_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Owner-authorized idempotent callback result handling only. No new completion, storage, auth exchange, UI or generation behavior."
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned/submit_resume",
+    "/surfaces/product_owned/security"
+  ],
+  "expected_components": [
+    "per-receiver ephemeral request digest and terminal result",
+    "bounded 5-second result delivery grace clipped to original expiry",
+    "result-replay diagnostic category"
+  ],
+  "required_gates": [
+    "baseline_declaration",
+    "semantic_diff",
+    "negative_space_tests",
+    "full_tests",
+    "controlled_browser_transaction_isolation"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

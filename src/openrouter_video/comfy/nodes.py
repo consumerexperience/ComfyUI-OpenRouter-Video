@@ -316,7 +316,7 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
     def define_schema(cls) -> object:
         return compat.IO.Schema(
             node_id="OpenRouterVideoGenerate",
-            display_name="OpenRouter Video Generate",
+            display_name="OpenRouter Video",
             category="OpenRouter/Video",
             not_idempotent=True,
             inputs=[

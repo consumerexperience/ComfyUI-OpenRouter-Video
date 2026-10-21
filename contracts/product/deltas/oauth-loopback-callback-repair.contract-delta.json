@@ -1,0 +1,68 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "oauth-loopback-callback-repair",
+  "baseline_checkpoint": "first-run-visual-polish-5b7c524",
+  "baseline_sha": "5b7c524b6dac1440d31d26a95309f785b4428adb",
+  "risk_tier": "B",
+  "intended_delta": [
+    "Move OAuth callback transport off ComfyUI origin middleware to an ephemeral 127.0.0.1-only listener."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01oauth_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Owner-authorized callback transport only: dedicated single-transaction ephemeral loopback receiver; state carried in callback URI; unchanged exchange/validation/storage and visuals."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01routes_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Owner-authorized callback transport only: dedicated single-transaction ephemeral loopback receiver; state carried in callback URI; unchanged exchange/validation/storage and visuals."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01compat_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Owner-authorized callback transport only: dedicated single-transaction ephemeral loopback receiver; state carried in callback URI; unchanged exchange/validation/storage and visuals."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01oauth_loopback_py",
+      "operations": [
+        "add"
+      ],
+      "reason": "Owner-authorized callback transport only: dedicated single-transaction ephemeral loopback receiver; state carried in callback URI; unchanged exchange/validation/storage and visuals."
+    },
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Owner-authorized callback transport only: dedicated single-transaction ephemeral loopback receiver; state carried in callback URI; unchanged exchange/validation/storage and visuals."
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned/submit_resume",
+    "/surfaces/product_owned/security"
+  ],
+  "expected_components": [
+    "callback listener",
+    "existing PKCE state lifecycle",
+    "auth start/completion glue",
+    "transport request body only",
+    "security regression tests"
+  ],
+  "required_gates": [
+    "baseline_declaration",
+    "semantic_diff",
+    "negative_space_tests",
+    "full_tests",
+    "loopback_lifecycle",
+    "real_oauth_acceptance"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

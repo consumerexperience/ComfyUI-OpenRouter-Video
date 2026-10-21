@@ -8,6 +8,15 @@ import sys
 import types
 from typing import Any
 
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def bounded_callback_result_test_window(monkeypatch: pytest.MonkeyPatch) -> None:
+    from openrouter_video.comfy import oauth_loopback
+
+    monkeypatch.setattr(oauth_loopback, "_RESULT_TTL_SECONDS", 0.5)
+
 
 class _Field:
     def __init__(self, name: str | None = None, **options: object) -> None:

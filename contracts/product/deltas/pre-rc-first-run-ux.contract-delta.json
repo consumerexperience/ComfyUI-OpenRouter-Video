@@ -1,0 +1,47 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "pre-rc-first-run-ux",
+  "baseline_checkpoint": "v0.1.0-rc.1",
+  "baseline_sha": "9da76a7111c79d0dec0125d25c961f0c5007498c",
+  "risk_tier": "B",
+  "intended_delta": [
+    "Rename the Generate node display label to OpenRouter Video while preserving OpenRouterVideoGenerate serialization identity and OpenRouter/Video category.",
+    "Add first-run OpenRouter connection UX using documented PKCE or masked manual key entry, process-memory credential state, authenticated catalogue validation and shared Generate/Resume resolution.",
+    "Preserve all generation, Resume, capability, geometry, media, workflow and attribution semantics; do not add paid inference or telemetry."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned",
+      "operations": ["add", "replace", "remove"],
+      "reason": "Product Owner authorized the local first-run connection flow and public Generate label candidate; protected generation, Resume, workflow, attribution and billing semantics remain explicitly protected."
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/generation",
+    "/surfaces/resume",
+    "/surfaces/workflow_serialization",
+    "/surfaces/attribution",
+    "/surfaces/billing"
+  ],
+  "expected_components": [
+    "comfy connection routes",
+    "PKCE session exchange",
+    "process-memory secret provider",
+    "Classic and Nodes 2.0 shared frontend settings/CTA",
+    "connection and zero-secret tests"
+  ],
+  "required_gates": [
+    "baseline_declaration",
+    "first_party_auth_evidence",
+    "semantic_diff",
+    "negative_space_tests",
+    "full_tests",
+    "classic_nodes2_review",
+    "zero_paid_posts",
+    "ruff",
+    "mypy",
+    "build"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

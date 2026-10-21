@@ -48,3 +48,24 @@ def block_external_network(monkeypatch: pytest.MonkeyPatch) -> Generator[None, N
     monkeypatch.setattr(socket.socket, "connect", guarded_connect)
     monkeypatch.setattr(socket.socket, "connect_ex", guarded_connect_ex)
     yield
+
+
+@pytest.fixture(autouse=True)
+def isolate_interactive_vault(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Default suite never reads or writes an actual user credential vault."""
+
+    from openrouter_video import secrets
+
+    class SessionBackend:
+        def get_password(self, service: str, username: str) -> None:
+            return None
+
+        def set_password(self, service: str, username: str, password: str) -> None:
+            raise RuntimeError("Synthetic unavailable vault")
+
+        def delete_password(self, service: str, username: str) -> None:
+            pass
+
+    monkeypatch.setattr(
+        secrets, "interactive_credential_store", secrets.InteractiveCredentialStore(SessionBackend)
+    )

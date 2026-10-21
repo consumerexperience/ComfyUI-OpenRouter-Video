@@ -189,3 +189,43 @@ def test_slow_startup_cleanup_does_not_block_runtime_readiness(
     finally:
         release.set()
         asyncio.run(process.aclose(timeout=2.0))
+
+
+def test_connection_validation_is_uncached_cross_loop_and_request_local(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import json
+    from datetime import datetime, timezone
+
+    from openrouter_video.secrets import pending_interactive_credential
+
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    requests: list[tuple[str, str, str]] = []
+    fixture = Path(__file__).parents[1] / "fixtures/openrouter_video/discovery/catalog.json"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append((request.method, request.url.path, request.headers["Authorization"]))
+        return httpx.Response(200, json=json.loads(fixture.read_text()))
+
+    monkeypatch.setattr(
+        runtime.HttpxTransport,
+        "create",
+        classmethod(lambda cls, runtime_policy=None: cls.for_test(httpx.MockTransport(handler))),
+    )
+
+    async def scenario() -> None:
+        process = runtime.ProcessRuntime(tmp_path / "connection.sqlite3", tmp_path / "output")
+        try:
+            assert process._resources is not None
+            process._resources.store.replace_capability_catalog((), datetime.now(timezone.utc))
+            # This must issue a real mock GET despite the fresh, empty catalogue cache.
+            with pending_interactive_credential("TEST_ONLY_PROPOSED"):
+                observed = await process.validate_connection()
+            assert observed.models
+            cached = process._resources.store.load_capability_catalog()
+            assert cached is not None and cached[1] == ()
+        finally:
+            await process.aclose(timeout=2.0)
+
+    asyncio.run(scenario())
+    assert requests == [("GET", "/api/v1/videos/models", "Bearer TEST_ONLY_PROPOSED")]

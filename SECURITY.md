@@ -22,6 +22,22 @@ a private disclosure channel.
 - Use a dedicated low-limit key for any separately approved live test.
 - Never disable TLS verification or introduce a user-configurable production base URL.
 - Never print complete request headers or enumerate the process environment.
+- The interactive Settings connection uses OpenRouter's documented PKCE flow or a masked
+  manual key field. Both persist the resulting access credential through explicitly selected
+  keyring 25.7.0 OS backends only: Windows Credential Manager (`WinVaultKeyring`), macOS
+  Keychain, or Linux Secret Service. No backend discovery, user-configured keyring plugin,
+  plaintext file, runtime installation, or ordinary ComfyUI settings persistence is used.
+  When the OS vault is unavailable, the UI explicitly reports session-only authentication.
+  Resolution is environment > secure persistent interactive > session interactive > none.
+  Settings, workflows, queue/history, browser storage, logs and receipts receive status only.
+  OS account security is the trust boundary: other code running as the same OS account may
+  access its vault. This does not provide isolation from malicious custom nodes or OS users
+  sharing the same ComfyUI process. Use environment credentials for managed/headless installs.
+  PKCE verifier, code and callback query are never persisted. Proposed credentials are
+  catalogue-validated in request-local memory before replacing a stored credential.
+- Connection validation performs only the authenticated model-catalogue GET. It never calls
+  `/videos`, never retries a paid submit, and Disconnect removes persistent and session interactive
+  values while leaving an environment credential active.
 
 ## Network and attribution boundary
 

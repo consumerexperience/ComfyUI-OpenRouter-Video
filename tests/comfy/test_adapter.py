@@ -126,6 +126,7 @@ from openrouter_video.models import (  # noqa: E402
     VideoArtifact,
 )
 from openrouter_video.pricing import EstimateAvailability, EstimateResult  # noqa: E402
+from openrouter_video.secrets import clear_interactive_openrouter_api_key  # noqa: E402
 from tests.projection_fixtures import ProjectionCatalogRuntime  # noqa: E402
 
 
@@ -138,7 +139,7 @@ def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
     resume = nodes.OpenRouterVideoResume.define_schema()
 
     assert generate.node_id == "OpenRouterVideoGenerate"
-    assert generate.display_name == "OpenRouter Video Generate"
+    assert generate.display_name == "OpenRouter Video"
     assert resume.node_id == "OpenRouterVideoResume"
     assert resume.display_name == "OpenRouter Video Resume"
     assert generate.category == resume.category == "OpenRouter/Video"
@@ -615,6 +616,9 @@ def test_route_registration_is_thread_safe_lazy_and_idempotent(
         def post(self, path: str) -> Any:
             return self._register("POST", path)
 
+        def delete(self, path: str) -> Any:
+            return self._register("DELETE", path)
+
     server = types.SimpleNamespace(routes=RouteTable())
     monkeypatch.setattr(compat, "prompt_server", lambda: server)
     monkeypatch.setattr(
@@ -631,9 +635,14 @@ def test_route_registration_is_thread_safe_lazy_and_idempotent(
 
     assert registered == [
         ("GET /openrouter-video/v1/health", routes._health_handler),
+        ("GET /openrouter-video/v1/connection", routes._connection_handler),
         ("GET /openrouter-video/v1/models", routes._models_handler),
         ("GET /openrouter-video/v1/ui-capabilities", routes._ui_capabilities_handler),
         ("POST /openrouter-video/v1/cost-estimate", routes._cost_estimate_handler),
+        ("POST /openrouter-video/v1/connection", routes._connect_handler),
+        ("DELETE /openrouter-video/v1/connection", routes._disconnect_handler),
+        ("POST /openrouter-video/v1/auth/start", routes._auth_start_handler),
+        ("GET /openrouter-video/v1/auth/diagnostics", routes._oauth_diagnostics_handler),
     ]
 
 
@@ -785,6 +794,7 @@ def test_health_route_is_pure_local_sanitized_observation(
         lambda: {"runtime_state": "READY", "database_state": "READY"},
     )
     monkeypatch.setattr(routes, "openrouter_credential_state", lambda: "PRESENT")
+    monkeypatch.setattr(routes, "openrouter_credential_source", lambda: "INTERACTIVE")
     monkeypatch.setattr(
         compat,
         "catalogue_health_snapshot",
@@ -805,6 +815,7 @@ def test_health_route_is_pure_local_sanitized_observation(
         "runtime_state": "READY",
         "database_state": "READY",
         "credential_state": "PRESENT",
+        "credential_source": "INTERACTIVE",
         "catalogue_state": "FRESH",
         "catalogue_model_count": 30,
         "catalogue_revision": "a" * 64,
@@ -813,6 +824,54 @@ def test_health_route_is_pure_local_sanitized_observation(
     }
     assert "key" not in repr(payload).lower()
     assert "authorization" not in repr(payload).lower()
+
+
+def test_connection_route_uses_catalogue_get_and_never_returns_secret(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clear_interactive_openrouter_api_key()
+    responses: list[tuple[object, int]] = []
+
+    class Request:
+        async def json(self) -> object:
+            return {"api_key": "TEST_ONLY_INTERACTIVE_KEY"}
+
+    class Runtime:
+        async def validate_connection(self) -> object:
+            return types.SimpleNamespace(models=(ModelCapabilities("vendor/model"),))
+
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    monkeypatch.setattr(routes, "get_runtime", Runtime)
+
+    def response(payload: object, *, status: int) -> tuple[object, int]:
+        responses.append((payload, status))
+        return payload, status
+
+    monkeypatch.setattr(compat, "json_response", response)
+    payload, status = asyncio.run(routes._connect_handler(Request()))
+    assert status == 200
+    assert payload["state"] == "CONNECTED"
+    assert payload["source"] == "INTERACTIVE"
+    assert "TEST_ONLY_INTERACTIVE_KEY" not in repr(payload)
+    disconnected, status = asyncio.run(routes._disconnect_handler(None))
+    assert status == 200
+    assert disconnected["state"] == "DISCONNECTED"
+
+
+def test_environment_credential_blocks_manual_replacement(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("OPENROUTER_API_KEY", "TEST_ONLY_ENVIRONMENT_KEY")
+    monkeypatch.setattr(compat, "json_response", lambda payload, *, status: (payload, status))
+
+    class Request:
+        async def json(self) -> object:
+            return {"api_key": "TEST_ONLY_INTERACTIVE_KEY"}
+
+    payload, status = asyncio.run(routes._connect_handler(Request()))
+    assert status == 409
+    assert payload["error"] == "environment_credential_active"
+    assert "TEST_ONLY_ENVIRONMENT_KEY" not in repr(payload)
 
 
 def test_cost_estimate_route_returns_prepared_result_only(

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.0-rc.2 — local RC identity reconciliation
+
+- Assign the reviewed Naming / First-Run UX / OAuth candidate its own RC identity.
+  The immutable v0.1.0-rc.1 tag and historical receipts remain unchanged.
+- Package metadata and both About version labels now identify 0.1.0-rc.2
+  (PEP 440: 0.1.0rc2). No new features, UI design or authentication changes.
+- Includes the previously implemented connection UX, secure credential storage,
+  loopback callback pages and transaction-scoped duplicate-result handling.
+- Existing browser limitations remain open: Codex native popup visibility and
+  the reported Yandex failure have no proven root cause. No new live OAuth or
+  paid qualification is claimed. Existing model, staging and platform limitations
+  listed below still apply; no public release or Registry publication is made.
+
 ## 0.1.0-rc.1 — local RC preparation
 
 - OpenRouter asynchronous Video generation with your own API key in ComfyUI.
@@ -10,6 +23,14 @@
 - Resume/recovery for known jobs without another Video submit; local durable state.
 - Conservative cost estimates and actual cost from OpenRouter when available.
 - Classic and Nodes 2.0, responsive Prompt, saved values and compatible media links.
+- Generate node display name is OpenRouter Video; existing node identifiers and
+  saved-workflow compatibility are preserved.
+- First-run Settings connection with OpenRouter PKCE sign-in, masked manual-key
+  fallback, live connection status and OS-vault persistence with explicit
+  session-only fallback. Environment credentials retain precedence.
+- Dedicated loopback OAuth receiver, readable Russian callback result pages and
+  bounded in-memory safe outcome diagnostics. Exact successful duplicate callbacks
+  replay the transaction result without repeating exchange, validation or storage.
 - Source package now includes the ComfyUI entrypoint and frontend. Installation,
   update and security documentation reflect the accepted product.
 
@@ -20,7 +41,11 @@ provider-native capability is not proof of OpenRouter exposure. Seedance 2.5 Dra
 is not exposed; its reviewed output tiers are 480p/720p. Standalone AR2V remains
 hidden where unconfirmed/conflicting. Known Exact Size conflicts are constrained.
 Native VIDEO/AUDIO requires user-configured private S3-compatible staging.
-Estimates may be unavailable and are not charge guarantees. No public RC release,
+Estimates may be unavailable and are not charge guarantees. Real callback-page
+rendering in the Codex native popup and the reported Yandex failure remain
+unresolved; controlled Chromium proves synthetic transaction handling only.
+Windows vault restart behavior was exercised previously; macOS/Linux vault runtime
+availability remains platform-dependent. No public RC release,
 Registry publication or new paid inference is part of this preparation.
 
 ## Historical engineering notes

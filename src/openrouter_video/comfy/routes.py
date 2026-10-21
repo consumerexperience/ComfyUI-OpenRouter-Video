@@ -2,22 +2,35 @@
 
 from __future__ import annotations
 
+import asyncio
 import threading
 from importlib.metadata import PackageNotFoundError, version
 from typing import Any, Final
 
-from openrouter_video.errors import ProductFailureError, RequestPolicyError
+from openrouter_video.errors import OpenRouterHTTPError, ProductFailureError, RequestPolicyError
 from openrouter_video.models import InferenceMethod, InputReferenceKind
+from openrouter_video.oauth import exchange as exchange_pkce
 from openrouter_video.pricing import CostEstimateInputs
-from openrouter_video.secrets import openrouter_credential_state
+from openrouter_video.secrets import (
+    clear_interactive_openrouter_api_key,
+    interactive_credential_status,
+    openrouter_credential_source,
+    openrouter_credential_state,
+    pending_interactive_credential,
+    set_interactive_openrouter_api_key,
+)
 
 from . import compat
+from .oauth_diagnostics import Outcome, callback_outcomes
+from .oauth_loopback import LoopbackReceiver
 from .projection import project_model
 from .runtime import get_runtime, local_runtime_health
 
 _REGISTRY_ATTRIBUTE: Final = "_openrouter_video_registered_routes"
 _LOCK_ATTRIBUTE: Final = "_openrouter_video_route_registration_lock"
 _BOOTSTRAP_LOCK = threading.Lock()
+_oauth_receiver: LoopbackReceiver | None = None
+_oauth_start_lock: asyncio.Lock | None = None
 
 
 async def _models_handler(_: Any) -> Any:
@@ -80,12 +93,177 @@ async def _health_handler(_: Any) -> Any:
             "plugin_loaded": True,
             **local_runtime_health(),
             "credential_state": openrouter_credential_state(),
+            "credential_source": openrouter_credential_source(),
             **compat.catalogue_health_snapshot(),
             "plugin_version": plugin_version,
             "ui_contract_version": compat.UI_CONTRACT_VERSION,
         },
         status=200,
     )
+
+
+def _connection_payload() -> dict[str, object]:
+    source = openrouter_credential_source()
+    persistent, attention = (
+        interactive_credential_status() if source != "ENVIRONMENT" else (False, False)
+    )
+    return {
+        "state": "CONNECTED" if source != "NONE" else "DISCONNECTED",
+        "source": source,
+        "restart_required": False,
+        "persistent": persistent,
+        "needs_attention": attention,
+    }
+
+
+async def _connection_handler(_: Any) -> Any:
+    """Return local connection state without network work or secret material."""
+
+    return compat.json_response(_connection_payload(), status=200)
+
+
+async def _oauth_diagnostics_handler(_: Any) -> Any:
+    """Local read-only inspection; no transaction IDs, timestamps or request fields."""
+    response = compat.json_response({"outcomes": callback_outcomes.snapshot()}, status=200)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+async def _connect_handler(request: Any) -> Any:
+    """Validate one user-supplied key with a catalogue GET, never a paid submit."""
+
+    if openrouter_credential_source() == "ENVIRONMENT":
+        return compat.json_response(
+            {"error": "environment_credential_active", "message": "OPENROUTER_API_KEY is active."},
+            status=409,
+        )
+    try:
+        body = await request.json()
+        key = body.get("api_key") if isinstance(body, dict) else None
+        if (
+            not isinstance(key, str)
+            or not key.strip()
+            or len(key.strip()) > 512
+            or any(ord(character) < 32 or ord(character) == 127 for character in key.strip())
+        ):
+            raise ValueError
+    except (TypeError, ValueError, AttributeError):
+        return compat.json_response(
+            {"error": "invalid_credential", "message": "Paste a valid OpenRouter API key."},
+            status=400,
+        )
+    try:
+        with pending_interactive_credential(key):
+            observation = await get_runtime().validate_connection()
+        set_interactive_openrouter_api_key(key)
+    except ProductFailureError as exc:
+        if exc.error.code.value == "API_KEY_INVALID":
+            return compat.json_response(
+                {"error": "invalid_credential", "message": "OpenRouter rejected this API key."},
+                status=401,
+            )
+        return compat.json_response(
+            {
+                "error": "catalog_unavailable",
+                "message": "OpenRouter model catalogue is temporarily unavailable.",
+            },
+            status=503,
+        )
+    except RequestPolicyError:
+        if interactive_credential_status()[1]:
+            return compat.json_response(
+                {
+                    **_connection_payload(),
+                    "message": "OpenRouter connection needs attention. Reconnect to continue.",
+                },
+                status=503,
+            )
+        return compat.json_response(
+            {"error": "invalid_credential", "message": "OpenRouter rejected this API key."},
+            status=401,
+        )
+    except OpenRouterHTTPError as exc:
+        return compat.json_response(
+            {
+                "error": "connection_rejected",
+                "message": "OpenRouter could not validate this connection.",
+            },
+            status=401 if exc.status_code in {401, 403} else 503,
+        )
+    except Exception:
+        return compat.json_response(
+            {
+                "error": "connection_unavailable",
+                "message": "OpenRouter connection needs attention. Reconnect to continue.",
+            },
+            status=503,
+        )
+    return compat.json_response(
+        {**_connection_payload(), "model_count": len(observation.models)}, status=200
+    )
+
+
+async def _disconnect_handler(_: Any) -> Any:
+    """Remove persistent and session credentials; environment credentials remain active."""
+
+    try:
+        clear_interactive_openrouter_api_key()
+    except RequestPolicyError:
+        return compat.json_response(
+            {
+                **_connection_payload(),
+                "message": "Stored connection could not be removed. Reconnect to continue.",
+            },
+            status=503,
+        )
+    return compat.json_response(_connection_payload(), status=200)
+
+
+async def _auth_start_handler(request: Any) -> Any:
+    if openrouter_credential_source() == "ENVIRONMENT":
+        return compat.json_response(
+            {"error": "environment_credential_active", "message": "Managed by environment"},
+            status=409,
+        )
+    global _oauth_receiver, _oauth_start_lock
+
+    if _oauth_start_lock is None:
+        _oauth_start_lock = asyncio.Lock()
+    async with _oauth_start_lock:
+        if _oauth_receiver is not None:
+            await _oauth_receiver.close()
+        _oauth_receiver = LoopbackReceiver(_complete_oauth)
+        try:
+            authorization_url = await _oauth_receiver.start()
+        except Exception:
+            return compat.json_response(
+                {
+                    "error": "auth_unavailable",
+                    "message": "OpenRouter sign-in could not be started.",
+                },
+                status=503,
+            )
+    return compat.json_response({"authorization_url": authorization_url}, status=200)
+
+
+async def _complete_oauth(state: str, code: str) -> bool:
+    """Existing exchange, uncached credential validation and storage, status only."""
+
+    if openrouter_credential_source() == "ENVIRONMENT":
+        callback_outcomes.record(Outcome.ENVIRONMENT_MANAGED)
+        return False
+    failure = Outcome.EXCHANGE_FAILED
+    try:
+        key = await exchange_pkce(state, code)
+        failure = Outcome.VALIDATION_FAILED
+        with pending_interactive_credential(key):
+            await get_runtime().validate_connection()
+        failure = Outcome.STORE_FAILED
+        set_interactive_openrouter_api_key(key)
+    except Exception:
+        callback_outcomes.record(failure)
+        return False
+    return True
 
 
 async def _cost_estimate_handler(request: Any) -> Any:
@@ -198,9 +376,14 @@ def register_routes() -> None:
             setattr(server, _REGISTRY_ATTRIBUTE, registered)
         routes = (
             ("get", compat.HEALTH_ROUTE, _health_handler),
+            ("get", compat.CONNECTION_ROUTE, _connection_handler),
             ("get", compat.MODEL_ROUTE, _models_handler),
             ("get", compat.UI_CAPABILITIES_ROUTE, _ui_capabilities_handler),
             ("post", compat.COST_ESTIMATE_ROUTE, _cost_estimate_handler),
+            ("post", compat.CONNECTION_ROUTE, _connect_handler),
+            ("delete", compat.CONNECTION_ROUTE, _disconnect_handler),
+            ("post", compat.AUTH_START_ROUTE, _auth_start_handler),
+            ("get", compat.AUTH_DIAGNOSTICS_ROUTE, _oauth_diagnostics_handler),
         )
         for method, path, handler in routes:
             marker = (method, path)

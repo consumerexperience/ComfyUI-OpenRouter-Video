@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 env:
-  OPENROUTER_VIDEO_CONTRACT_BASELINE: contracts/product/evidence/rc-live-baseline-observation.json
-  OPENROUTER_VIDEO_CONTRACT_DELTA: contracts/product/deltas/capability-projection-reconciliation.contract-delta.json
+  OPENROUTER_VIDEO_CONTRACT_BASELINE: contracts/product/baselines/rc2-c0d9600.source-contract.json
+  OPENROUTER_VIDEO_CONTRACT_DELTA: contracts/product/deltas/pr38-ci-remediation.contract-delta.json
 
 jobs:
   quality:

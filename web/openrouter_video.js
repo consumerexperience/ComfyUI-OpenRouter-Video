@@ -5,6 +5,8 @@ const GENERATE_NODE = "OpenRouterVideoGenerate";
 const SELECT_MODEL = "SELECT MODEL";
 const AUTO = "AUTO / MODEL DEFAULT";
 const UI_CONTRACT_VERSION = 5;
+const CONNECTION_ROUTE = "/openrouter-video/v1/connection";
+const AUTH_START_ROUTE = "/openrouter-video/v1/auth/start";
 const COMPACT_LAYOUT = Object.freeze({ width: 400, row: 20, gap: 4, section: 8, prompt: 42, domInset: 16, inset: 15 });
 const SELECT_METHOD = "Select model first";
 const METHODS = [
@@ -24,6 +26,193 @@ const METHOD_LABELS = {
     V2V_EXTEND: "V2V_EXTEND — Source Video → Extended Video",
 };
 let capabilityPromise;
+let connectionPromise;
+const connectionListeners = new Set();
+
+function connectionNodes() {
+    return app.graph?._nodes || Object.values(app.graph?.nodes || {});
+}
+
+function setConnectionPresentation(state) {
+    for (const paint of connectionListeners) paint(state);
+    const connected = state?.state === "CONNECTED";
+    for (const node of connectionNodes()) {
+        if (node?.type !== GENERATE_NODE) continue;
+        if (node.__orvConnectionCta) setVisible(node.__orvConnectionCta, !connected);
+        if (!connected && node.__orvCapabilityStatus) {
+            node.__orvCapabilityStatus.value = "OpenRouter connection required";
+            setVisible(node.__orvCapabilityStatus, true);
+        }
+        node.setDirtyCanvas?.(true, true);
+    }
+}
+
+async function loadConnection(force = false) {
+    if (!connectionPromise || force) {
+        connectionPromise = api.fetchApi(CONNECTION_ROUTE, { cache: "no-store" })
+            .then(async (response) => {
+                if (!response.ok) throw new Error("connection status unavailable");
+                return response.json();
+            })
+            .then((state) => { setConnectionPresentation(state); return state; })
+            .catch(() => {
+                const state = { state: "DISCONNECTED", source: "NONE" };
+                setConnectionPresentation(state);
+                return state;
+            });
+    }
+    return connectionPromise;
+}
+
+function showConnectionPanel() {
+    if (document.getElementById("orv-connection-panel")) return;
+    connectionStyles();
+    const overlay = document.createElement("dialog");
+    overlay.id = "orv-connection-panel";
+    overlay.className = "orv-connection orv-dialog";
+    overlay.setAttribute("aria-labelledby", "orv-connect-title");
+    const panel = document.createElement("div"); panel.className = "orv-stack";
+    const title = document.createElement("h2"); title.id = "orv-connect-title"; title.textContent = "Connect OpenRouter";
+    const description = document.createElement("p"); description.className = "orv-helper";
+    description.textContent = "Sign in with OpenRouter to connect this installation securely.";
+    panel.append(title, description);
+    const status = document.createElement("div"); status.className = "orv-helper";
+    status.setAttribute("role", "status"); status.setAttribute("aria-live", "polite");
+    const key = document.createElement("input");
+    key.type = "password"; key.autocomplete = "off"; key.placeholder = "OpenRouter API key";
+    key.setAttribute("aria-label", "OpenRouter API key"); key.className = "p-inputtext p-component orv-key";
+    const actions = document.createElement("div"); actions.className = "orv-actions";
+    const oauth = connectionButton("Sign in with OpenRouter", "primary");
+    const save = connectionButton("Connect", "secondary");
+    const cancel = connectionButton("Cancel", "text");
+    const close = () => { key.value = ""; overlay.close(); overlay.remove(); };
+    overlay.addEventListener("cancel", (event) => { event.preventDefault(); close(); });
+    cancel.onclick = close;
+    save.onclick = async () => {
+        const value = key.value;
+        if (!value.trim()) { status.textContent = "Paste an OpenRouter API key."; return; }
+        save.disabled = true; oauth.disabled = true; status.textContent = "Checking the key with the model catalogue…";
+        try {
+            const response = await api.fetchApi(CONNECTION_ROUTE, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ api_key: value }),
+            });
+            const payload = await response.json();
+            if (!response.ok) throw new Error(payload.message || "OpenRouter rejected the API key.");
+            key.value = ""; close(); await loadConnection(true); capabilityPromise = null;
+            for (const node of connectionNodes()) if (node?.type === GENERATE_NODE) projectSelectedModel(node, true);
+        } catch (error) {
+            status.textContent = error?.message || "OpenRouter connection failed.";
+            save.disabled = false; oauth.disabled = false;
+        }
+    };
+    oauth.onclick = async () => {
+        oauth.disabled = true; save.disabled = true; status.textContent = "Opening OpenRouter sign-in…";
+        try {
+            const response = await api.fetchApi(AUTH_START_ROUTE, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({}),
+            });
+            const payload = await response.json();
+            if (!response.ok) throw new Error(payload.message || "OpenRouter sign-in is unavailable.");
+            window.open(payload.authorization_url, "openrouter-video-auth", "popup,width=520,height=700");
+            status.textContent = "Complete sign-in in the OpenRouter window…";
+            let attempts = 0;
+            const poll = setInterval(async () => {
+                attempts += 1;
+                const state = await loadConnection(true);
+                if (state.state === "CONNECTED" || attempts >= 120) {
+                    clearInterval(poll); oauth.disabled = false; save.disabled = false;
+                    if (state.state === "CONNECTED") { close(); capabilityPromise = null; for (const node of connectionNodes()) if (node?.type === GENERATE_NODE) projectSelectedModel(node, true); }
+                }
+            }, 1000);
+        } catch (error) {
+            status.textContent = error?.message || "OpenRouter sign-in failed.";
+            oauth.disabled = false; save.disabled = false;
+        }
+    };
+    const advanced = document.createElement("details");
+    const summary = document.createElement("summary"); summary.textContent = "Use existing API key";
+    advanced.append(summary, key, save);
+    advanced.className = "orv-advanced";
+    actions.append(oauth, cancel); panel.append(actions, status, advanced); overlay.append(panel); document.body.append(overlay); overlay.showModal(); oauth.focus();
+}
+
+function connectionStyles() {
+    if (document.getElementById("orv-connection-styles")) return;
+    const style = document.createElement("style"); style.id = "orv-connection-styles";
+    style.textContent = `
+.orv-connection{color:var(--fg-color);font:inherit;line-height:1.5;max-width:32rem}
+.orv-stack{display:flex;flex-direction:column;gap:12px}.orv-connection h2,.orv-connection p{margin:0}
+.orv-connection h2{font-size:1.1rem;font-weight:600}.orv-helper{color:var(--descrip-text);font-size:.875rem}
+.orv-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.orv-status{font-size:.875rem}
+.orv-button{font:inherit;font-size:.875rem;padding:7px 12px;border-radius:var(--p-border-radius-md,6px);border:1px solid var(--border-color);background:var(--comfy-input-bg);color:var(--input-text);cursor:pointer}
+.orv-button[data-variant=primary]{background:var(--p-primary-color,var(--primary-background,var(--fg-color)));color:var(--p-primary-contrast-color,var(--primary-color,var(--bg-color)));border-color:transparent}
+.orv-button[data-variant=text],.orv-button[data-variant=danger]{background:transparent;border-color:transparent}
+.orv-button[data-variant=danger]{color:var(--p-red-400,var(--error-text))}.orv-button:hover{filter:brightness(1.12)}
+.orv-button:focus-visible,.orv-key:focus-visible,.orv-advanced summary:focus-visible{outline:2px solid var(--p-primary-color,var(--fg-color));outline-offset:2px}
+.orv-button:disabled{opacity:.5;cursor:wait}.orv-dialog{width:min(420px,calc(100vw - 40px));padding:24px;background:var(--comfy-menu-bg);border:1px solid var(--border-color);border-radius:12px;box-shadow:0 16px 48px #0005}
+.orv-dialog::backdrop{background:#0008}.orv-key{display:block;box-sizing:border-box;width:100%;margin:12px 0;padding:9px;background:var(--comfy-input-bg);color:var(--input-text);border:1px solid var(--border-color);border-radius:6px}
+.orv-advanced{border-top:1px solid var(--border-color);padding-top:12px}.orv-advanced summary{cursor:pointer;font-size:.875rem;color:var(--descrip-text)}
+.orv-badge{display:inline-block;border:1px solid var(--border-color);padding:2px 8px;border-radius:12px;font-size:.75rem;color:var(--descrip-text)}
+.orv-about{gap:4px}.orv-about strong{font-weight:600}
+`;
+    document.head.append(style);
+}
+
+function connectionButton(text, variant) {
+    const button = document.createElement("button"); button.type = "button";
+    button.className = "p-button p-component p-button-sm orv-button";
+    button.dataset.variant = variant; button.textContent = text; return button;
+}
+
+function connectionLabel(state) {
+    if (state?.needs_attention && state?.source !== "ENVIRONMENT") return "Connection needs attention";
+    if (state?.state !== "CONNECTED") return "Not connected";
+    return state.source === "INTERACTIVE" && !state.persistent ? "Connected for this session" : "Connected ✓";
+}
+
+function connectionSettingRenderer() {
+    connectionStyles();
+    const root = document.createElement("div"); root.className = "orv-connection orv-stack";
+    const name = document.createElement("strong"); name.textContent = "OpenRouter";
+    const label = document.createElement("div"); label.className = "orv-status"; label.setAttribute("role", "status");
+    const helper = document.createElement("div"); helper.className = "orv-helper";
+    const actions = document.createElement("div"); actions.className = "orv-actions";
+    const connect = connectionButton("Connect OpenRouter", "primary");
+    const disconnect = connectionButton("Disconnect", "danger");
+    const paint = (state) => {
+        label.textContent = connectionLabel(state);
+        const managed = state?.source === "ENVIRONMENT";
+        helper.textContent = managed ? "Managed by environment" : state?.needs_attention ? "Reconnect to continue." : state?.state !== "CONNECTED" ? "Connect OpenRouter to load available video models." : !state.persistent ? "Reconnect required after ComfyUI restarts" : "";
+        helper.className = managed ? "orv-badge" : "orv-helper"; helper.hidden = !helper.textContent;
+        disconnect.hidden = managed || (state?.source !== "INTERACTIVE" && !state?.needs_attention);
+        connect.hidden = managed;
+        connect.textContent = state?.state === "CONNECTED" || state?.needs_attention ? "Reconnect" : "Connect OpenRouter";
+        connect.dataset.variant = state?.state === "CONNECTED" ? "secondary" : "primary";
+    };
+    connectionListeners.add(paint);
+    connect.onclick = () => showConnectionPanel();
+    disconnect.onclick = async () => {
+        disconnect.disabled = true;
+        try {
+            const response = await api.fetchApi(CONNECTION_ROUTE, { method: "DELETE" });
+            await loadConnection(true);
+            if (!response.ok) helper.textContent = "Connection needs attention. Reconnect to continue.";
+        } finally { disconnect.disabled = false; }
+    };
+    actions.append(connect, disconnect); root.append(name, label, helper, actions); loadConnection().then(paint); return root;
+}
+
+function aboutSettingRenderer() {
+    connectionStyles();
+    const root = document.createElement("div"); root.className = "orv-connection orv-stack orv-about";
+    root.setAttribute("aria-label", "OpenRouter Video 0.1.0-rc.2 by ARENAS®lab");
+    const title = document.createElement("strong"); title.textContent = "OpenRouter Video";
+    const version = document.createElement("span"); version.textContent = "0.1.0-rc.2";
+    const author = document.createElement("span"); author.className = "orv-helper"; author.textContent = "by ARENAS®lab";
+    root.append(title, version, author); return root;
+}
 
 function widget(node, name) {
     return node.widgets?.find((item) => item.name === name);
@@ -1530,6 +1719,15 @@ async function projectSelectedModel(node, force = false) {
     node.__orvCapabilityStatus.value = "";
     setVisible(node.__orvCapabilityStatus, false);
     try {
+        const connection = await loadConnection(force);
+        if (connection.state !== "CONNECTED") {
+            setVisible(node.__orvConnectionCta, true);
+            node.__orvCapabilityStatus.value = "OpenRouter connection required";
+            setVisible(node.__orvCapabilityStatus, true);
+            fitPresentationWidth(node);
+            return;
+        }
+        setVisible(node.__orvConnectionCta, false);
         const projection = await loadCapabilities(force);
         if (projection.ui_contract_version !== UI_CONTRACT_VERSION) {
             node.__orvCapabilityStatus.value =
@@ -1594,7 +1792,26 @@ async function projectSelectedModel(node, force = false) {
 
 app.registerExtension({
     name: EXTENSION,
+    settings: [
+        {
+            id: "OpenRouter Video.Connection",
+            name: "Connection",
+            category: ["OpenRouter Video", "Connection"],
+            type: connectionSettingRenderer,
+            defaultValue: null,
+            telemetry: { trackChanges: false },
+        },
+        {
+            id: "OpenRouter Video.About",
+            name: "About",
+            category: ["OpenRouter Video", "About"],
+            type: aboutSettingRenderer,
+            defaultValue: null,
+            telemetry: { trackChanges: false },
+        },
+    ],
     setup() {
+        loadConnection();
         api.addEventListener("progress", (event) => {
             const detail = event.detail || {};
             const phase = presentationPhase(detail);
@@ -1660,6 +1877,11 @@ app.registerExtension({
             setVisible(this.__orvSummary, false);
             this.__orvCapabilityStatus = addReadOnlyWidget(this, "STATE", "");
             setVisible(this.__orvCapabilityStatus, false);
+            this.__orvConnectionCta = this.addWidget("button", "Connect OpenRouter", "", () => showConnectionPanel());
+            this.__orvConnectionCta.serialize = false;
+            this.__orvConnectionCta.options ||= {};
+            this.__orvConnectionCta.options.primary = true;
+            setVisible(this.__orvConnectionCta, false);
             // Estimate is presentation state, never a workflow/body widget.
             this.__orvEstimate = createEstimateState();
             orderPresentationWidgets(this);

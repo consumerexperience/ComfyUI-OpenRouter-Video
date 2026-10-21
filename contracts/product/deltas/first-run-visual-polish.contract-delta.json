@@ -1,0 +1,40 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "first-run-visual-polish",
+  "baseline_checkpoint": "secure-credential-persistence-58c8cff",
+  "baseline_sha": "58c8cff466166198a6aa80b3264685d6f6c4630d",
+  "risk_tier": "B",
+  "intended_delta": [
+    "Owner-approved compact native-themed Connection/About presentation only."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Connection dialog/settings/about visual polish and disconnected helper copy only; node projection and auth semantics protected."
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned/submit_resume",
+    "/surfaces/product_owned/security"
+  ],
+  "expected_components": [
+    "connection presentation",
+    "theme tokens",
+    "accessibility",
+    "visual regression tests"
+  ],
+  "required_gates": [
+    "baseline_declaration",
+    "semantic_diff",
+    "negative_space_tests",
+    "full_tests",
+    "classic_nodes2_review",
+    "oauth_live",
+    "dependency_audit"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

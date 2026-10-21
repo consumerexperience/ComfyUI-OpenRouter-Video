@@ -23,7 +23,11 @@ def test_adapter_and_projection_changes_are_geometry_only() -> None:
         )
         text = (ROOT / path).read_text(encoding="utf-8")
         pin = json.loads((ROOT / "tests/fixtures/rc_live_reviewed_patch.json").read_text())
-        assert hashlib.sha256(text.encode()).hexdigest() == pin["reviewed_files"][path]
+        digest = hashlib.sha256(text.encode()).hexdigest()
+        candidate = json.loads((ROOT / "tests/fixtures/pre_rc_first_run_ux.json").read_text())
+        assert digest == pin["reviewed_files"][path] or digest == candidate.get(
+            "candidate_files", {}
+        ).get(path)
         # Historical geometry-only shield remains intact. New projection code
         # is independently bound by full-source/node diff and behavioral tests.
         current = ast.parse(
