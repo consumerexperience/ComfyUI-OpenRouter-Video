@@ -51,6 +51,17 @@
         ]
       },
       "note": "The immutable canonical_ref resolves the final metadata-only acceptance merge. Original candidate provenance is preserved; the resolved canonical SHA and read-back receipt are recorded by protected delivery. No self-referential commit SHA is embedded in this index."
+    },
+    {
+      "acceptance_id": "native-media-e2e-v1-pr27-72998e9",
+      "checkpoint_tag": "openrouter-video-native-media-e2e-v1",
+      "canonical_ref": "refs/tags/openrouter-video-native-media-e2e-v1",
+      "protected_product_merge_sha": "72998e931e5e9e59a277b63c2f2b0cd4cb513164",
+      "exact_product_head_sha": "0f05665cb302fe4bc8398f2e9e04b08a5116a313",
+      "regression_shield_head_sha": "e861db343580e402293aab9b751d68255be07744",
+      "live_tested_product_sha": "0f05665cb302fe4bc8398f2e9e04b08a5116a313",
+      "live_acceptance_record": "evidence/native-media-e2e-live-acceptance-v1.json",
+      "note": "PR #27 merge commit is the immutable checkpoint tag target. Original paid live-tested source and exact CI-tested shield head remain separately identified."
     }
   ]
 }
