@@ -19,12 +19,12 @@
         "src~1openrouter_video~1app_identity_py": "94fc446b83ddd707ca4d6463b280dd0fa210e4f106ec08a059bf4abd260e7ed7"
       },
       "capabilities": {
-        "src~1openrouter_video~1capabilities_py": "a67e1980c71aa64ddde5c4e2d0f3cec59dd738175ad3297306a1b822893f013c",
+        "src~1openrouter_video~1capabilities_py": "c0cad89361a185691f1d7b03337dd76e1e9769681566cbd526e61c7ad298b92a",
         "src~1openrouter_video~1capability_overlays_py": "2faf6a156a6abe497992f6dfec594c3e6f6a0fcaaf45a963b3a6b428311cb232",
         "src~1openrouter_video~1client_py": "73cc21f9347453bac52616979d45266f6ab023cf6232b29ae6560ea1fa80abe0",
         "src~1openrouter_video~1configuration_py": "e8a3a63f2255d0fd36d795a5558c61e5705a8332eca35e17060b3cfb31160a0e",
         "src~1openrouter_video~1credential_backend_py": "ddaa46fcae133aee57d09d039b91d0a840fbc8260150af6e796f56789b3f041e",
-        "src~1openrouter_video~1eligibility_py": "fe26fcdfd6e7d2e76b1fd46cf6908df01f482a3d423d76e5c312626c7482688a",
+        "src~1openrouter_video~1eligibility_py": "3380ef4a5e3e9c3b5fb628ef5d00f99ef20afb11a822267108f824ed74e28041",
         "src~1openrouter_video~1errors_py": "2ee7cc10ae9e353b28539b82810b8a7bf54ed1c33f6373daab2d71c3dd50642f",
         "src~1openrouter_video~1geometry_py": "1047b75ba88d498e1b8205cb89c9a14d8ee8b9f74b2ddb00d66000ae4e20a0ba",
         "src~1openrouter_video~1image_transport_py": "b855df55ecf95d08d0aae6972a8f31ddb09945ea4686888ba28c9bef660761f0",
@@ -43,7 +43,7 @@
         "src~1openrouter_video~1comfy~1nodes_py": "322d02cd0467b63684935f7042776df7b3bc75d40cd50760883b15048ea18a9d",
         "src~1openrouter_video~1comfy~1oauth_diagnostics_py": "f6f07be096153de722339e48391fc283472504a6c2f74a747eed2d71f2c39948",
         "src~1openrouter_video~1comfy~1oauth_loopback_py": "5988509ad6c9b81339b2dd70747a89ea01d0456895c1d47921f99aa2975cb062",
-        "src~1openrouter_video~1comfy~1projection_py": "5bbb8649b5e81808c0741e06c5c20d4d755bd323f5cd12b6cd239b606cb98dc2",
+        "src~1openrouter_video~1comfy~1projection_py": "0a1146f56fc306f284a7c401b46bb24517d4dd5b72ade8b3fc1a647d2d67071b",
         "src~1openrouter_video~1comfy~1routes_py": "3015039e7a7509382de5f18373c53956fa5511cddd227c661acb33da58e8901e",
         "src~1openrouter_video~1comfy~1video_py": "4a68b60806cfce1e06712f0dcee3e0adef07d96ab553ce070d9c25bbfcf3aae4",
         "src~1openrouter_video~1comfy~1__init___py": "53c1674848551aacdf94a06520af63ff90947add1e69af174b3d983367958654",

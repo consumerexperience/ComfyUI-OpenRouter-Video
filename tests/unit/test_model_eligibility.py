@@ -228,3 +228,11 @@ def test_google_bounded_profile_does_not_enable_omission_or_unproven_combination
         )
     raw["supported_durations"] = [5]
     assert not eligible_methods(enrich_capabilities(_parse_capability(raw)))
+
+
+def test_eligibility_compatibility_exports_have_no_independent_implementation() -> None:
+    from openrouter_video import capabilities, eligibility
+
+    assert eligibility.request_witness is capabilities.request_witness
+    assert eligibility.eligible_methods is capabilities.eligible_methods
+    assert request_witness.__module__ == "openrouter_video.capabilities"

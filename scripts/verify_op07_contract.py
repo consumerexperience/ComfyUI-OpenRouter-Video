@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 BASE = "058f5bcdd462a2a71f4f85151d9bbba3bc09bcf9"
 GIT = shutil.which("git")
 ALLOWED = {
+    "src/openrouter_video/capabilities.py": "capabilities",
     "src/openrouter_video/eligibility.py": "capabilities",
     "src/openrouter_video/comfy/projection.py": "capabilities",
     "src/openrouter_video/comfy/routes.py": "capabilities",
@@ -72,7 +73,8 @@ def main():
                 "operations": ["add", "replace"],
                 "reason": (
                     "Owner 6497404b: bounded discovery/eligibility/refresh delta; "
-                    "Google conservative shapes; not release acceptance."
+                    "Owner architectural correction 8fad0a0c: reuse existing Core "
+                    "capability service; not release acceptance."
                 ),
             }
         )

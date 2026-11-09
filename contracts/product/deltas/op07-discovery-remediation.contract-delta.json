@@ -10,12 +10,20 @@
   ],
   "allowed_semantic_changes": [
     {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01capabilities_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service; not release acceptance."
+    },
+    {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01eligibility_py",
       "operations": [
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Google conservative shapes; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01projection_py",
@@ -23,7 +31,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Google conservative shapes; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01routes_py",
@@ -31,7 +39,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Google conservative shapes; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01data~01capability-evidence_json",
@@ -39,7 +47,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Google conservative shapes; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
@@ -47,7 +55,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Google conservative shapes; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service; not release acceptance."
     }
   ],
   "protected_surfaces": [
@@ -57,6 +65,7 @@
     "/surfaces/product_owned/storage"
   ],
   "expected_components": [
+    "src/openrouter_video/capabilities.py",
     "src/openrouter_video/eligibility.py",
     "src/openrouter_video/comfy/projection.py",
     "src/openrouter_video/comfy/routes.py",

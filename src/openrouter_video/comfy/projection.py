@@ -9,9 +9,8 @@ from datetime import datetime
 from enum import Enum
 from typing import TypeVar
 
-from openrouter_video.capabilities import CapabilityModeStatus
+from openrouter_video.capabilities import CapabilityModeStatus, eligible_methods
 from openrouter_video.configuration import profile_constraints, project_method
-from openrouter_video.eligibility import eligible_methods
 from openrouter_video.evidence_registry import preferred_method
 from openrouter_video.geometry import geometry_profile, reviewed_geometry
 from openrouter_video.models import InferenceMethod, ModelCapabilities

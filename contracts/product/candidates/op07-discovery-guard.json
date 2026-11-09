@@ -5,13 +5,19 @@
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01eligibility_py",
       "operation": "add",
       "before": null,
-      "after": "fe26fcdfd6e7d2e76b1fd46cf6908df01f482a3d423d76e5c312626c7482688a"
+      "after": "3380ef4a5e3e9c3b5fb628ef5d00f99ef20afb11a822267108f824ed74e28041"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01capabilities_py",
+      "operation": "replace",
+      "before": "a67e1980c71aa64ddde5c4e2d0f3cec59dd738175ad3297306a1b822893f013c",
+      "after": "c0cad89361a185691f1d7b03337dd76e1e9769681566cbd526e61c7ad298b92a"
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01projection_py",
       "operation": "replace",
       "before": "d36602e458e47bf5fed8432882c829ed424263a7be97fde04c438013257390d5",
-      "after": "5bbb8649b5e81808c0741e06c5c20d4d755bd323f5cd12b6cd239b606cb98dc2"
+      "after": "0a1146f56fc306f284a7c401b46bb24517d4dd5b72ade8b3fc1a647d2d67071b"
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01routes_py",
@@ -42,6 +48,6 @@
   "UNKNOWN_DYNAMIC_SURFACES": [],
   "OBSERVED_EVIDENCE_CHANGES": [],
   "ACCEPTED_CONTRACT_DIGEST": "sha256:a2987facf690f1df565e246087f0bc54573f50a1fa80a74a8cfc8a5b1a4c57f5",
-  "CURRENT_CONTRACT_DIGEST": "sha256:fe4439a01bb0f0f784b9318d4c36d490a9fcb50866ea35772708dd93c1370f20",
-  "CONTRACT_DELTA_DIGEST": "sha256:8cc90be1d3be7099cf8d37657048e08e7a036cc50afbd68c84002267ddf8ea6c"
+  "CURRENT_CONTRACT_DIGEST": "sha256:59bec10aa6582c2934a5b1a87ac468f34408f6c5cc0f11d79c362921898c985e",
+  "CONTRACT_DELTA_DIGEST": "sha256:136deacff210e91dfbab00cb216c25b52eba23dbff8f804bb121e536d657b5ad"
 }
