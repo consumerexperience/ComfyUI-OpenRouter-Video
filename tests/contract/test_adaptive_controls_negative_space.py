@@ -83,9 +83,14 @@ def test_protected_native_media_security_pricing_and_wire_files_are_exactly_pres
         "src/openrouter_video/data/capability-evidence.json",
     ]
     candidate = json.loads((ROOT / "tests/fixtures/pre_rc_first_run_ux.json").read_text())
+    op07 = json.loads((ROOT / "tests/fixtures/op07_discovery_candidate.json").read_text())
     for path in paths:
         current = (ROOT / path).read_text(encoding="utf-8")
         digest = hashlib.sha256(current.encode()).hexdigest()
+        if path == "src/openrouter_video/data/capability-evidence.json":
+            assert digest == op07["candidate_files"][path]
+            # The profile delta is checked against frozen evidence separately.
+            continue
         if path == "src/openrouter_video/secrets.py":
             assert digest == candidate.get("candidate_files", {}).get(path)
             continue

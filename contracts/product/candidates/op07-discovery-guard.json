@@ -1,0 +1,47 @@
+{
+  "STATUS": "PASS",
+  "AUTHORIZED_DELTA": [
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01eligibility_py",
+      "operation": "add",
+      "before": null,
+      "after": "fe26fcdfd6e7d2e76b1fd46cf6908df01f482a3d423d76e5c312626c7482688a"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01projection_py",
+      "operation": "replace",
+      "before": "d36602e458e47bf5fed8432882c829ed424263a7be97fde04c438013257390d5",
+      "after": "5bbb8649b5e81808c0741e06c5c20d4d755bd323f5cd12b6cd239b606cb98dc2"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01routes_py",
+      "operation": "replace",
+      "before": "9481fbc4241e2b4363800c84c468cd89582367c9ecf52dfc8ef2f53d6212fff5",
+      "after": "3015039e7a7509382de5f18373c53956fa5511cddd227c661acb33da58e8901e"
+    },
+    {
+      "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01data~01capability-evidence_json",
+      "operation": "replace",
+      "before": "ec25bd96a4b12bdb9b0b3b0559dfd8c113c7f2ebf34824719303f044b592844a",
+      "after": "e0b9c3528dd1ba5e0b0cf4a2a4cdd973bdaef363f68a3f92009766d1d898ce83"
+    },
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operation": "replace",
+      "before": "ff031603b9ff464096aaae8986970d92984b14f32ad5c92116cf876ecdcd981c",
+      "after": "dd54cfb9e8893494ed40804cf53ee6e8c696c24c7a488b1ae6434666a4c947f8"
+    }
+  ],
+  "UNAUTHORIZED_DELTA": [],
+  "UNCHANGED_PROTECTED_SURFACES": [
+    "/surfaces/product_owned/security",
+    "/surfaces/product_owned/submit_resume",
+    "/surfaces/product_owned/AppIdentity",
+    "/surfaces/product_owned/storage"
+  ],
+  "UNKNOWN_DYNAMIC_SURFACES": [],
+  "OBSERVED_EVIDENCE_CHANGES": [],
+  "ACCEPTED_CONTRACT_DIGEST": "sha256:a2987facf690f1df565e246087f0bc54573f50a1fa80a74a8cfc8a5b1a4c57f5",
+  "CURRENT_CONTRACT_DIGEST": "sha256:fe4439a01bb0f0f784b9318d4c36d490a9fcb50866ea35772708dd93c1370f20",
+  "CONTRACT_DELTA_DIGEST": "sha256:8cc90be1d3be7099cf8d37657048e08e7a036cc50afbd68c84002267ddf8ea6c"
+}

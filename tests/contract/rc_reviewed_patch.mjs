@@ -12,6 +12,12 @@ export function reviewedRcText(root, file, text) {
         const candidate = JSON.parse(readFileSync(new URL("tests/fixtures/pre_rc_first_run_ux.json", root), "utf8"));
         acceptedCandidate = candidate.candidate_files?.[file] === digest;
     } catch {}
+    // Separate, explicitly unaccepted OP-07 candidate pin. Historical accepted
+    // fixtures are immutable; the current delta has its own semantic tests/guard.
+    try {
+        const candidate = JSON.parse(readFileSync(new URL("tests/fixtures/op07_discovery_candidate.json", root), "utf8"));
+        acceptedCandidate ||= candidate.candidate_files?.[file] === digest;
+    } catch {}
     assert(acceptedCandidate || digest === pin.reviewed_files[file], `Undeclared RC change: ${file}`);
     return execFileSync("git", ["show", `${pin.baseline_sha}:${file}`], { cwd: root, encoding: "utf8" }).replace(/\r\n/g, "\n");
 }

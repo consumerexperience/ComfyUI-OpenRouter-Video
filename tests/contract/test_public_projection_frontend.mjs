@@ -10,6 +10,20 @@ const c = { app: { graph, registerExtension() {} }, api: { async fetchApi(url, i
 vm.runInNewContext(source, c);
 const plain = value => JSON.parse(JSON.stringify(value));
 const model = id => fixture.models.find(m => m.model_id === id);
+const reconciledGoogle = JSON.parse(readFileSync(new URL('../fixtures/op07-google-ui-projection.json',import.meta.url),'utf8'));
+for (const capability of reconciledGoogle.models) for (const method of ['T2V','I2V','FLF2V']) {
+    test(`OP07 ${capability.model_id} restores ${method} controls in bounded profile`,()=>{
+        const n=node(capability.model_id,method);
+        apply(n,capability,method);
+        for(const name of ['prompt','duration','resolution','aspect_ratio']) assert(!widget(n,name).hidden,name);
+        assert.equal(widget(n,'duration').value,8);
+        assert.equal(widget(n,'resolution').value,'720p');
+        assert.equal(widget(n,'aspect_ratio').value,'16:9');
+        for(const name of ['size','seed','generate_audio']) assert(widget(n,name).hidden,name);
+        assert.equal(n.inputs.some(i=>i.name==='first_frame'),method!=='T2V');
+        assert.equal(n.inputs.some(i=>i.name==='last_frame'),method==='FLF2V');
+    });
+}
 for (const method of ["V2V_EDIT", "V2V_EXTEND"]) test(`Seedance ${method} source, optional limits and saved media intent`, async () => {
     const capability = model("bytedance/seedance-2.5");
     const n = node(capability.model_id, method);

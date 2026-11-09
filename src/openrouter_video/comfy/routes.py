@@ -23,7 +23,7 @@ from openrouter_video.secrets import (
 from . import compat
 from .oauth_diagnostics import Outcome, callback_outcomes
 from .oauth_loopback import LoopbackReceiver
-from .projection import project_model
+from .projection import project_selectable
 from .runtime import get_runtime, local_runtime_health
 
 _REGISTRY_ATTRIBUTE: Final = "_openrouter_video_registered_routes"
@@ -35,7 +35,7 @@ _oauth_start_lock: asyncio.Lock | None = None
 
 async def _models_handler(_: Any) -> Any:
     try:
-        observation = await get_runtime().catalog()
+        observation = await get_runtime().effective_catalog()
     except (ProductFailureError, RequestPolicyError):
         compat.mark_catalogue_unavailable()
         return compat.json_response({"error": "model_catalog_unavailable"}, status=503)
@@ -51,7 +51,13 @@ async def _models_handler(_: Any) -> Any:
         for model_id in model_ids
     ):
         return compat.json_response({"error": "model_catalog_internal_error"}, status=500)
-    sorted_model_ids = tuple(sorted(model_ids))
+    sorted_model_ids = tuple(
+        sorted(
+            model.model_id
+            for model in observation.models
+            if project_selectable(model, observation.observed_at).supported_inference_methods
+        )
+    )
     return compat.json_response([compat.MODEL_UNRESOLVED, *sorted_model_ids], status=200)
 
 
@@ -59,14 +65,19 @@ async def _ui_capabilities_handler(_: Any) -> Any:
     try:
         observation = await get_runtime().effective_catalog()
         projected = tuple(
-            project_model(model, observation.observed_at) for model in observation.models
+            project_selectable(model, observation.observed_at) for model in observation.models
         )
     except (ProductFailureError, RequestPolicyError):
         compat.mark_catalogue_unavailable()
         return compat.json_response({"error": "model_catalog_unavailable"}, status=503)
     except Exception:
         return compat.json_response({"error": "model_catalog_internal_error"}, status=500)
-    sorted_projected = tuple(sorted(projected, key=lambda item: item.model_id))
+    sorted_projected = tuple(
+        sorted(
+            (item for item in projected if item.supported_inference_methods),
+            key=lambda item: item.model_id,
+        )
+    )
     model_ids = tuple(item.model_id for item in sorted_projected)
     revision = compat.cache_catalogue_health(model_ids, observation.observed_at.isoformat())
     return compat.json_response(
@@ -75,6 +86,11 @@ async def _ui_capabilities_handler(_: Any) -> Any:
             "catalogue_revision": revision,
             "ui_contract_version": compat.UI_CONTRACT_VERSION,
             "models": [item.as_dict() for item in sorted_projected],
+            "unavailable_models": [
+                {"model_id": item.model_id, "reason": "NO_CONFIRMED_SERIALIZABLE_METHOD"}
+                for item in projected
+                if not item.supported_inference_methods
+            ],
         },
         status=200,
     )

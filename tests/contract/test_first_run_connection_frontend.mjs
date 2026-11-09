@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { execFileSync } from "node:child_process";
+import { reviewedRcText } from "./rc_reviewed_patch.mjs";
 
 const source = readFileSync(new URL("../../web/openrouter_video.js", import.meta.url), "utf8");
 
@@ -30,5 +31,8 @@ test("RC identity matches package metadata and changes only two About literals",
     assert(source.includes(`version.textContent = "${version}"`));
     assert.equal(source.split(version).length - 1, 2);
     const baseline = execFileSync("git", ["show", "6ad02d8969484984cab4661513b6b8868cd70169:web/openrouter_video.js"], {cwd: new URL("../../", import.meta.url), encoding: "utf8"});
-    assert.equal(source.replaceAll(version, "0.1.0-rc.1").replace(/\r\n/g, "\n"), baseline.replace(/\r\n/g, "\n"));
+    const beforeOp07 = execFileSync("git", ["show", "058f5bcdd462a2a71f4f85151d9bbba3bc09bcf9:web/openrouter_video.js"], {cwd: new URL("../../", import.meta.url), encoding:"utf8"});
+    // RC.2 remains frozen; this uninstalled patch is bound separately.
+    reviewedRcText(new URL("../../",import.meta.url),"web/openrouter_video.js",source);
+    assert.equal(beforeOp07.replaceAll(version, "0.1.0-rc.1").replace(/\r\n/g, "\n"), baseline.replace(/\r\n/g, "\n"));
 });

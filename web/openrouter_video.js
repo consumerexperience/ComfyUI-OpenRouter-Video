@@ -26,6 +26,14 @@ const METHOD_LABELS = {
     V2V_EXTEND: "V2V_EXTEND — Source Video → Extended Video",
 };
 let capabilityPromise;
+let capabilityInFlight;
+let capabilityEpoch = 0;
+let catalogueRefreshInFlight;
+let catalogueRefreshTimer;
+let catalogueLifecycleStarted = false;
+let catalogueConnected = false;
+let catalogueSignature;
+const CATALOGUE_REFRESH_MS = 5 * 60 * 1000;
 let connectionPromise;
 const connectionListeners = new Set();
 
@@ -36,6 +44,13 @@ function connectionNodes() {
 function setConnectionPresentation(state) {
     for (const paint of connectionListeners) paint(state);
     const connected = state?.state === "CONNECTED";
+    if (catalogueConnected && !connected) {
+        capabilityEpoch += 1;
+        capabilityPromise = null;
+        capabilityInFlight = null;
+    }
+    const newlyConnected = connected && !catalogueConnected;
+    catalogueConnected = connected;
     for (const node of connectionNodes()) {
         if (node?.type !== GENERATE_NODE) continue;
         if (node.__orvConnectionCta) setVisible(node.__orvConnectionCta, !connected);
@@ -45,6 +60,7 @@ function setConnectionPresentation(state) {
         }
         node.setDirtyCanvas?.(true, true);
     }
+    if (newlyConnected && catalogueLifecycleStarted) void refreshCatalogue();
 }
 
 async function loadConnection(force = false) {
@@ -554,7 +570,8 @@ function configureModelPicker(node, projection) {
     if (currentId && item.__orvIdToLabel.has(currentId)) {
         item.value = currentId;
     } else {
-        item.value = SELECT_MODEL;
+        // A missing saved choice remains explicit user intent, including API export.
+        item.value = currentId || SELECT_MODEL;
     }
     return currentId && !item.__orvIdToLabel.has(currentId) ? currentId : null;
 }
@@ -692,15 +709,84 @@ function inferLegacyMethodFromNode(node) {
 }
 
 async function loadCapabilities(force = false) {
+    if (capabilityInFlight) return capabilityInFlight;
     if (!capabilityPromise || force) {
-        capabilityPromise = api.fetchApi("/openrouter-video/v1/ui-capabilities", {
+        const epoch = capabilityEpoch;
+        const request = api.fetchApi("/openrouter-video/v1/ui-capabilities", {
             cache: "no-store",
         }).then(async (response) => {
             if (!response.ok) throw new Error("capability projection unavailable");
-            return response.json();
+            const projection = await response.json();
+            if (epoch !== capabilityEpoch) throw new Error("obsolete capability response");
+            return projection;
+        });
+        capabilityPromise = request;
+        capabilityInFlight = request;
+        request.catch(() => {
+            if (capabilityPromise === request) capabilityPromise = null;
+        }).finally(() => {
+            if (capabilityInFlight === request) capabilityInFlight = null;
         });
     }
     return capabilityPromise;
+}
+
+function catalogueActive() {
+    return (typeof document === "undefined" || document.visibilityState !== "hidden") &&
+        (typeof navigator === "undefined" || navigator.onLine !== false);
+}
+
+function scheduleCatalogueRefresh() {
+    clearTimeout(catalogueRefreshTimer);
+    if (!catalogueLifecycleStarted || !catalogueActive()) return;
+    catalogueRefreshTimer = setTimeout(() => {
+        void refreshCatalogue().finally(scheduleCatalogueRefresh);
+    }, CATALOGUE_REFRESH_MS);
+}
+
+function refreshCatalogue() {
+    if (catalogueRefreshInFlight) return catalogueRefreshInFlight;
+    if (!catalogueActive()) return Promise.resolve();
+    const task = (async () => {
+        const connection = await loadConnection(true);
+        if (connection.state !== "CONNECTED") return;
+        const projection = await loadCapabilities(true);
+        // Include profiles, not just model IDs or observation timestamps.
+        const signature = JSON.stringify({ models: projection.models,
+            unavailable_models: projection.unavailable_models,
+            ui_contract_version: projection.ui_contract_version });
+        const changed = signature !== catalogueSignature;
+        catalogueSignature = signature;
+        const nodes = connectionNodes().filter(node => node?.type === GENERATE_NODE);
+        await Promise.all(nodes.filter(node => changed || node.__orvCatalogueFailed)
+            .map(node => projectSelectedModel(node, false, projection)));
+    })().catch(() => {
+        for (const node of connectionNodes()) {
+            if (node?.type !== GENERATE_NODE || !node.__orvCapabilityStatus) continue;
+            node.__orvCatalogueFailed = true;
+            node.__orvCapabilityStatus.value = "CATALOGUE UNAVAILABLE — retrying; saved settings preserved";
+            setVisible(node.__orvCapabilityStatus, true);
+            node.setDirtyCanvas?.(true, true);
+        }
+    });
+    catalogueRefreshInFlight = task;
+    task.finally(() => { if (catalogueRefreshInFlight === task) catalogueRefreshInFlight = null; });
+    return task;
+}
+
+function startCatalogueLifecycle() {
+    if (catalogueLifecycleStarted) return;
+    catalogueLifecycleStarted = true;
+    const resume = () => {
+        if (catalogueActive()) void refreshCatalogue();
+        scheduleCatalogueRefresh();
+    };
+    if (typeof document !== "undefined") document.addEventListener?.("visibilitychange", resume);
+    if (typeof window !== "undefined") {
+        window.addEventListener?.("online", resume);
+        window.addEventListener?.("offline", scheduleCatalogueRefresh);
+    }
+    resume();
 }
 
 function normalizedValue(item) {
@@ -1714,12 +1800,15 @@ function presentationPhase(detail) {
     return null;
 }
 
-async function projectSelectedModel(node, force = false) {
+async function projectSelectedModel(node, force = false, snapshot = null) {
+    const version = (node.__orvProjectionVersion || 0) + 1;
+    node.__orvProjectionVersion = version;
     orderPresentationWidgets(node);
     node.__orvCapabilityStatus.value = "";
     setVisible(node.__orvCapabilityStatus, false);
     try {
         const connection = await loadConnection(force);
+        if (node.__orvProjectionVersion !== version) return;
         if (connection.state !== "CONNECTED") {
             setVisible(node.__orvConnectionCta, true);
             node.__orvCapabilityStatus.value = "OpenRouter connection required";
@@ -1728,7 +1817,9 @@ async function projectSelectedModel(node, force = false) {
             return;
         }
         setVisible(node.__orvConnectionCta, false);
-        const projection = await loadCapabilities(force);
+        const projection = snapshot || await loadCapabilities(force);
+        if (node.__orvProjectionVersion !== version) return;
+        node.__orvCatalogueFailed = false;
         if (projection.ui_contract_version !== UI_CONTRACT_VERSION) {
             node.__orvCapabilityStatus.value =
                 `FRONTEND/BACKEND CONTRACT MISMATCH: UI ${UI_CONTRACT_VERSION} / BACKEND ${projection.ui_contract_version ?? "UNKNOWN"}`;
@@ -1737,13 +1828,17 @@ async function projectSelectedModel(node, force = false) {
         }
         const missingSavedModel = configureModelPicker(node, projection);
         if ((projection.models || []).length === 0) {
-            node.__orvCapabilityStatus.value = "CATALOGUE EMPTY — NO SELECTABLE MODELS";
+            node.__orvSelectionBlocked = true;
+            node.__orvCapabilityStatus.value = "No supported video models currently available — saved settings preserved";
+            setVisible(node.__orvCapabilityStatus, true);
             node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
             return;
         }
         if (missingSavedModel) {
+            node.__orvSelectionBlocked = true;
             node.__orvCapabilityStatus.value =
-                `SAVED MODEL NOT IN CURRENT CATALOGUE: ${missingSavedModel} — SELECT MODEL`;
+                `SAVED MODEL UNAVAILABLE: ${missingSavedModel} — no confirmed method; select a replacement`;
+            setVisible(node.__orvCapabilityStatus, true);
             node.__orvEstimate.value = "ESTIMATE UNAVAILABLE — SELECT MODEL";
             return;
         }
@@ -1770,6 +1865,18 @@ async function projectSelectedModel(node, force = false) {
             disclose(node, "SAVED MODEL IS NOT PRESENT IN CURRENT CATALOGUE");
             return;
         }
+        const savedMethod = widget(node, "inference_method")?.value;
+        if (snapshot && METHODS.includes(savedMethod) &&
+            !capability.supported_inference_methods.includes(savedMethod)) {
+            node.__orvSelectionBlocked = true;
+            widget(node, "inference_method").options.values = [...capability.supported_inference_methods];
+            node.__orvCapabilityStatus.value = `METHOD UNAVAILABLE: ${savedMethod} — saved settings and links preserved; select a replacement`;
+            setVisible(node.__orvCapabilityStatus, true);
+            node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
+            node.__orvModelCapability = capability;
+            return;
+        }
+        node.__orvSelectionBlocked = false;
         node.__orvCapabilityStatus.value = "";
         setVisible(node.__orvCapabilityStatus, false);
         setVisible(widget(node, "first_frame_url"), false);
@@ -1779,6 +1886,8 @@ async function projectSelectedModel(node, force = false) {
         reprojectNodeSemantics(node, capability, method);
         await refreshEstimate(node);
     } catch {
+        if (node.__orvProjectionVersion !== version) return;
+        node.__orvCatalogueFailed = true;
         node.__orvCapabilityStatus.value = "ERROR — CAPABILITIES UNAVAILABLE";
         setVisible(node.__orvCapabilityStatus, true);
         node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
@@ -1812,6 +1921,7 @@ app.registerExtension({
     ],
     setup() {
         loadConnection();
+        startCatalogueLifecycle();
         api.addEventListener("progress", (event) => {
             const detail = event.detail || {};
             const phase = presentationPhase(detail);

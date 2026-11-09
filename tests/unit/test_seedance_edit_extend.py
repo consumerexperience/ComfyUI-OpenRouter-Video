@@ -1,6 +1,7 @@
-import copy
 import hashlib
 import json
+import shutil
+import subprocess
 from dataclasses import replace
 from datetime import datetime, timezone
 
@@ -27,7 +28,25 @@ SOURCE = InputReference(InputReferenceKind.VIDEO, "https://example.com/source.mp
 
 
 def test_manifest_delta_is_exactly_two_method_profiles_and_their_scope_note() -> None:
-    data = copy.deepcopy(load_manifest())
+    git = shutil.which("git")
+    assert git is not None
+    data = json.loads(
+        subprocess.check_output(  # noqa: S603 - fixed Git/revision/path
+            [
+                git,
+                "show",
+                "058f5bcdd462a2a71f4f85151d9bbba3bc09bcf9:src/openrouter_video/data/capability-evidence.json",
+            ],
+            text=True,
+            encoding="utf-8",
+        )
+    )
+    current_seedance = next(
+        m for m in load_manifest()["models"] if m["exact_model_id"] == "bytedance/seedance-2.5"
+    )
+    assert current_seedance == next(
+        m for m in data["models"] if m["exact_model_id"] == "bytedance/seedance-2.5"
+    )
     data.pop("content_hash")
     model = next(m for m in data["models"] if m["exact_model_id"] == "bytedance/seedance-2.5")
     fact = model["facts"]["request_shape_profiles"]

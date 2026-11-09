@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "artifact_version": "capability-projection-reconciliation-v1",
-  "review_status": "PRODUCT_OWNER_APPROVED_AUDIT",
+  "artifact_version": "capability-projection-reconciliation-v1+op07-bounded-google-20261108",
+  "review_status": "CANDIDATE_OFFICIAL_CONTRACT_RECONCILIATION; OWNER_RUNTIME_REVIEW_PENDING",
   "models": [
     {
       "exact_model_id": "x-ai/grok-imagine-video-1.5-lite",
@@ -5757,39 +5757,236 @@
       "facts": {
         "supports_text_only": {
           "value": true,
-          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "authority": "OFFICIAL_OPENROUTER_AND_EXACT_NATIVE_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/google/veo-3.1-lite",
-          "observed_at": "2026-10-10T16:37:05.412933+00:00",
-          "scope": "OpenRouter video model"
+          "observed_at": "2026-11-08T20:15:11.336064+00:00",
+          "scope": "T2V exact model; no source required"
         },
         "source_required": {
           "value": false,
-          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "authority": "OFFICIAL_OPENROUTER_AND_EXACT_NATIVE_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/google/veo-3.1-lite",
-          "observed_at": "2026-10-10T16:37:05.412933+00:00",
-          "scope": "OpenRouter video model"
+          "observed_at": "2026-11-08T20:15:11.336064+00:00",
+          "scope": "T2V exact model; no source required"
         },
         "request_shape_profiles": {
           "value": {
             "schema_version": 1,
             "methods": {
               "T2V": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED"
+                  },
+                  "duration": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      8
+                    ]
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "720p"
+                    ]
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "16:9"
+                    ]
+                  },
+                  "size": {
+                    "state": "UNKNOWN"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "UNKNOWN"
+                  }
+                },
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Conservative 8s/720p/16:9 only. Standard OpenRouter model+prompt+duration+resolution+aspect_ratio and frame_images mapping. No seed/audio toggle, exact size, references, edit, extend or passthrough proof. See docs/op07-contract-reconciliation.md.",
+                "relations": [
+                  {
+                    "axes": [
+                      "duration",
+                      "resolution",
+                      "aspect_ratio"
+                    ],
+                    "allowed": [
+                      {
+                        "duration": [
+                          8
+                        ],
+                        "resolution": [
+                          "720p"
+                        ],
+                        "aspect_ratio": [
+                          "16:9"
+                        ]
+                      }
+                    ],
+                    "forbidden": [],
+                    "complete": false
+                  }
+                ]
               },
               "I2V": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED"
+                  },
+                  "duration": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      8
+                    ]
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "720p"
+                    ]
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "16:9"
+                    ]
+                  },
+                  "size": {
+                    "state": "UNKNOWN"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "UNKNOWN"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "first_frame"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Conservative 8s/720p/16:9 only. Standard OpenRouter model+prompt+duration+resolution+aspect_ratio and frame_images mapping. No seed/audio toggle, exact size, references, edit, extend or passthrough proof. See docs/op07-contract-reconciliation.md.",
+                "relations": [
+                  {
+                    "axes": [
+                      "duration",
+                      "resolution",
+                      "aspect_ratio"
+                    ],
+                    "allowed": [
+                      {
+                        "duration": [
+                          8
+                        ],
+                        "resolution": [
+                          "720p"
+                        ],
+                        "aspect_ratio": [
+                          "16:9"
+                        ]
+                      }
+                    ],
+                    "forbidden": [],
+                    "complete": false
+                  }
+                ]
               },
               "FLF2V": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED"
+                  },
+                  "duration": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      8
+                    ]
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "720p"
+                    ]
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "16:9"
+                    ]
+                  },
+                  "size": {
+                    "state": "UNKNOWN"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "UNKNOWN"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "first_frame",
+                    "last_frame"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Conservative 8s/720p/16:9 only. Standard OpenRouter model+prompt+duration+resolution+aspect_ratio and frame_images mapping. No seed/audio toggle, exact size, references, edit, extend or passthrough proof. See docs/op07-contract-reconciliation.md.",
+                "relations": [
+                  {
+                    "axes": [
+                      "duration",
+                      "resolution",
+                      "aspect_ratio"
+                    ],
+                    "allowed": [
+                      {
+                        "duration": [
+                          8
+                        ],
+                        "resolution": [
+                          "720p"
+                        ],
+                        "aspect_ratio": [
+                          "16:9"
+                        ]
+                      }
+                    ],
+                    "forbidden": [],
+                    "complete": false
+                  }
+                ]
               },
               "IR2V": {
                 "state": "UNKNOWN",
@@ -5835,11 +6032,10 @@
               }
             }
           },
-          "authority": "REVIEWED_AUDIT_DISPOSITION",
+          "authority": "OFFICIAL_OPENROUTER_AND_EXACT_NATIVE_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/google/veo-3.1-lite",
-          "observed_at": "2026-10-13T13:37:34.589030+00:00",
-          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.",
-          "audit_content_hash": "e51c615e57a05bc065ac7c3dcd651ac32ceb101877a8b9f436fc19ffc299c0c0"
+          "observed_at": "2026-11-08T20:15:11.336064+00:00",
+          "scope": "Exact model native generation + public Video catalogue + standardized OpenRouter Video wire guide; bounded common configuration only, no Cartesian expansion; local MockTransport proof, not paid provider execution"
         }
       }
     },
@@ -8592,7 +8788,252 @@
           "audit_content_hash": "e51c615e57a05bc065ac7c3dcd651ac32ceb101877a8b9f436fc19ffc299c0c0"
         }
       }
+    },
+    {
+      "exact_model_id": "google/gemini-omni-1.2-flash",
+      "facts": {
+        "supports_text_only": {
+          "value": true,
+          "authority": "OFFICIAL_OPENROUTER_AND_EXACT_NATIVE_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/google/gemini-omni-1.2-flash",
+          "observed_at": "2026-11-08T20:15:11.336064+00:00",
+          "scope": "T2V exact model; no source required"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "OFFICIAL_OPENROUTER_AND_EXACT_NATIVE_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/google/gemini-omni-1.2-flash",
+          "observed_at": "2026-11-08T20:15:11.336064+00:00",
+          "scope": "T2V exact model; no source required"
+        },
+        "request_shape_profiles": {
+          "value": {
+            "schema_version": 1,
+            "methods": {
+              "T2V": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED"
+                  },
+                  "duration": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      8
+                    ]
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "720p"
+                    ]
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "16:9"
+                    ]
+                  },
+                  "size": {
+                    "state": "UNKNOWN"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "UNKNOWN"
+                  }
+                },
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Conservative 8s/720p/16:9 only. Standard OpenRouter model+prompt+duration+resolution+aspect_ratio and frame_images mapping. No seed/audio toggle, exact size, references, edit, extend or passthrough proof. See docs/op07-contract-reconciliation.md.",
+                "relations": [
+                  {
+                    "axes": [
+                      "duration",
+                      "resolution",
+                      "aspect_ratio"
+                    ],
+                    "allowed": [
+                      {
+                        "duration": [
+                          8
+                        ],
+                        "resolution": [
+                          "720p"
+                        ],
+                        "aspect_ratio": [
+                          "16:9"
+                        ]
+                      }
+                    ],
+                    "forbidden": [],
+                    "complete": false
+                  }
+                ]
+              },
+              "I2V": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED"
+                  },
+                  "duration": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      8
+                    ]
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "720p"
+                    ]
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "16:9"
+                    ]
+                  },
+                  "size": {
+                    "state": "UNKNOWN"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "UNKNOWN"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "first_frame"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Conservative 8s/720p/16:9 only. Standard OpenRouter model+prompt+duration+resolution+aspect_ratio and frame_images mapping. No seed/audio toggle, exact size, references, edit, extend or passthrough proof. See docs/op07-contract-reconciliation.md.",
+                "relations": [
+                  {
+                    "axes": [
+                      "duration",
+                      "resolution",
+                      "aspect_ratio"
+                    ],
+                    "allowed": [
+                      {
+                        "duration": [
+                          8
+                        ],
+                        "resolution": [
+                          "720p"
+                        ],
+                        "aspect_ratio": [
+                          "16:9"
+                        ]
+                      }
+                    ],
+                    "forbidden": [],
+                    "complete": false
+                  }
+                ]
+              },
+              "FLF2V": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED"
+                  },
+                  "duration": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      8
+                    ]
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "720p"
+                    ]
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "16:9"
+                    ]
+                  },
+                  "size": {
+                    "state": "UNKNOWN"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "UNKNOWN"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "first_frame",
+                    "last_frame"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Conservative 8s/720p/16:9 only. Standard OpenRouter model+prompt+duration+resolution+aspect_ratio and frame_images mapping. No seed/audio toggle, exact size, references, edit, extend or passthrough proof. See docs/op07-contract-reconciliation.md.",
+                "relations": [
+                  {
+                    "axes": [
+                      "duration",
+                      "resolution",
+                      "aspect_ratio"
+                    ],
+                    "allowed": [
+                      {
+                        "duration": [
+                          8
+                        ],
+                        "resolution": [
+                          "720p"
+                        ],
+                        "aspect_ratio": [
+                          "16:9"
+                        ]
+                      }
+                    ],
+                    "forbidden": [],
+                    "complete": false
+                  }
+                ]
+              }
+            }
+          },
+          "authority": "OFFICIAL_OPENROUTER_AND_EXACT_NATIVE_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/google/gemini-omni-1.2-flash",
+          "observed_at": "2026-11-08T20:15:11.336064+00:00",
+          "scope": "Exact model native generation + public Video catalogue + standardized OpenRouter Video wire guide; bounded common configuration only, no Cartesian expansion; local MockTransport proof, not paid provider execution"
+        }
+      }
     }
   ],
-  "content_hash": "09b3e901d8e753e43c0a409a2c71ac7170cc4953b783983273e405e8dc97c5f8"
+  "content_hash": "889ddc07d1def7572c5806310ef9767d167988760ed7622b1314d7f0f025cb2f"
 }

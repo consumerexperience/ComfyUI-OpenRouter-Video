@@ -656,12 +656,16 @@ def test_models_route_returns_only_sorted_valid_ids_and_sanitized_errors(
         return payload, status
 
     class Runtime(ProjectionCatalogRuntime):
-        async def catalog(self) -> object:
+        async def effective_catalog(self) -> object:
+            from tests.projection_fixtures import synthetic_projected_model
+
             return types.SimpleNamespace(
+                observed_at=datetime.now(timezone.utc),
                 models=(
-                    ModelCapabilities("z/model"),
-                    ModelCapabilities("a/model"),
-                )
+                    synthetic_projected_model("z/model"),
+                    synthetic_projected_model("a/model"),
+                    ModelCapabilities("hidden/model"),
+                ),
             )
 
     monkeypatch.setattr(compat, "json_response", response)
@@ -674,7 +678,7 @@ def test_models_route_returns_only_sorted_valid_ids_and_sanitized_errors(
     assert _schema_inputs(generate)["model"].options["options"] == ["SELECT MODEL"]
 
     class InvalidRuntime:
-        async def catalog(self) -> object:
+        async def effective_catalog(self) -> object:
             return types.SimpleNamespace(models=(ModelCapabilities(""),))
 
     monkeypatch.setattr(routes, "get_runtime", InvalidRuntime)
@@ -684,7 +688,7 @@ def test_models_route_returns_only_sorted_valid_ids_and_sanitized_errors(
     )
 
     class FailedRuntime:
-        async def catalog(self) -> object:
+        async def effective_catalog(self) -> object:
             raise RequestPolicyError("secret prompt and headers")
 
     monkeypatch.setattr(routes, "get_runtime", FailedRuntime)
@@ -743,14 +747,10 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
     assert len(payload["catalogue_revision"]) == 64
     generate = nodes.OpenRouterVideoGenerate.define_schema()
     assert _schema_inputs(generate)["model"].options["options"] == ["SELECT MODEL"]
-    projected = payload["models"][0]
-    assert projected["supported_resolutions"] == ("480p", "768p")
-    assert projected["supported_aspect_ratios"] == ("5:4", "16:9")
-    assert projected["supports_seed"] is None
-    assert projected["supported_reference_kinds"] == ("image", "video")
-    assert projected["max_reference_count"] == 50
-    assert projected["mixed_reference_kinds"] is True
-    assert projected["supported_inference_methods"] == ()  # Primitive flags are not shape proof.
+    assert payload["models"] == []  # Primitive flags are not request-shape proof.
+    assert payload["unavailable_models"] == [
+        {"model_id": "vendor/model", "reason": "NO_CONFIRMED_SERIALIZABLE_METHOD"}
+    ]
     serialized = repr(payload).lower()
     assert "pricing" not in serialized
     assert "0.42" not in serialized

@@ -1,0 +1,75 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "op07-discovery-remediation",
+  "baseline_checkpoint": "op05-frozen-058f5bc",
+  "baseline_sha": "058f5bcdd462a2a71f4f85151d9bbba3bc09bcf9",
+  "risk_tier": "B",
+  "intended_delta": [
+    "Supported-only selection, live refresh and lossless legacy intent; bounded documented Google profiles."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01eligibility_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Google conservative shapes; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01projection_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Google conservative shapes; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01routes_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Google conservative shapes; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01data~01capability-evidence_json",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Google conservative shapes; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Google conservative shapes; not release acceptance."
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned/security",
+    "/surfaces/product_owned/submit_resume",
+    "/surfaces/product_owned/AppIdentity",
+    "/surfaces/product_owned/storage"
+  ],
+  "expected_components": [
+    "src/openrouter_video/eligibility.py",
+    "src/openrouter_video/comfy/projection.py",
+    "src/openrouter_video/comfy/routes.py",
+    "src/openrouter_video/data/capability-evidence.json",
+    "web/openrouter_video.js"
+  ],
+  "required_gates": [
+    "baseline_declaration",
+    "semantic_diff",
+    "negative_space_tests",
+    "python",
+    "frontend",
+    "serializer"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

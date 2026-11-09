@@ -4,19 +4,35 @@ from __future__ import annotations
 
 import math
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from enum import Enum
 from typing import TypeVar
 
 from openrouter_video.capabilities import CapabilityModeStatus
 from openrouter_video.configuration import profile_constraints, project_method
+from openrouter_video.eligibility import eligible_methods
 from openrouter_video.evidence_registry import preferred_method
 from openrouter_video.geometry import geometry_profile, reviewed_geometry
 from openrouter_video.models import InferenceMethod, ModelCapabilities
 
 _UI_METHODS = tuple(InferenceMethod)
 _Option = TypeVar("_Option", int, str)
+
+
+def project_selectable(
+    capabilities: ModelCapabilities, observed_at: datetime
+) -> UiModelCapabilities:
+    """One selection authority shared by routes and frontend bootstrap."""
+    view = project_model(capabilities, observed_at)
+    methods = tuple(method.value for method in eligible_methods(capabilities))
+    return replace(
+        view,
+        supported_inference_methods=methods,
+        preferred_inference_method=view.preferred_inference_method
+        if view.preferred_inference_method in methods
+        else next(iter(methods), None),
+    )
 
 
 def _option_order(axis: str, value: int | str) -> tuple[int, float, float, int, int, str]:

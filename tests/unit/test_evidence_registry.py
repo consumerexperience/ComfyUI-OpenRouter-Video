@@ -138,7 +138,9 @@ def test_manifest_integrity_and_conflicts_remain_explicit(tmp_path: Path) -> Non
     import json
 
     manifest = load_manifest()
-    assert len(manifest["models"]) == 30
+    ids = [model["exact_model_id"] for model in manifest["models"]]
+    assert len(ids) == len(set(ids))
+    assert "google/gemini-omni-1.2-flash" in ids
     manifest["artifact_version"] = "tampered"
     path = tmp_path / "manifest.json"
     path.write_text(json.dumps(manifest))

@@ -1,0 +1,11 @@
+{
+  "state": "UNACCEPTED_IMPLEMENTATION_CANDIDATE",
+  "baseline_sha": "058f5bcdd462a2a71f4f85151d9bbba3bc09bcf9",
+  "candidate_files": {
+    "src/openrouter_video/eligibility.py": "fe26fcdfd6e7d2e76b1fd46cf6908df01f482a3d423d76e5c312626c7482688a",
+    "src/openrouter_video/comfy/projection.py": "5bbb8649b5e81808c0741e06c5c20d4d755bd323f5cd12b6cd239b606cb98dc2",
+    "src/openrouter_video/comfy/routes.py": "3015039e7a7509382de5f18373c53956fa5511cddd227c661acb33da58e8901e",
+    "src/openrouter_video/data/capability-evidence.json": "e0b9c3528dd1ba5e0b0cf4a2a4cdd973bdaef363f68a3f92009766d1d898ce83",
+    "web/openrouter_video.js": "dd54cfb9e8893494ed40804cf53ee6e8c696c24c7a488b1ae6434666a4c947f8"
+  }
+}
