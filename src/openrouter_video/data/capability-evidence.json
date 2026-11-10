@@ -6134,6 +6134,22 @@
                   "generate_audio": {
                     "state": "SUPPORTED",
                     "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "google-vertex": {
+                        "negativePrompt": {
+                          "type": "string",
+                          "container": "parameters"
+                        },
+                        "enhancePrompt": {
+                          "type": "boolean",
+                          "container": "parameters"
+                        }
+                      }
+                    },
+                    "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -6184,7 +6200,8 @@
                   "https://openrouter.ai/google/veo-3.1-fast",
                   "https://ai.google.dev/gemini-api/docs/veo",
                   "https://openrouter.ai/api/v1/videos/models",
-                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request",
+                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options"
                 ]
               },
               "I2V": {
@@ -6229,6 +6246,22 @@
                   "generate_audio": {
                     "state": "SUPPORTED",
                     "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "google-vertex": {
+                        "negativePrompt": {
+                          "type": "string",
+                          "container": "parameters"
+                        },
+                        "enhancePrompt": {
+                          "type": "boolean",
+                          "container": "parameters"
+                        }
+                      }
+                    },
+                    "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -6279,7 +6312,8 @@
                   "https://openrouter.ai/google/veo-3.1-fast",
                   "https://ai.google.dev/gemini-api/docs/veo",
                   "https://openrouter.ai/api/v1/videos/models",
-                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request",
+                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options"
                 ]
               },
               "FLF2V": {
@@ -6324,6 +6358,22 @@
                   "generate_audio": {
                     "state": "SUPPORTED",
                     "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "google-vertex": {
+                        "negativePrompt": {
+                          "type": "string",
+                          "container": "parameters"
+                        },
+                        "enhancePrompt": {
+                          "type": "boolean",
+                          "container": "parameters"
+                        }
+                      }
+                    },
+                    "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -6375,7 +6425,8 @@
                   "https://openrouter.ai/google/veo-3.1-fast",
                   "https://ai.google.dev/gemini-api/docs/veo",
                   "https://openrouter.ai/api/v1/videos/models",
-                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request",
+                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options"
                 ]
               },
               "IR2V": {
@@ -6475,6 +6526,22 @@
                   },
                   "generate_audio": {
                     "state": "SUPPORTED"
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "google-vertex": {
+                        "negativePrompt": {
+                          "type": "string",
+                          "container": "parameters"
+                        },
+                        "enhancePrompt": {
+                          "type": "boolean",
+                          "container": "parameters"
+                        }
+                      }
+                    },
+                    "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
                   }
                 },
                 "topology": {
@@ -6557,6 +6624,9 @@
                     "forbidden": [],
                     "complete": true
                   }
+                ],
+                "review_sources": [
+                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options"
                 ]
               },
               "I2V": {
@@ -6583,6 +6653,22 @@
                   },
                   "generate_audio": {
                     "state": "SUPPORTED"
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "google-vertex": {
+                        "negativePrompt": {
+                          "type": "string",
+                          "container": "parameters"
+                        },
+                        "enhancePrompt": {
+                          "type": "boolean",
+                          "container": "parameters"
+                        }
+                      }
+                    },
+                    "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
                   }
                 },
                 "topology": {
@@ -6667,6 +6753,9 @@
                     "forbidden": [],
                     "complete": true
                   }
+                ],
+                "review_sources": [
+                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options"
                 ]
               },
               "FLF2V": {
@@ -6696,6 +6785,22 @@
                   },
                   "generate_audio": {
                     "state": "SUPPORTED"
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "google-vertex": {
+                        "negativePrompt": {
+                          "type": "string",
+                          "container": "parameters"
+                        },
+                        "enhancePrompt": {
+                          "type": "boolean",
+                          "container": "parameters"
+                        }
+                      }
+                    },
+                    "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
                   }
                 },
                 "topology": {
@@ -6781,6 +6886,9 @@
                     "forbidden": [],
                     "complete": true
                   }
+                ],
+                "review_sources": [
+                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options"
                 ]
               },
               "IR2V": {
@@ -7344,6 +7452,17 @@
                   "generate_audio": {
                     "state": "SUPPORTED",
                     "notes": "Explicit native generate_audio boolean and exact OpenRouter toggle signal; input AUDIO remains separate."
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "seed": {
+                        "watermark": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -7363,7 +7482,8 @@
                   "https://openrouter.ai/bytedance/seedance-2.0",
                   "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
                   "https://openrouter.ai/api/v1/videos/models",
-                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request",
+                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options"
                 ]
               },
               "I2V": {
@@ -7452,6 +7572,17 @@
                   "generate_audio": {
                     "state": "SUPPORTED",
                     "notes": "Explicit native generate_audio boolean and exact OpenRouter toggle signal; input AUDIO remains separate."
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "seed": {
+                        "watermark": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -7473,7 +7604,8 @@
                   "https://openrouter.ai/bytedance/seedance-2.0",
                   "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
                   "https://openrouter.ai/api/v1/videos/models",
-                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request",
+                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options"
                 ]
               },
               "FLF2V": {
@@ -7562,6 +7694,17 @@
                   "generate_audio": {
                     "state": "SUPPORTED",
                     "notes": "Explicit native generate_audio boolean and exact OpenRouter toggle signal; input AUDIO remains separate."
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "seed": {
+                        "watermark": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -7584,7 +7727,8 @@
                   "https://openrouter.ai/bytedance/seedance-2.0",
                   "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
                   "https://openrouter.ai/api/v1/videos/models",
-                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request",
+                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options"
                 ]
               },
               "IR2V": {
@@ -7673,6 +7817,17 @@
                   "generate_audio": {
                     "state": "SUPPORTED",
                     "notes": "Explicit native generate_audio boolean and exact OpenRouter toggle signal; input AUDIO remains separate."
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "seed": {
+                        "watermark": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -7696,7 +7851,8 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-2.0",
-                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced"
+                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
+                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options"
                 ]
               },
               "MI2V": {
@@ -7785,6 +7941,17 @@
                   "generate_audio": {
                     "state": "SUPPORTED",
                     "notes": "Explicit native generate_audio boolean and exact OpenRouter toggle signal; input AUDIO remains separate."
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "seed": {
+                        "watermark": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -7808,7 +7975,8 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-2.0",
-                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced"
+                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
+                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options"
                 ]
               },
               "VR2V": {
@@ -7897,6 +8065,17 @@
                   "generate_audio": {
                     "state": "SUPPORTED",
                     "notes": "Explicit native generate_audio boolean and exact OpenRouter toggle signal; input AUDIO remains separate."
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "seed": {
+                        "watermark": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -7920,7 +8099,8 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-2.0",
-                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced"
+                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
+                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options"
                 ]
               },
               "AR2V": {
@@ -8015,6 +8195,17 @@
                   "generate_audio": {
                     "state": "SUPPORTED",
                     "notes": "Explicit native generate_audio boolean and exact OpenRouter toggle signal; input AUDIO remains separate."
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "seed": {
+                        "watermark": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -8056,7 +8247,8 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-2.0",
-                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced"
+                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
+                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options"
                 ]
               },
               "V2V_EDIT": {
@@ -9621,6 +9813,22 @@
                   "generate_audio": {
                     "state": "SUPPORTED",
                     "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "google-vertex": {
+                        "negativePrompt": {
+                          "type": "string",
+                          "container": "parameters"
+                        },
+                        "enhancePrompt": {
+                          "type": "boolean",
+                          "container": "parameters"
+                        }
+                      }
+                    },
+                    "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -9671,7 +9879,8 @@
                   "https://openrouter.ai/google/veo-3.1",
                   "https://ai.google.dev/gemini-api/docs/veo",
                   "https://openrouter.ai/api/v1/videos/models",
-                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request",
+                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options"
                 ]
               },
               "I2V": {
@@ -9716,6 +9925,22 @@
                   "generate_audio": {
                     "state": "SUPPORTED",
                     "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "google-vertex": {
+                        "negativePrompt": {
+                          "type": "string",
+                          "container": "parameters"
+                        },
+                        "enhancePrompt": {
+                          "type": "boolean",
+                          "container": "parameters"
+                        }
+                      }
+                    },
+                    "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -9766,7 +9991,8 @@
                   "https://openrouter.ai/google/veo-3.1",
                   "https://ai.google.dev/gemini-api/docs/veo",
                   "https://openrouter.ai/api/v1/videos/models",
-                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request",
+                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options"
                 ]
               },
               "FLF2V": {
@@ -9811,6 +10037,22 @@
                   "generate_audio": {
                     "state": "SUPPORTED",
                     "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "google-vertex": {
+                        "negativePrompt": {
+                          "type": "string",
+                          "container": "parameters"
+                        },
+                        "enhancePrompt": {
+                          "type": "boolean",
+                          "container": "parameters"
+                        }
+                      }
+                    },
+                    "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -9862,7 +10104,8 @@
                   "https://openrouter.ai/google/veo-3.1",
                   "https://ai.google.dev/gemini-api/docs/veo",
                   "https://openrouter.ai/api/v1/videos/models",
-                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request",
+                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options"
                 ]
               },
               "IR2V": {
@@ -10967,5 +11210,5 @@
       }
     }
   ],
-  "content_hash": "bed1a22ef4b8d19eaca2433ba798cbe155b601b7e6c4e73e4c409c65876322e3"
+  "content_hash": "1dc4847f7154a299ac520442d164e57ad20f517a4bee6cbbde183676ace816a8"
 }

@@ -15405,6 +15405,22 @@
             "generate_audio": {
               "state": "SUPPORTED",
               "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "google-vertex": {
+                  "negativePrompt": {
+                    "type": "string",
+                    "container": "parameters"
+                  },
+                  "enhancePrompt": {
+                    "type": "boolean",
+                    "container": "parameters"
+                  }
+                }
+              },
+              "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
             }
           },
           "topology": {
@@ -15499,6 +15515,22 @@
             "generate_audio": {
               "state": "SUPPORTED",
               "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "google-vertex": {
+                  "negativePrompt": {
+                    "type": "string",
+                    "container": "parameters"
+                  },
+                  "enhancePrompt": {
+                    "type": "boolean",
+                    "container": "parameters"
+                  }
+                }
+              },
+              "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
             }
           },
           "topology": {
@@ -15593,6 +15625,22 @@
             "generate_audio": {
               "state": "SUPPORTED",
               "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "google-vertex": {
+                  "negativePrompt": {
+                    "type": "string",
+                    "container": "parameters"
+                  },
+                  "enhancePrompt": {
+                    "type": "boolean",
+                    "container": "parameters"
+                  }
+                }
+              },
+              "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
             }
           },
           "topology": {
@@ -16087,6 +16135,22 @@
             },
             "generate_audio": {
               "state": "SUPPORTED"
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "google-vertex": {
+                  "negativePrompt": {
+                    "type": "string",
+                    "container": "parameters"
+                  },
+                  "enhancePrompt": {
+                    "type": "boolean",
+                    "container": "parameters"
+                  }
+                }
+              },
+              "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
             }
           },
           "topology": {
@@ -16213,6 +16277,22 @@
             },
             "generate_audio": {
               "state": "SUPPORTED"
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "google-vertex": {
+                  "negativePrompt": {
+                    "type": "string",
+                    "container": "parameters"
+                  },
+                  "enhancePrompt": {
+                    "type": "boolean",
+                    "container": "parameters"
+                  }
+                }
+              },
+              "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
             }
           },
           "topology": {
@@ -16339,6 +16419,22 @@
             },
             "generate_audio": {
               "state": "SUPPORTED"
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "google-vertex": {
+                  "negativePrompt": {
+                    "type": "string",
+                    "container": "parameters"
+                  },
+                  "enhancePrompt": {
+                    "type": "boolean",
+                    "container": "parameters"
+                  }
+                }
+              },
+              "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
             }
           },
           "topology": {
@@ -19514,6 +19610,17 @@
             "generate_audio": {
               "state": "SUPPORTED",
               "notes": "Explicit native generate_audio boolean and exact OpenRouter toggle signal; input AUDIO remains separate."
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "seed": {
+                  "watermark": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
             }
           },
           "topology": {
@@ -19614,6 +19721,17 @@
             "generate_audio": {
               "state": "SUPPORTED",
               "notes": "Explicit native generate_audio boolean and exact OpenRouter toggle signal; input AUDIO remains separate."
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "seed": {
+                  "watermark": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
             }
           },
           "topology": {
@@ -19716,6 +19834,17 @@
             "generate_audio": {
               "state": "SUPPORTED",
               "notes": "Explicit native generate_audio boolean and exact OpenRouter toggle signal; input AUDIO remains separate."
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "seed": {
+                  "watermark": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
             }
           },
           "topology": {
@@ -19819,6 +19948,17 @@
             "generate_audio": {
               "state": "SUPPORTED",
               "notes": "Explicit native generate_audio boolean and exact OpenRouter toggle signal; input AUDIO remains separate."
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "seed": {
+                  "watermark": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
             }
           },
           "topology": {
@@ -19925,6 +20065,17 @@
             "generate_audio": {
               "state": "SUPPORTED",
               "notes": "Explicit native generate_audio boolean and exact OpenRouter toggle signal; input AUDIO remains separate."
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "seed": {
+                  "watermark": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
             }
           },
           "topology": {
@@ -20031,6 +20182,17 @@
             "generate_audio": {
               "state": "SUPPORTED",
               "notes": "Explicit native generate_audio boolean and exact OpenRouter toggle signal; input AUDIO remains separate."
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "seed": {
+                  "watermark": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
             }
           },
           "topology": {
@@ -20165,6 +20327,17 @@
             "generate_audio": {
               "state": "SUPPORTED",
               "notes": "Explicit native generate_audio boolean and exact OpenRouter toggle signal; input AUDIO remains separate."
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "seed": {
+                  "watermark": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
             }
           },
           "topology": {
@@ -22352,6 +22525,22 @@
             "generate_audio": {
               "state": "SUPPORTED",
               "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "google-vertex": {
+                  "negativePrompt": {
+                    "type": "string",
+                    "container": "parameters"
+                  },
+                  "enhancePrompt": {
+                    "type": "boolean",
+                    "container": "parameters"
+                  }
+                }
+              },
+              "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
             }
           },
           "topology": {
@@ -22446,6 +22635,22 @@
             "generate_audio": {
               "state": "SUPPORTED",
               "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "google-vertex": {
+                  "negativePrompt": {
+                    "type": "string",
+                    "container": "parameters"
+                  },
+                  "enhancePrompt": {
+                    "type": "boolean",
+                    "container": "parameters"
+                  }
+                }
+              },
+              "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
             }
           },
           "topology": {
@@ -22540,6 +22745,22 @@
             "generate_audio": {
               "state": "SUPPORTED",
               "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "google-vertex": {
+                  "negativePrompt": {
+                    "type": "string",
+                    "container": "parameters"
+                  },
+                  "enhancePrompt": {
+                    "type": "boolean",
+                    "container": "parameters"
+                  }
+                }
+              },
+              "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
             }
           },
           "topology": {

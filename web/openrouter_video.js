@@ -1251,24 +1251,30 @@ function configureOperationControls(node, profile) {
         ? "Saved provider controls are no longer supported; choose an explicit replacement." : "";
     for (const [provider, options] of Object.entries(providers)) for (const [key, spec] of Object.entries(options)) {
         if (spec.default !== undefined && spec.values?.length === 1) continue;
+        const defaultLabel = "AUTO / PROVIDER DEFAULT";
+        const boolean = spec.type === "boolean";
+        const choices = boolean ? [defaultLabel, "true", "false"]
+            : spec.values ? [defaultLabel, ...spec.values] : undefined;
         const name = `provider_option:${provider}:${spec.container || ""}:${key}`;
         const old = saved.find(v => v.provider === provider && v.key === key && (v.container || null) === (spec.container || null));
         let item = widget(node, name);
         if (!item) {
-            const type = spec.values ? "combo" : spec.type === "boolean" ? "toggle" : ["integer", "number"].includes(spec.type) ? "number" : "text";
+            const type = choices ? "combo" : ["integer", "number"].includes(spec.type) ? "number" : "text";
             item = node.addWidget(type, name, old?.value ?? "", value => {
                 let values;
                 try { values = storage.value ? JSON.parse(storage.value) : []; } catch { return; }
                 if (!Array.isArray(values)) return;
                 const remaining = values.filter(v => !(v.provider === provider && v.key === key && (v.container || null) === (spec.container || null)));
-                if (value !== "") remaining.push({provider, key, value, ...(spec.container ? {container:spec.container} : {})});
+                if (value !== "" && value !== defaultLabel) remaining.push({provider, key,
+                    value: boolean ? value === "true" : value, ...(spec.container ? {container:spec.container} : {})});
                 storage.value = JSON.stringify(remaining);
-            }, {values:spec.values, min:spec.min, max:spec.max, step:spec.type === "integer" ? 1 : undefined});
+            }, {values:choices, min:spec.min, max:spec.max, step:spec.type === "integer" ? 1 : undefined});
             item.__orvProviderOption = true;
             item.serialize = false;
         }
         item.label = key;
-        item.value = old?.value ?? "";
+        if (choices) (item.options ||= {}).values = choices;
+        item.value = old ? boolean ? String(old.value) : old.value : choices ? defaultLabel : "";
         setVisible(item, true);
     }
     return issue;

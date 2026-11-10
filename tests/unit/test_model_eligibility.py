@@ -264,6 +264,15 @@ def assert_reconciled_scalar_delta(before: dict[str, Any], after: dict[str, Any]
     new_methods = restored["facts"]["request_shape_profiles"]["value"]["methods"]
     for method, old in old_methods.items():
         new = new_methods[method]
+        if "provider_options" in new.get("controls", {}) and "provider_options" not in old.get(
+            "controls", {}
+        ):
+            supported = new["controls"].pop("provider_options")
+            assert supported["state"] == "SUPPORTED"
+            for provider, options in supported["providers"].items():
+                assert provider in {"seed", "google-vertex"}
+                assert set(options) <= set(raw["allowed_passthrough_parameters"])
+                assert set(options) <= {"watermark", "negativePrompt", "enhancePrompt"}
         for control, flag in (("seed", "seed"), ("generate_audio", "generate_audio")):
             if old.get("controls", {}).get(control) != new.get("controls", {}).get(control):
                 assert raw.get(flag) is True

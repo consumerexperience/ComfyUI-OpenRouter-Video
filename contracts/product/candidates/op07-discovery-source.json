@@ -51,7 +51,7 @@
       },
       "evidence_registry": {
         "src~1openrouter_video~1evidence_registry_py": "5586744579d6ebae23c4176d78ae9f9b4a5335aa3978c781f9027adfcd2da457",
-        "src~1openrouter_video~1data~1capability-evidence_json": "ffd336338ed22f9aae0df326f00d364776dec6446e3cee523a5684735d0f5093"
+        "src~1openrouter_video~1data~1capability-evidence_json": "8b983ae5cdeeb26fc8be290cbb20084d6d367bcfdfd67aa67b21e79cba67c4c9"
       },
       "storage": {
         "src~1openrouter_video~1local_media_py": "9463b2f97ed6609a082b3648e25f1ce31d827d99baf778ce481092ec7ef45e6d",
@@ -75,7 +75,7 @@
         "src~1openrouter_video~1comfy~1native_media_py": "ecd7c523f9fef5241a8c14018b4280d566f0ccffaf14a3ef7818eee13671433a"
       },
       "workflow_persistence": {
-        "web~1openrouter_video_js": "fb16f1cf49fb02b2b88bd4ccd2f3abc5334a56996ec99f9f5519e664552c7607"
+        "web~1openrouter_video_js": "3fabbb56791c17e0340c7893eb4c46170756e924ddfe144aa549e1bd79e37e23"
       }
     },
     "upstream_dynamic": {},

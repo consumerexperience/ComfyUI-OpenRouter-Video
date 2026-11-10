@@ -15,7 +15,7 @@
     "src/openrouter_video/eligibility.py": "3380ef4a5e3e9c3b5fb628ef5d00f99ef20afb11a822267108f824ed74e28041",
     "src/openrouter_video/comfy/projection.py": "0a1146f56fc306f284a7c401b46bb24517d4dd5b72ade8b3fc1a647d2d67071b",
     "src/openrouter_video/comfy/routes.py": "3015039e7a7509382de5f18373c53956fa5511cddd227c661acb33da58e8901e",
-    "src/openrouter_video/data/capability-evidence.json": "ffd336338ed22f9aae0df326f00d364776dec6446e3cee523a5684735d0f5093",
-    "web/openrouter_video.js": "fb16f1cf49fb02b2b88bd4ccd2f3abc5334a56996ec99f9f5519e664552c7607"
+    "src/openrouter_video/data/capability-evidence.json": "8b983ae5cdeeb26fc8be290cbb20084d6d367bcfdfd67aa67b21e79cba67c4c9",
+    "web/openrouter_video.js": "3fabbb56791c17e0340c7893eb4c46170756e924ddfe144aa549e1bd79e37e23"
   }
 }

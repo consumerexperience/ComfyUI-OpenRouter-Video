@@ -334,3 +334,21 @@ test('original Unicode identity and geometry characters remain intact',()=>{
     assert(source.includes('[x\u00d7]'));
     assert(!source.includes('\u0420\u00ae'));
 });
+
+test('optional provider boolean distinguishes default, true and false through workflow storage',()=>{
+    const capability=currentProjection.models.find(m=>m.model_id==='google/veo-3.1-lite');
+    const n=operationNode(capability.model_id,'T2V');apply(n,capability,'T2V');
+    const option=widget(n,'provider_option:google-vertex:parameters:enhancePrompt');
+    const storage=widget(n,'provider_options');
+    assert.equal(option.type,'combo');
+    assert.equal(option.value,'AUTO / PROVIDER DEFAULT');
+    assert.equal(storage.value,'');
+    option.callback('false');
+    assert.equal(JSON.parse(storage.value)[0].value,false);
+    c.configureOperationControls(n,capability.method_profiles.T2V);
+    assert.equal(option.value,'false');
+    option.callback('true');
+    assert.equal(JSON.parse(storage.value)[0].value,true);
+    option.callback('AUTO / PROVIDER DEFAULT');
+    assert.deepEqual(JSON.parse(storage.value),[]);
+});

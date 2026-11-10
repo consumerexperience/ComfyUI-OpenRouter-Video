@@ -84,6 +84,44 @@ def test_positive_standard_scalar_flags_survive_projection_and_wire(raw: dict[st
             assert payload(request)[control] == value
 
 
+@pytest.mark.parametrize("mid", ["google/veo-3.1", "google/veo-3.1-fast", "google/veo-3.1-lite"])
+@pytest.mark.parametrize("enabled", [False, True])
+def test_reviewed_veo_options_use_vertex_parameters(mid: str, enabled: bool) -> None:
+    m = model(mid)
+    request = replace(
+        witness(m, InferenceMethod.T2V),
+        provider_options=(
+            ProviderOption("google-vertex", "negativePrompt", "avoid blur", "parameters"),
+            ProviderOption("google-vertex", "enhancePrompt", enabled, "parameters"),
+        ),
+    )
+    RequestValidator().validate_capabilities(request, m)
+    assert payload(request)["provider"] == {
+        "options": {
+            "google-vertex": {
+                "parameters": {
+                    "negativePrompt": "avoid blur",
+                    "enhancePrompt": enabled,
+                }
+            }
+        }
+    }
+
+
+def test_reviewed_seed_watermark_false_is_not_omitted_or_nested() -> None:
+    m = model("bytedance/seedance-2.0")
+    request = replace(
+        witness(m, InferenceMethod.T2V),
+        provider_options=(ProviderOption("seed", "watermark", False),),
+    )
+    RequestValidator().validate_capabilities(request, m)
+    assert payload(request)["provider"] == {"options": {"seed": {"watermark": False}}}
+    with pytest.raises(ProductFailureError):
+        RequestValidator().validate_capabilities(
+            replace(request, provider_options=(ProviderOption("seed", "watermark", "false"),)), m
+        )
+
+
 @pytest.mark.parametrize(
     "method", [InferenceMethod.T2V, InferenceMethod.I2V, InferenceMethod.FLF2V]
 )
