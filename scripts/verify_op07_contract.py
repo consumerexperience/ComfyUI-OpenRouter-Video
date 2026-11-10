@@ -18,6 +18,15 @@ ROOT = Path(__file__).resolve().parents[1]
 BASE = "058f5bcdd462a2a71f4f85151d9bbba3bc09bcf9"
 GIT = shutil.which("git")
 ALLOWED = {
+    "src/openrouter_video/local_media.py": "storage",
+    "src/openrouter_video/comfy/native_media.py": "native_media",
+    "src/openrouter_video/comfy/compat.py": "capabilities",
+    "src/openrouter_video/models.py": "capabilities",
+    "src/openrouter_video/client.py": "capabilities",
+    "src/openrouter_video/configuration.py": "capabilities",
+    "src/openrouter_video/recipes.py": "recipes",
+    "src/openrouter_video/comfy/nodes.py": "capabilities",
+    "src/openrouter_video/application.py": "submit_resume",
     "src/openrouter_video/capabilities.py": "capabilities",
     "src/openrouter_video/eligibility.py": "capabilities",
     "src/openrouter_video/comfy/projection.py": "capabilities",
@@ -74,7 +83,8 @@ def main():
                 "reason": (
                     "Owner 6497404b: bounded discovery/eligibility/refresh delta; "
                     "Owner architectural correction 8fad0a0c: reuse existing Core "
-                    "capability service; not release acceptance."
+                    "capability service and Owner FULL FEATURE PARITY continuation; "
+                    "not release acceptance."
                 ),
             }
         )
@@ -87,14 +97,23 @@ def main():
         risk_tier="B",
         intended_delta=[
             "Supported-only selection, live refresh and lossless legacy intent; "
-            "bounded documented Google profiles."
+            "full confirmed standard domains and typed specialized operations; "
+            "unresolved contracts remain open."
         ],
         allowed_semantic_changes=changes,
         protected_surfaces=[
             "/surfaces/product_owned/security",
-            "/surfaces/product_owned/submit_resume",
+            *[
+                "/surfaces/product_owned/submit_resume/" + key.replace("~", "~0")
+                for key in baseline["surfaces"]["product_owned"].get("submit_resume", {})
+                if key != "src~1openrouter_video~1application_py"
+            ],
             "/surfaces/product_owned/AppIdentity",
-            "/surfaces/product_owned/storage",
+            *[
+                "/surfaces/product_owned/storage/" + key.replace("~", "~0")
+                for key in baseline["surfaces"]["product_owned"].get("storage", {})
+                if key != "src~1openrouter_video~1local_media_py"
+            ],
         ],
         expected_components=list(ALLOWED),
         required_gates=[

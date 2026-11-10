@@ -177,6 +177,10 @@ def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
         "direct_references",
         "input_references",
         "geometry_authority",
+        "previous_job_id",
+        "upscale_factor",
+        "creativity",
+        "provider_options",
     ]
     assert [item.name for item in resume.inputs] == ["job_id"]
     assert generate.hidden == resume.hidden == ["UNIQUE_ID"]
@@ -365,6 +369,67 @@ def test_generate_bridges_typed_reference_collection(monkeypatch: pytest.MonkeyP
         nodes.OpenRouterVideoGenerate.execute("vendor/model", "prompt", input_references=collection)
     )
     assert captured[0].input_references is collection
+
+
+@pytest.mark.parametrize(
+    ("mid", "method", "kwargs", "wire_key", "expected"),
+    [
+        (
+            "black-forest-labs/flux-video-upscale",
+            "V2V_UPSCALE",
+            {"upscale_factor": "2.5", "creativity": 1},
+            "upscale_factor",
+            2.5,
+        ),
+        (
+            "google/gemini-omni-1.2-flash",
+            "V2V_EDIT",
+            {"previous_job_id": "gen-vid-123-abcdefghijklmnopqrst"},
+            "previous_job_id",
+            "gen-vid-123-abcdefghijklmnopqrst",
+        ),
+    ],
+)
+def test_specialized_adapter_fields_reach_real_core_wire(
+    monkeypatch: pytest.MonkeyPatch,
+    mid: str,
+    method: str,
+    kwargs: dict[str, Any],
+    wire_key: str,
+    expected: object,
+) -> None:
+    from openrouter_video.capabilities import CapabilityObservation, RequestValidator
+    from tests.unit.test_full_catalogue_coverage import model
+
+    capability = model(mid)
+    captured: list[dict[str, object]] = []
+
+    class Runtime:
+        async def effective_catalog(self) -> CapabilityObservation:
+            return CapabilityObservation(datetime.now(timezone.utc), (capability,))
+
+        async def generate(self, request: Any, _: str | None) -> GenerationResult:
+            RequestValidator().validate_shape(request)
+            RequestValidator().validate_capabilities(request, capability)
+            captured.append(request.to_openrouter_payload())
+            return GenerationResult(
+                LocalLifecycleState.DONE,
+                "job-offline",
+                artifact=VideoArtifact(Path("ignored.mp4"), "video/mp4", 10),
+            )
+
+    monkeypatch.setattr(nodes, "get_runtime", Runtime)
+    monkeypatch.setattr(nodes, "to_native_video", lambda _: "native-video")
+    if "previous_job_id" not in kwargs:
+        kwargs["source_video"] = InputReference(
+            InputReferenceKind.VIDEO, "https://assets.example/source.mp4"
+        )
+    asyncio.run(
+        nodes.OpenRouterVideoGenerate.execute(mid, "prompt", inference_method=method, **kwargs)
+    )
+    assert captured[0][wire_key] == expected
+    if method == "V2V_EDIT":
+        assert captured[0]["provider"] == {"options": {"google-ai-studio": {"task": "edit"}}}
 
 
 def test_audio_helper_and_v2v_source_role_bridge_to_core(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -743,7 +808,7 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
 
     assert status == 200
     assert payload["observed_at"] == observed.isoformat()
-    assert payload["ui_contract_version"] == 5
+    assert payload["ui_contract_version"] == 6
     assert len(payload["catalogue_revision"]) == 64
     generate = nodes.OpenRouterVideoGenerate.define_schema()
     assert _schema_inputs(generate)["model"].options["options"] == ["SELECT MODEL"]
@@ -820,7 +885,7 @@ def test_health_route_is_pure_local_sanitized_observation(
         "catalogue_model_count": 30,
         "catalogue_revision": "a" * 64,
         "plugin_version": "9.9.9-test-only",
-        "ui_contract_version": 5,
+        "ui_contract_version": 6,
     }
     assert "key" not in repr(payload).lower()
     assert "authorization" not in repr(payload).lower()

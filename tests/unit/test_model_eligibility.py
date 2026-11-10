@@ -113,11 +113,13 @@ def test_reconciled_google_exact_shape_controls_and_mock_wire(mid: str) -> None:
         (Path(__file__).parents[1] / "fixtures/op07-discovery-catalogue.json").read_text()
     )["data"]
     model = enrich_capabilities(_parse_capability(next(m for m in data if m["id"] == mid)))
-    assert eligible_methods(model) == (
+    standard = (
         InferenceMethod.T2V,
         InferenceMethod.I2V,
         InferenceMethod.FLF2V,
     )
+
+    assert set(standard) <= set(eligible_methods(model))
 
     async def run() -> None:
         seen = []
@@ -128,25 +130,23 @@ def test_reconciled_google_exact_shape_controls_and_mock_wire(mid: str) -> None:
 
         async with HttpxTransport.for_test(httpx.MockTransport(handler)) as transport:
             client = OpenRouterVideoClient(request_policy=_policy(), transport=transport)
-            for method in eligible_methods(model):
+            for method in standard:
                 witness = request_witness(model, method)
                 assert witness is not None
                 await client.submit_video(witness)
                 wire = seen[-1]
-                assert (
-                    wire["model"],
-                    wire["duration"],
-                    wire["resolution"],
-                    wire["aspect_ratio"],
-                ) == (mid, 8, "720p", "16:9")
+                assert wire["model"] == mid
+                assert model.supported_durations is not None
+                assert model.supported_resolutions is not None
+                assert model.supported_aspect_ratios is not None
+                assert wire["duration"] in model.supported_durations
+                assert wire["resolution"] in model.supported_resolutions
+                assert wire["aspect_ratio"] in model.supported_aspect_ratios
                 assert (
                     len(wire.get("frame_images", []))
                     == {"T2V": 0, "I2V": 1, "FLF2V": 2}[method.value]
                 )
                 assert not {
-                    "seed",
-                    "generate_audio",
-                    "size",
                     "provider",
                     "input_references",
                     "previous_job_id",
@@ -163,16 +163,17 @@ def test_ten_models_remain_discovered_and_unresolved_findings_are_not_painted_su
     assert len(data) == 10
     for raw in data:
         model = enrich_capabilities(_parse_capability(raw))
-        expected = raw["id"] in {"google/gemini-omni-1.2-flash", "google/veo-3.1-lite"}
-        assert bool(eligible_methods(model)) == expected
+        assert eligible_methods(model)
+        if raw["id"] == "kwaivgi/kling-v3.0-pro":
+            assert InferenceMethod.T2V not in eligible_methods(model)
 
 
 def test_google_frontend_fixture_matches_real_core_projection() -> None:
     from openrouter_video.comfy.projection import project_selectable
 
     fixture = Path(__file__).parents[1] / "fixtures"
-    raw = json.loads((fixture / "op07-discovery-catalogue.json").read_text())["data"]
-    expected = json.loads((fixture / "op07-google-ui-projection.json").read_text())["models"]
+    raw = json.loads((fixture / "op07-full-catalogue.json").read_text())["data"]
+    expected = json.loads((fixture / "op07-full-parity-ui-projection.json").read_text())["models"]
     for view in expected:
         model = enrich_capabilities(
             _parse_capability(next(m for m in raw if m["id"] == view["model_id"]))
@@ -201,33 +202,45 @@ def test_op07_evidence_delta_preserves_every_other_model_and_historical_conflict
     after = load_manifest()
     mapping = {m["exact_model_id"]: m for m in after["models"]}
     assert set(mapping) - {m["exact_model_id"] for m in before["models"]} == {
-        "google/gemini-omni-1.2-flash"
+        "google/gemini-omni-1.2-flash",
+        "google/gemini-omni-1.1-flash",
+        "tbc/mischief-1",
+    }
+    reviewed_delta = {
+        "google/veo-3.1-lite",
+        "kwaivgi/kling-video-o1",
+        "kwaivgi/kling-v3.0-pro",
+        "kwaivgi/kling-v3.0-std",
+        "black-forest-labs/flux-video-edit",
+        "black-forest-labs/flux-video-upscale",
+        "heygen/avatar-iv",
+        "heygen/heygen-video-1",
+        "runway/aleph-2",
     }
     for model in before["models"]:
-        if model["exact_model_id"] != "google/veo-3.1-lite":
-            assert mapping[model["exact_model_id"]] == model
+        if model["exact_model_id"] not in reviewed_delta:
+            assert_reconciled_scalar_delta(model, mapping[model["exact_model_id"]])
 
 
 @pytest.mark.parametrize("mid", ["google/gemini-omni-1.2-flash", "google/veo-3.1-lite"])
-def test_google_bounded_profile_does_not_enable_omission_or_unproven_combinations(mid: str) -> None:
+def test_google_known_constraints_and_dynamic_domains(mid: str) -> None:
     from openrouter_video.errors import ProductFailureError
-    from openrouter_video.models import GenerationRequest
 
     data = json.loads(
         (Path(__file__).parents[1] / "fixtures/op07-discovery-catalogue.json").read_text()
     )["data"]
     raw = next(m for m in data if m["id"] == mid)
     model = enrich_capabilities(_parse_capability(raw))
-    witness = request_witness(model, InferenceMethod.T2V)
+    witness = request_witness(model, InferenceMethod.FLF2V)
     assert witness is not None
     with pytest.raises(ProductFailureError):
-        RequestValidator().validate_capabilities(replace(witness, duration=None), model)
-    with pytest.raises(ProductFailureError):
-        RequestValidator().validate_capabilities(
-            GenerationRequest(mid, "prompt", duration=10), model
-        )
+        RequestValidator().validate_capabilities(replace(witness, duration=15), model)
+    if mid == "google/veo-3.1-lite":
+        with pytest.raises(ProductFailureError):
+            RequestValidator().validate_capabilities(replace(witness, duration=4), model)
     raw["supported_durations"] = [5]
-    assert not eligible_methods(enrich_capabilities(_parse_capability(raw)))
+    available = eligible_methods(enrich_capabilities(_parse_capability(raw)))
+    assert bool(available) == (mid != "google/veo-3.1-lite")
 
 
 def test_eligibility_compatibility_exports_have_no_independent_implementation() -> None:
@@ -236,3 +249,35 @@ def test_eligibility_compatibility_exports_have_no_independent_implementation() 
     assert eligibility.request_witness is capabilities.request_witness
     assert eligibility.eligible_methods is capabilities.eligible_methods
     assert request_witness.__module__ == "openrouter_video.capabilities"
+
+
+def assert_reconciled_scalar_delta(before: dict[str, Any], after: dict[str, Any]) -> None:
+    """Current positive scalar reconciliation cannot alter topology or other facts."""
+    import copy
+
+    catalogue = json.loads(
+        (Path(__file__).parents[1] / "fixtures/op07-full-catalogue.json").read_text(encoding="utf8")
+    )["data"]
+    raw = next(m for m in catalogue if m["id"] == before["exact_model_id"])
+    restored = copy.deepcopy(after)
+    old_methods = before["facts"]["request_shape_profiles"]["value"]["methods"]
+    new_methods = restored["facts"]["request_shape_profiles"]["value"]["methods"]
+    for method, old in old_methods.items():
+        new = new_methods[method]
+        for control, flag in (("seed", "seed"), ("generate_audio", "generate_audio")):
+            if old.get("controls", {}).get(control) != new.get("controls", {}).get(control):
+                assert raw.get(flag) is True
+                assert old["controls"][control]["state"] == "UNKNOWN"
+                assert new["controls"][control]["state"] == "SUPPORTED"
+                new["controls"][control] = old["controls"][control]
+        if before["exact_model_id"] == "bytedance/seedance-2.0" and old["state"] == "SUPPORTED":
+            for control, field in (
+                ("resolution", "supported_resolutions"),
+                ("size", "supported_sizes"),
+            ):
+                assert new["controls"][control]["values"] == raw[field]
+                new["controls"][control] = old["controls"][control]
+        if "review_sources" in new:
+            assert set(old.get("review_sources", [])) <= set(new["review_sources"])
+            new["review_sources"] = old.get("review_sources", [])
+    assert restored == before

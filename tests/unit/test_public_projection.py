@@ -58,7 +58,14 @@ def test_every_current_model_and_method_has_supported_only_public_projection(
         for name, control in profile["controls"].items():
             if control["state"] != "SUPPORTED":
                 assert "values" not in control
-            elif name not in {"seed", "generate_audio", "prompt"}:
+            elif name not in {
+                "seed",
+                "generate_audio",
+                "prompt",
+                "provider_options",
+                "previous_job_id",
+                "upscale_factor",
+            }:
                 assert control["values"]
 
 
@@ -114,7 +121,7 @@ def test_future_evidence_update_exposes_method_and_new_domain_without_runtime_br
     shapes = copy.deepcopy(cast(dict[str, Any], fact.value))
     shapes["methods"]["AR2V"] = {
         "state": "SUPPORTED",
-        "controls": {},
+        "controls": {"prompt": {"state": "SUPPORTED"}},
         "topology": {
             "fixed": [],
             "reference_kinds": ["audio"],

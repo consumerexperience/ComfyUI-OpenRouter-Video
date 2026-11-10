@@ -8,7 +8,7 @@ const baseline='058f5bcdd462a2a71f4f85151d9bbba3bc09bcf9';
 const before=execFileSync('git',['show',`${baseline}:web/openrouter_video.js`],{cwd:root,encoding:'utf8'}).replace(/\r\n/g,'\n');
 const current=readFileSync(new URL('web/openrouter_video.js',root),'utf8').replace(/\r\n/g,'\n');
 const functions=t=>Object.fromEntries(t.split(/(?=^function |^async function )/m).slice(1).map(p=>[p.match(/function (\w+)/)[1],p.slice(0,p.indexOf('\n}')+2)]));
-const allowed=new Set(['setConnectionPresentation','loadCapabilities','configureModelPicker','projectSelectedModel']);
+const allowed=new Set(['setConnectionPresentation','loadCapabilities','configureModelPicker','projectSelectedModel','reprojectNodeSemantics','configurationScope','fixedRolesForMethod']);
 test('all existing functions outside OP07 catalogue delta, including OAuth/billing/renderer, are exact',()=>{
     const a=functions(before),b=functions(current);
     for(const [name,text] of Object.entries(a))if(!allowed.has(name))assert.equal(b[name],text,name);

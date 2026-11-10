@@ -56,6 +56,7 @@ def native_reference(value: Any) -> InputReference:
             value.save_to(str(path), format=Types.VideoContainer.MP4, codec=Types.VideoCodec.H264)
 
         return InputReference(
-            InputReferenceKind.VIDEO, local_media=LocalMedia("video/mp4", ".mp4", write_video)
+            InputReferenceKind.VIDEO,
+            local_media=LocalMedia("video/mp4", ".mp4", write_video, duration=value.get_duration),
         )
     raise NativeMediaError("Expected native VIDEO or AUDIO input.")

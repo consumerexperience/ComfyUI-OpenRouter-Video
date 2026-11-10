@@ -351,9 +351,14 @@ def _catalogue_control(raw: object, key: str) -> object:
         return None
     if not all(type(item) in (int, float) and math.isfinite(item) for item in values):
         return None
+    if key == "creativity" and not all(type(item) is int for item in values):
+        return None
     if values[0] > values[1] or values[0] < 0:
         return None
-    return {"type": "number", "min": values[0], "max": values[1]}
+    normalized: dict[str, object] = {"type": "number", "min": values[0], "max": values[1]}
+    if key == "creativity" and isinstance(raw, list):
+        normalized["values"] = list(raw)
+    return normalized
 
 
 def _parse_pricing_evidence(value: object) -> PricingEvidence | None:

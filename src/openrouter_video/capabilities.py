@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import asyncio
 import ipaddress
+import math
 import random
 import re
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from itertools import islice, product
@@ -44,6 +45,7 @@ from openrouter_video.models import (
     ModelCapabilities,
     ProductError,
     ProductErrorCode,
+    ProviderOption,
 )
 from openrouter_video.persistence import JobStore
 
@@ -298,8 +300,14 @@ class RequestValidator:
         references = request.input_references.references if request.input_references else ()
         if request.prompt is not None and not isinstance(request.prompt, str):
             self._fail(ProductErrorCode.UNSUPPORTED_PARAMETER, "Prompt must be text.")
-        if not (request.prompt and request.prompt.strip()):
+        prompt_optional_method = request.inference_method in {
+            InferenceMethod.V2V_UPSCALE,
+            InferenceMethod.AVATAR_AUDIO,
+        }
+        if not prompt_optional_method and not (request.prompt and request.prompt.strip()):
             self._fail(ProductErrorCode.UNSUPPORTED_PARAMETER, "A non-empty prompt is required.")
+        if request.prompt is not None and not request.prompt.strip():
+            self._fail(ProductErrorCode.UNSUPPORTED_PARAMETER, "Prompt must not be blank.")
         if request.duration is not None and (
             isinstance(request.duration, bool) or request.duration < 1
         ):
@@ -336,6 +344,7 @@ class RequestValidator:
         for reference in references:
             self._validate_reference(reference)
         self._validate_topology(request, references)
+        self._validate_specialized_fields(request)
 
     def validate_capabilities(
         self, request: GenerationRequest, capabilities: ModelCapabilities
@@ -361,6 +370,10 @@ class RequestValidator:
                     "last_frame",
                     "source_video",
                     "input_references",
+                    "previous_job_id",
+                    "upscale_factor",
+                    "creativity",
+                    "provider_options",
                 )
             }
             try:
@@ -371,7 +384,10 @@ class RequestValidator:
                 self._fail(
                     ProductErrorCode.CAPABILITY_SIGNAL_GAP, "Method is not publicly supported."
                 )
-            if any(projected[name] != value for name, value in raw.items()):
+            if any(
+                projected.get(name, () if name == "provider_options" else None) != value
+                for name, value in raw.items()
+            ):
                 self._fail(
                     ProductErrorCode.UNSUPPORTED_PARAMETER, "Request contains nonprojected state."
                 )
@@ -385,6 +401,55 @@ class RequestValidator:
                     ProductErrorCode.UNSUPPORTED_PARAMETER,
                     "Reference combination is not supported.",
                 )
+            controls = scoped["controls"]
+            if request.prompt is None and controls.get("prompt", {}).get("required", True):
+                self._fail(ProductErrorCode.UNSUPPORTED_PARAMETER, "This method requires a prompt.")
+            specialized_values = {
+                "upscale_factor": request.upscale_factor,
+                "creativity": request.creativity,
+                "previous_job_id": request.previous_job_id,
+                "provider_options": request.provider_options,
+            }
+            for name, value in specialized_values.items():
+                control = controls.get(name, {})
+                absent = not value if name == "provider_options" else value is None
+                if absent and control.get("required", False):
+                    self._fail(
+                        ProductErrorCode.UNSUPPORTED_PARAMETER,
+                        f"{name} is required by this method.",
+                    )
+            for name, value in (
+                ("upscale_factor", request.upscale_factor),
+                ("creativity", request.creativity),
+                ("previous_job_id", request.previous_job_id),
+                ("provider_options", request.provider_options),
+            ):
+                control = controls.get(name, {"state": "UNKNOWN"})
+                has_value = bool(value) if name == "provider_options" else value is not None
+                if has_value and control.get("state") != "SUPPORTED":
+                    self._fail(
+                        ProductErrorCode.UNSUPPORTED_PARAMETER,
+                        f"{name} is not supported by this method.",
+                    )
+                if name == "upscale_factor" and value is not None:
+                    bounds = control.get("number_range", {})
+                    if value < bounds.get("min", float("inf")) or value > bounds.get(
+                        "max", float("-inf")
+                    ):
+                        self._fail(
+                            ProductErrorCode.UNSUPPORTED_PARAMETER,
+                            f"{name} is outside the reviewed range.",
+                        )
+        if scoped is None and (
+            request.previous_job_id is not None
+            or request.upscale_factor is not None
+            or request.creativity is not None
+            or request.provider_options
+        ):
+            self._fail(
+                ProductErrorCode.CAPABILITY_SIGNAL_GAP,
+                "Specialized controls require a reviewed exact-model profile.",
+            )
         self._supported(
             request.duration,
             capabilities.supported_durations,
@@ -484,6 +549,66 @@ class RequestValidator:
                     "The input reference collection exceeds the proven model limit.",
                 )
 
+    def prepare_native_media(
+        self, request: GenerationRequest, capabilities: ModelCapabilities
+    ) -> GenerationRequest:
+        """Bind reviewed media limits to deferred encoders without reading media here."""
+        limits = project_method(capabilities, request.inference_method.value).get(
+            "media_limits", {}
+        )
+        if not limits:
+            return request
+
+        def constrained(
+            reference: InputReference | None, role: str | None = None
+        ) -> InputReference | None:
+            if reference is None or reference.local_media is None:
+                return reference
+            rule = limits.get(role or reference.kind.value, {})
+            media = reference.local_media
+            max_bytes = min(media.max_bytes, int(rule.get("max_bytes", media.max_bytes)))
+            durations = [
+                v
+                for v in (media.max_duration_seconds, rule.get("max_duration_seconds"))
+                if v is not None
+            ]
+            if "max_total_duration_seconds" in rule:
+                # An omitted duration delegates to the provider. Reserve the
+                # greatest confirmed output duration rather than guessing its default.
+                outputs = project_method(capabilities, request.inference_method.value)["controls"][
+                    "duration"
+                ].get("values", [])
+                output_duration = request.duration or max(outputs, default=0)
+                if output_duration <= 0:
+                    self._fail(
+                        ProductErrorCode.CAPABILITY_SIGNAL_GAP,
+                        "Extension duration cannot be verified before submit.",
+                    )
+                durations.append(rule["max_total_duration_seconds"] - output_duration)
+            return replace(
+                reference,
+                local_media=replace(
+                    media,
+                    max_bytes=max_bytes,
+                    max_duration_seconds=min(durations) if durations else None,
+                ),
+            )
+
+        refs = request.input_references
+        return replace(
+            request,
+            source_video=constrained(request.source_video, "source_video"),
+            input_references=InputReferenceCollection(
+                tuple(
+                    item
+                    for reference in refs.references
+                    if (item := constrained(reference)) is not None
+                )
+            )
+            if refs
+            else None,
+        )
+
     @staticmethod
     def _supported(value: object | None, supported: tuple[object, ...] | None, name: str) -> None:
         if value is not None and supported is not None and value not in supported:
@@ -535,6 +660,40 @@ class RequestValidator:
             RequestValidator._fail(
                 ProductErrorCode.INVALID_MEDIA_URL,
                 "Input references require a direct public HTTPS URL.",
+            )
+
+    @staticmethod
+    def _validate_specialized_fields(request: GenerationRequest) -> None:
+        if request.upscale_factor is not None and (
+            type(request.upscale_factor) not in (int, float)
+            or not math.isfinite(request.upscale_factor)
+            or request.upscale_factor <= 0
+        ):
+            RequestValidator._fail(
+                ProductErrorCode.UNSUPPORTED_PARAMETER,
+                "Upscale factor must be a positive finite number.",
+            )
+        if request.creativity is not None and (type(request.creativity) is not int):
+            RequestValidator._fail(
+                ProductErrorCode.UNSUPPORTED_PARAMETER, "Creativity must be an integer."
+            )
+        if (
+            request.previous_job_id is not None
+            and re.fullmatch(r"gen-vid-\d+-[0-9A-Za-z]{20}", request.previous_job_id) is None
+        ):
+            RequestValidator._fail(
+                ProductErrorCode.UNSUPPORTED_PARAMETER, "Previous job identifier is malformed."
+            )
+        if request.inference_method is InferenceMethod.V2V_UPSCALE:
+            if request.source_video is None or request.input_references is not None:
+                RequestValidator._fail(
+                    ProductErrorCode.UNSUPPORTED_PARAMETER,
+                    "V2V upscale requires exactly one source video.",
+                )
+        elif request.upscale_factor is not None or request.creativity is not None:
+            RequestValidator._fail(
+                ProductErrorCode.UNSUPPORTED_PARAMETER,
+                "Upscale controls require V2V upscale intent.",
             )
 
     @staticmethod
@@ -592,8 +751,27 @@ class RequestValidator:
                 and len(kinds) >= 2
                 and len(set(kinds)) >= 2
             )
-        elif method in {InferenceMethod.V2V_EDIT, InferenceMethod.V2V_EXTEND}:
-            valid = not has_first and not has_last and has_source
+        elif method in {
+            InferenceMethod.V2V_EDIT,
+            InferenceMethod.V2V_EXTEND,
+            InferenceMethod.V2V_UPSCALE,
+        }:
+            continuation = request.previous_job_id is not None
+            valid = (
+                not has_first
+                and not has_last
+                and (has_source != continuation)
+                and (method is not InferenceMethod.V2V_UPSCALE or not continuation)
+            )
+        elif method is InferenceMethod.AVATAR_AUDIO:
+            valid = (
+                not has_first
+                and not has_last
+                and not has_source
+                and kinds.count(InputReferenceKind.IMAGE) == 1
+                and kinds.count(InputReferenceKind.AUDIO) == 1
+                and len(kinds) == 2
+            )
         else:  # pragma: no cover - exhaustive guard for future enum additions
             valid = False
         if not valid:
@@ -662,7 +840,8 @@ def request_witness(model: ModelCapabilities, method: InferenceMethod) -> Genera
     if profile["state"] != "SUPPORTED":
         return None
     controls, topology = profile["controls"], profile["topology"]
-    if controls.get("prompt", {}).get("state") != "SUPPORTED":
+    prompt_control = controls.get("prompt", {})
+    if prompt_control.get("state") != "SUPPORTED":
         return None
     domains: dict[str, list[Any]] = {}
     for name in ("duration", "resolution", "aspect_ratio", "size"):
@@ -679,13 +858,47 @@ def request_witness(model: ModelCapabilities, method: InferenceMethod) -> Genera
             if projected_shape_valid(profile, shape):
                 references.append(shape)
     fixed = topology["fixed"]
+    scalar_controls = controls
+    upscale_factor = None
+    if scalar_controls.get("upscale_factor", {}).get("state") == "SUPPORTED":
+        upscale_factor = scalar_controls["upscale_factor"].get("number_range", {}).get("min")
+    creativity = None
+    if scalar_controls.get("creativity", {}).get("state") == "SUPPORTED":
+        creativity = scalar_controls["creativity"].get("values", [0])[0]
+    seed = None
+    seed_control = scalar_controls.get("seed", {})
+    if seed_control.get("state") == "SUPPORTED":
+        seed = seed_control.get("integer_range", {}).get("min", 0)
+    previous_job_id = None
+    previous_control = scalar_controls.get("previous_job_id", {})
+    if previous_control.get("state") == "SUPPORTED" and previous_control.get("required") is True:
+        previous_job_id = "gen-vid-1234567890-12345678901234567890"
+    provider_options: tuple[ProviderOption, ...] = ()
+    option_control = scalar_controls.get("provider_options", {})
+    if option_control.get("state") == "SUPPORTED" and option_control.get("required") is True:
+        schemas = option_control.get("providers", {})
+        for provider, schema in schemas.items():
+            if not isinstance(schema, dict):
+                continue
+            for key, spec in schema.items():
+                if not isinstance(spec, dict):
+                    continue
+                value = spec.get("values", [None])[0]
+                if value is None:
+                    value = spec.get("min", False if spec.get("type") == "boolean" else 0)
+                provider_options = (ProviderOption(provider, key, value, spec.get("container")),)
+                break
+            if provider_options:
+                break
     validator = RequestValidator()
     for geometry in ("NORMALIZED", "EXACT"):
         for values in islice(product(*domains.values(), references), 4096):
             duration, resolution, aspect, size, kinds = values
             request = GenerationRequest(
                 model.model_id,
-                "Local request shape validation",
+                None
+                if prompt_control.get("required", True) is False
+                else "Local request shape validation",
                 method,
                 duration=duration,
                 resolution=resolution if geometry == "NORMALIZED" else None,
@@ -694,6 +907,7 @@ def request_witness(model: ModelCapabilities, method: InferenceMethod) -> Genera
                 generate_audio=False
                 if controls.get("generate_audio", {}).get("state") == "SUPPORTED"
                 else None,
+                seed=seed,
                 first_frame=FrameReference(FrameType.FIRST, "https://example.com/first.png")
                 if "first_frame" in fixed
                 else None,
@@ -713,6 +927,10 @@ def request_witness(model: ModelCapabilities, method: InferenceMethod) -> Genera
                 )
                 if kinds
                 else None,
+                upscale_factor=upscale_factor,
+                creativity=creativity,
+                previous_job_id=previous_job_id,
+                provider_options=provider_options,
             )
             try:
                 validator.validate_shape(request)

@@ -278,3 +278,59 @@ test("local Control After Generate remains available when upstream Seed is omitt
     c.syncAdvancedControls(n);
     assert.equal(local.options.canvasOnly, true);
 });
+const currentProjection = JSON.parse(readFileSync(new URL('../fixtures/op07-full-parity-ui-projection.json', import.meta.url),'utf8'));
+function operationNode(id, method) {
+    const n=node(id,method);
+    for(const [name,value] of Object.entries({previous_job_id:'',upscale_factor:'',creativity:-1,provider_options:''}))
+        n.widgets.push({name,value,type:name==='creativity'?'number':'text',options:{},computeSize:()=>[0,20]});
+    n.addWidget=(type,name,value,callback,options={})=>{
+        const w={type,name,value,callback,options,computeSize:()=>[0,20]};n.widgets.push(w);return w;
+    };
+    return n;
+}
+for(const capability of currentProjection.models) for(const method of capability.supported_inference_methods) {
+    test(`current catalogue UI projects ${capability.model_id} / ${method}`,()=>{
+        const n=operationNode(capability.model_id,method);
+        apply(n,capability,method);
+        const profile=capability.method_profiles[method];
+        for(const name of ['prompt','duration','resolution','aspect_ratio','size','seed','generate_audio','previous_job_id','upscale_factor','creativity']){
+            assert.equal(!widget(n,name).hidden,profile.controls[name]?.state==='SUPPORTED',name);
+        }
+        for(const fixed of profile.topology.fixed)assert(n.inputs.some(i=>i.name===fixed),fixed);
+    });
+}
+test('upscale factor and creativity are editable native controls and retain workflow values',()=>{
+    const capability=currentProjection.models.find(m=>m.model_id==='black-forest-labs/flux-video-upscale');
+    const n=operationNode(capability.model_id,'V2V_UPSCALE');apply(n,capability);
+    assert.equal(widget(n,'upscale_factor').type,'number');
+    assert.equal(widget(n,'upscale_factor').options.min,1.5);
+    assert.equal(widget(n,'upscale_factor').options.max,3);
+    assert.deepEqual(plain(widget(n,'creativity').options.values),[0,1]);
+    widget(n,'upscale_factor').value=2.75;widget(n,'creativity').value=1;
+    const saved=plain({properties:n.properties,values:Object.fromEntries(n.widgets.map(w=>[w.name,w.value]))});
+    const restored=operationNode(capability.model_id,'V2V_UPSCALE');restored.properties=saved.properties;
+    for(const [name,value]of Object.entries(saved.values))if(widget(restored,name))widget(restored,name).value=value;
+    apply(restored,capability);
+    assert.equal(widget(restored,'upscale_factor').value,2.75);
+    assert.equal(widget(restored,'upscale_factor').serializeValue(),'2.75');
+    assert.equal(widget(restored,'creativity').value,1);
+});
+test('provider controls reset empty state, preserve serialized values and do not expose raw JSON',()=>{
+    const capability=currentProjection.models.find(m=>m.model_id==='heygen/avatar-iv');
+    const n=operationNode(capability.model_id,'IR2V');apply(n,capability);
+    const name='provider_option:heygen::voice_id', option=widget(n,name);
+    assert(option && !option.hidden);
+    assert(widget(n,'provider_options').hidden);
+    option.callback('TEST_ONLY_VOICE');
+    assert.equal(JSON.parse(widget(n,'provider_options').value)[0].value,'TEST_ONLY_VOICE');
+    widget(n,'provider_options').value='';c.configureOperationControls(n,capability.method_profiles.IR2V);
+    assert.equal(option.value,'');
+    widget(n,'provider_options').value=JSON.stringify([{provider:'heygen',key:'voice_settings',value:'unreviewed'}]);
+    assert.match(c.configureOperationControls(n,capability.method_profiles.IR2V),/no longer supported/);
+    assert.equal(JSON.parse(widget(n,'provider_options').value)[0].key,'voice_settings');
+});
+test('original Unicode identity and geometry characters remain intact',()=>{
+    assert(source.includes('ARENAS\u00aelab'));
+    assert(source.includes('[x\u00d7]'));
+    assert(!source.includes('\u0420\u00ae'));
+});

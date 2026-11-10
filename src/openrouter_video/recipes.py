@@ -65,10 +65,23 @@ RECIPES = (
         InferenceMethod.V2V_EXTEND,
         reference("video") + (Requirement("supports_extend", "equals", True),),
     ),
+    # Specialized methods are activated only by the existing reviewed request-shape
+    # profile. These recipes preserve a fail-closed method entry for legacy profiles.
+    Recipe(InferenceMethod.V2V_UPSCALE, reference("video")),
+    Recipe(
+        InferenceMethod.AVATAR_AUDIO,
+        (
+            Requirement("reference_kinds", "contains", "image"),
+            Requirement("reference_kinds", "contains", "audio"),
+            Requirement("max_reference_count", "minimum", 2, True),
+        ),
+    ),
 )
 
 
 def evaluate(model: ModelCapabilities, recipe: Recipe) -> str:
+    if recipe.method in {InferenceMethod.V2V_UPSCALE, InferenceMethod.AVATAR_AUDIO}:
+        return "CAPABILITY_SIGNAL_GAP"
     # Reviewed method-level observations do not deny a primitive modality or
     # invalidate other recipes (in particular successful mixed references).
     if any(

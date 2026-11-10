@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping
 
 from openrouter_video.application import OperationInterrupted
@@ -20,6 +21,7 @@ from openrouter_video.models import (
     InputReferenceCollection,
     InputReferenceKind,
     ProductErrorCode,
+    ProviderOption,
 )
 
 from . import compat
@@ -395,6 +397,12 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                 compat.IO.String.Input(
                     "geometry_authority", default="", optional=True, advanced=True
                 ),
+                compat.IO.String.Input("previous_job_id", default="", optional=True, advanced=True),
+                compat.IO.String.Input("upscale_factor", default="", optional=True),
+                compat.IO.Int.Input("creativity", default=-1, min=-1, optional=True),
+                compat.IO.String.Input(
+                    "provider_options", default="", optional=True, advanced=True
+                ),
             ],
             outputs=_outputs(),
             hidden=[compat.IO.Hidden.unique_id],
@@ -445,12 +453,36 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         input_references: InputReferenceCollection | None = None,
         inference_method: str = "",
         geometry_authority: str = "",
+        previous_job_id: str = "",
+        upscale_factor: str | float | None = None,
+        creativity: int | None = None,
+        provider_options: str = "",
     ) -> object:
         normalized_model = _model(model)
         if geometry_authority and geometry_authority not in {"NORMALIZED", "EXACT"}:
             raise AdapterExecutionError(
                 "Ambiguous saved geometry: explicitly edit a geometry control."
             )
+        options: tuple[ProviderOption, ...] = ()
+        if provider_options:
+            try:
+                decoded = json.loads(provider_options)
+                if not isinstance(decoded, list) or len(decoded) > 64:
+                    raise ValueError("Invalid option collection")
+                options = tuple(ProviderOption(**item) for item in decoded)
+            except (TypeError, ValueError):
+                raise AdapterExecutionError(
+                    "UNSUPPORTED_PARAMETER: invalid provider controls."
+                ) from None
+        if upscale_factor in (None, "", 0):
+            factor = None
+        else:
+            try:
+                factor = float(upscale_factor)
+            except (ValueError, TypeError):
+                raise AdapterExecutionError(
+                    "UNSUPPORTED_PARAMETER: invalid upscale factor."
+                ) from None
         runtime = get_runtime()
         observation = await runtime.effective_catalog()
         capability = next(
@@ -492,6 +524,10 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                     "seed": seed,
                     "generate_audio": generate_audio,
                     "geometry_authority": geometry_authority,
+                    "previous_job_id": previous_job_id,
+                    "upscale_factor": factor,
+                    "creativity": creativity,
+                    "provider_options": options,
                     "first_frame": first_frame,
                     "last_frame": last_frame,
                     "source_video": source_video,
@@ -550,6 +586,10 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
             last_frame=last_reference,
             source_video=_media_or_reference(source_video) if source_video is not None else None,
             input_references=effective_references,
+            previous_job_id=projected.get("previous_job_id"),
+            upscale_factor=projected.get("upscale_factor"),
+            creativity=projected.get("creativity"),
+            provider_options=projected.get("provider_options", ()),
         )
         node_id = compat.current_node_id(cls)
         try:

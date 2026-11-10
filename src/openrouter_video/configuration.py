@@ -6,6 +6,8 @@ introduces a relation; missing tuple documentation never creates a global block.
 
 from __future__ import annotations
 
+import math
+import re
 from collections.abc import Mapping
 from itertools import product
 from typing import Any
@@ -20,6 +22,9 @@ CONTEXT = (
     "mode",
     "generate_audio",
     "reference_count",
+    "reference_count_image",
+    "reference_count_video",
+    "reference_count_audio",
     "reference_kinds",
     "source_video_present",
 )
@@ -33,6 +38,10 @@ CONTROL_FIELDS = {
     "size": "supported_sizes",
     "seed": "supports_seed",
     "generate_audio": "generate_audio",
+    "upscale_factor": "upscale_factor",
+    "creativity": "creativity",
+    "previous_job_id": None,
+    "provider_options": None,
 }
 
 
@@ -48,21 +57,42 @@ def normalize_request_shapes(raw: object) -> dict[str, Any]:
         if not isinstance(entry, dict) or entry.get("state") not in states:
             raise ValueError("Invalid method evidence state")
         for name, control in entry.get("controls", {}).items():
+            if "required" in control and type(control["required"]) is not bool:
+                raise ValueError("Required control marker must be boolean")
+            if name == "provider_options" and control.get("state") == "SUPPORTED":
+                providers = control.get("providers")
+                if not isinstance(providers, dict) or not providers:
+                    raise ValueError("Provider options need a reviewed schema")
+                for provider, options in providers.items():
+                    if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", provider) or not isinstance(
+                        options, dict
+                    ):
+                        raise ValueError("Invalid reviewed provider schema")
+                    for key, spec in options.items():
+                        if (
+                            not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", key)
+                            or not isinstance(spec, dict)
+                            or set(spec) - {"type", "min", "max", "values", "container", "default"}
+                            or spec.get("type") not in {"string", "boolean", "integer", "number"}
+                            or spec.get("container") not in {None, "parameters"}
+                        ):
+                            raise ValueError("Invalid reviewed provider option")
             if name not in CONTROL_FIELDS or control.get("state") not in states:
                 raise ValueError("Invalid control evidence state")
             if "values" in control:
-                finite_domain(control["values"], numeric=name == "duration")
-            if name == "seed" and control["state"] == "SUPPORTED":
-                bounds = control.get("integer_range", {})
+                finite_domain(control["values"], numeric=name in {"duration", "creativity"})
+            if name == "seed" and control["state"] == "SUPPORTED" and "integer_range" in control:
+                bounds = control["integer_range"]
                 if (
-                    set(bounds) != {"min", "max"}
+                    not isinstance(bounds, dict)
+                    or set(bounds) != {"min", "max"}
                     or any(type(v) is not int for v in bounds.values())
                     or not 0 <= bounds["min"] <= bounds["max"]
                 ):
-                    raise ValueError("Supported seed needs a confirmed integer domain")
+                    raise ValueError("Invalid declared seed integer bounds")
         topology = entry.get("topology", {})
         if entry["state"] == "SUPPORTED":
-            if set(topology) != {
+            if set(topology) - {"source_alternative"} != {
                 "fixed",
                 "reference_kinds",
                 "kind_sets",
@@ -71,6 +101,11 @@ def normalize_request_shapes(raw: object) -> dict[str, Any]:
                 "per_kind_max",
             }:
                 raise ValueError("Incomplete supported topology")
+            if "source_alternative" in topology and (
+                topology["source_alternative"] != "previous_job_id"
+                or "source_video" not in topology["fixed"]
+            ):
+                raise ValueError("Invalid source alternative")
             if any(
                 r not in {"first_frame", "last_frame", "source_video"} for r in topology["fixed"]
             ):
@@ -88,9 +123,95 @@ def normalize_request_shapes(raw: object) -> dict[str, Any]:
                 for k, v in topology["per_kind_max"].items()
             ):
                 raise ValueError("Invalid per-kind limit")
+        if entry.get("media_limits"):
+            for role, limits in entry["media_limits"].items():
+                if role not in {"source_video", "image", "video", "audio"} or not isinstance(
+                    limits, dict
+                ):
+                    raise ValueError("Invalid media limit role")
+                if set(limits) - {
+                    "max_duration_seconds",
+                    "max_bytes",
+                    "max_total_duration_seconds",
+                }:
+                    raise ValueError("Unknown media limit")
+                if any(
+                    type(value) not in (int, float) or not math.isfinite(value) or value <= 0
+                    for value in limits.values()
+                ):
+                    raise ValueError("Invalid positive media limit")
         if entry.get("relations"):
             normalize_constraints({"schema_version": 1, "relations": entry["relations"]})
     return raw
+
+
+def _catalogue_control(model: ModelCapabilities, key: str) -> Any:
+    facts = [
+        f for f in model.evidence_facts if f.key == key and f.authority == "LIVE_STRUCTURED_API"
+    ]
+    return (
+        facts[0].value
+        if len(facts) == 1 and facts[0].state is CapabilityFactState.SUPPORTED
+        else None
+    )
+
+
+def _provider_options(
+    control: Mapping[str, Any], value: object, model: ModelCapabilities
+) -> object:
+    """Typed reviewed parameters intersected with the live model allowlist."""
+    from openrouter_video.models import ProviderOption
+
+    if value in (None, "", ()):
+        value = tuple(
+            ProviderOption(provider, key, spec["default"], spec.get("container"))
+            for provider, options in control.get("providers", {}).items()
+            for key, spec in options.items()
+            if "default" in spec
+        )
+    if not isinstance(value, tuple) or not all(isinstance(v, ProviderOption) for v in value):
+        raise ValueError("Provider options must be typed values")
+    allowed = _catalogue_control(model, "allowed_passthrough_parameters")
+    providers = control.get("providers", {})
+    seen = set()
+    for option in value:
+        spec = providers.get(option.provider, {}).get(option.key)
+        binding = (option.provider, option.container, option.key)
+        if (
+            not isinstance(spec, dict)
+            or not isinstance(allowed, (tuple, list))
+            or option.key not in allowed
+            or binding in seen
+            or option.container != spec.get("container")
+        ):
+            raise ValueError("Provider option lacks reviewed and live support")
+        seen.add(binding)
+        types: dict[str, Any] = {
+            "string": str,
+            "boolean": bool,
+            "integer": int,
+            "number": (int, float),
+        }
+        expected = types.get(str(spec.get("type")))
+        if (
+            expected is None
+            or not isinstance(option.value, expected)
+            or (spec.get("type") != "boolean" and isinstance(option.value, bool))
+        ):
+            raise ValueError("Provider option type does not match its contract")
+        if (
+            isinstance(option.value, (float, int))
+            and not isinstance(option.value, bool)
+            and (
+                not math.isfinite(option.value)
+                or ("min" in spec and option.value < spec["min"])
+                or ("max" in spec and option.value > spec["max"])
+            )
+        ):
+            raise ValueError("Provider option outside reviewed bounds")
+        if "values" in spec and option.value not in spec["values"]:
+            raise ValueError("Provider option outside reviewed values")
+    return value
 
 
 def request_shape_profile(model: ModelCapabilities) -> dict[str, Any]:
@@ -103,7 +224,55 @@ def request_shape_profile(model: ModelCapabilities) -> dict[str, Any]:
 
 def project_method(model: ModelCapabilities, method: str) -> dict[str, Any]:
     """Single semantic authority; intersect reviewed scopes with dynamic domains."""
-    entry = request_shape_profile(model)["methods"].get(method, {"state": "UNKNOWN"})
+    methods = request_shape_profile(model)["methods"]
+    entry = methods.get(method)
+    if entry is None:
+        # Canonical frame_images is a documented generic wire contract. Positive
+        # exact-model structured frame signals suffice; no reference/task shape
+        # is inferred, and an explicit reviewed UNKNOWN/CONFLICT is never replaced.
+        live = {f.key: f for f in model.evidence_facts if f.authority == "LIVE_STRUCTURED_API"}
+        roles = {"T2V": [], "I2V": ["first_frame"], "FLF2V": ["first_frame", "last_frame"]}.get(
+            method
+        )
+        frame_signal = live.get("supported_frame_images")
+        text_signal = live.get("supports_text_only")
+        positive = roles is not None and (
+            bool(roles)
+            and frame_signal is not None
+            and frame_signal.state is CapabilityFactState.SUPPORTED
+            and isinstance(frame_signal.value, (tuple, list))
+            and set(roles) <= set(frame_signal.value)
+            or method == "T2V"
+            and text_signal is not None
+            and text_signal.state is CapabilityFactState.SUPPORTED
+            and text_signal.value is True
+        )
+        if positive:
+            entry = {
+                "state": "SUPPORTED",
+                "controls": {
+                    name: {"state": "SUPPORTED"}
+                    for name in (
+                        "prompt",
+                        "duration",
+                        "resolution",
+                        "aspect_ratio",
+                        "size",
+                        "seed",
+                        "generate_audio",
+                    )
+                },
+                "topology": {
+                    "fixed": roles,
+                    "reference_kinds": [],
+                    "kind_sets": [[]],
+                    "min": 0,
+                    "max": 0,
+                    "per_kind_max": {},
+                },
+            }
+        else:
+            entry = {"state": "UNKNOWN"}
     state = entry["state"]
     if (
         state == "UNKNOWN"
@@ -112,6 +281,8 @@ def project_method(model: ModelCapabilities, method: str) -> dict[str, Any]:
     ):
         state = "UNSUPPORTED"
     topology = dict(entry.get("topology", {}))
+    if state == "SUPPORTED" and topology.get("min") == topology.get("max") == 0:
+        topology["kind_sets"] = [[]]
     if state == "SUPPORTED":
         frames = model.supported_frame_types
         for role in topology["fixed"]:
@@ -146,15 +317,53 @@ def project_method(model: ModelCapabilities, method: str) -> dict[str, Any]:
             state = "CONFLICT"
     controls = {}
     for name, field in CONTROL_FIELDS.items():
+        if name in {
+            "upscale_factor",
+            "creativity",
+            "previous_job_id",
+            "provider_options",
+        } and name not in entry.get("controls", {}):
+            continue
         control = dict(entry.get("controls", {}).get(name, {"state": "UNKNOWN"}))
         if field is None:
+            if name == "provider_options" and control.get("state") == "SUPPORTED":
+                allowed = _catalogue_control(model, "allowed_passthrough_parameters")
+                allowed_keys = set(allowed) if isinstance(allowed, (tuple, list)) else set()
+                providers = {
+                    provider: {key: spec for key, spec in options.items() if key in allowed_keys}
+                    for provider, options in control.get("providers", {}).items()
+                }
+                control["providers"] = {key: value for key, value in providers.items() if value}
+                if not control["providers"]:
+                    control["state"] = "UNKNOWN"
             controls[name] = control
             continue
-        domain = getattr(model, field)
+        domain = (
+            _catalogue_control(model, field)
+            if name in {"upscale_factor", "creativity"}
+            else getattr(model, field)
+        )
         if control["state"] == "SUPPORTED":
             if name in {"seed", "generate_audio"}:
                 if domain is not True:
                     control["state"] = "UNSUPPORTED" if domain is False else "UNKNOWN"
+            elif name == "upscale_factor":
+                if not isinstance(domain, dict) or not {"min", "max"} <= set(domain):
+                    control["state"] = "UNKNOWN"
+                else:
+                    control["number_range"] = dict(domain)
+            elif name == "creativity":
+                if not isinstance(domain, dict) or not {"min", "max"} <= set(domain):
+                    control["state"] = "UNKNOWN"
+                else:
+                    live = domain.get(
+                        "values", list(range(int(domain["min"]), int(domain["max"]) + 1))
+                    )
+                    control["values"] = [
+                        v for v in live if "values" not in control or v in control["values"]
+                    ]
+                    if not control["values"]:
+                        control["state"] = "UNKNOWN"
             elif domain is None:
                 control["state"] = "UNKNOWN"
             else:
@@ -165,6 +374,16 @@ def project_method(model: ModelCapabilities, method: str) -> dict[str, Any]:
         if control["state"] != "SUPPORTED":
             control.pop("values", None)
         controls[name] = control
+    if state == "SUPPORTED":
+        required = {
+            "prompt",
+            *(name for name, control in controls.items() if control.get("required", False)),
+        }
+        for name in required:
+            control_state = controls.get(name, {}).get("state", "UNKNOWN")
+            if control_state != "SUPPORTED":
+                state = "CONFLICT" if control_state == "CONFLICT" else "UNKNOWN"
+                break
     relations = list(profile_constraints(model))
     if entry.get("relations"):
         relations.extend(
@@ -177,6 +396,7 @@ def project_method(model: ModelCapabilities, method: str) -> dict[str, Any]:
         "controls": controls,
         "topology": topology,
         "configuration_relations": relations,
+        **({"media_limits": entry["media_limits"]} if entry.get("media_limits") else {}),
     }
 
 
@@ -188,11 +408,52 @@ def project_semantic_values(
     if profile["state"] != "SUPPORTED":
         raise ValueError("Inference method is not supported by the current projection")
     result: dict[str, Any] = {}
+    if (
+        values.get("provider_options")
+        and profile["controls"].get("provider_options", {}).get("state") != "SUPPORTED"
+    ):
+        raise ValueError(
+            "Saved provider controls are no longer supported; choose an explicit replacement"
+        )
     for name, control in profile["controls"].items():
         if control["state"] != "SUPPORTED":
-            result[name] = None
+            result[name] = () if name == "provider_options" else None
             continue
         value = values.get(name)
+        if name == "provider_options":
+            result[name] = _provider_options(control, value, model)
+            continue
+        if name == "previous_job_id":
+            if value in (None, ""):
+                result[name] = None
+            elif isinstance(value, str) and re.fullmatch(r"gen-vid-\d+-[0-9A-Za-z]{20}", value):
+                result[name] = value
+            else:
+                raise ValueError("Invalid completed video job ID")
+            continue
+        if name == "upscale_factor":
+            bounds = control.get("number_range", {})
+            if value in (None, 0, ""):
+                result[name] = None
+            elif (
+                isinstance(value, (int, float))
+                and not isinstance(value, bool)
+                and math.isfinite(value)
+                and (bounds.get("min", 0) <= value <= bounds.get("max", float("inf")))
+                and value > 0
+            ):
+                result[name] = value
+            else:
+                raise ValueError("Upscale factor outside live capability range")
+            continue
+        if name == "creativity":
+            if value in (None, -1, ""):
+                result[name] = None
+            elif type(value) is int and value in control.get("values", []):
+                result[name] = value
+            else:
+                raise ValueError("Creativity outside live capability values")
+            continue
         if name == "prompt":
             result[name] = value if isinstance(value, str) and value.strip() else None
             continue
@@ -204,10 +465,12 @@ def project_semantic_values(
                 parsed = int(value) if isinstance(value, str) else value
             except ValueError:
                 parsed = None
-            bounds = control["integer_range"]
-            result[name] = (
-                parsed if type(parsed) is int and bounds["min"] <= parsed <= bounds["max"] else None
+            bounds = control.get("integer_range")
+            in_bounds = type(parsed) is int and (
+                bounds is None or bounds["min"] <= parsed <= bounds["max"]
             )
+            # -1 remains the node's no-seed sentinel, not an upstream seed value.
+            result[name] = parsed if parsed != -1 and in_bounds else None
         elif name == "generate_audio":
             result[name] = value if supported and type(value) is bool else None
         else:
@@ -296,7 +559,9 @@ def normalize_constraints(raw: object) -> dict[str, Any]:
         if not isinstance(when, dict) or set(when) - set(CONTEXT):
             raise ValueError("Unmapped configuration context")
         scope = {
-            key: finite_domain(value, numeric=key == "reference_count")
+            key: finite_domain(
+                value, numeric=key == "reference_count" or key.startswith("reference_count_")
+            )
             for key, value in when.items()
         }
         for key in ("generate_audio", "source_video_present"):
@@ -356,6 +621,10 @@ def _scope(relation: Mapping[str, Any], context: Mapping[str, object]) -> bool |
     unknown = False
     for key, domain in relation["when"].items():
         value = context.get(key)
+        if value is None and key.startswith("reference_count_"):
+            kinds = context.get("reference_kinds")
+            if isinstance(kinds, (tuple, list)) and all(isinstance(k, str) for k in kinds):
+                value = kinds.count(key.removeprefix("reference_count_"))
         if value is None:
             unknown = True
         elif key == "reference_kinds":

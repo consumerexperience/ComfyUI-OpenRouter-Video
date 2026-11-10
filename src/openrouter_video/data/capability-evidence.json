@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "artifact_version": "capability-projection-reconciliation-v1+op07-bounded-google-20261108",
+  "artifact_version": "capability-projection-reconciliation-v1+op07-bounded-google-20261108+full-parity-in-progress-20261109",
   "review_status": "CANDIDATE_OFFICIAL_CONTRACT_RECONCILIATION; OWNER_RUNTIME_REVIEW_PENDING",
   "models": [
     {
@@ -242,17 +242,17 @@
       "facts": {
         "supports_text_only": {
           "value": true,
-          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/heygen/heygen-video-1",
-          "observed_at": "2026-10-10T16:37:05.412933+00:00",
-          "scope": "OpenRouter video model"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact page text-to-video"
         },
         "source_required": {
           "value": false,
-          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/heygen/heygen-video-1",
-          "observed_at": "2026-10-10T16:37:05.412933+00:00",
-          "scope": "OpenRouter video model"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Text-only generation supported"
         },
         "reference_kinds": {
           "value": [
@@ -260,10 +260,10 @@
             "video",
             "audio"
           ],
-          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/heygen/heygen-video-1",
-          "observed_at": "2026-10-10T16:37:05.412933+00:00",
-          "scope": "OpenRouter video model"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact page supports reference guidance of each kind; mixed combinations not inferred"
         },
         "mixed_reference_kinds": {
           "value": true,
@@ -277,16 +277,82 @@
             "schema_version": 1,
             "methods": {
               "T2V": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Exact OpenRouter model operation plus documented normalized Video API; catalogue domains, not provider execution certification."
               },
               "I2V": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "first_frame"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Exact OpenRouter model operation plus documented normalized Video API; catalogue domains, not provider execution certification."
               },
               "FLF2V": {
                 "state": "UNKNOWN",
@@ -295,10 +361,48 @@
                 "audit_scope": "CURRENT_MODEL_METHOD"
               },
               "IR2V": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [
+                    "image"
+                  ],
+                  "kind_sets": [
+                    [
+                      "image"
+                    ]
+                  ],
+                  "min": 1,
+                  "max": 1,
+                  "per_kind_max": {
+                    "image": 1
+                  }
+                },
+                "notes": "Exact OpenRouter model operation plus documented normalized Video API; catalogue domains, not provider execution certification."
               },
               "MI2V": {
                 "state": "UNKNOWN",
@@ -307,16 +411,92 @@
                 "audit_scope": "CURRENT_MODEL_METHOD"
               },
               "VR2V": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [
+                    "video"
+                  ],
+                  "kind_sets": [
+                    [
+                      "video"
+                    ]
+                  ],
+                  "min": 1,
+                  "max": 1,
+                  "per_kind_max": {
+                    "video": 1
+                  }
+                },
+                "notes": "Exact OpenRouter model operation plus documented normalized Video API; catalogue domains, not provider execution certification."
               },
               "AR2V": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [
+                    "audio"
+                  ],
+                  "kind_sets": [
+                    [
+                      "audio"
+                    ]
+                  ],
+                  "min": 1,
+                  "max": 1,
+                  "per_kind_max": {
+                    "audio": 1
+                  }
+                },
+                "notes": "Exact OpenRouter model operation plus documented normalized Video API; catalogue domains, not provider execution certification."
               },
               "MMR2V": {
                 "state": "UNKNOWN",
@@ -338,11 +518,17 @@
               }
             }
           },
-          "authority": "REVIEWED_AUDIT_DISPOSITION",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/heygen/heygen-video-1",
-          "observed_at": "2026-10-13T13:37:34.589030+00:00",
-          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.",
-          "audit_content_hash": "e51c615e57a05bc065ac7c3dcd651ac32ceb101877a8b9f436fc19ffc299c0c0"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact documented T2V/I2V and single-kind reference inputs; unknown multiplicity remains open"
+        },
+        "max_reference_count": {
+          "value": null,
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/heygen/heygen-video-1",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Multi-reference limit not documented; single-reference method shapes only"
         }
       }
     },
@@ -423,10 +609,50 @@
                 "audit_scope": "CURRENT_MODEL_METHOD"
               },
               "V2V_EDIT": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "UNKNOWN"
+                  },
+                  "resolution": {
+                    "state": "UNKNOWN"
+                  },
+                  "aspect_ratio": {
+                    "state": "UNKNOWN"
+                  },
+                  "size": {
+                    "state": "UNKNOWN"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "UNKNOWN"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "source_video"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim.",
+                "media_limits": {
+                  "source_video": {
+                    "max_duration_seconds": 15,
+                    "max_bytes": 52428800
+                  }
+                }
               },
               "V2V_EXTEND": {
                 "state": "UNKNOWN",
@@ -436,11 +662,33 @@
               }
             }
           },
-          "authority": "REVIEWED_AUDIT_DISPOSITION",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-edit",
-          "observed_at": "2026-10-13T13:37:34.589030+00:00",
-          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.",
-          "audit_content_hash": "e51c615e57a05bc065ac7c3dcd651ac32ceb101877a8b9f436fc19ffc299c0c0"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model documented operations using canonical OpenRouter fields; independent catalogue domains; explicit method constraints retained"
+        },
+        "reference_kinds": {
+          "value": [
+            "video"
+          ],
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-edit",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Single source video in canonical input_references"
+        },
+        "max_reference_count": {
+          "value": 1,
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-edit",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Single source video"
+        },
+        "supports_edit": {
+          "value": true,
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-edit",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact operation; upscale is a separate local intent"
         }
       }
     },
@@ -813,12 +1061,12 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -836,7 +1084,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/alibaba/wan-3.0-prime",
-                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/"
+                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "I2V": {
@@ -899,12 +1149,12 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -924,7 +1174,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/alibaba/wan-3.0-prime",
-                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/"
+                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "FLF2V": {
@@ -1073,12 +1325,12 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -1096,7 +1348,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/alibaba/wan-3.0",
-                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/"
+                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "I2V": {
@@ -1159,12 +1413,12 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -1184,7 +1438,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/alibaba/wan-3.0",
-                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/"
+                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "FLF2V": {
@@ -1292,10 +1548,58 @@
                 "audit_scope": "CURRENT_MODEL_METHOD"
               },
               "IR2V": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "UNKNOWN"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "UNKNOWN"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "UNKNOWN"
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "heygen": {
+                        "voice_id": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [
+                    "image"
+                  ],
+                  "kind_sets": [
+                    [
+                      "image"
+                    ]
+                  ],
+                  "min": 1,
+                  "max": 1,
+                  "per_kind_max": {
+                    "image": 1
+                  }
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
               },
               "MI2V": {
                 "state": "UNKNOWN",
@@ -1335,11 +1639,26 @@
               }
             }
           },
-          "authority": "REVIEWED_AUDIT_DISPOSITION",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/heygen/avatar-iv",
-          "observed_at": "2026-10-13T13:37:34.589030+00:00",
-          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.",
-          "audit_content_hash": "e51c615e57a05bc065ac7c3dcd651ac32ceb101877a8b9f436fc19ffc299c0c0"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model documented operations using canonical OpenRouter fields; independent catalogue domains; explicit method constraints retained"
+        },
+        "reference_kinds": {
+          "value": [
+            "image"
+          ],
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/heygen/avatar-iv",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Photo avatar script generation via one image reference; audio mode mapping remains unverified"
+        },
+        "max_reference_count": {
+          "value": 1,
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/heygen/avatar-iv",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exactly one avatar image"
         }
       }
     },
@@ -1430,14 +1749,83 @@
                 "controls": {},
                 "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
                 "audit_scope": "CURRENT_MODEL_METHOD"
+              },
+              "V2V_UPSCALE": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": false
+                  },
+                  "duration": {
+                    "state": "UNKNOWN"
+                  },
+                  "resolution": {
+                    "state": "UNKNOWN"
+                  },
+                  "aspect_ratio": {
+                    "state": "UNKNOWN"
+                  },
+                  "size": {
+                    "state": "UNKNOWN"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "UNKNOWN"
+                  },
+                  "upscale_factor": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "creativity": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "source_video"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
               }
             }
           },
-          "authority": "REVIEWED_AUDIT_DISPOSITION",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-upscale",
-          "observed_at": "2026-10-13T13:37:34.589030+00:00",
-          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.",
-          "audit_content_hash": "e51c615e57a05bc065ac7c3dcd651ac32ceb101877a8b9f436fc19ffc299c0c0"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model documented operations using canonical OpenRouter fields; independent catalogue domains; explicit method constraints retained"
+        },
+        "reference_kinds": {
+          "value": [
+            "video"
+          ],
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-upscale",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Single source video in canonical input_references"
+        },
+        "max_reference_count": {
+          "value": 1,
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-upscale",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Single source video"
+        },
+        "supports_edit": {
+          "value": false,
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/black-forest-labs/flux-video-upscale",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact operation; upscale is a separate local intent"
         }
       }
     },
@@ -1596,8 +1984,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -1619,7 +2007,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-2.0-mini",
-                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced"
+                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "I2V": {
@@ -1673,8 +2063,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -1698,7 +2088,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-2.0-mini",
-                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced"
+                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "FLF2V": {
@@ -1752,8 +2144,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -1778,7 +2170,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-2.0-mini",
-                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced"
+                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "IR2V": {
@@ -1832,8 +2226,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Positive exact-model catalogue scalar flag and canonical Video request contract; existing proven reference topology unchanged."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -1915,8 +2309,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Positive exact-model catalogue scalar flag and canonical Video request contract; existing proven reference topology unchanged."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -1998,8 +2392,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Positive exact-model catalogue scalar flag and canonical Video request contract; existing proven reference topology unchanged."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -2087,8 +2481,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Positive exact-model catalogue scalar flag and canonical Video request contract; existing proven reference topology unchanged."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -2292,8 +2686,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -2315,7 +2709,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-2.5",
-                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced"
+                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "I2V": {
@@ -2383,8 +2779,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -2408,7 +2804,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-2.5",
-                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced"
+                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "FLF2V": {
@@ -2476,8 +2874,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -2502,7 +2900,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-2.5",
-                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced"
+                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "IR2V": {
@@ -2570,8 +2970,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Positive exact-model catalogue scalar flag and canonical Video request contract; existing proven reference topology unchanged."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -2667,8 +3067,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Positive exact-model catalogue scalar flag and canonical Video request contract; existing proven reference topology unchanged."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -2764,8 +3164,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Positive exact-model catalogue scalar flag and canonical Video request contract; existing proven reference topology unchanged."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -2867,8 +3267,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Positive exact-model catalogue scalar flag and canonical Video request contract; existing proven reference topology unchanged."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -3572,8 +3972,8 @@
                     "state": "UNSUPPORTED"
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -3593,7 +3993,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/minimax/hailuo-3",
-                  "https://platform.minimax.io/docs/api-reference/video-generation-v2-create.md"
+                  "https://platform.minimax.io/docs/api-reference/video-generation-v2-create.md",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "FLF2V": {
@@ -3639,8 +4041,8 @@
                     "state": "UNSUPPORTED"
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -3661,7 +4063,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/minimax/hailuo-3",
-                  "https://platform.minimax.io/docs/api-reference/video-generation-v2-create.md"
+                  "https://platform.minimax.io/docs/api-reference/video-generation-v2-create.md",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "IR2V": {
@@ -3793,10 +4197,44 @@
                 "audit_scope": "CURRENT_MODEL_METHOD"
               },
               "V2V_EDIT": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "UNKNOWN"
+                  },
+                  "resolution": {
+                    "state": "UNKNOWN"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "UNKNOWN"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "UNKNOWN"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "source_video"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Exact OpenRouter model operation plus documented normalized Video API; catalogue domains, not provider execution certification."
               },
               "V2V_EXTEND": {
                 "state": "UNKNOWN",
@@ -3806,11 +4244,33 @@
               }
             }
           },
-          "authority": "REVIEWED_AUDIT_DISPOSITION",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/runway/aleph-2",
-          "observed_at": "2026-10-13T13:37:34.589030+00:00",
-          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.",
-          "audit_content_hash": "e51c615e57a05bc065ac7c3dcd651ac32ceb101877a8b9f436fc19ffc299c0c0"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Documented source-video + edit prompt mapped through canonical input_references; keyframe schema not guessed"
+        },
+        "reference_kinds": {
+          "value": [
+            "video"
+          ],
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/runway/aleph-2",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Source video for documented editing operation"
+        },
+        "max_reference_count": {
+          "value": 1,
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/runway/aleph-2",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Single source-video edit shape; keyframe passthrough unresolved"
+        },
+        "supports_edit": {
+          "value": true,
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/runway/aleph-2",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model video editing"
         }
       }
     },
@@ -3881,8 +4341,8 @@
                     "notes": "OR pixel enum matches native exact per-model ratio enum for this method."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "UNSUPPORTED"
@@ -3903,7 +4363,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/runway/gen-4.5",
-                  "https://docs.dev.runwayml.com/api.md"
+                  "https://docs.dev.runwayml.com/api.md",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "I2V": {
@@ -3952,8 +4414,8 @@
                     "notes": "OR pixel enum matches native exact per-model ratio enum for this method."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "UNSUPPORTED"
@@ -3976,7 +4438,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/runway/gen-4.5",
-                  "https://docs.dev.runwayml.com/api.md"
+                  "https://docs.dev.runwayml.com/api.md",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "FLF2V": {
@@ -4353,8 +4817,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "UNKNOWN",
@@ -4376,7 +4840,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/alibaba/happyhorse-1.1",
-                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/"
+                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "I2V": {
@@ -4422,8 +4888,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "UNKNOWN",
@@ -4447,7 +4913,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/alibaba/happyhorse-1.1",
-                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/"
+                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "FLF2V": {
@@ -4590,8 +5058,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "UNKNOWN",
@@ -4613,7 +5081,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/alibaba/happyhorse-1.0",
-                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/"
+                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "I2V": {
@@ -4659,8 +5129,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "UNKNOWN",
@@ -4684,7 +5154,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/alibaba/happyhorse-1.0",
-                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/"
+                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "FLF2V": {
@@ -5220,39 +5692,140 @@
       "facts": {
         "supports_text_only": {
           "value": true,
-          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/kwaivgi/kling-v3.0-pro",
-          "observed_at": "2026-10-10T16:37:05.412933+00:00",
-          "scope": "OpenRouter video model"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model page affirms text-to-video"
         },
         "source_required": {
           "value": false,
-          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/kwaivgi/kling-v3.0-pro",
-          "observed_at": "2026-10-10T16:37:05.412933+00:00",
-          "scope": "OpenRouter video model"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Text-to-video does not require a source"
         },
         "request_shape_profiles": {
           "value": {
             "schema_version": 1,
             "methods": {
               "T2V": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "CONFLICT",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Existing KLING_PROVIDER_SIZE_CONFLICT remains unresolved for T2V; historical finding not erased or promoted."
               },
               "I2V": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "first_frame"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
               },
               "FLF2V": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "first_frame",
+                    "last_frame"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
               },
               "IR2V": {
                 "state": "UNKNOWN",
@@ -5298,11 +5871,10 @@
               }
             }
           },
-          "authority": "REVIEWED_AUDIT_DISPOSITION",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/kwaivgi/kling-v3.0-pro",
-          "observed_at": "2026-10-13T13:37:34.589030+00:00",
-          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.",
-          "audit_content_hash": "e51c615e57a05bc065ac7c3dcd651ac32ceb101877a8b9f436fc19ffc299c0c0"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model documented operations using canonical OpenRouter fields; independent catalogue domains; explicit method constraints retained"
         }
       }
     },
@@ -5311,39 +5883,140 @@
       "facts": {
         "supports_text_only": {
           "value": true,
-          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/kwaivgi/kling-v3.0-std",
-          "observed_at": "2026-10-10T16:37:05.412933+00:00",
-          "scope": "OpenRouter video model"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model page affirms text-to-video"
         },
         "source_required": {
           "value": false,
-          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/kwaivgi/kling-v3.0-std",
-          "observed_at": "2026-10-10T16:37:05.412933+00:00",
-          "scope": "OpenRouter video model"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Text-to-video does not require a source"
         },
         "request_shape_profiles": {
           "value": {
             "schema_version": 1,
             "methods": {
               "T2V": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
               },
               "I2V": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "first_frame"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
               },
               "FLF2V": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "first_frame",
+                    "last_frame"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
               },
               "IR2V": {
                 "state": "UNKNOWN",
@@ -5389,11 +6062,10 @@
               }
             }
           },
-          "authority": "REVIEWED_AUDIT_DISPOSITION",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/kwaivgi/kling-v3.0-std",
-          "observed_at": "2026-10-13T13:37:34.589030+00:00",
-          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.",
-          "audit_content_hash": "e51c615e57a05bc065ac7c3dcd651ac32ceb101877a8b9f436fc19ffc299c0c0"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model documented operations using canonical OpenRouter fields; independent catalogue domains; explicit method constraints retained"
         }
       }
     },
@@ -5456,12 +6128,12 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -5510,7 +6182,9 @@
                 ],
                 "review_sources": [
                   "https://openrouter.ai/google/veo-3.1-fast",
-                  "https://ai.google.dev/gemini-api/docs/veo"
+                  "https://ai.google.dev/gemini-api/docs/veo",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "I2V": {
@@ -5549,12 +6223,12 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -5603,7 +6277,9 @@
                 ],
                 "review_sources": [
                   "https://openrouter.ai/google/veo-3.1-fast",
-                  "https://ai.google.dev/gemini-api/docs/veo"
+                  "https://ai.google.dev/gemini-api/docs/veo",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "FLF2V": {
@@ -5642,12 +6318,12 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -5697,7 +6373,9 @@
                 ],
                 "review_sources": [
                   "https://openrouter.ai/google/veo-3.1-fast",
-                  "https://ai.google.dev/gemini-api/docs/veo"
+                  "https://ai.google.dev/gemini-api/docs/veo",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "IR2V": {
@@ -5757,17 +6435,17 @@
       "facts": {
         "supports_text_only": {
           "value": true,
-          "authority": "OFFICIAL_OPENROUTER_AND_EXACT_NATIVE_CONTRACT_REVIEW",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/google/veo-3.1-lite",
-          "observed_at": "2026-11-08T20:15:11.336064+00:00",
-          "scope": "T2V exact model; no source required"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model page affirms text-to-video"
         },
         "source_required": {
           "value": false,
-          "authority": "OFFICIAL_OPENROUTER_AND_EXACT_NATIVE_CONTRACT_REVIEW",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/google/veo-3.1-lite",
-          "observed_at": "2026-11-08T20:15:11.336064+00:00",
-          "scope": "T2V exact model; no source required"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Text-to-video does not require a source"
         },
         "request_shape_profiles": {
           "value": {
@@ -5777,34 +6455,26 @@
                 "state": "SUPPORTED",
                 "controls": {
                   "prompt": {
-                    "state": "SUPPORTED"
+                    "state": "SUPPORTED",
+                    "required": true
                   },
                   "duration": {
-                    "state": "SUPPORTED",
-                    "values": [
-                      8
-                    ]
+                    "state": "SUPPORTED"
                   },
                   "resolution": {
-                    "state": "SUPPORTED",
-                    "values": [
-                      "720p"
-                    ]
+                    "state": "SUPPORTED"
                   },
                   "aspect_ratio": {
-                    "state": "SUPPORTED",
-                    "values": [
-                      "16:9"
-                    ]
+                    "state": "SUPPORTED"
                   },
                   "size": {
-                    "state": "UNKNOWN"
+                    "state": "SUPPORTED"
                   },
                   "seed": {
-                    "state": "UNKNOWN"
+                    "state": "SUPPORTED"
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN"
+                    "state": "SUPPORTED"
                   }
                 },
                 "topology": {
@@ -5817,29 +6487,75 @@
                   "max": 0,
                   "per_kind_max": {}
                 },
-                "notes": "Conservative 8s/720p/16:9 only. Standard OpenRouter model+prompt+duration+resolution+aspect_ratio and frame_images mapping. No seed/audio toggle, exact size, references, edit, extend or passthrough proof. See docs/op07-contract-reconciliation.md.",
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim.",
                 "relations": [
                   {
                     "axes": [
                       "duration",
-                      "resolution",
-                      "aspect_ratio"
+                      "resolution"
                     ],
+                    "when": {
+                      "geometry_authority": [
+                        "NORMALIZED"
+                      ]
+                    },
                     "allowed": [
+                      {
+                        "duration": [
+                          4,
+                          6,
+                          8
+                        ],
+                        "resolution": [
+                          "720p"
+                        ]
+                      },
                       {
                         "duration": [
                           8
                         ],
                         "resolution": [
-                          "720p"
-                        ],
-                        "aspect_ratio": [
-                          "16:9"
+                          "1080p"
                         ]
                       }
                     ],
                     "forbidden": [],
-                    "complete": false
+                    "complete": true
+                  },
+                  {
+                    "axes": [
+                      "duration",
+                      "size"
+                    ],
+                    "when": {
+                      "geometry_authority": [
+                        "EXACT"
+                      ]
+                    },
+                    "allowed": [
+                      {
+                        "duration": [
+                          4,
+                          6,
+                          8
+                        ],
+                        "size": [
+                          "1280x720",
+                          "720x1280"
+                        ]
+                      },
+                      {
+                        "duration": [
+                          8
+                        ],
+                        "size": [
+                          "1920x1080",
+                          "1080x1920"
+                        ]
+                      }
+                    ],
+                    "forbidden": [],
+                    "complete": true
                   }
                 ]
               },
@@ -5847,34 +6563,26 @@
                 "state": "SUPPORTED",
                 "controls": {
                   "prompt": {
-                    "state": "SUPPORTED"
+                    "state": "SUPPORTED",
+                    "required": true
                   },
                   "duration": {
-                    "state": "SUPPORTED",
-                    "values": [
-                      8
-                    ]
+                    "state": "SUPPORTED"
                   },
                   "resolution": {
-                    "state": "SUPPORTED",
-                    "values": [
-                      "720p"
-                    ]
+                    "state": "SUPPORTED"
                   },
                   "aspect_ratio": {
-                    "state": "SUPPORTED",
-                    "values": [
-                      "16:9"
-                    ]
+                    "state": "SUPPORTED"
                   },
                   "size": {
-                    "state": "UNKNOWN"
+                    "state": "SUPPORTED"
                   },
                   "seed": {
-                    "state": "UNKNOWN"
+                    "state": "SUPPORTED"
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN"
+                    "state": "SUPPORTED"
                   }
                 },
                 "topology": {
@@ -5889,29 +6597,75 @@
                   "max": 0,
                   "per_kind_max": {}
                 },
-                "notes": "Conservative 8s/720p/16:9 only. Standard OpenRouter model+prompt+duration+resolution+aspect_ratio and frame_images mapping. No seed/audio toggle, exact size, references, edit, extend or passthrough proof. See docs/op07-contract-reconciliation.md.",
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim.",
                 "relations": [
                   {
                     "axes": [
                       "duration",
-                      "resolution",
-                      "aspect_ratio"
+                      "resolution"
                     ],
+                    "when": {
+                      "geometry_authority": [
+                        "NORMALIZED"
+                      ]
+                    },
                     "allowed": [
+                      {
+                        "duration": [
+                          4,
+                          6,
+                          8
+                        ],
+                        "resolution": [
+                          "720p"
+                        ]
+                      },
                       {
                         "duration": [
                           8
                         ],
                         "resolution": [
-                          "720p"
-                        ],
-                        "aspect_ratio": [
-                          "16:9"
+                          "1080p"
                         ]
                       }
                     ],
                     "forbidden": [],
-                    "complete": false
+                    "complete": true
+                  },
+                  {
+                    "axes": [
+                      "duration",
+                      "size"
+                    ],
+                    "when": {
+                      "geometry_authority": [
+                        "EXACT"
+                      ]
+                    },
+                    "allowed": [
+                      {
+                        "duration": [
+                          4,
+                          6,
+                          8
+                        ],
+                        "size": [
+                          "1280x720",
+                          "720x1280"
+                        ]
+                      },
+                      {
+                        "duration": [
+                          8
+                        ],
+                        "size": [
+                          "1920x1080",
+                          "1080x1920"
+                        ]
+                      }
+                    ],
+                    "forbidden": [],
+                    "complete": true
                   }
                 ]
               },
@@ -5919,7 +6673,8 @@
                 "state": "SUPPORTED",
                 "controls": {
                   "prompt": {
-                    "state": "SUPPORTED"
+                    "state": "SUPPORTED",
+                    "required": true
                   },
                   "duration": {
                     "state": "SUPPORTED",
@@ -5928,25 +6683,19 @@
                     ]
                   },
                   "resolution": {
-                    "state": "SUPPORTED",
-                    "values": [
-                      "720p"
-                    ]
+                    "state": "SUPPORTED"
                   },
                   "aspect_ratio": {
-                    "state": "SUPPORTED",
-                    "values": [
-                      "16:9"
-                    ]
+                    "state": "SUPPORTED"
                   },
                   "size": {
-                    "state": "UNKNOWN"
+                    "state": "SUPPORTED"
                   },
                   "seed": {
-                    "state": "UNKNOWN"
+                    "state": "SUPPORTED"
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN"
+                    "state": "SUPPORTED"
                   }
                 },
                 "topology": {
@@ -5962,29 +6711,75 @@
                   "max": 0,
                   "per_kind_max": {}
                 },
-                "notes": "Conservative 8s/720p/16:9 only. Standard OpenRouter model+prompt+duration+resolution+aspect_ratio and frame_images mapping. No seed/audio toggle, exact size, references, edit, extend or passthrough proof. See docs/op07-contract-reconciliation.md.",
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim.",
                 "relations": [
                   {
                     "axes": [
                       "duration",
-                      "resolution",
-                      "aspect_ratio"
+                      "resolution"
                     ],
+                    "when": {
+                      "geometry_authority": [
+                        "NORMALIZED"
+                      ]
+                    },
                     "allowed": [
+                      {
+                        "duration": [
+                          4,
+                          6,
+                          8
+                        ],
+                        "resolution": [
+                          "720p"
+                        ]
+                      },
                       {
                         "duration": [
                           8
                         ],
                         "resolution": [
-                          "720p"
-                        ],
-                        "aspect_ratio": [
-                          "16:9"
+                          "1080p"
                         ]
                       }
                     ],
                     "forbidden": [],
-                    "complete": false
+                    "complete": true
+                  },
+                  {
+                    "axes": [
+                      "duration",
+                      "size"
+                    ],
+                    "when": {
+                      "geometry_authority": [
+                        "EXACT"
+                      ]
+                    },
+                    "allowed": [
+                      {
+                        "duration": [
+                          4,
+                          6,
+                          8
+                        ],
+                        "size": [
+                          "1280x720",
+                          "720x1280"
+                        ]
+                      },
+                      {
+                        "duration": [
+                          8
+                        ],
+                        "size": [
+                          "1920x1080",
+                          "1080x1920"
+                        ]
+                      }
+                    ],
+                    "forbidden": [],
+                    "complete": true
                   }
                 ]
               },
@@ -6032,10 +6827,10 @@
               }
             }
           },
-          "authority": "OFFICIAL_OPENROUTER_AND_EXACT_NATIVE_CONTRACT_REVIEW",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/google/veo-3.1-lite",
-          "observed_at": "2026-11-08T20:15:11.336064+00:00",
-          "scope": "Exact model native generation + public Video catalogue + standardized OpenRouter Video wire guide; bounded common configuration only, no Cartesian expansion; local MockTransport proof, not paid provider execution"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model documented operations using canonical OpenRouter fields; independent catalogue domains; explicit method constraints retained"
         }
       }
     },
@@ -6044,39 +6839,140 @@
       "facts": {
         "supports_text_only": {
           "value": true,
-          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/kwaivgi/kling-video-o1",
-          "observed_at": "2026-10-10T16:37:05.412933+00:00",
-          "scope": "OpenRouter video model"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model page affirms text-to-video"
         },
         "source_required": {
           "value": false,
-          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/kwaivgi/kling-video-o1",
-          "observed_at": "2026-10-10T16:37:05.412933+00:00",
-          "scope": "OpenRouter video model"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Text-to-video does not require a source"
         },
         "request_shape_profiles": {
           "value": {
             "schema_version": 1,
             "methods": {
               "T2V": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
               },
               "I2V": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "first_frame"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
               },
               "FLF2V": {
-                "state": "UNKNOWN",
-                "controls": {},
-                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
-                "audit_scope": "CURRENT_MODEL_METHOD"
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "first_frame",
+                    "last_frame"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
               },
               "IR2V": {
                 "state": "UNKNOWN",
@@ -6122,11 +7018,10 @@
               }
             }
           },
-          "authority": "REVIEWED_AUDIT_DISPOSITION",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/kwaivgi/kling-video-o1",
-          "observed_at": "2026-10-13T13:37:34.589030+00:00",
-          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.",
-          "audit_content_hash": "e51c615e57a05bc065ac7c3dcd651ac32ceb101877a8b9f436fc19ffc299c0c0"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model documented operations using canonical OpenRouter fields; independent catalogue domains; explicit method constraints retained"
         }
       }
     },
@@ -6396,7 +7291,7 @@
                       "1080p",
                       "4K"
                     ],
-                    "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+                    "notes": "Current exact OpenRouter Seedance 2.0 page documents 480p through 4K video and video-input pricing plus first/last and multimodal support; current exact catalogue supplies normalized and exact domains. Earlier bounded 480p/720p subset superseded for this exact served model."
                   },
                   "aspect_ratio": {
                     "state": "SUPPORTED",
@@ -6412,12 +7307,39 @@
                     "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
                   },
                   "size": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "values": [
+                      "480x480",
+                      "480x640",
+                      "480x854",
+                      "640x480",
+                      "854x480",
+                      "1120x480",
+                      "720x720",
+                      "720x960",
+                      "720x1280",
+                      "720x1680",
+                      "960x720",
+                      "1280x720",
+                      "1680x720",
+                      "1080x1080",
+                      "1080x1440",
+                      "1080x1920",
+                      "1440x1080",
+                      "1920x1080",
+                      "2520x1080",
+                      "3840x2160",
+                      "2160x3840",
+                      "2160x2160",
+                      "2880x2160",
+                      "2160x2880",
+                      "5040x2160"
+                    ],
+                    "notes": "Current exact OpenRouter Seedance 2.0 page documents 480p through 4K video and video-input pricing plus first/last and multimodal support; current exact catalogue supplies normalized and exact domains. Earlier bounded 480p/720p subset superseded for this exact served model."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -6439,7 +7361,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-2.0",
-                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced"
+                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "I2V": {
@@ -6471,9 +7395,11 @@
                     "state": "SUPPORTED",
                     "values": [
                       "480p",
-                      "720p"
+                      "720p",
+                      "1080p",
+                      "4K"
                     ],
-                    "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+                    "notes": "Current exact OpenRouter Seedance 2.0 page documents 480p through 4K video and video-input pricing plus first/last and multimodal support; current exact catalogue supplies normalized and exact domains. Earlier bounded 480p/720p subset superseded for this exact served model."
                   },
                   "aspect_ratio": {
                     "state": "SUPPORTED",
@@ -6489,12 +7415,39 @@
                     "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
                   },
                   "size": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "values": [
+                      "480x480",
+                      "480x640",
+                      "480x854",
+                      "640x480",
+                      "854x480",
+                      "1120x480",
+                      "720x720",
+                      "720x960",
+                      "720x1280",
+                      "720x1680",
+                      "960x720",
+                      "1280x720",
+                      "1680x720",
+                      "1080x1080",
+                      "1080x1440",
+                      "1080x1920",
+                      "1440x1080",
+                      "1920x1080",
+                      "2520x1080",
+                      "3840x2160",
+                      "2160x3840",
+                      "2160x2160",
+                      "2880x2160",
+                      "2160x2880",
+                      "5040x2160"
+                    ],
+                    "notes": "Current exact OpenRouter Seedance 2.0 page documents 480p through 4K video and video-input pricing plus first/last and multimodal support; current exact catalogue supplies normalized and exact domains. Earlier bounded 480p/720p subset superseded for this exact served model."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -6518,7 +7471,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-2.0",
-                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced"
+                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "FLF2V": {
@@ -6550,9 +7505,11 @@
                     "state": "SUPPORTED",
                     "values": [
                       "480p",
-                      "720p"
+                      "720p",
+                      "1080p",
+                      "4K"
                     ],
-                    "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+                    "notes": "Current exact OpenRouter Seedance 2.0 page documents 480p through 4K video and video-input pricing plus first/last and multimodal support; current exact catalogue supplies normalized and exact domains. Earlier bounded 480p/720p subset superseded for this exact served model."
                   },
                   "aspect_ratio": {
                     "state": "SUPPORTED",
@@ -6568,12 +7525,39 @@
                     "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
                   },
                   "size": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "values": [
+                      "480x480",
+                      "480x640",
+                      "480x854",
+                      "640x480",
+                      "854x480",
+                      "1120x480",
+                      "720x720",
+                      "720x960",
+                      "720x1280",
+                      "720x1680",
+                      "960x720",
+                      "1280x720",
+                      "1680x720",
+                      "1080x1080",
+                      "1080x1440",
+                      "1080x1920",
+                      "1440x1080",
+                      "1920x1080",
+                      "2520x1080",
+                      "3840x2160",
+                      "2160x3840",
+                      "2160x2160",
+                      "2880x2160",
+                      "2160x2880",
+                      "5040x2160"
+                    ],
+                    "notes": "Current exact OpenRouter Seedance 2.0 page documents 480p through 4K video and video-input pricing plus first/last and multimodal support; current exact catalogue supplies normalized and exact domains. Earlier bounded 480p/720p subset superseded for this exact served model."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -6598,7 +7582,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-2.0",
-                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced"
+                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "IR2V": {
@@ -6630,9 +7616,11 @@
                     "state": "SUPPORTED",
                     "values": [
                       "480p",
-                      "720p"
+                      "720p",
+                      "1080p",
+                      "4K"
                     ],
-                    "notes": "Confirmed reference-shape subset; no 1080p/4K inference from the T2V domain."
+                    "notes": "Current exact OpenRouter Seedance 2.0 page documents 480p through 4K video and video-input pricing plus first/last and multimodal support; current exact catalogue supplies normalized and exact domains. Earlier bounded 480p/720p subset superseded for this exact served model."
                   },
                   "aspect_ratio": {
                     "state": "SUPPORTED",
@@ -6648,12 +7636,39 @@
                     "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
                   },
                   "size": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "values": [
+                      "480x480",
+                      "480x640",
+                      "480x854",
+                      "640x480",
+                      "854x480",
+                      "1120x480",
+                      "720x720",
+                      "720x960",
+                      "720x1280",
+                      "720x1680",
+                      "960x720",
+                      "1280x720",
+                      "1680x720",
+                      "1080x1080",
+                      "1080x1440",
+                      "1080x1920",
+                      "1440x1080",
+                      "1920x1080",
+                      "2520x1080",
+                      "3840x2160",
+                      "2160x3840",
+                      "2160x2160",
+                      "2880x2160",
+                      "2160x2880",
+                      "5040x2160"
+                    ],
+                    "notes": "Current exact OpenRouter Seedance 2.0 page documents 480p through 4K video and video-input pricing plus first/last and multimodal support; current exact catalogue supplies normalized and exact domains. Earlier bounded 480p/720p subset superseded for this exact served model."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Positive exact-model catalogue scalar flag and canonical Video request contract; existing proven reference topology unchanged."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -6713,9 +7728,11 @@
                     "state": "SUPPORTED",
                     "values": [
                       "480p",
-                      "720p"
+                      "720p",
+                      "1080p",
+                      "4K"
                     ],
-                    "notes": "Confirmed reference-shape subset; no 1080p/4K inference from the T2V domain."
+                    "notes": "Current exact OpenRouter Seedance 2.0 page documents 480p through 4K video and video-input pricing plus first/last and multimodal support; current exact catalogue supplies normalized and exact domains. Earlier bounded 480p/720p subset superseded for this exact served model."
                   },
                   "aspect_ratio": {
                     "state": "SUPPORTED",
@@ -6731,12 +7748,39 @@
                     "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
                   },
                   "size": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "values": [
+                      "480x480",
+                      "480x640",
+                      "480x854",
+                      "640x480",
+                      "854x480",
+                      "1120x480",
+                      "720x720",
+                      "720x960",
+                      "720x1280",
+                      "720x1680",
+                      "960x720",
+                      "1280x720",
+                      "1680x720",
+                      "1080x1080",
+                      "1080x1440",
+                      "1080x1920",
+                      "1440x1080",
+                      "1920x1080",
+                      "2520x1080",
+                      "3840x2160",
+                      "2160x3840",
+                      "2160x2160",
+                      "2880x2160",
+                      "2160x2880",
+                      "5040x2160"
+                    ],
+                    "notes": "Current exact OpenRouter Seedance 2.0 page documents 480p through 4K video and video-input pricing plus first/last and multimodal support; current exact catalogue supplies normalized and exact domains. Earlier bounded 480p/720p subset superseded for this exact served model."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Positive exact-model catalogue scalar flag and canonical Video request contract; existing proven reference topology unchanged."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -6796,9 +7840,11 @@
                     "state": "SUPPORTED",
                     "values": [
                       "480p",
-                      "720p"
+                      "720p",
+                      "1080p",
+                      "4K"
                     ],
-                    "notes": "Confirmed reference-shape subset; no 1080p/4K inference from the T2V domain."
+                    "notes": "Current exact OpenRouter Seedance 2.0 page documents 480p through 4K video and video-input pricing plus first/last and multimodal support; current exact catalogue supplies normalized and exact domains. Earlier bounded 480p/720p subset superseded for this exact served model."
                   },
                   "aspect_ratio": {
                     "state": "SUPPORTED",
@@ -6814,12 +7860,39 @@
                     "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
                   },
                   "size": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "values": [
+                      "480x480",
+                      "480x640",
+                      "480x854",
+                      "640x480",
+                      "854x480",
+                      "1120x480",
+                      "720x720",
+                      "720x960",
+                      "720x1280",
+                      "720x1680",
+                      "960x720",
+                      "1280x720",
+                      "1680x720",
+                      "1080x1080",
+                      "1080x1440",
+                      "1080x1920",
+                      "1440x1080",
+                      "1920x1080",
+                      "2520x1080",
+                      "3840x2160",
+                      "2160x3840",
+                      "2160x2160",
+                      "2880x2160",
+                      "2160x2880",
+                      "5040x2160"
+                    ],
+                    "notes": "Current exact OpenRouter Seedance 2.0 page documents 480p through 4K video and video-input pricing plus first/last and multimodal support; current exact catalogue supplies normalized and exact domains. Earlier bounded 480p/720p subset superseded for this exact served model."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Positive exact-model catalogue scalar flag and canonical Video request contract; existing proven reference topology unchanged."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -6885,9 +7958,11 @@
                     "state": "SUPPORTED",
                     "values": [
                       "480p",
-                      "720p"
+                      "720p",
+                      "1080p",
+                      "4K"
                     ],
-                    "notes": "Confirmed reference-shape subset; no 1080p/4K inference from the T2V domain."
+                    "notes": "Current exact OpenRouter Seedance 2.0 page documents 480p through 4K video and video-input pricing plus first/last and multimodal support; current exact catalogue supplies normalized and exact domains. Earlier bounded 480p/720p subset superseded for this exact served model."
                   },
                   "aspect_ratio": {
                     "state": "SUPPORTED",
@@ -6903,12 +7978,39 @@
                     "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
                   },
                   "size": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "values": [
+                      "480x480",
+                      "480x640",
+                      "480x854",
+                      "640x480",
+                      "854x480",
+                      "1120x480",
+                      "720x720",
+                      "720x960",
+                      "720x1280",
+                      "720x1680",
+                      "960x720",
+                      "1280x720",
+                      "1680x720",
+                      "1080x1080",
+                      "1080x1440",
+                      "1080x1920",
+                      "1440x1080",
+                      "1920x1080",
+                      "2520x1080",
+                      "3840x2160",
+                      "2160x3840",
+                      "2160x2160",
+                      "2880x2160",
+                      "2160x2880",
+                      "5040x2160"
+                    ],
+                    "notes": "Current exact OpenRouter Seedance 2.0 page documents 480p through 4K video and video-input pricing plus first/last and multimodal support; current exact catalogue supplies normalized and exact domains. Earlier bounded 480p/720p subset superseded for this exact served model."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Positive exact-model catalogue scalar flag and canonical Video request contract; existing proven reference topology unchanged."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -7055,12 +8157,12 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -7078,7 +8180,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/alibaba/wan-2.7",
-                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/"
+                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "I2V": {
@@ -7120,12 +8224,12 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -7145,7 +8249,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/alibaba/wan-2.7",
-                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/"
+                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "FLF2V": {
@@ -7187,12 +8293,12 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -7213,7 +8319,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/alibaba/wan-2.7",
-                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/"
+                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "IR2V": {
@@ -7370,8 +8478,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -7393,7 +8501,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-2.0-fast",
-                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced"
+                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "I2V": {
@@ -7447,8 +8557,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -7472,7 +8582,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-2.0-fast",
-                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced"
+                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "FLF2V": {
@@ -7526,8 +8638,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -7552,7 +8664,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-2.0-fast",
-                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced"
+                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "IR2V": {
@@ -7606,8 +8720,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Positive exact-model catalogue scalar flag and canonical Video request contract; existing proven reference topology unchanged."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -7689,8 +8803,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Positive exact-model catalogue scalar flag and canonical Video request contract; existing proven reference topology unchanged."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -7772,8 +8886,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Positive exact-model catalogue scalar flag and canonical Video request contract; existing proven reference topology unchanged."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -7861,8 +8975,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Positive exact-model catalogue scalar flag and canonical Video request contract; existing proven reference topology unchanged."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -8010,8 +9124,8 @@
                     "notes": "OR enum intersects actual AtlasCloud T2V exact size enum."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -8033,7 +9147,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/alibaba/wan-2.6",
-                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/"
+                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "I2V": {
@@ -8068,12 +9184,12 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -8093,7 +9209,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/alibaba/wan-2.6",
-                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/"
+                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "FLF2V": {
@@ -8269,8 +9387,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -8294,7 +9412,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-1-5-pro",
-                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced"
+                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "FLF2V": {
@@ -8346,8 +9466,8 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
                     "state": "SUPPORTED",
@@ -8372,7 +9492,9 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-1-5-pro",
-                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced"
+                  "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "IR2V": {
@@ -8493,12 +9615,12 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -8547,7 +9669,9 @@
                 ],
                 "review_sources": [
                   "https://openrouter.ai/google/veo-3.1",
-                  "https://ai.google.dev/gemini-api/docs/veo"
+                  "https://ai.google.dev/gemini-api/docs/veo",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "I2V": {
@@ -8586,12 +9710,12 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -8640,7 +9764,9 @@
                 ],
                 "review_sources": [
                   "https://openrouter.ai/google/veo-3.1",
-                  "https://ai.google.dev/gemini-api/docs/veo"
+                  "https://ai.google.dev/gemini-api/docs/veo",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "FLF2V": {
@@ -8679,12 +9805,12 @@
                     "notes": "No complete reviewed method-conditioned proof; omitted."
                   },
                   "seed": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN",
-                    "notes": "No complete reviewed method-conditioned proof; omitted."
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
                   }
                 },
                 "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
@@ -8734,7 +9860,9 @@
                 ],
                 "review_sources": [
                   "https://openrouter.ai/google/veo-3.1",
-                  "https://ai.google.dev/gemini-api/docs/veo"
+                  "https://ai.google.dev/gemini-api/docs/veo",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request"
                 ]
               },
               "IR2V": {
@@ -8794,17 +9922,17 @@
       "facts": {
         "supports_text_only": {
           "value": true,
-          "authority": "OFFICIAL_OPENROUTER_AND_EXACT_NATIVE_CONTRACT_REVIEW",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/google/gemini-omni-1.2-flash",
-          "observed_at": "2026-11-08T20:15:11.336064+00:00",
-          "scope": "T2V exact model; no source required"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model page affirms text-to-video"
         },
         "source_required": {
           "value": false,
-          "authority": "OFFICIAL_OPENROUTER_AND_EXACT_NATIVE_CONTRACT_REVIEW",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
           "source_reference": "https://openrouter.ai/google/gemini-omni-1.2-flash",
-          "observed_at": "2026-11-08T20:15:11.336064+00:00",
-          "scope": "T2V exact model; no source required"
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Text-to-video does not require a source"
         },
         "request_shape_profiles": {
           "value": {
@@ -8814,34 +9942,26 @@
                 "state": "SUPPORTED",
                 "controls": {
                   "prompt": {
-                    "state": "SUPPORTED"
+                    "state": "SUPPORTED",
+                    "required": true
                   },
                   "duration": {
-                    "state": "SUPPORTED",
-                    "values": [
-                      8
-                    ]
+                    "state": "SUPPORTED"
                   },
                   "resolution": {
-                    "state": "SUPPORTED",
-                    "values": [
-                      "720p"
-                    ]
+                    "state": "SUPPORTED"
                   },
                   "aspect_ratio": {
-                    "state": "SUPPORTED",
-                    "values": [
-                      "16:9"
-                    ]
+                    "state": "SUPPORTED"
                   },
                   "size": {
-                    "state": "UNKNOWN"
+                    "state": "SUPPORTED"
                   },
                   "seed": {
-                    "state": "UNKNOWN"
+                    "state": "SUPPORTED"
                   },
                   "generate_audio": {
-                    "state": "UNKNOWN"
+                    "state": "SUPPORTED"
                   }
                 },
                 "topology": {
@@ -8854,61 +9974,956 @@
                   "max": 0,
                   "per_kind_max": {}
                 },
-                "notes": "Conservative 8s/720p/16:9 only. Standard OpenRouter model+prompt+duration+resolution+aspect_ratio and frame_images mapping. No seed/audio toggle, exact size, references, edit, extend or passthrough proof. See docs/op07-contract-reconciliation.md.",
-                "relations": [
-                  {
-                    "axes": [
-                      "duration",
-                      "resolution",
-                      "aspect_ratio"
-                    ],
-                    "allowed": [
-                      {
-                        "duration": [
-                          8
-                        ],
-                        "resolution": [
-                          "720p"
-                        ],
-                        "aspect_ratio": [
-                          "16:9"
-                        ]
-                      }
-                    ],
-                    "forbidden": [],
-                    "complete": false
-                  }
-                ]
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
               },
               "I2V": {
                 "state": "SUPPORTED",
                 "controls": {
                   "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
                     "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "first_frame"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
+              },
+              "FLF2V": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
                   },
                   "duration": {
                     "state": "SUPPORTED",
                     "values": [
-                      8
+                      3,
+                      4,
+                      5,
+                      6,
+                      7,
+                      8,
+                      9,
+                      10
                     ]
                   },
                   "resolution": {
-                    "state": "SUPPORTED",
-                    "values": [
-                      "720p"
-                    ]
+                    "state": "SUPPORTED"
                   },
                   "aspect_ratio": {
-                    "state": "SUPPORTED",
-                    "values": [
-                      "16:9"
-                    ]
+                    "state": "SUPPORTED"
                   },
                   "size": {
-                    "state": "UNKNOWN"
+                    "state": "SUPPORTED"
                   },
                   "seed": {
-                    "state": "UNKNOWN"
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "first_frame",
+                    "last_frame"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
+              },
+              "IR2V": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "required": true,
+                    "providers": {
+                      "google-ai-studio": {
+                        "task": {
+                          "type": "string",
+                          "values": [
+                            "reference_to_video"
+                          ],
+                          "default": "reference_to_video"
+                        }
+                      }
+                    }
+                  }
+                },
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [
+                    "image"
+                  ],
+                  "kind_sets": [
+                    [
+                      "image"
+                    ]
+                  ],
+                  "min": 1,
+                  "max": 1,
+                  "per_kind_max": {
+                    "image": 1
+                  }
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
+              },
+              "MI2V": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "required": true,
+                    "providers": {
+                      "google-ai-studio": {
+                        "task": {
+                          "type": "string",
+                          "values": [
+                            "reference_to_video"
+                          ],
+                          "default": "reference_to_video"
+                        }
+                      }
+                    }
+                  }
+                },
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [
+                    "image"
+                  ],
+                  "kind_sets": [
+                    [
+                      "image"
+                    ]
+                  ],
+                  "min": 2,
+                  "max": 6,
+                  "per_kind_max": {
+                    "image": 6
+                  }
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
+              },
+              "VR2V": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "required": true,
+                    "providers": {
+                      "google-ai-studio": {
+                        "task": {
+                          "type": "string",
+                          "values": [
+                            "reference_to_video"
+                          ],
+                          "default": "reference_to_video"
+                        }
+                      }
+                    }
+                  }
+                },
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [
+                    "video"
+                  ],
+                  "kind_sets": [
+                    [
+                      "video"
+                    ]
+                  ],
+                  "min": 1,
+                  "max": 3,
+                  "per_kind_max": {
+                    "video": 3
+                  }
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim.",
+                "relations": [
+                  {
+                    "axes": [
+                      "duration"
+                    ],
+                    "when": {
+                      "reference_count_video": [
+                        2,
+                        3
+                      ]
+                    },
+                    "allowed": [
+                      {
+                        "duration": [
+                          3,
+                          4,
+                          5,
+                          6,
+                          7,
+                          8,
+                          9,
+                          10
+                        ]
+                      }
+                    ],
+                    "forbidden": [],
+                    "complete": true
+                  }
+                ],
+                "media_limits": {
+                  "video": {
+                    "max_duration_seconds": 3
+                  }
+                }
+              },
+              "V2V_EDIT": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "required": true,
+                    "providers": {
+                      "google-ai-studio": {
+                        "task": {
+                          "type": "string",
+                          "values": [
+                            "edit"
+                          ],
+                          "default": "edit"
+                        }
+                      }
+                    }
+                  },
+                  "previous_job_id": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "source_video"
+                  ],
+                  "source_alternative": "previous_job_id",
+                  "reference_kinds": [
+                    "image"
+                  ],
+                  "kind_sets": [
+                    [],
+                    [
+                      "image"
+                    ]
+                  ],
+                  "min": 0,
+                  "max": 6,
+                  "per_kind_max": {
+                    "image": 6
+                  }
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim.",
+                "media_limits": {
+                  "source_video": {
+                    "max_duration_seconds": 15
+                  }
+                }
+              },
+              "V2V_EXTEND": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      3,
+                      4,
+                      5,
+                      6,
+                      7,
+                      8,
+                      9,
+                      10
+                    ]
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "required": true,
+                    "providers": {
+                      "google-ai-studio": {
+                        "task": {
+                          "type": "string",
+                          "values": [
+                            "extend"
+                          ],
+                          "default": "extend"
+                        }
+                      }
+                    }
+                  },
+                  "previous_job_id": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "source_video"
+                  ],
+                  "source_alternative": "previous_job_id",
+                  "reference_kinds": [
+                    "image"
+                  ],
+                  "kind_sets": [
+                    [],
+                    [
+                      "image"
+                    ]
+                  ],
+                  "min": 0,
+                  "max": 6,
+                  "per_kind_max": {
+                    "image": 6
+                  }
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim.",
+                "media_limits": {
+                  "source_video": {
+                    "max_total_duration_seconds": 30
+                  }
+                }
+              }
+            }
+          },
+          "authority": "OFFICIAL_OPENROUTER_AND_EXACT_SERVED_API_REVIEW",
+          "source_reference": "https://openrouter.ai/google/gemini-omni-1.2-flash",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Canonical OpenRouter input_references and previous_job_id; reviewed task enum;6 image refs for AI Studio, not Cloud10-image limit; video refs2–3 requireduration<=10; Google AI Studio exact API: https://ai.google.dev/gemini-api/docs/omni"
+        },
+        "reference_kinds": {
+          "value": [
+            "image",
+            "video"
+          ],
+          "authority": "OFFICIAL_OPENROUTER_AND_EXACT_SERVED_API_REVIEW",
+          "source_reference": "https://openrouter.ai/google/gemini-omni-1.2-flash",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Audio input unsupported by served API; nonmixed image/video methods only; Google AI Studio exact API: https://ai.google.dev/gemini-api/docs/omni"
+        },
+        "max_reference_count": {
+          "value": 7,
+          "authority": "OFFICIAL_OPENROUTER_AND_EXACT_SERVED_API_REVIEW",
+          "source_reference": "https://openrouter.ai/google/gemini-omni-1.2-flash",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Source-video + at most6 image guidance; method limits distinguish6images/3videos; no mixed-reference generation claim; Google AI Studio exact API: https://ai.google.dev/gemini-api/docs/omni"
+        },
+        "supports_edit": {
+          "value": true,
+          "authority": "OFFICIAL_OPENROUTER_AND_EXACT_SERVED_API_REVIEW",
+          "source_reference": "https://openrouter.ai/google/gemini-omni-1.2-flash",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Uploaded or previous-job video editing; Google AI Studio exact API: https://ai.google.dev/gemini-api/docs/omni"
+        },
+        "supports_extend": {
+          "value": true,
+          "authority": "OFFICIAL_OPENROUTER_AND_EXACT_SERVED_API_REVIEW",
+          "source_reference": "https://openrouter.ai/google/gemini-omni-1.2-flash",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Uploaded or previous-job video extension;3–10seconds perturn; Google AI Studio exact API: https://ai.google.dev/gemini-api/docs/omni"
+        }
+      }
+    },
+    {
+      "exact_model_id": "google/gemini-omni-1.1-flash",
+      "facts": {
+        "request_shape_profiles": {
+          "value": {
+            "schema_version": 1,
+            "methods": {
+              "T2V": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
+              },
+              "I2V": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "first_frame"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
+              },
+              "FLF2V": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      3,
+                      4,
+                      5,
+                      6,
+                      7,
+                      8,
+                      9,
+                      10
+                    ]
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "first_frame",
+                    "last_frame"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
+              },
+              "IR2V": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "required": true,
+                    "providers": {
+                      "google-ai-studio": {
+                        "task": {
+                          "type": "string",
+                          "values": [
+                            "reference_to_video"
+                          ],
+                          "default": "reference_to_video"
+                        }
+                      }
+                    }
+                  }
+                },
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [
+                    "image"
+                  ],
+                  "kind_sets": [
+                    [
+                      "image"
+                    ]
+                  ],
+                  "min": 1,
+                  "max": 1,
+                  "per_kind_max": {
+                    "image": 1
+                  }
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
+              },
+              "VR2V": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "required": true,
+                    "providers": {
+                      "google-ai-studio": {
+                        "task": {
+                          "type": "string",
+                          "values": [
+                            "reference_to_video"
+                          ],
+                          "default": "reference_to_video"
+                        }
+                      }
+                    }
+                  }
+                },
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [
+                    "video"
+                  ],
+                  "kind_sets": [
+                    [
+                      "video"
+                    ]
+                  ],
+                  "min": 1,
+                  "max": 3,
+                  "per_kind_max": {
+                    "video": 3
+                  }
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
+              },
+              "V2V_EDIT": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "required": true,
+                    "providers": {
+                      "google-ai-studio": {
+                        "task": {
+                          "type": "string",
+                          "values": [
+                            "edit"
+                          ],
+                          "default": "edit"
+                        }
+                      }
+                    }
+                  },
+                  "previous_job_id": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "source_video"
+                  ],
+                  "source_alternative": "previous_job_id",
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
+              },
+              "V2V_EXTEND": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED"
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "required": true,
+                    "providers": {
+                      "google-ai-studio": {
+                        "task": {
+                          "type": "string",
+                          "values": [
+                            "extend"
+                          ],
+                          "default": "extend"
+                        }
+                      }
+                    }
+                  },
+                  "previous_job_id": {
+                    "state": "SUPPORTED"
+                  }
+                },
+                "topology": {
+                  "fixed": [
+                    "source_video"
+                  ],
+                  "source_alternative": "previous_job_id",
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
+              }
+            }
+          },
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/google/gemini-omni-1.1-flash",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Model-specific operations plus canonical OpenRouter Video wire; Google AI Studio task API enum; no cross-model reference count extrapolation"
+        },
+        "supports_text_only": {
+          "value": true,
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/google/gemini-omni-1.1-flash",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model page affirms text-to-video"
+        },
+        "source_required": {
+          "value": false,
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/google/gemini-omni-1.1-flash",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Text-to-video does not require a source"
+        },
+        "reference_kinds": {
+          "value": [
+            "image",
+            "video"
+          ],
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/google/gemini-omni-1.1-flash",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model subject/video reference input; no audio/mixed inference"
+        },
+        "max_reference_count": {
+          "value": 3,
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/google/gemini-omni-1.1-flash",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact OpenRouter page up to3 reference clips; single image method only until image multiplicity reconciled"
+        },
+        "supports_edit": {
+          "value": true,
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/google/gemini-omni-1.1-flash",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model uploaded/prior-generated video editing"
+        },
+        "supports_extend": {
+          "value": true,
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/google/gemini-omni-1.1-flash",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model uploaded/prior-generated video extension"
+        }
+      }
+    },
+    {
+      "exact_model_id": "tbc/mischief-1",
+      "facts": {
+        "request_shape_profiles": {
+          "value": {
+            "schema_version": 1,
+            "methods": {
+              "I2V": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true
+                  },
+                  "duration": {
+                    "state": "SUPPORTED"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "SUPPORTED"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED"
                   },
                   "generate_audio": {
                     "state": "UNKNOWN"
@@ -8926,114 +10941,31 @@
                   "max": 0,
                   "per_kind_max": {}
                 },
-                "notes": "Conservative 8s/720p/16:9 only. Standard OpenRouter model+prompt+duration+resolution+aspect_ratio and frame_images mapping. No seed/audio toggle, exact size, references, edit, extend or passthrough proof. See docs/op07-contract-reconciliation.md.",
-                "relations": [
-                  {
-                    "axes": [
-                      "duration",
-                      "resolution",
-                      "aspect_ratio"
-                    ],
-                    "allowed": [
-                      {
-                        "duration": [
-                          8
-                        ],
-                        "resolution": [
-                          "720p"
-                        ],
-                        "aspect_ratio": [
-                          "16:9"
-                        ]
-                      }
-                    ],
-                    "forbidden": [],
-                    "complete": false
-                  }
-                ]
-              },
-              "FLF2V": {
-                "state": "SUPPORTED",
-                "controls": {
-                  "prompt": {
-                    "state": "SUPPORTED"
-                  },
-                  "duration": {
-                    "state": "SUPPORTED",
-                    "values": [
-                      8
-                    ]
-                  },
-                  "resolution": {
-                    "state": "SUPPORTED",
-                    "values": [
-                      "720p"
-                    ]
-                  },
-                  "aspect_ratio": {
-                    "state": "SUPPORTED",
-                    "values": [
-                      "16:9"
-                    ]
-                  },
-                  "size": {
-                    "state": "UNKNOWN"
-                  },
-                  "seed": {
-                    "state": "UNKNOWN"
-                  },
-                  "generate_audio": {
-                    "state": "UNKNOWN"
-                  }
-                },
-                "topology": {
-                  "fixed": [
-                    "first_frame",
-                    "last_frame"
-                  ],
-                  "reference_kinds": [],
-                  "kind_sets": [
-                    []
-                  ],
-                  "min": 0,
-                  "max": 0,
-                  "per_kind_max": {}
-                },
-                "notes": "Conservative 8s/720p/16:9 only. Standard OpenRouter model+prompt+duration+resolution+aspect_ratio and frame_images mapping. No seed/audio toggle, exact size, references, edit, extend or passthrough proof. See docs/op07-contract-reconciliation.md.",
-                "relations": [
-                  {
-                    "axes": [
-                      "duration",
-                      "resolution",
-                      "aspect_ratio"
-                    ],
-                    "allowed": [
-                      {
-                        "duration": [
-                          8
-                        ],
-                        "resolution": [
-                          "720p"
-                        ],
-                        "aspect_ratio": [
-                          "16:9"
-                        ]
-                      }
-                    ],
-                    "forbidden": [],
-                    "complete": false
-                  }
-                ]
+                "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim."
               }
             }
           },
-          "authority": "OFFICIAL_OPENROUTER_AND_EXACT_NATIVE_CONTRACT_REVIEW",
-          "source_reference": "https://openrouter.ai/google/gemini-omni-1.2-flash",
-          "observed_at": "2026-11-08T20:15:11.336064+00:00",
-          "scope": "Exact model native generation + public Video catalogue + standardized OpenRouter Video wire guide; bounded common configuration only, no Cartesian expansion; local MockTransport proof, not paid provider execution"
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/tbc/mischief-1",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model documented operations using canonical OpenRouter fields; independent catalogue domains; explicit method constraints retained"
+        },
+        "supports_text_only": {
+          "value": null,
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/tbc/mischief-1",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Only image-to-video confirmed; T2V not inferred"
+        },
+        "source_required": {
+          "value": true,
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/tbc/mischief-1",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model image-to-video input"
         }
       }
     }
   ],
-  "content_hash": "889ddc07d1def7572c5806310ef9767d167988760ed7622b1314d7f0f025cb2f"
+  "content_hash": "bed1a22ef4b8d19eaca2433ba798cbe155b601b7e6c4e73e4c409c65876322e3"
 }

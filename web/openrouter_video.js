@@ -4,7 +4,7 @@ const EXTENSION = "openrouter-video.capability-driven-ui";
 const GENERATE_NODE = "OpenRouterVideoGenerate";
 const SELECT_MODEL = "SELECT MODEL";
 const AUTO = "AUTO / MODEL DEFAULT";
-const UI_CONTRACT_VERSION = 5;
+const UI_CONTRACT_VERSION = 6;
 const CONNECTION_ROUTE = "/openrouter-video/v1/connection";
 const AUTH_START_ROUTE = "/openrouter-video/v1/auth/start";
 const COMPACT_LAYOUT = Object.freeze({ width: 400, row: 20, gap: 4, section: 8, prompt: 42, domInset: 16, inset: 15 });
@@ -1008,7 +1008,10 @@ function configureDuration(node, supported) {
 function configurationScope(relation, context) {
     let unknown = false;
     for (const [key, domain] of Object.entries(relation.when || {})) {
-        const value = context[key];
+        let value = context[key];
+        if (value == null && key.startsWith("reference_count_") && Array.isArray(context.reference_kinds) && context.reference_kinds.every(v => typeof v === "string")) {
+            value = context.reference_kinds.filter(v => v === key.slice("reference_count_".length)).length;
+        }
         if (value == null) unknown = true;
         else if (key === "reference_kinds") {
             if (!Array.isArray(value) || value.some((v) => !domain.includes(v))) return false;
@@ -1208,14 +1211,80 @@ function publishSemanticProjection(node) {
     }
 }
 
+function configureOperationControls(node, profile) {
+    const controls = profile.controls || {};
+    for (const name of ["previous_job_id", "upscale_factor", "creativity"]) {
+        let item = widget(node, name);
+        const control = controls[name];
+        if (!item) continue;
+        const supported = control?.state === "SUPPORTED";
+        if (supported && name === "upscale_factor" && item.type !== "number") {
+            const index = node.widgets.indexOf(item), previous = item;
+            item = node.addWidget("number", name, Number(previous.value) || control.number_range?.min,
+                previous.callback, { ...previous.options, precision: 2, step: 0.1 });
+            node.widgets.splice(node.widgets.indexOf(item), 1);
+            node.widgets[index] = item;
+            item.serializeValue = () => String(item.value ?? "");
+        }
+        if (supported && name === "upscale_factor") {
+            Object.assign(item.options ||= {}, { min: control.number_range.min, max: control.number_range.max });
+        }
+        if (supported && name === "creativity") {
+            item.type = "combo";
+            (item.options ||= {}).values = [...control.values];
+            if (!control.values.includes(item.value)) item.value = control.values[0];
+        }
+        item.label = {previous_job_id:"Previous Job ID", upscale_factor:"Upscale Factor", creativity:"Creativity"}[name];
+        setVisible(item, supported);
+    }
+    const storage = widget(node, "provider_options");
+    setVisible(storage, false);
+    if (!storage || !node.addWidget) return;
+    for (const item of node.widgets || []) if (item.__orvProviderOption) setVisible(item, false);
+    let saved;
+    try { saved = storage.value ? JSON.parse(storage.value) : []; }
+    catch { saved = null; }
+    if (!Array.isArray(saved) || saved.some(v => !v || typeof v !== "object")) return "Invalid saved provider controls; repair before Generate.";
+    const providers = controls.provider_options?.state === "SUPPORTED" ? controls.provider_options.providers || {} : {};
+    const issue = saved.some(v => !providers[v.provider]?.[v.key] ||
+        (providers[v.provider][v.key].container || null) !== (v.container || null))
+        ? "Saved provider controls are no longer supported; choose an explicit replacement." : "";
+    for (const [provider, options] of Object.entries(providers)) for (const [key, spec] of Object.entries(options)) {
+        if (spec.default !== undefined && spec.values?.length === 1) continue;
+        const name = `provider_option:${provider}:${spec.container || ""}:${key}`;
+        const old = saved.find(v => v.provider === provider && v.key === key && (v.container || null) === (spec.container || null));
+        let item = widget(node, name);
+        if (!item) {
+            const type = spec.values ? "combo" : spec.type === "boolean" ? "toggle" : ["integer", "number"].includes(spec.type) ? "number" : "text";
+            item = node.addWidget(type, name, old?.value ?? "", value => {
+                let values;
+                try { values = storage.value ? JSON.parse(storage.value) : []; } catch { return; }
+                if (!Array.isArray(values)) return;
+                const remaining = values.filter(v => !(v.provider === provider && v.key === key && (v.container || null) === (spec.container || null)));
+                if (value !== "") remaining.push({provider, key, value, ...(spec.container ? {container:spec.container} : {})});
+                storage.value = JSON.stringify(remaining);
+            }, {values:spec.values, min:spec.min, max:spec.max, step:spec.type === "integer" ? 1 : undefined});
+            item.__orvProviderOption = true;
+            item.serialize = false;
+        }
+        item.label = key;
+        item.value = old?.value ?? "";
+        setVisible(item, true);
+    }
+    return issue;
+}
+
 function reprojectNodeSemantics(node, capability, method) {
     const key = `${capability.model_id}|${method || ""}`;
     const intent = capabilityIntent(node);
-    const fields = ["resolution", "aspect_ratio", "duration", "size", "seed", "generate_audio", "geometry_authority"];
+    const fields = ["resolution", "aspect_ratio", "duration", "size", "seed", "generate_audio", "geometry_authority", "previous_job_id", "upscale_factor", "creativity", "provider_options"];
     if (node.__orvProjectedKey !== key) {
         if (node.__orvProjectedKey) intent.controls[node.__orvProjectedKey] = Object.fromEntries(fields.map(name => [name, widget(node, name)?.value]));
         const saved = intent.controls[key];
         if (saved) for (const name of fields) { if (widget(node, name)) widget(node, name).value = saved[name]; }
+        else if (node.__orvProjectedKey) {
+            for (const name of ["provider_options", "previous_job_id"]) if (widget(node, name)) widget(node, name).value = "";
+        }
         node.__orvProjectedKey = key;
     }
     const scoped = scopedCapability(capability, method);
@@ -1226,21 +1295,28 @@ function reprojectNodeSemantics(node, capability, method) {
     for (const name of ["prompt", "duration", "resolution", "aspect_ratio", "size", "seed", "generate_audio"]) {
         setVisible(widget(node, name), scoped.__methodProfile.controls?.[name]?.state === "SUPPORTED");
     }
-    if (scoped.supports_seed) Object.assign(widget(node, "seed").options,
-        { min: scoped.__methodProfile.controls.seed.integer_range.min,
-            max: scoped.__methodProfile.controls.seed.integer_range.max, step: 1 });
     if (scoped.supports_seed) {
         const seed = widget(node, "seed");
-        const value = Number(seed.value);
         const bounds = scoped.__methodProfile.controls.seed.integer_range;
-        if (seed.value !== -1 && (!Number.isInteger(value) || value < bounds.min || value > bounds.max)) {
+        // These are JavaScript's safe integer limits for the number widget,
+        // not bounds asserted by OpenRouter when integer_range is absent.
+        Object.assign(seed.options, {
+            min: bounds?.min ?? Number.MIN_SAFE_INTEGER,
+            max: bounds?.max ?? Number.MAX_SAFE_INTEGER,
+            step: 1,
+        });
+        const value = Number(seed.value);
+        if (seed.value !== -1 && (!Number.isSafeInteger(value) ||
+            (bounds && (value < bounds.min || value > bounds.max)))) {
             intent.inactive ||= {};
             intent.inactive[key] ||= {};
             intent.inactive[key].seed = seed.value;
             seed.value = -1;
         }
     }
-    setVisible(node.__orvCapabilityStatus, false);
+    const operationIssue = configureOperationControls(node, scoped.__methodProfile);
+    if (node.__orvCapabilityStatus && operationIssue) node.__orvCapabilityStatus.value = operationIssue;
+    setVisible(node.__orvCapabilityStatus, Boolean(operationIssue));
     fitPresentationWidth(node);
     publishSemanticProjection(node);
     return scoped;
@@ -1333,7 +1409,7 @@ function connectedReferenceKind(input) {
 function fixedRolesForMethod(method) {
     if (method === "I2V") return ["first_frame"];
     if (method === "FLF2V") return ["first_frame", "last_frame"];
-    if (method === "V2V_EDIT" || method === "V2V_EXTEND") return ["source_video"];
+    if (method === "V2V_EDIT" || method === "V2V_EXTEND" || method === "V2V_UPSCALE") return ["source_video"];
     return [];
 }
 

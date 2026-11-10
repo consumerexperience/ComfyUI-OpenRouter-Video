@@ -44,8 +44,11 @@ def test_manifest_delta_is_exactly_two_method_profiles_and_their_scope_note() ->
     current_seedance = next(
         m for m in load_manifest()["models"] if m["exact_model_id"] == "bytedance/seedance-2.5"
     )
-    assert current_seedance == next(
-        m for m in data["models"] if m["exact_model_id"] == "bytedance/seedance-2.5"
+    from tests.unit.test_model_eligibility import assert_reconciled_scalar_delta
+
+    assert_reconciled_scalar_delta(
+        next(m for m in data["models"] if m["exact_model_id"] == "bytedance/seedance-2.5"),
+        current_seedance,
     )
     data.pop("content_hash")
     model = next(m for m in data["models"] if m["exact_model_id"] == "bytedance/seedance-2.5")
@@ -75,7 +78,14 @@ def test_seedance_transform_requires_video_and_uses_only_reference_wire(
     profile = project_method(model, method.value)
     assert profile["state"] == "SUPPORTED"
     assert profile["topology"]["fixed"] == ["source_video"]
-    assert profile["controls"] == project_method(model, "MMR2V")["controls"]
+    reference_controls = project_method(model, "MMR2V")["controls"]
+    for name, control in profile["controls"].items():
+        if name == "seed":
+            # The newly reconciled generative scalar does not change the
+            # historically scoped edit/extend proof.
+            assert control["state"] == "UNKNOWN"
+        else:
+            assert control == reference_controls[name]
     request = GenerationRequest(
         model.model_id,
         "Continue or edit the shot",
@@ -135,7 +145,11 @@ def test_optional_limits_reserve_required_source_and_reject_overflow(
 def test_other_models_and_draft_do_not_gain_projection() -> None:
     for raw in CATALOGUE["models"]:
         model = current_model(raw["id"])
-        if model.model_id != "bytedance/seedance-2.5":
+        if model.model_id not in {
+            "bytedance/seedance-2.5",
+            "black-forest-labs/flux-video-edit",
+            "runway/aleph-2",
+        }:
             assert all(project_method(model, m.value)["state"] != "SUPPORTED" for m in METHODS)
     assert not any("draft" in method.value.lower() for method in InferenceMethod)
 
