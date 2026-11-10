@@ -27,6 +27,27 @@ METHODS = (InferenceMethod.V2V_EDIT, InferenceMethod.V2V_EXTEND)
 SOURCE = InputReference(InputReferenceKind.VIDEO, "https://example.com/source.mp4")
 
 
+@pytest.mark.parametrize("method", METHODS)
+@pytest.mark.parametrize("seed", [0, 137, 2147483647])
+def test_transform_seed_reaches_the_existing_canonical_wire(
+    method: InferenceMethod, seed: int
+) -> None:
+    model = current_model("bytedance/seedance-2.5")
+    request = GenerationRequest(
+        model.model_id,
+        "Continue or edit",
+        method,
+        duration=4,
+        resolution="480p",
+        aspect_ratio="16:9",
+        source_video=SOURCE,
+        seed=seed,
+    )
+    RequestValidator().validate_shape(request)
+    RequestValidator().validate_capabilities(request, model)
+    assert request.to_openrouter_payload()["seed"] == seed
+
+
 def test_manifest_delta_is_exactly_two_method_profiles_and_their_scope_note() -> None:
     git = shutil.which("git")
     assert git is not None
@@ -78,14 +99,7 @@ def test_seedance_transform_requires_video_and_uses_only_reference_wire(
     profile = project_method(model, method.value)
     assert profile["state"] == "SUPPORTED"
     assert profile["topology"]["fixed"] == ["source_video"]
-    reference_controls = project_method(model, "MMR2V")["controls"]
-    for name, control in profile["controls"].items():
-        if name == "seed":
-            # The newly reconciled generative scalar does not change the
-            # historically scoped edit/extend proof.
-            assert control["state"] == "UNKNOWN"
-        else:
-            assert control == reference_controls[name]
+    assert profile["controls"] == project_method(model, "MMR2V")["controls"]
     request = GenerationRequest(
         model.model_id,
         "Continue or edit the shot",

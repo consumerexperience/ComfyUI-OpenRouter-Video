@@ -57,6 +57,12 @@ def normalize_request_shapes(raw: object) -> dict[str, Any]:
         if not isinstance(entry, dict) or entry.get("state") not in states:
             raise ValueError("Invalid method evidence state")
         for name, control in entry.get("controls", {}).items():
+            if any(
+                type(control[key]) is not int or control[key] < 0
+                for key in ("min_length", "max_length")
+                if key in control
+            ):
+                raise ValueError("Invalid documented text bound")
             if "required" in control and type(control["required"]) is not bool:
                 raise ValueError("Required control marker must be boolean")
             if name == "provider_options" and control.get("state") == "SUPPORTED":
@@ -69,14 +75,17 @@ def normalize_request_shapes(raw: object) -> dict[str, Any]:
                     ):
                         raise ValueError("Invalid reviewed provider schema")
                     for key, spec in options.items():
-                        if (
-                            not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", key)
-                            or not isinstance(spec, dict)
-                            or set(spec) - {"type", "min", "max", "values", "container", "default"}
-                            or spec.get("type") not in {"string", "boolean", "integer", "number"}
-                            or spec.get("container") not in {None, "parameters"}
+                        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", key) or not isinstance(
+                            spec, dict
                         ):
                             raise ValueError("Invalid reviewed provider option")
+                        _validate_provider_spec(spec)
+                        dependencies = spec.get("requires", {})
+                        if not isinstance(dependencies, dict) or any(
+                            key not in options or not isinstance(domain, list) or not domain
+                            for key, domain in dependencies.items()
+                        ):
+                            raise ValueError("Invalid reviewed provider dependencies")
             if name not in CONTROL_FIELDS or control.get("state") not in states:
                 raise ValueError("Invalid control evidence state")
             if "values" in control:
@@ -131,6 +140,7 @@ def normalize_request_shapes(raw: object) -> dict[str, Any]:
                     raise ValueError("Invalid media limit role")
                 if set(limits) - {
                     "max_duration_seconds",
+                    "min_duration_seconds",
                     "max_bytes",
                     "max_total_duration_seconds",
                 }:
@@ -143,6 +153,273 @@ def normalize_request_shapes(raw: object) -> dict[str, Any]:
         if entry.get("relations"):
             normalize_constraints({"schema_version": 1, "relations": entry["relations"]})
     return raw
+
+
+def _provider_field_names(raw: object, fields: Mapping[str, Any]) -> list[str]:
+    if (
+        not isinstance(raw, list)
+        or any(not isinstance(v, str) for v in raw)
+        or len(raw) != len(set(raw))
+        or not set(raw) <= set(fields)
+    ):
+        raise ValueError("Invalid reviewed provider field names")
+    return raw
+
+
+def _validate_provider_rules(rules: Mapping[str, Any], fields: Mapping[str, Any]) -> None:
+    _provider_field_names(rules.get("required_fields", []), fields)
+    groups = rules.get("one_of_required", [])
+    if not isinstance(groups, list):
+        raise ValueError("Invalid provider exclusive fields")
+    for group in groups:
+        if not _provider_field_names(group, fields):
+            raise ValueError("Empty provider exclusive group")
+    order = rules.get("ordered_fields")
+    if order is not None and len(_provider_field_names(order, fields)) != 2:
+        raise ValueError("Provider order requires two fields")
+
+
+def _validate_provider_spec(spec: Mapping[str, Any], depth: int = 0) -> None:
+    allowed = {
+        "type",
+        "min",
+        "max",
+        "values",
+        "container",
+        "default",
+        "fields",
+        "omitted_default",
+        "required",
+        "required_fields",
+        "variants",
+        "one_of_required",
+        "items",
+        "min_items",
+        "max_items",
+        "uniform_fields",
+        "ordered_fields",
+        "min_length",
+        "max_length",
+        "exclusive_min",
+        "format",
+        "requires",
+        "time_range",
+        "omits_controls",
+        "omit_when",
+    }
+    if depth > 4 or set(spec) - allowed or spec.get("container") not in {None, "parameters"}:
+        raise ValueError("Invalid reviewed provider option schema")
+    if "required" in spec and type(spec["required"]) is not bool:
+        raise ValueError("Invalid required provider marker")
+    if "omits_controls" in spec:
+        _provider_field_names(
+            spec["omits_controls"], {key: None for key in ("resolution", "aspect_ratio", "size")}
+        )
+    if "omit_when" in spec and (
+        "omits_controls" not in spec
+        or not isinstance(spec["omit_when"], list)
+        or not spec["omit_when"]
+    ):
+        raise ValueError("Invalid conditional geometry omission")
+    kind = spec.get("type")
+    if kind == "array":
+        low, high, items = spec.get("min_items"), spec.get("max_items"), spec.get("items")
+        if (
+            type(low) is not int
+            or type(high) is not int
+            or not 1 <= low <= high <= 64
+            or not isinstance(items, dict)
+            or items.get("container")
+            or set(spec) - {"type", "items", "min_items", "max_items", "uniform_fields", "required"}
+        ):
+            raise ValueError("Provider array needs bounded reviewed items")
+        _validate_provider_spec(items, depth + 1)
+        if "uniform_fields" in spec:
+            _provider_field_names(spec["uniform_fields"], items.get("fields", {}))
+        return
+    if kind == "object":
+        fields = spec.get("fields")
+        if (
+            not isinstance(fields, dict)
+            or not 1 <= len(fields) <= 64
+            or set(spec)
+            - {
+                "type",
+                "fields",
+                "required_fields",
+                "variants",
+                "one_of_required",
+                "ordered_fields",
+                "required",
+                "container",
+                "time_range",
+            }
+        ):
+            raise ValueError("Provider object needs reviewed fields")
+        for key, child in fields.items():
+            if (
+                not isinstance(key, str)
+                or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", key)
+                or not isinstance(child, dict)
+                or child.get("container")
+            ):
+                raise ValueError("Invalid nested provider field")
+            _validate_provider_spec(child, depth + 1)
+        _validate_provider_rules(spec, fields)
+        if "time_range" in spec:
+            rule = spec["time_range"]
+            if not isinstance(rule, dict) or set(rule) != {
+                "absolute_field",
+                "range_field",
+                "start",
+                "end",
+            }:
+                raise ValueError("Invalid reviewed temporal relation")
+            if (
+                rule["absolute_field"] not in fields
+                or rule["range_field"] not in fields
+                or not {rule["start"], rule["end"]}
+                <= set(fields[rule["range_field"]].get("fields", {}))
+            ):
+                raise ValueError("Temporal relation lacks reviewed fields")
+        variants = spec.get("variants")
+        if variants is not None:
+            if (
+                not isinstance(variants, dict)
+                or set(variants) != {"discriminator_field", "cases"}
+                or variants.get("discriminator_field") not in fields
+                or not isinstance(variants.get("cases"), dict)
+            ):
+                raise ValueError("Invalid provider object variants")
+            discriminator = variants["discriminator_field"]
+            if fields[discriminator].get("type") != "string" or set(variants["cases"]) != set(
+                fields[discriminator].get("values", [])
+            ):
+                raise ValueError("Provider variant discriminator lacks complete values")
+            for rules in variants["cases"].values():
+                if not isinstance(rules, dict) or set(rules) - {
+                    "allowed_fields",
+                    "required_fields",
+                    "one_of_required",
+                    "field_values",
+                }:
+                    raise ValueError("Invalid provider variant case")
+                names = _provider_field_names(rules.get("allowed_fields"), fields)
+                if discriminator not in names:
+                    raise ValueError("Provider variant must retain its discriminator")
+                selected = {key: fields[key] for key in names}
+                _validate_provider_rules(rules, selected)
+                field_values = rules.get("field_values", {})
+                if not isinstance(field_values, dict) or not set(field_values) <= set(selected):
+                    raise ValueError("Invalid provider variant fields")
+                for key, values in field_values.items():
+                    if (
+                        fields[key].get("type") != "string"
+                        or not isinstance(values, list)
+                        or not values
+                        or any(not isinstance(v, str) for v in values)
+                        or len(values) != len(set(values))
+                        or not set(values) <= set(fields[key].get("values", values))
+                    ):
+                        raise ValueError("Invalid provider variant values")
+        return
+    if kind not in {"string", "boolean", "integer", "number"} or set(spec) & {
+        "fields",
+        "required_fields",
+        "variants",
+        "items",
+        "min_items",
+        "max_items",
+        "uniform_fields",
+        "one_of_required",
+        "ordered_fields",
+    }:
+        raise ValueError("Invalid reviewed provider leaf")
+    if "values" in spec and (not isinstance(spec["values"], list) or not spec["values"]):
+        raise ValueError("Invalid reviewed provider enum")
+    expected: dict[str, Any] = {
+        "string": str,
+        "boolean": bool,
+        "integer": int,
+        "number": (int, float),
+    }
+    for label in ("default", "omitted_default"):
+        if label not in spec:
+            continue
+        value = spec[label]
+        if not isinstance(value, expected[kind]) or (kind != "boolean" and isinstance(value, bool)):
+            raise ValueError("Provider default type differs from its reviewed leaf")
+        if "values" in spec and value not in spec["values"]:
+            raise ValueError("Provider default outside reviewed enum")
+        if kind in {"number", "integer"} and (
+            not math.isfinite(value)
+            or value < spec.get("min", -math.inf)
+            or value > spec.get("max", math.inf)
+        ):
+            raise ValueError("Provider default outside reviewed bounds")
+    if "format" in spec and spec["format"] not in {"https_url", "runway_image_uri", "hex_color"}:
+        raise ValueError("Unknown reviewed provider format")
+
+
+def _provider_value_present(value: object) -> bool:
+    return value is not None and (not isinstance(value, str) or bool(value.strip()))
+
+
+def _validate_provider_object(spec: Mapping[str, Any], value: Any) -> None:
+    """Validate composites assembled only from reviewed scalar leaves."""
+    if spec["type"] == "array":
+        if not isinstance(value, list) or not spec["min_items"] <= len(value) <= spec["max_items"]:
+            raise ValueError("Provider array outside reviewed item count")
+        for child in value:
+            _validate_provider_object(spec["items"], child)
+        for name in spec.get("uniform_fields", []):
+            if len({name in item for item in value}) > 1:
+                raise ValueError("Provider array requires uniform optional fields")
+        return
+    if spec["type"] != "object":
+        return
+    fields = spec["fields"]
+    if not isinstance(value, dict) or not set(value) <= set(fields):
+        raise ValueError("Provider object contains an unreviewed field")
+    required = set(spec.get("required_fields", []))
+    exclusive = list(spec.get("one_of_required", []))
+    variants = spec.get("variants")
+    if variants:
+        discriminator = variants["discriminator_field"]
+        case = variants["cases"].get(value.get(discriminator))
+        if case is None:
+            raise ValueError("Provider object is missing a supported discriminator")
+        if not set(value) <= set(case["allowed_fields"]):
+            raise ValueError("Provider object contains fields for another variant")
+        required.update(case.get("required_fields", []))
+        exclusive.extend(case.get("one_of_required", []))
+        for name, values in case.get("field_values", {}).items():
+            if name in value and value[name] not in values:
+                raise ValueError("Provider object field is outside variant values")
+    if any(not _provider_value_present(value.get(name)) for name in required):
+        raise ValueError("Provider object is missing required fields")
+    for names in exclusive:
+        if sum(_provider_value_present(value.get(name)) for name in names) != 1:
+            raise ValueError("Provider object must supply exactly one alternative")
+    if "ordered_fields" in spec:
+        first, last = spec["ordered_fields"]
+        if first in value and last in value and value[first] >= value[last]:
+            raise ValueError("Provider range end must exceed its start")
+    if "time_range" in spec:
+        rule = spec["time_range"]
+        if rule["absolute_field"] in value and rule["range_field"] in value:
+            interval = value[rule["range_field"]]
+            if (
+                rule["start"] in interval
+                and rule["end"] in interval
+                and not interval[rule["start"]]
+                <= value[rule["absolute_field"]]
+                < interval[rule["end"]]
+            ):
+                raise ValueError("Provider keyframe must lie within its exclusive range")
+    for name, child_value in value.items():
+        if fields[name].get("type") in {"object", "array"}:
+            _validate_provider_object(fields[name], child_value)
 
 
 def _catalogue_control(model: ModelCapabilities, key: str) -> Any:
@@ -160,7 +437,7 @@ def _provider_options(
     control: Mapping[str, Any], value: object, model: ModelCapabilities
 ) -> object:
     """Typed reviewed parameters intersected with the live model allowlist."""
-    from openrouter_video.models import ProviderOption
+    from openrouter_video.models import ProviderOption, _check_provider_tree, _insert_provider_leaf
 
     if value in (None, "", ()):
         value = tuple(
@@ -174,9 +451,10 @@ def _provider_options(
     allowed = _catalogue_control(model, "allowed_passthrough_parameters")
     providers = control.get("providers", {})
     seen = set()
+    supplied: dict[tuple[str, str | None, str], Any] = {}
     for option in value:
         spec = providers.get(option.provider, {}).get(option.key)
-        binding = (option.provider, option.container, option.key)
+        binding = (option.provider, option.container, option.key, option.path)
         if (
             not isinstance(spec, dict)
             or not isinstance(allowed, (tuple, list))
@@ -186,6 +464,25 @@ def _provider_options(
         ):
             raise ValueError("Provider option lacks reviewed and live support")
         seen.add(binding)
+        group_key = (option.provider, option.container, option.key)
+        holder = {"value": supplied[group_key]} if group_key in supplied else {}
+        _insert_provider_leaf(holder, ("value", *option.path), option.value)
+        supplied[group_key] = holder["value"]
+        for component in option.path:
+            if (
+                spec.get("type") == "array"
+                and type(component) is int
+                and 0 <= component < spec["max_items"]
+            ):
+                spec = spec["items"]
+            elif (
+                spec.get("type") == "object"
+                and isinstance(component, str)
+                and component in spec["fields"]
+            ):
+                spec = spec["fields"][component]
+            else:
+                raise ValueError("Provider object field lacks reviewed support")
         types: dict[str, Any] = {
             "string": str,
             "boolean": bool,
@@ -211,6 +508,54 @@ def _provider_options(
             raise ValueError("Provider option outside reviewed bounds")
         if "values" in spec and option.value not in spec["values"]:
             raise ValueError("Provider option outside reviewed values")
+        if "exclusive_min" in spec and option.value <= spec["exclusive_min"]:
+            raise ValueError("Provider option outside reviewed exclusive bound")
+        if isinstance(option.value, str):
+            if (
+                not spec.get("min_length", 0)
+                <= len(option.value)
+                <= spec.get("max_length", float("inf"))
+            ):
+                raise ValueError("Provider text outside reviewed length bounds")
+            if (
+                spec.get("format") == "hex_color"
+                and re.fullmatch(r"#[0-9A-Fa-f]{6}", option.value) is None
+            ):
+                raise ValueError("Provider background color requires a hex color")
+            if spec.get("format") == "https_url" and not option.value.startswith("https://"):
+                raise ValueError("Provider media requires a public HTTPS URL")
+            if spec.get("format") == "runway_image_uri":
+                limit = (
+                    5242880
+                    if option.value.startswith("data:image/")
+                    else 5000
+                    if option.value.startswith("runway://")
+                    else 2048
+                    if option.value.startswith("https://")
+                    else 0
+                )
+                if not 13 <= len(option.value) <= limit:
+                    raise ValueError("Provider image URI outside reviewed forms or length")
+    _check_provider_tree(supplied)
+    for (provider, _container, key), grouped in supplied.items():
+        spec = providers[provider][key]
+        if spec.get("type") in {"object", "array"}:
+            _validate_provider_object(spec, grouped)
+    for provider, options in providers.items():
+        for key, spec in options.items():
+            if spec.get("required") is True and not _provider_value_present(
+                supplied.get((provider, spec.get("container"), key))
+            ):
+                raise ValueError("Required provider option is missing")
+            selected = supplied.get((provider, spec.get("container"), key))
+            if selected is not None:
+                for dependency, domain in spec.get("requires", {}).items():
+                    effective = supplied.get(
+                        (provider, options[dependency].get("container"), dependency),
+                        options[dependency].get("omitted_default"),
+                    )
+                    if effective not in domain:
+                        raise ValueError("Provider option requires a compatible dependent setting")
     return value
 
 
@@ -376,8 +721,7 @@ def project_method(model: ModelCapabilities, method: str) -> dict[str, Any]:
         controls[name] = control
     if state == "SUPPORTED":
         required = {
-            "prompt",
-            *(name for name, control in controls.items() if control.get("required", False)),
+            name for name, control in controls.items() if control.get("required", name == "prompt")
         }
         for name in required:
             control_state = controls.get(name, {}).get("state", "UNKNOWN")
@@ -476,6 +820,14 @@ def project_semantic_values(
         else:
             typed = name != "duration" or type(value) is int
             result[name] = value if supported and typed and value in control["values"] else None
+    option_schema = profile["controls"].get("provider_options", {}).get("providers", {})
+    for option in result.get("provider_options", ()):
+        spec = option_schema[option.provider][option.key]
+        if "omits_controls" in spec and (
+            "omit_when" not in spec or option.value in spec["omit_when"]
+        ):
+            for name in spec["omits_controls"]:
+                result[name] = None
     authority = values.get("geometry_authority")
     if authority == "EXACT" and result["size"] is not None:
         result["resolution"] = result["aspect_ratio"] = None

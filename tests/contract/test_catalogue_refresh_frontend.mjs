@@ -7,7 +7,7 @@ const source = readFileSync(new URL('../../web/openrouter_video.js', import.meta
 const clone = value => JSON.parse(JSON.stringify(value));
 function harness() {
     const events = {}, timers = new Map(), calls = [], projections = [];
-    let serial = 0, snapshot = {models: [], ui_contract_version: 6};
+    let serial = 0, snapshot = {models: [], ui_contract_version: 7};
     let fetchImpl = async () => ({ok: true, json: async () => clone(snapshot)});
     const node = {type:'OpenRouterVideoGenerate', properties:{}, widgets:[
         {name:'model',value:'old/model',options:{}}, {name:'prompt',value:'KEEP PROMPT', options:{}}

@@ -26,14 +26,26 @@ class LocalMedia:
     duration: Callable[[], float] | None = field(default=None, repr=False)
     max_duration_seconds: float | None = None
     max_bytes: int = MAX_OBJECT_BYTES
+    min_duration_seconds: float | None = None
 
     def encode(self, destination: Path) -> int:
         try:
-            if self.max_duration_seconds is not None:
+            if self.max_duration_seconds is not None or self.min_duration_seconds is not None:
                 if self.duration is None:
                     raise NativeMediaError("Native VIDEO duration could not be verified.")
                 duration = self.duration()
-                if not math.isfinite(duration) or not 0 < duration <= self.max_duration_seconds:
+                if (
+                    not math.isfinite(duration)
+                    or duration <= 0
+                    or (
+                        self.min_duration_seconds is not None
+                        and duration < self.min_duration_seconds
+                    )
+                    or (
+                        self.max_duration_seconds is not None
+                        and duration > self.max_duration_seconds
+                    )
+                ):
                     raise NativeMediaError(
                         "Native VIDEO exceeds the selected method's duration limit."
                     )

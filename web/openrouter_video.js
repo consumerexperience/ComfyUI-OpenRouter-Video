@@ -4,14 +4,14 @@ const EXTENSION = "openrouter-video.capability-driven-ui";
 const GENERATE_NODE = "OpenRouterVideoGenerate";
 const SELECT_MODEL = "SELECT MODEL";
 const AUTO = "AUTO / MODEL DEFAULT";
-const UI_CONTRACT_VERSION = 6;
+const UI_CONTRACT_VERSION = 7;
 const CONNECTION_ROUTE = "/openrouter-video/v1/connection";
 const AUTH_START_ROUTE = "/openrouter-video/v1/auth/start";
 const COMPACT_LAYOUT = Object.freeze({ width: 400, row: 20, gap: 4, section: 8, prompt: 42, domInset: 16, inset: 15 });
 const SELECT_METHOD = "Select model first";
 const METHODS = [
     "T2V", "I2V", "FLF2V", "IR2V", "MI2V", "VR2V", "AR2V", "MMR2V",
-    "V2V_EDIT", "V2V_EXTEND",
+    "V2V_EDIT", "V2V_EXTEND", "V2V_UPSCALE", "AVATAR_AUDIO",
 ];
 const METHOD_LABELS = {
     T2V: "T2V — Text → Video",
@@ -24,6 +24,8 @@ const METHOD_LABELS = {
     MMR2V: "MMR2V — Mixed Multimodal References → Video",
     V2V_EDIT: "V2V_EDIT — Source Video → Edited Video",
     V2V_EXTEND: "V2V_EXTEND — Source Video → Extended Video",
+    V2V_UPSCALE: "Upscale Video",
+    AVATAR_AUDIO: "Photo + Audio → Talking Avatar",
 };
 let capabilityPromise;
 let capabilityInFlight;
@@ -1211,7 +1213,77 @@ function publishSemanticProjection(node) {
     }
 }
 
+function providerOptionLeaves(spec, path = [], values = [], counts = {}) {
+    if (spec?.type === "array") {
+        const count = counts[JSON.stringify(path)] ?? Math.max(0, ...values.filter(v =>
+            path.every((key,index) => v.path?.[index] === key) && Number.isInteger(v.path?.[path.length]))
+            .map(v => v.path[path.length] + 1));
+        return Array.from({length:Math.min(count,spec.max_items)}, (_,index) =>
+            providerOptionLeaves(spec.items,[...path,index],values,counts)).flat();
+    }
+    if (spec?.type !== "object") return [{path, spec}];
+    const variants = spec.variants;
+    const selected = variants && values.find(v => JSON.stringify(v.path || []) === JSON.stringify([...path, variants.discriminator_field]))?.value;
+    const variant = variants?.cases?.[selected];
+    return Object.entries(spec.fields || {}).flatMap(([key, child]) => {
+        if (variants && key !== variants.discriminator_field &&
+            (!variant || variant.forbidden_fields?.includes(key) ||
+             (variant.allowed_fields && !variant.allowed_fields.includes(key)))) return [];
+        const narrowed = {...child, required:Boolean(child.required || spec.required_fields?.includes(key) || variant?.required_fields?.includes(key)),
+            ...(variant?.field_values?.[key] ? {values:variant.field_values[key]} : {})};
+        return providerOptionLeaves(narrowed, [...path, key], values, counts);
+    });
+}
+
+function providerOptionLeaf(spec, path = []) {
+    if (!Array.isArray(path)) return null;
+    for (const key of path) {
+        if (spec?.type === "array" && Number.isInteger(key) && key >= 0 && key < spec.max_items) {
+            spec = spec.items;
+            continue;
+        }
+        if (spec?.type !== "object" || !Object.hasOwn(spec.fields || {}, key)) return null;
+        spec = spec.fields[key];
+    }
+    return !["object","array"].includes(spec?.type) ? spec : null;
+}
+
+function providerObjectIssue(spec, values, path = []) {
+    const descendants = values.filter(v => path.every((key, index) => v.path?.[index] === key));
+    if (spec.type === "array") {
+        if (!descendants.length) return "";
+        const count = Math.max(...descendants.map(v=>v.path[path.length]))+1;
+        if (count < spec.min_items || count > spec.max_items) return "Provider array count is outside the supported range.";
+        for (let index=0;index<count;index++) {
+            const child=descendants.filter(v=>v.path[path.length]===index);
+            if (!child.length) return "Complete each provider array item before Generate.";
+            const issue=providerObjectIssue(spec.items,child,[...path,index]);
+            if (issue) return issue;
+        }
+        return "";
+    }
+    if (spec.type !== "object") return spec.required && !descendants.some(v =>
+        JSON.stringify(v.path || []) === JSON.stringify(path) && (typeof v.value !== "string" || v.value.trim()))
+        ? `Required provider control: ${path.join(" · ") || "value"}.` : "";
+    if (!descendants.length) return "";
+    const present = key => descendants.some(v => v.path?.[path.length] === key &&
+        (typeof v.value !== "string" || v.value.trim()));
+    const discriminator = spec.variants?.discriminator_field;
+    const selected = discriminator && descendants.find(v => JSON.stringify(v.path) === JSON.stringify([...path,discriminator]))?.value;
+    const variant = spec.variants?.cases?.[selected];
+    for (const key of [...(spec.required_fields || []), ...(variant?.required_fields || [])])
+        if (!present(key)) return `Required provider control: ${[...path,key].join(" · ")}.`;
+    for (const group of [...(spec.one_of_required || []), ...(variant?.one_of_required || [])])
+        if (group.filter(present).length !== 1) return `Choose exactly one provider control: ${group.join(" / ")}.`;
+    for (const [key, child] of Object.entries(spec.fields || {})) {
+        const issue = providerObjectIssue(child, descendants, [...path,key]);
+        if (issue) return issue;
+    }
+    return "";
+}
+
 function configureOperationControls(node, profile) {
+    node.__orvProviderProfile = profile;
     const controls = profile.controls || {};
     for (const name of ["previous_job_id", "upscale_factor", "creativity"]) {
         let item = widget(node, name);
@@ -1246,37 +1318,114 @@ function configureOperationControls(node, profile) {
     catch { saved = null; }
     if (!Array.isArray(saved) || saved.some(v => !v || typeof v !== "object")) return "Invalid saved provider controls; repair before Generate.";
     const providers = controls.provider_options?.state === "SUPPORTED" ? controls.provider_options.providers || {} : {};
-    const issue = saved.some(v => !providers[v.provider]?.[v.key] ||
+    const activeLeaf = v => providerOptionLeaves(providers[v.provider]?.[v.key], [], saved.filter(other =>
+        other.provider === v.provider && other.key === v.key && (other.container || null) === (v.container || null)))
+        .find(leaf => JSON.stringify(leaf.path) === JSON.stringify(v.path || []))?.spec;
+    let issue = saved.some(v => !providerOptionLeaf(providers[v.provider]?.[v.key], v.path || []) ||
+        !activeLeaf(v) || (activeLeaf(v).values && !activeLeaf(v).values.includes(v.value)) ||
         (providers[v.provider][v.key].container || null) !== (v.container || null))
         ? "Saved provider controls are no longer supported; choose an explicit replacement." : "";
     for (const [provider, options] of Object.entries(providers)) for (const [key, spec] of Object.entries(options)) {
-        if (spec.default !== undefined && spec.values?.length === 1) continue;
+        const problem = providerObjectIssue(spec, saved.filter(v => v.provider === provider && v.key === key));
+        if (!issue && problem) issue = `${key}: ${problem}`;
+        if(saved.some(v=>v.provider===provider&&v.key===key)) for(const [dependency,domain] of Object.entries(spec.requires || {})) {
+            const selected=saved.find(v=>v.provider===provider&&v.key===dependency)?.value ?? options[dependency]?.omitted_default;
+            if(!domain.includes(selected)&&!issue)issue=`${key}: requires compatible ${dependency}.`;
+        }
+    }
+    for (const [provider, options] of Object.entries(providers)) for (const [key, root] of Object.entries(options)) {
+        const values=saved.filter(v=>v.provider===provider&&v.key===key), counts={};
+        if (root.type === "array") {
+            const name=`provider_option:${provider}:${root.container || ""}:${key}:count`;
+            let count=widget(node,name);
+            const storedCount=Math.max(0,...values.map(v=>Number(v.path?.[0])+1));
+            if (!count) {
+                count=node.addWidget("combo",name,storedCount,value=>{
+                    count.value=Number(value);
+                    let entries;try {entries=storage.value?JSON.parse(storage.value):[];}catch{return;}
+                    storage.value=JSON.stringify(entries.filter(v=>v.provider!==provider||v.key!==key||v.path?.[0]<count.value));
+                    const problem=configureOperationControls(node,node.__orvProviderProfile);
+                    if(node.__orvCapabilityStatus)node.__orvCapabilityStatus.value=problem || "";
+                    setVisible(node.__orvCapabilityStatus,Boolean(problem));
+                    publishSemanticProjection(node);node.setDirtyCanvas?.(true,true);
+                },{values:Array.from({length:root.max_items+1},(_,i)=>i)});
+                count.__orvProviderOption=true;count.serialize=false;
+            }
+            count.label=`${key} · count`;
+            count.value=Math.max(Number(count.value)||0,storedCount);
+            if(count.value>storedCount&&!issue)issue=`${key}: Complete each provider array item before Generate.`;
+            counts['[]']=count.value;setVisible(count,true);
+        }
+        for (const leaf of providerOptionLeaves(root, [], values, counts)) {
+        const path = leaf.path, spec = {...leaf.spec, container:root.container};
+        if (spec.values?.length === 1 && (spec.default !== undefined || spec.omitted_default === spec.values[0])) continue;
         const defaultLabel = "AUTO / PROVIDER DEFAULT";
         const boolean = spec.type === "boolean";
-        const choices = boolean ? [defaultLabel, "true", "false"]
+        const enabled=Object.entries(root.requires || {}).every(([dependency,domain])=>domain.includes(
+            saved.find(v=>v.provider===provider&&v.key===dependency)?.value ?? options[dependency]?.omitted_default));
+        const choices = !enabled ? [defaultLabel] : boolean ? [defaultLabel, "true", "false"]
             : spec.values ? [defaultLabel, ...spec.values] : undefined;
-        const name = `provider_option:${provider}:${spec.container || ""}:${key}`;
-        const old = saved.find(v => v.provider === provider && v.key === key && (v.container || null) === (spec.container || null));
+        const numeric = !choices && ["integer", "number"].includes(spec.type);
+        const name = `provider_option:${provider}:${spec.container || ""}:${key}${path.length ? ":" + path.join(":") : ""}`;
+        const matches = v => v.provider === provider && v.key === key &&
+            (v.container || null) === (spec.container || null) && JSON.stringify(v.path || []) === JSON.stringify(path);
+        const old = saved.find(matches);
         let item = widget(node, name);
         if (!item) {
             const type = choices ? "combo" : ["integer", "number"].includes(spec.type) ? "number" : "text";
             item = node.addWidget(type, name, old?.value ?? "", value => {
+                if (numeric && value !== defaultLabel && widget(node, name + ":override")?.value !== "SET") return;
                 let values;
                 try { values = storage.value ? JSON.parse(storage.value) : []; } catch { return; }
                 if (!Array.isArray(values)) return;
-                const remaining = values.filter(v => !(v.provider === provider && v.key === key && (v.container || null) === (spec.container || null)));
+                const remaining = values.filter(v => !matches(v));
                 if (value !== "" && value !== defaultLabel) remaining.push({provider, key,
-                    value: boolean ? value === "true" : value, ...(spec.container ? {container:spec.container} : {})});
+                    value: boolean ? value === "true" : value, ...(spec.container ? {container:spec.container} : {}),
+                    ...(path.length ? {path} : {})});
                 storage.value = JSON.stringify(remaining);
+                const issue = configureOperationControls(node, node.__orvProviderProfile);
+                if (node.__orvCapabilityStatus) node.__orvCapabilityStatus.value = issue || "";
+                setVisible(node.__orvCapabilityStatus, Boolean(issue));
+                publishSemanticProjection(node);
+                node.setDirtyCanvas?.(true, true);
+                void refreshEstimate(node);
             }, {values:choices, min:spec.min, max:spec.max, step:spec.type === "integer" ? 1 : undefined});
             item.__orvProviderOption = true;
             item.serialize = false;
         }
-        item.label = key;
+        item.label = [key, ...path].join(" · ") + (spec.required ? " (required)" : "");
+        Object.assign(item.options ||= {}, {min:spec.min, max:spec.max});
+        item.options.tooltip=[spec.max_length == null ? "" : `Maximum ${spec.max_length} characters`,
+            ...Object.entries(root.requires || {}).map(([key,domain])=>`Requires ${key}: ${domain.join(" / ")}`)].filter(Boolean).join("; ");
         if (choices) (item.options ||= {}).values = choices;
-        item.value = old ? boolean ? String(old.value) : old.value : choices ? defaultLabel : "";
-        setVisible(item, true);
+        item.value = old ? boolean ? String(old.value) : old.value : choices ? defaultLabel : numeric ? spec.omitted_default ?? spec.min ?? 0 : "";
+        let mode = widget(node, name + ":override");
+        if (numeric && !mode) {
+            mode = node.addWidget("combo", name + ":override", old ? "SET" : defaultLabel, value => {
+                mode.value = value;
+                item.callback(value === "SET" ? item.value : defaultLabel);
+                setVisible(item, value === "SET");
+                publishSemanticProjection(node);
+                node.setDirtyCanvas?.(true, true);
+            }, {values:[defaultLabel, "SET"]});
+            mode.__orvProviderOption = true;
+            mode.serialize = false;
+        }
+        if (mode) {
+            mode.label = item.label;
+            mode.value = old ? "SET" : defaultLabel;
+            setVisible(mode, numeric);
+        }
+        setVisible(item, !numeric || Boolean(old));
+        }
     }
+    const geometry=new Set(),omitted=new Set();
+    for(const [provider,options]of Object.entries(providers))for(const [key,spec]of Object.entries(options)){
+        for(const name of spec.omits_controls || [])geometry.add(name);
+        const selected=saved.find(v=>v.provider===provider&&v.key===key);
+        if(selected&&(!spec.omit_when||spec.omit_when.includes(selected.value)))for(const name of spec.omits_controls || [])omitted.add(name);
+    }
+    for(const name of geometry)setVisible(widget(node,name),!omitted.has(name)&&controls[name]?.state==='SUPPORTED');
     return issue;
 }
 
@@ -1301,6 +1450,15 @@ function reprojectNodeSemantics(node, capability, method) {
     for (const name of ["prompt", "duration", "resolution", "aspect_ratio", "size", "seed", "generate_audio"]) {
         setVisible(widget(node, name), scoped.__methodProfile.controls?.[name]?.state === "SUPPORTED");
     }
+    const prompt = widget(node, "prompt"), promptSpec = scoped.__methodProfile.controls?.prompt;
+    if (prompt) {
+        prompt.label = promptSpec?.required === false ? "Prompt (optional)" : "Prompt";
+        const bounds = [promptSpec?.min_length == null ? "" : `minimum ${promptSpec.min_length} characters`,
+            promptSpec?.max_length == null ? "" : `maximum ${promptSpec.max_length} characters`].filter(Boolean);
+        (prompt.options ||= {}).tooltip = bounds.join("; ");
+        // Communicate reviewed constraints without truncating saved user text.
+        if (prompt.element) prompt.element.title = bounds.join("; ");
+    }
     if (scoped.supports_seed) {
         const seed = widget(node, "seed");
         const bounds = scoped.__methodProfile.controls.seed.integer_range;
@@ -1320,7 +1478,9 @@ function reprojectNodeSemantics(node, capability, method) {
             seed.value = -1;
         }
     }
-    const operationIssue = configureOperationControls(node, scoped.__methodProfile);
+    const conflicts=Object.entries(scoped.__methodProfile.controls || {}).filter(([,spec])=>spec.state==='CONFLICT').map(([name])=>name);
+    const operationIssue = configureOperationControls(node, scoped.__methodProfile) ||
+        (conflicts.length ? `Upstream contract conflict: ${conflicts.join(" / ")}. These controls are omitted.` : "");
     if (node.__orvCapabilityStatus && operationIssue) node.__orvCapabilityStatus.value = operationIssue;
     setVisible(node.__orvCapabilityStatus, Boolean(operationIssue));
     fitPresentationWidth(node);
@@ -1420,7 +1580,7 @@ function fixedRolesForMethod(method) {
 }
 
 function methodUsesReferences(method) {
-    return ["IR2V", "MI2V", "VR2V", "AR2V", "MMR2V", "V2V_EDIT", "V2V_EXTEND"].includes(method);
+    return ["IR2V", "MI2V", "VR2V", "AR2V", "MMR2V", "V2V_EDIT", "V2V_EXTEND", "AVATAR_AUDIO"].includes(method);
 }
 
 function referencePrefix(method, input) {
@@ -1531,8 +1691,11 @@ function configureReferenceTopology(node, capability, method) {
     const unlinked = inputs.filter((item) => item.link == null);
     const limit = capability.max_reference_count;
     const effectiveLimit = Number.isInteger(limit) && limit >= 0 ? limit : null;
-    const sourceCount = inputByName(node, "source_video")?.link != null ? 1 : 0;
-    const reservedSourceCount = keepFixed.has("source_video") ? 1 : 0;
+    // Reviewed topology.max counts optional references; the fixed source is
+    // already reserved when deriving that method profile. Legacy global
+    // budgets still include it. Do not reserve the same source twice.
+    const sourceCount = capability.__methodProfile ? 0 : inputByName(node, "source_video")?.link != null ? 1 : 0;
+    const reservedSourceCount = capability.__methodProfile ? 0 : keepFixed.has("source_video") ? 1 : 0;
     const usesReferences = topology.max > 0;
     const exactOne = method === "IR2V";
     const keepTrailing = usesReferences &&
@@ -1781,6 +1944,16 @@ function selectedReferenceKinds(node) {
 }
 
 async function refreshEstimate(node) {
+    const revision=node.__orvEstimateRevision=(node.__orvEstimateRevision || 0)+1;
+    let providerControls;
+    try { providerControls=JSON.parse(widget(node,"provider_options")?.value || "[]"); }
+    catch { providerControls=null; }
+    const providerSchema=node.__orvCapability?.__methodProfile?.controls?.provider_options?.providers || {};
+    if(!Array.isArray(providerControls)||providerControls.length||Object.values(providerSchema).some(options=>Object.values(options).some(spec=>spec.required))){
+        node.__orvEstimate.value="ESTIMATE UNAVAILABLE";
+        node.setDirtyCanvas?.(true,true);
+        return;
+    }
     if (geometryAuthority(node) === "AMBIGUOUS") {
         node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
         return;
@@ -1821,11 +1994,13 @@ async function refreshEstimate(node) {
         });
         if (!response.ok) throw new Error("estimate unavailable");
         const result = await response.json();
+        if(revision!==node.__orvEstimateRevision)return;
         node.__orvEstimate.value =
             result.availability === "AVAILABLE"
                 ? `≈ $${result.estimated_cost_usd} EST.`
                 : "ESTIMATE UNAVAILABLE";
     } catch {
+        if(revision!==node.__orvEstimateRevision)return;
         node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
     }
     node.setDirtyCanvas?.(true, true);

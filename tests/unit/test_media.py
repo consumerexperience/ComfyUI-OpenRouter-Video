@@ -71,8 +71,20 @@ def test_download_accepts_webm_and_reuses_valid_existing_artifact(tmp_path: Path
     assert client.calls == 1
 
 
-def test_quicktime_is_disabled_and_invalid_content_is_bounded_to_three_gets(tmp_path: Path) -> None:
-    client = ContentStub([QUICKTIME, QUICKTIME, QUICKTIME])
+def test_quicktime_is_preserved_and_reused_without_container_relabeling(tmp_path: Path) -> None:
+    client = ContentStub([(QUICKTIME, {"Content-Type": "video/quicktime"})])
+    service = DownloadService(client=client, output_root=tmp_path, sleep=_no_sleep)
+    first = asyncio.run(service.download("job-1"))
+    assert first.path.suffix == ".mov"
+    assert first.media_type == "video/quicktime"
+    assert first.path.read_bytes() == QUICKTIME
+    assert asyncio.run(service.download("job-1")) == first
+    assert client.calls == 1
+    assert not tuple(tmp_path.glob("*.part"))
+
+
+def test_invalid_content_is_bounded_to_three_gets(tmp_path: Path) -> None:
+    client = ContentStub([b"<html>not video</html>"] * 3)
     service = DownloadService(
         client=client,
         output_root=tmp_path,

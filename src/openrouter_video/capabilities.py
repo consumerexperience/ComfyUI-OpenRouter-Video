@@ -301,6 +301,8 @@ class RequestValidator:
         if request.prompt is not None and not isinstance(request.prompt, str):
             self._fail(ProductErrorCode.UNSUPPORTED_PARAMETER, "Prompt must be text.")
         prompt_optional_method = request.inference_method in {
+            InferenceMethod.I2V,
+            InferenceMethod.FLF2V,
             InferenceMethod.V2V_UPSCALE,
             InferenceMethod.AVATAR_AUDIO,
         }
@@ -404,6 +406,15 @@ class RequestValidator:
             controls = scoped["controls"]
             if request.prompt is None and controls.get("prompt", {}).get("required", True):
                 self._fail(ProductErrorCode.UNSUPPORTED_PARAMETER, "This method requires a prompt.")
+            if request.prompt is not None:
+                bounds = controls.get("prompt", {})
+                if len(request.prompt) < bounds.get("min_length", 0) or len(
+                    request.prompt
+                ) > bounds.get("max_length", math.inf):
+                    self._fail(
+                        ProductErrorCode.UNSUPPORTED_PARAMETER,
+                        "Prompt length exceeds the documented method bounds.",
+                    )
             specialized_values = {
                 "upscale_factor": request.upscale_factor,
                 "creativity": request.creativity,
@@ -440,6 +451,18 @@ class RequestValidator:
                             ProductErrorCode.UNSUPPORTED_PARAMETER,
                             f"{name} is outside the reviewed range.",
                         )
+        if (
+            scoped is None
+            and request.prompt is None
+            and request.inference_method
+            in {
+                InferenceMethod.I2V,
+                InferenceMethod.FLF2V,
+            }
+        ):
+            self._fail(
+                ProductErrorCode.UNSUPPORTED_PARAMETER, "Unreviewed image methods require a prompt."
+            )
         if scoped is None and (
             request.previous_job_id is not None
             or request.upscale_factor is not None
@@ -591,6 +614,10 @@ class RequestValidator:
                     media,
                     max_bytes=max_bytes,
                     max_duration_seconds=min(durations) if durations else None,
+                    min_duration_seconds=max(
+                        media.min_duration_seconds or 0, rule.get("min_duration_seconds", 0)
+                    )
+                    or None,
                 ),
             )
 
@@ -841,7 +868,7 @@ def request_witness(model: ModelCapabilities, method: InferenceMethod) -> Genera
         return None
     controls, topology = profile["controls"], profile["topology"]
     prompt_control = controls.get("prompt", {})
-    if prompt_control.get("state") != "SUPPORTED":
+    if prompt_control.get("state") != "SUPPORTED" and prompt_control.get("required", True):
         return None
     domains: dict[str, list[Any]] = {}
     for name in ("duration", "resolution", "aspect_ratio", "size"):
@@ -875,7 +902,7 @@ def request_witness(model: ModelCapabilities, method: InferenceMethod) -> Genera
         previous_job_id = "gen-vid-1234567890-12345678901234567890"
     provider_options: tuple[ProviderOption, ...] = ()
     option_control = scalar_controls.get("provider_options", {})
-    if option_control.get("state") == "SUPPORTED" and option_control.get("required") is True:
+    if option_control.get("state") == "SUPPORTED":
         schemas = option_control.get("providers", {})
         for provider, schema in schemas.items():
             if not isinstance(schema, dict):
@@ -883,13 +910,16 @@ def request_witness(model: ModelCapabilities, method: InferenceMethod) -> Genera
             for key, spec in schema.items():
                 if not isinstance(spec, dict):
                     continue
+                if not spec.get("required") and not option_control.get("required"):
+                    continue
                 value = spec.get("values", [None])[0]
                 if value is None:
-                    value = spec.get("min", False if spec.get("type") == "boolean" else 0)
-                provider_options = (ProviderOption(provider, key, value, spec.get("container")),)
-                break
-            if provider_options:
-                break
+                    value = (
+                        "TEST_ONLY_REQUIRED_VALUE"
+                        if spec.get("type") == "string"
+                        else spec.get("min", False if spec.get("type") == "boolean" else 0)
+                    )
+                provider_options += (ProviderOption(provider, key, value, spec.get("container")),)
     validator = RequestValidator()
     for geometry in ("NORMALIZED", "EXACT"):
         for values in islice(product(*domains.values(), references), 4096):

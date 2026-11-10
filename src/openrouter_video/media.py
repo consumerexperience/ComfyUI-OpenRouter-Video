@@ -164,7 +164,7 @@ class DownloadService:
 
     def _find_existing(self, job_id: str) -> VideoArtifact | None:
         stem = hashlib.sha256(job_id.encode("utf-8")).hexdigest()[:24]
-        for extension in (".mp4", ".webm"):
+        for extension in (".mp4", ".webm", ".mov"):
             candidate = self._output_root / f"{stem}{extension}"
             if candidate.exists():
                 return self.load_artifact(candidate.name)
@@ -178,11 +178,11 @@ class DownloadService:
 def _detect_container(header: bytes) -> tuple[str, str]:
     if len(header) >= 12 and header[4:8] == b"ftyp":
         if header[8:12] == b"qt  ":
-            raise InvalidVideoResponseError("QuickTime content is disabled in Phase 5")
+            return "video/quicktime", ".mov"
         return "video/mp4", ".mp4"
     if header.startswith(b"\x1aE\xdf\xa3") and b"webm" in header.lower():
         return "video/webm", ".webm"
-    raise InvalidVideoResponseError("Video content is not MP4 or WebM")
+    raise InvalidVideoResponseError("Video content is not MP4, WebM or QuickTime")
 
 
 def _retryable_download(error: BaseException) -> bool:

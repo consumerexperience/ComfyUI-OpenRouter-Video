@@ -14,6 +14,32 @@ def test_existing_runtime_methods_are_unchanged() -> None:
         subprocess.check_output(["git", "show", f"796697a:{path}"], cwd=ROOT).decode()  # noqa: S603,S607
     )
     after = ast.parse((ROOT / path).read_text(encoding="utf-8"))
+    # Owner's full capability delta adds exactly one read-only unavailable
+    # estimate guard. Normalize only that exact AST; retain every prior
+    # submit/Resume/lifecycle/security assertion below.
+    expected_guard = ast.parse("""
+if any(
+    spec.get("required") is True
+    for options in profile["controls"].get("provider_options", {}).get("providers", {}).values()
+    for spec in options.values()
+):
+    return EstimateResult.unavailable(
+        observation.observed_at, "provider_configuration_pricing_unverified"
+    )
+""").body[0]
+
+    class NormalizeEstimateGuard(ast.NodeTransformer):
+        removed = 0
+
+        def visit_If(self, node: ast.If) -> ast.AST | None:
+            if ast.dump(node) == ast.dump(expected_guard):
+                self.removed += 1
+                return None
+            return self.generic_visit(node)
+
+    normalization = NormalizeEstimateGuard()
+    after = normalization.visit(after)
+    assert normalization.removed == 1
 
     def members(tree: ast.Module) -> dict[str, str]:
         cls = next(

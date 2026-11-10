@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 BASE = "058f5bcdd462a2a71f4f85151d9bbba3bc09bcf9"
 GIT = shutil.which("git")
 ALLOWED = {
+    "src/openrouter_video/media.py": "capabilities",
     "src/openrouter_video/local_media.py": "storage",
     "src/openrouter_video/comfy/native_media.py": "native_media",
     "src/openrouter_video/comfy/compat.py": "capabilities",
@@ -27,6 +28,7 @@ ALLOWED = {
     "src/openrouter_video/recipes.py": "recipes",
     "src/openrouter_video/comfy/nodes.py": "capabilities",
     "src/openrouter_video/application.py": "submit_resume",
+    "src/openrouter_video/comfy/runtime.py": "submit_resume",
     "src/openrouter_video/capabilities.py": "capabilities",
     "src/openrouter_video/eligibility.py": "capabilities",
     "src/openrouter_video/comfy/projection.py": "capabilities",
@@ -84,6 +86,8 @@ def main():
                     "Owner 6497404b: bounded discovery/eligibility/refresh delta; "
                     "Owner architectural correction 8fad0a0c: reuse existing Core "
                     "capability service and Owner FULL FEATURE PARITY continuation; "
+                    "Owner cf05eca6: close verified catalogue gaps, typed composite "
+                    "provider controls and documented output containers; "
                     "not release acceptance."
                 ),
             }
@@ -106,7 +110,11 @@ def main():
             *[
                 "/surfaces/product_owned/submit_resume/" + key.replace("~", "~0")
                 for key in baseline["surfaces"]["product_owned"].get("submit_resume", {})
-                if key != "src~1openrouter_video~1application_py"
+                if key
+                not in {
+                    "src~1openrouter_video~1application_py",
+                    "src~1openrouter_video~1comfy~1runtime_py",
+                }
             ],
             "/surfaces/product_owned/AppIdentity",
             *[

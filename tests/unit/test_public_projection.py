@@ -187,7 +187,9 @@ def test_hailuo_and_grok_joint_domains_are_not_cartesian_and_unrelated_modes_sur
     )
     assert 15 in project_method(grok, "T2V")["controls"]["duration"]["values"]
     assert "480p" in project_method(grok, "I2V")["controls"]["resolution"]["values"]
-    assert project_method(grok, "I2V")["controls"]["aspect_ratio"]["state"] == "UNKNOWN"
+    aspect = project_method(grok, "I2V")["controls"]["aspect_ratio"]
+    assert aspect["state"] == "UNSUPPORTED"  # current native docs confirm input-driven aspect
+    assert "values" not in aspect
 
 
 def test_hidden_values_and_roles_are_omitted_before_serializer_without_method_coercion() -> None:

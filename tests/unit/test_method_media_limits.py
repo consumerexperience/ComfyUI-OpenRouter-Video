@@ -8,7 +8,12 @@ import pytest
 
 from openrouter_video.capabilities import RequestValidator
 from openrouter_video.local_media import MAX_OBJECT_BYTES, LocalMedia, NativeMediaError
-from openrouter_video.models import InferenceMethod, InputReference, InputReferenceKind
+from openrouter_video.models import (
+    InferenceMethod,
+    InputReference,
+    InputReferenceCollection,
+    InputReferenceKind,
+)
 from tests.unit.test_full_catalogue_coverage import model, witness
 
 
@@ -75,3 +80,36 @@ def test_extension_reserves_output_within_thirty_second_total(
     assert media.encode(tmp_path / "boundary.mp4") == 5
     with pytest.raises(NativeMediaError, match="duration limit"):
         replace(media, duration=lambda: expected_limit + 0.01).encode(tmp_path / "unused.mp4")
+
+
+@pytest.mark.parametrize("duration,valid", [(1.99, False), (2, True), (30, True), (30.01, False)])
+def test_wan_reference_video_bounds_are_checked_before_encoding(
+    duration: float, valid: bool, tmp_path: Path
+) -> None:
+    writes: list[Path] = []
+
+    def write(path: Path) -> None:
+        writes.append(path)
+        path.write_bytes(b"video")
+
+    original = LocalMedia("video/mp4", ".mp4", write, duration=lambda: duration)
+    m = model("alibaba/wan-2.6")
+    request = replace(
+        witness(m, InferenceMethod.VR2V),
+        input_references=InputReferenceCollection(
+            (InputReference(InputReferenceKind.VIDEO, local_media=original),)
+        ),
+    )
+    bound = RequestValidator().prepare_native_media(request, m)
+    assert bound.input_references is not None
+    media = bound.input_references.references[0].local_media
+    assert (
+        media is not None and media.min_duration_seconds == 2 and media.max_duration_seconds == 30
+    )
+    assert original.min_duration_seconds is None
+    if valid:
+        assert media.encode(tmp_path / "video.mp4") == 5
+    else:
+        with pytest.raises(NativeMediaError, match="duration limit"):
+            media.encode(tmp_path / "unused.mp4")
+        assert not writes

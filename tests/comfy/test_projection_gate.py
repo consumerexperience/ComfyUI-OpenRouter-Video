@@ -167,7 +167,6 @@ def test_estimator_consumes_same_omitted_semantics_and_never_contacts_network(
             hidden = replace(
                 ordinary,
                 generate_audio=True,
-                size="480x480",
                 reference_kinds=(InputReferenceKind.AUDIO,),
                 reference_count=1,
                 source_video_present=True,
@@ -177,10 +176,60 @@ def test_estimator_consumes_same_omitted_semantics_and_never_contacts_network(
             assert first.availability is second.availability is EstimateAvailability.AVAILABLE
             assert first.estimated_cost_usd == second.estimated_cost_usd == Decimal("0.03")
             assert first.applied_skus == second.applied_skus
+            # Exact sizes are now positively reconciled for this T2V
+            # method, so simultaneous normalized/exact intent is a real
+            # conflict rather than hidden state to ignore.
+            conflicted = await process.estimate_cost(replace(ordinary, size="480x480"))
+            assert conflicted.availability is EstimateAvailability.UNAVAILABLE
+            assert conflicted.reason == "geometry_intent_conflict"
             blocked = await process.estimate_cost(
                 replace(ordinary, inference_method=InferenceMethod.AR2V)
             )
             assert blocked.availability is EstimateAvailability.UNAVAILABLE
+        finally:
+            await process.aclose(timeout=2)
+
+    asyncio.run(scenario())
+
+
+def test_required_provider_configuration_yields_unavailable_estimate_without_network(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    raw = json.loads((ROOT / "tests/fixtures/op07-full-catalogue.json").read_text(encoding="utf8"))[
+        "data"
+    ]
+    capability = enrich_capabilities(
+        _parse_capability(next(row for row in raw if row["id"] == "heygen/avatar-iv"))
+    )
+    observed = datetime.now(timezone.utc)
+
+    class Capabilities:
+        async def effective_catalog(self) -> CapabilityObservation:
+            return CapabilityObservation(observed, (capability,))
+
+        def is_fresh(self, _: object) -> bool:
+            return True
+
+    def forbidden(_: httpx.Request) -> httpx.Response:
+        pytest.fail("Estimate must not issue HTTP")
+
+    monkeypatch.setattr(
+        runtime.HttpxTransport,
+        "create",
+        classmethod(lambda cls: cls.for_test(httpx.MockTransport(forbidden))),
+    )
+    monkeypatch.setattr(runtime.compat, "host_interrupted", lambda: False)
+
+    async def scenario() -> None:
+        process = runtime.ProcessRuntime(tmp_path / "jobs.sqlite3", tmp_path / "output")
+        try:
+            process._resources = replace(process._require_resources(), capabilities=Capabilities())
+            result = await process.estimate_cost(
+                CostEstimateInputs(capability.model_id, inference_method=InferenceMethod.IR2V)
+            )
+            assert result.availability is EstimateAvailability.UNAVAILABLE
+            assert result.reason == "provider_configuration_pricing_unverified"
         finally:
             await process.aclose(timeout=2)
 

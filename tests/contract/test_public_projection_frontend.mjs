@@ -352,3 +352,178 @@ test('optional provider boolean distinguishes default, true and false through wo
     option.callback('AUTO / PROVIDER DEFAULT');
     assert.deepEqual(JSON.parse(storage.value),[]);
 });
+
+test('Omni edit allows six image guides in addition to its fixed video source',()=>{
+    const capability=currentProjection.models.find(m=>m.model_id==='google/gemini-omni-1.2-flash');
+    const n=operationNode(capability.model_id,'V2V_EDIT');apply(n,capability,'V2V_EDIT');
+    const scoped=c.scopedCapability(capability,'V2V_EDIT');
+    const sourceInput=n.inputs.find(i=>i.name==='source_video');
+    sourceInput.link=8800;graph.links[8800]={origin_id:8800,origin_slot:0,type:'VIDEO'};
+    for(let i=0;i<6;i++){
+        c.configureReferenceTopology(n,scoped,'V2V_EDIT');
+        const free=n.inputs.find(input=>/reference_\d+$/.test(input.name)&&input.link==null);
+        assert(free,`guide ${i+1} must remain connectable`);
+        free.link=8801+i;graph.links[8801+i]={origin_id:8801+i,origin_slot:0,type:'IMAGE'};
+    }
+    c.configureReferenceTopology(n,scoped,'V2V_EDIT');
+    assert.equal(n.inputs.filter(i=>/reference_\d+$/.test(i.name)&&i.link!=null).length,6);
+    assert(!n.inputs.some(i=>/reference_\d+$/.test(i.name)&&i.link==null));
+    assert.equal(n.__orvReferenceInvalid,false);
+});
+
+test('nested provider leaves retain siblings, zero and explicit omission across workflow reload',()=>{
+    const n=operationNode('test/nested','T2V');
+    const profile={controls:{provider_options:{state:'SUPPORTED',providers:{runway:{contentModeration:{type:'object',fields:{
+        publicFigureThreshold:{type:'string',values:['auto','low']},
+        testNumber:{type:'number',min:0,max:1,omitted_default:0.5}
+    }}}}}}};
+    assert.equal(c.configureOperationControls(n,profile),'');
+    const prefix='provider_option:runway::contentModeration:';
+    const threshold=widget(n,prefix+'publicFigureThreshold');
+    const number=widget(n,prefix+'testNumber'), mode=widget(n,prefix+'testNumber:override');
+    assert(number.hidden); assert.equal(number.value,0.5);
+    threshold.callback('low');
+    mode.callback('SET'); number.callback(0);
+    let saved=JSON.parse(widget(n,'provider_options').value);
+    assert.equal(saved.length,2);
+    assert.equal(saved.find(v=>v.path[0]==='testNumber').value,0);
+    const restored=operationNode('test/nested','T2V');
+    widget(restored,'provider_options').value=JSON.stringify(saved);
+    c.configureOperationControls(restored,profile);
+    assert.equal(widget(restored,prefix+'testNumber').value,0);
+    assert(!widget(restored,prefix+'testNumber').hidden);
+    assert.equal(widget(restored,prefix+'publicFigureThreshold').value,'low');
+    widget(restored,prefix+'testNumber:override').callback('AUTO / PROVIDER DEFAULT');
+    saved=JSON.parse(widget(restored,'provider_options').value);
+    assert.equal(saved.length,1); assert.equal(saved[0].path[0],'publicFigureThreshold');
+    assert(widget(restored,prefix+'testNumber').hidden);
+    assert(widget(restored,'provider_options').hidden);
+});
+
+test('reviewed prompt constraints are visible without truncating saved text',()=>{
+    const capability=plain(currentProjection.models.find(m=>m.model_id==='minimax/hailuo-2.3'));
+    Object.assign(capability.method_profiles.I2V.controls.prompt,{required:false,max_length:2000});
+    const n=operationNode(capability.model_id,'I2V');
+    widget(n,'prompt').value='x'.repeat(2001);
+    apply(n,capability,'I2V');
+    assert.equal(widget(n,'prompt').label,'Prompt (optional)');
+    assert.match(widget(n,'prompt').options.tooltip,/maximum 2000 characters/);
+    assert.equal(widget(n,'prompt').value.length,2001);
+    Object.assign(capability.method_profiles.I2V.controls.prompt,{required:true,max_length:4096,min_length:1});
+    apply(n,capability,'I2V');
+    assert.equal(widget(n,'prompt').label,'Prompt');
+    assert.match(widget(n,'prompt').options.tooltip,/minimum 1 characters/);
+});
+
+test('provider object variants project only selected fields and preserve incompatible workflow intent',()=>{
+    const n=operationNode('test/variants','T2V');
+    const profile={controls:{provider_options:{state:'SUPPORTED',providers:{heygen:{voice_settings:{type:'object',fields:{engine_settings:{
+        type:'object',required_fields:['engine_type'],fields:{engine_type:{type:'string',values:['elevenlabs','fish','starfish']},
+            model:{type:'string'},style:{type:'number',min:0,max:1},similarity:{type:'number',min:0,max:1}},
+        variants:{discriminator_field:'engine_type',cases:{
+            elevenlabs:{forbidden_fields:['similarity'],field_values:{model:['eleven_v3','eleven_v4']}},
+            fish:{forbidden_fields:['style'],field_values:{model:['s2-pro','s2.1-pro']}},
+            starfish:{forbidden_fields:['model','style','similarity']}
+        }}
+    }}}}}}}};
+    c.configureOperationControls(n,profile);
+    const prefix='provider_option:heygen::voice_settings:engine_settings:';
+    assert(!widget(n,prefix+'model'));
+    widget(n,prefix+'engine_type').callback('elevenlabs');
+    assert(!widget(n,prefix+'model').hidden);
+    assert.deepEqual(plain(widget(n,prefix+'model').options.values),['AUTO / PROVIDER DEFAULT','eleven_v3','eleven_v4']);
+    widget(n,prefix+'model').callback('eleven_v4');
+    widget(n,prefix+'engine_type').callback('fish');
+    assert.equal(widget(n,prefix+'model').value,'eleven_v4');
+    assert.match(c.configureOperationControls(n,profile),/explicit replacement/);
+    assert.deepEqual(plain(widget(n,prefix+'model').options.values),['AUTO / PROVIDER DEFAULT','s2-pro','s2.1-pro']);
+    widget(n,prefix+'model').callback('s2.1-pro');
+    assert.equal(c.configureOperationControls(n,profile),'');
+    widget(n,prefix+'engine_type').callback('starfish');
+    assert(widget(n,prefix+'model').hidden);
+    assert.match(c.configureOperationControls(n,profile),/explicit replacement/);
+    assert(JSON.parse(widget(n,'provider_options').value).some(v=>v.value==='s2.1-pro'));
+    widget(n,prefix+'engine_type').callback('fish');
+    assert(!widget(n,prefix+'model').hidden);
+    assert.equal(widget(n,prefix+'model').value,'s2.1-pro');
+    assert.equal(c.configureOperationControls(n,profile),'');
+});
+
+test('bounded provider arrays use named row controls, preserve ordering and reload typed values',()=>{
+    const n=operationNode('runway/aleph-2','V2V_EDIT');
+    const keyframes={type:'array',min_items:1,max_items:5,items:{type:'object',required_fields:['uri'],one_of_required:[['seconds','at']],fields:{
+        uri:{type:'string'},seconds:{type:'number',min:0,max:30},at:{type:'number',min:0,max:1}
+    }}};
+    const profile={controls:{provider_options:{state:'SUPPORTED',providers:{runway:{keyframes}}}}};
+    c.configureOperationControls(n,profile);
+    const prefix='provider_option:runway::keyframes:';
+    const count=widget(n,prefix+'count');
+    assert.deepEqual(plain(count.options.values),[0,1,2,3,4,5]);
+    count.callback(2);
+    assert.match(c.configureOperationControls(n,profile),/Complete each/);
+    widget(n,prefix+'0:uri').callback('https://example.test/first.png');
+    widget(n,prefix+'0:seconds:override').callback('SET');
+    widget(n,prefix+'0:seconds').callback(0);
+    widget(n,prefix+'1:uri').callback('https://example.test/last.png');
+    widget(n,prefix+'1:at:override').callback('SET');widget(n,prefix+'1:at').callback(1);
+    assert.equal(c.configureOperationControls(n,profile),'');
+    const saved=widget(n,'provider_options').value;
+    const restored=operationNode('runway/aleph-2','V2V_EDIT');
+    widget(restored,'provider_options').value=saved;c.configureOperationControls(restored,profile);
+    assert.equal(widget(restored,prefix+'count').value,2);
+    assert.equal(widget(restored,prefix+'0:seconds').value,0);
+    assert.equal(widget(restored,prefix+'1:at').value,1);
+    widget(restored,prefix+'count').callback(1);
+    assert(JSON.parse(widget(restored,'provider_options').value).every(v=>v.path[0]===0));
+    assert(widget(restored,prefix+'1:uri').hidden);
+    widget(restored,prefix+'count').callback(0);
+    assert.deepEqual(JSON.parse(widget(restored,'provider_options').value),[]);
+    assert(widget(restored,'provider_options').hidden);
+});
+
+test('provider option estimate guard invalidates a prior in-flight numeric estimate',async()=>{
+    const capability=currentProjection.models.find(m=>m.model_id==='google/veo-3.1-lite');
+    const n=operationNode(capability.model_id,'T2V');apply(n,capability,'T2V');
+    const previous=c.api.fetchApi;
+    let resolve;
+    c.api.fetchApi=()=>new Promise(done=>{resolve=done;});
+    try{
+        const pending=c.refreshEstimate(n);
+        widget(n,'provider_options').value=JSON.stringify([{provider:'google-vertex',container:'parameters',key:'enhancePrompt',value:false}]);
+        await c.refreshEstimate(n);
+        assert.equal(n.__orvEstimate.value,'ESTIMATE UNAVAILABLE');
+        resolve({ok:true,async json(){return {availability:'AVAILABLE',estimated_cost_usd:'1'};}});
+        await pending;
+        assert.equal(n.__orvEstimate.value,'ESTIMATE UNAVAILABLE');
+    }finally{c.api.fetchApi=previous;}
+});
+
+test('avatar audio workflow preserves its exact method and mixed sockets, while script voice intent survives switching',()=>{
+    const capability=currentProjection.models.find(m=>m.model_id==='heygen/avatar-iv');
+    const n=operationNode(capability.model_id,'IR2V');apply(n,capability,'IR2V');
+    widget(n,'provider_option:heygen::voice_id').callback('TEST_ONLY_VOICE');
+    apply(n,capability,'AVATAR_AUDIO');
+    assert.equal(widget(n,'inference_method').value,'AVATAR_AUDIO');
+    assert(widget(n,'prompt').hidden);
+    assert(widget(n,'provider_option:heygen::voice_id').hidden);
+    const scoped=c.scopedCapability(capability,'AVATAR_AUDIO');
+    for(const [index,kind]of ['IMAGE','AUDIO'].entries()){
+        c.configureReferenceTopology(n,scoped,'AVATAR_AUDIO');
+        const input=n.inputs.find(i=>/reference_\d+$/.test(i.name)&&i.link==null);
+        assert(input && input.type.split(',').includes(kind));
+        const id=9500+index;
+        graph.nodes[id]={outputs:[{type:kind}]};
+        graph.links[id]={origin_id:id,origin_slot:0,type:kind};input.link=id;
+    }
+    c.configureReferenceTopology(n,scoped,'AVATAR_AUDIO');
+    assert.equal(n.__orvReferenceInvalid,false);
+    const saved=plain({properties:n.properties,inputs:n.inputs,values:Object.fromEntries(n.widgets.filter(w=>w.serialize!==false).map(w=>[w.name,w.value]))});
+    const restored=operationNode(capability.model_id,'AVATAR_AUDIO');restored.properties=saved.properties;restored.inputs=saved.inputs;
+    for(const [name,value]of Object.entries(saved.values))if(widget(restored,name))widget(restored,name).value=value;
+    apply(restored,capability,'AVATAR_AUDIO');
+    assert.equal(widget(restored,'inference_method').value,'AVATAR_AUDIO');
+    assert.equal(restored.inputs.filter(i=>i.link!=null).length,2);
+    assert(widget(restored,'prompt').hidden);
+    apply(n,capability,'IR2V');
+    assert.equal(widget(n,'provider_option:heygen::voice_id').value,'TEST_ONLY_VOICE');
+});

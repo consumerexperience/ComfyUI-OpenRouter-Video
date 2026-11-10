@@ -2,20 +2,22 @@
   "state": "UNACCEPTED_IMPLEMENTATION_CANDIDATE",
   "baseline_sha": "058f5bcdd462a2a71f4f85151d9bbba3bc09bcf9",
   "candidate_files": {
-    "src/openrouter_video/local_media.py": "9463b2f97ed6609a082b3648e25f1ce31d827d99baf778ce481092ec7ef45e6d",
+    "src/openrouter_video/media.py": "c44e8ad04a968664440dfe1b5856cb799c872760c19a21e175a0a92221f0256a",
+    "src/openrouter_video/local_media.py": "bc71a70a6446737900a976221b31b2880139f42b5f6e80b48eaaf23b2ae2a5b0",
     "src/openrouter_video/comfy/native_media.py": "ecd7c523f9fef5241a8c14018b4280d566f0ccffaf14a3ef7818eee13671433a",
-    "src/openrouter_video/comfy/compat.py": "f4feb4b4aad95ab92d8db117e01353c65a9d954ecf5c2064efd222e7999ecb88",
-    "src/openrouter_video/models.py": "44385316a606405c864ebc19f48afe2f09bc90882e03046179c5aff0a884c1c8",
+    "src/openrouter_video/comfy/compat.py": "63fd2e4228006ada3cb3f989784da7a7d9731439efabde1dff9e1f1b82cb1730",
+    "src/openrouter_video/models.py": "743595402a2df614e85501e3d105e0b28acd7d360cce7ec8bb7ca997de15b020",
     "src/openrouter_video/client.py": "826450e88a82efdbeadbf84c1f6e152445db6d9053ccf9cb76d2b4afb5332b9c",
-    "src/openrouter_video/configuration.py": "bcebf29c2a1dd17ee127eb7c68b56946cee891956bacdf78a50553e936e1fad6",
+    "src/openrouter_video/configuration.py": "7db0fd148dd0d8619c1aa82a56b116e97c9f320ffe0b02a66b6679f8ec82fc57",
     "src/openrouter_video/recipes.py": "29b11a33ae507c378213eb5ec619d72aaa614d47588c2e30057c7392a056cb53",
     "src/openrouter_video/comfy/nodes.py": "a785ef12145c92c0ea1d60099415e3a5aaa06115cd82a2e1c8899baa2fdd607f",
     "src/openrouter_video/application.py": "6f86c4c1367046a65946d0e4f69d07f5e1cffd6b48669cf410174e62aad48aa3",
-    "src/openrouter_video/capabilities.py": "6e872d32ea4aef0fb44ee21ab823fbe115e9f0eba15df226659abb838ada0d48",
+    "src/openrouter_video/comfy/runtime.py": "44d3e29cfff3e0b305c18516e59a1ea15a178de2ec1cd50ee0a4aa5b5119ccec",
+    "src/openrouter_video/capabilities.py": "68bb07036b5e9b8d71482f4ef19425f16d8333c2945d7fe43112205d254f52ac",
     "src/openrouter_video/eligibility.py": "3380ef4a5e3e9c3b5fb628ef5d00f99ef20afb11a822267108f824ed74e28041",
     "src/openrouter_video/comfy/projection.py": "0a1146f56fc306f284a7c401b46bb24517d4dd5b72ade8b3fc1a647d2d67071b",
     "src/openrouter_video/comfy/routes.py": "3015039e7a7509382de5f18373c53956fa5511cddd227c661acb33da58e8901e",
-    "src/openrouter_video/data/capability-evidence.json": "8b983ae5cdeeb26fc8be290cbb20084d6d367bcfdfd67aa67b21e79cba67c4c9",
-    "web/openrouter_video.js": "3fabbb56791c17e0340c7893eb4c46170756e924ddfe144aa549e1bd79e37e23"
+    "src/openrouter_video/data/capability-evidence.json": "4d9f78e52841d4086c2099483c899063cf79337c81ffdd73a3a1aa964602b4fa",
+    "web/openrouter_video.js": "9b5328e37dc8206c2a86eb973914b9eccd99a6f30266fab87e54a2b03591d93b"
   }
 }

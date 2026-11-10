@@ -219,6 +219,17 @@ class ProcessRuntime:
                         return EstimateResult.unavailable(
                             observation.observed_at, "method_not_projected"
                         )
+                    if any(
+                        spec.get("required") is True
+                        for options in profile["controls"]
+                        .get("provider_options", {})
+                        .get("providers", {})
+                        .values()
+                        for spec in options.values()
+                    ):
+                        return EstimateResult.unavailable(
+                            observation.observed_at, "provider_configuration_pricing_unverified"
+                        )
                     raw = {
                         k: getattr(inputs, k)
                         for k in (

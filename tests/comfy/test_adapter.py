@@ -388,6 +388,24 @@ def test_generate_bridges_typed_reference_collection(monkeypatch: pytest.MonkeyP
             "previous_job_id",
             "gen-vid-123-abcdefghijklmnopqrst",
         ),
+        (
+            "runway/gen-4.5",
+            "T2V",
+            {
+                "provider_options": json.dumps(
+                    [
+                        {
+                            "provider": "runway",
+                            "key": "contentModeration",
+                            "path": ["publicFigureThreshold"],
+                            "value": "low",
+                        }
+                    ]
+                )
+            },
+            "provider",
+            {"options": {"runway": {"contentModeration": {"publicFigureThreshold": "low"}}}},
+        ),
     ],
 )
 def test_specialized_adapter_fields_reach_real_core_wire(
@@ -420,7 +438,7 @@ def test_specialized_adapter_fields_reach_real_core_wire(
 
     monkeypatch.setattr(nodes, "get_runtime", Runtime)
     monkeypatch.setattr(nodes, "to_native_video", lambda _: "native-video")
-    if "previous_job_id" not in kwargs:
+    if method in {"V2V_UPSCALE", "V2V_EDIT"} and "previous_job_id" not in kwargs:
         kwargs["source_video"] = InputReference(
             InputReferenceKind.VIDEO, "https://assets.example/source.mp4"
         )
@@ -808,7 +826,7 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
 
     assert status == 200
     assert payload["observed_at"] == observed.isoformat()
-    assert payload["ui_contract_version"] == 6
+    assert payload["ui_contract_version"] == 7
     assert len(payload["catalogue_revision"]) == 64
     generate = nodes.OpenRouterVideoGenerate.define_schema()
     assert _schema_inputs(generate)["model"].options["options"] == ["SELECT MODEL"]
@@ -885,7 +903,7 @@ def test_health_route_is_pure_local_sanitized_observation(
         "catalogue_model_count": 30,
         "catalogue_revision": "a" * 64,
         "plugin_version": "9.9.9-test-only",
-        "ui_contract_version": 6,
+        "ui_contract_version": 7,
     }
     assert "key" not in repr(payload).lower()
     assert "authorization" not in repr(payload).lower()

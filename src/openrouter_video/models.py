@@ -188,6 +188,7 @@ class ProviderOption:
     key: str
     value: str | bool | int | float = field(repr=False)
     container: str | None = None
+    path: tuple[str | int, ...] = ()
 
     def __post_init__(self) -> None:
         if not isinstance(self.provider, str) or not re.fullmatch(
@@ -198,10 +199,64 @@ class ProviderOption:
             raise ValueError("Provider option key must be a non-empty scalar key.")
         if self.container not in (None, "parameters"):
             raise ValueError("Provider option container must be absent or 'parameters'.")
+        if (
+            not isinstance(self.path, (tuple, list))
+            or len(self.path) > 4
+            or any(
+                not (
+                    isinstance(part, str)
+                    and re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", part)
+                    or type(part) is int
+                    and 0 <= part < 64
+                )
+                for part in self.path
+            )
+        ):
+            raise ValueError(
+                "Provider option path must contain field names or bounded array indices."
+            )
+        object.__setattr__(self, "path", tuple(self.path))
         if type(self.value) not in (str, bool, int, float):
             raise ValueError("Provider option values must be strings, booleans, or numbers.")
         if isinstance(self.value, float) and not math.isfinite(self.value):
             raise ValueError("Provider option numbers must be finite.")
+
+
+def _insert_provider_leaf(
+    target: dict[str, Any] | list[Any], path: tuple[str | int, ...], value: object
+) -> None:
+    key = path[0]
+    if isinstance(target, list):
+        if type(key) is not int:
+            raise ValueError("Provider array requires integer indices.")
+        while len(target) <= key:
+            target.append(None)
+        child = target[key]
+    else:
+        if not isinstance(key, str):
+            raise ValueError("Provider object requires field names.")
+        child = target.get(key)
+    if len(path) == 1:
+        target[key] = value  # type: ignore[index]  # container/key pairing checked above
+        return
+    expected = list if type(path[1]) is int else dict
+    if child is None:
+        child = expected()
+        target[key] = child  # type: ignore[index]  # container/key pairing checked above
+    elif not isinstance(child, expected):
+        raise ValueError("Provider option container collides with another value.")
+    _insert_provider_leaf(child, path[1:], value)
+
+
+def _check_provider_tree(value: object) -> None:
+    if value is None:
+        raise ValueError("Provider arrays must be contiguous, without omitted items.")
+    if isinstance(value, dict):
+        for child in value.values():
+            _check_provider_tree(child)
+    elif isinstance(value, list):
+        for child in value:
+            _check_provider_tree(child)
 
 
 @dataclass(frozen=True, slots=True)
@@ -246,10 +301,17 @@ class GenerationRequest:
             not isinstance(option, ProviderOption) for option in self.provider_options
         ):
             raise ValueError("provider_options must be a tuple of ProviderOption entries.")
-        seen: set[tuple[str, str | None, str]] = set()
+        seen: set[tuple[str, str | None, str, tuple[str | int, ...]]] = set()
         for option in self.provider_options:
-            identity = (option.provider, option.container, option.key)
-            if identity in seen:
+            identity = (option.provider, option.container, option.key, option.path)
+            if any(
+                prior[:3] == identity[:3]
+                and (
+                    prior[3][: len(option.path)] == option.path
+                    or option.path[: len(prior[3])] == prior[3]
+                )
+                for prior in seen
+            ):
                 raise ValueError("Duplicate provider option key for provider.")
             seen.add(identity)
         nested_providers = {option.provider for option in self.provider_options if option.container}
@@ -304,9 +366,11 @@ class GenerationRequest:
                         raise ValueError(
                             "Direct 'parameters' option conflicts with nested parameters."
                         )
-                    parameters[option.key] = option.value
+                    destination = parameters
                 else:
-                    provider_values[option.key] = option.value
+                    destination = provider_values
+                _insert_provider_leaf(destination, (option.key, *option.path), option.value)
+            _check_provider_tree(provider_options)
             payload["provider"] = {"options": provider_options}
         frames = [
             {
@@ -567,6 +631,7 @@ def request_fingerprint_v4(request: GenerationRequest) -> str:
                 "container": option.container,
                 "key": option.key,
                 "value": ("present" if isinstance(option.value, str) else option.value),
+                **({"path": option.path} if option.path else {}),
             }
             for option in request.provider_options
         ]

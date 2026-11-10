@@ -165,7 +165,10 @@ def test_ten_models_remain_discovered_and_unresolved_findings_are_not_painted_su
         model = enrich_capabilities(_parse_capability(raw))
         assert eligible_methods(model)
         if raw["id"] == "kwaivgi/kling-v3.0-pro":
-            assert InferenceMethod.T2V not in eligible_methods(model)
+            assert InferenceMethod.T2V in eligible_methods(model)
+            from openrouter_video.configuration import project_method
+
+            assert project_method(model, "T2V")["controls"]["resolution"]["state"] == "CONFLICT"
 
 
 def test_google_frontend_fixture_matches_real_core_projection() -> None:
@@ -216,6 +219,15 @@ def test_op07_evidence_delta_preserves_every_other_model_and_historical_conflict
         "heygen/avatar-iv",
         "heygen/heygen-video-1",
         "runway/aleph-2",
+        # Owner full-catalogue continuation: documented provider schemas and
+        # MiniMax conditional prompt/duration rules, covered in focused tests.
+        "runway/gen-4.5",
+        "black-forest-labs/flux-3-video",
+        "minimax/hailuo-2.3",
+        "minimax/hailuo-3",
+        "minimax/hailuo-3-max",
+        "alibaba/wan-2.6",
+        "alibaba/wan-2.7",
     }
     for model in before["models"]:
         if model["exact_model_id"] not in reviewed_delta:
@@ -264,6 +276,36 @@ def assert_reconciled_scalar_delta(before: dict[str, Any], after: dict[str, Any]
     new_methods = restored["facts"]["request_shape_profiles"]["value"]["methods"]
     for method, old in old_methods.items():
         new = new_methods[method]
+        if old.get("controls", {}).get("aspect_ratio") != new.get("controls", {}).get(
+            "aspect_ratio"
+        ):
+            assert old["controls"]["aspect_ratio"]["state"] == "UNKNOWN"
+            assert new["controls"]["aspect_ratio"]["state"] == "UNSUPPORTED"
+            assert (before["exact_model_id"], method) in {
+                ("x-ai/grok-imagine-video-1.5-lite", "I2V"),
+                ("x-ai/grok-imagine-video-1.5", "I2V"),
+                ("x-ai/grok-imagine-video", "I2V"),
+                ("alibaba/happyhorse-1.0", "I2V"),
+                ("alibaba/happyhorse-1.1", "I2V"),
+            }
+            new["controls"]["aspect_ratio"] = old["controls"]["aspect_ratio"]
+        if before["exact_model_id"] != "bytedance/seedance-2.0" and (
+            old.get("controls", {}).get("size") != new.get("controls", {}).get("size")
+        ):
+            assert old["controls"]["size"]["state"] == "UNKNOWN"
+            assert new["controls"]["size"]["state"] == "SUPPORTED"
+            assert new["controls"]["size"]["values"] == raw["supported_sizes"]
+            assert all(
+                old["controls"][axis]["state"] == "SUPPORTED"
+                for axis in ("resolution", "aspect_ratio")
+            )
+            for relation in old.get("relations", []):
+                scope = relation.get("when", {}).get("inference_method", [method])
+                scope = scope if isinstance(scope, list) else [scope]
+                if method in scope:
+                    assert not {"resolution", "aspect_ratio"} & set(relation["axes"])
+            assert (before["exact_model_id"], method) != ("x-ai/grok-imagine-video", "IR2V")
+            new["controls"]["size"] = old["controls"]["size"]
         if "provider_options" in new.get("controls", {}) and "provider_options" not in old.get(
             "controls", {}
         ):
@@ -272,7 +314,19 @@ def assert_reconciled_scalar_delta(before: dict[str, Any], after: dict[str, Any]
             for provider, options in supported["providers"].items():
                 assert provider in {"seed", "google-vertex"}
                 assert set(options) <= set(raw["allowed_passthrough_parameters"])
-                assert set(options) <= {"watermark", "negativePrompt", "enhancePrompt"}
+                assert set(options) <= {
+                    "watermark",
+                    "negativePrompt",
+                    "enhancePrompt",
+                    "output_format",
+                }
+                if "output_format" in options:
+                    assert before["exact_model_id"] == "bytedance/seedance-2.5"
+                    assert options["output_format"] == {
+                        "type": "string",
+                        "values": ["mp4", "mov"],
+                        "omitted_default": "mp4",
+                    }
         for control, flag in (("seed", "seed"), ("generate_audio", "generate_audio")):
             if old.get("controls", {}).get(control) != new.get("controls", {}).get(control):
                 assert raw.get(flag) is True
