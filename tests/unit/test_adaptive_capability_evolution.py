@@ -13,6 +13,7 @@ from openrouter_video.capabilities import (
     capability_changes,
     capability_completeness,
     capability_completeness_report,
+    capability_evolution,
     catalogue_metadata,
     eligible_methods,
     request_witness,
@@ -178,6 +179,18 @@ def test_json_object_order_does_not_change_completeness_fingerprint() -> None:
     a = capability_completeness_report((_parse_capability(raw),))
     b = capability_completeness_report((_parse_capability(dict(reversed(list(raw.items())))),))
     assert semantic_fingerprint(a) == semantic_fingerprint(b)
+
+
+def test_evolution_reports_control_activation_domain_change_and_distinct_accounting_units() -> None:
+    before = future()
+    after = dict(before, seed=True, supported_resolutions=["720p", "4K", "8K"])
+    report = capability_evolution((_parse_capability(before),), (_parse_capability(after),))
+    changes = {(r["method"], r["control"]): r["change"] for r in report["control_changes"]}
+    assert changes["T2V", "seed"] == "ACTIVATED"
+    assert changes["T2V", "resolution"] == "VALUE_CHANGED"
+    completeness = report["completeness"]
+    assert sum(completeness["dispositions"].values()) == completeness["discovered_field_count"]
+    assert completeness["projection_dispositions"]
 
 
 def test_persistence_job_and_billing_methods_are_unchanged_from_baseline() -> None:

@@ -440,6 +440,7 @@ def capability_completeness(model: ModelCapabilities) -> dict[str, Any]:
         rows.append(
             {
                 "path": key,
+                "origin": "UPSTREAM_FIELD",
                 "value": value,
                 "disposition": state,
                 "reason": reason,
@@ -545,6 +546,7 @@ def capability_completeness(model: ModelCapabilities) -> dict[str, Any]:
             if f.key in evidence_keys
         ]
         row["execution_authority"] = row["disposition"] == "SUPPORTED_EXECUTABLE"
+        row.setdefault("origin", "DERIVED_PROJECTION")
         row["core_projection"] = row["path"]
         row["ui_representation"] = (
             "Generic method/control projection and Settings accounting"
@@ -570,14 +572,17 @@ def capability_completeness_report(models: tuple[ModelCapabilities, ...]) -> dic
     """Account for discoveries separately from executable coverage, without granting support."""
     reports = [capability_completeness(model) for model in sorted(models, key=lambda m: m.model_id)]
     counts: dict[str, int] = {}
+    projection_counts: dict[str, int] = {}
     for report in reports:
         for row in report["rows"]:
             state = row["disposition"]
-            counts[state] = counts.get(state, 0) + 1
+            bucket = counts if row["origin"] == "UPSTREAM_FIELD" else projection_counts
+            bucket[state] = bucket.get(state, 0) + 1
     return {
         "schema_version": 1,
         "models": reports,
         "dispositions": counts,
+        "projection_dispositions": projection_counts,
         "discovered_model_count": len(models),
         "discovered_field_count": sum(r["discovered_field_count"] for r in reports),
         "accounted_field_count": sum(r["accounted_field_count"] for r in reports),
@@ -604,6 +609,36 @@ def capability_evolution(
         }
         for mid in sorted(before.keys() | after.keys())
         for method in sorted(before.get(mid, set()) ^ after.get(mid, set()))
+    ]
+
+    def executable_controls(
+        models: tuple[ModelCapabilities, ...],
+    ) -> dict[tuple[str, str, str], Any]:
+        return {
+            (model.model_id, method.value, control): spec
+            for model in models
+            for method in eligible_methods(model)
+            for control, spec in project_method(model, method.value)["controls"].items()
+            if spec.get("state") == "SUPPORTED"
+        }
+
+    prior_controls = executable_controls(tuple(enrich_capabilities(m) for m in previous))
+    next_controls = executable_controls(effective)
+    result["control_changes"] = [
+        {
+            "model_id": key[0],
+            "method": key[1],
+            "control": key[2],
+            "change": "ACTIVATED"
+            if key not in prior_controls
+            else "REMOVED_OR_CHANGED"
+            if key not in next_controls
+            else "VALUE_CHANGED",
+        }
+        for key in sorted(prior_controls.keys() | next_controls.keys())
+        if key not in prior_controls
+        or key not in next_controls
+        or semantic_fingerprint(prior_controls[key]) != semantic_fingerprint(next_controls[key])
     ]
     result["completeness"] = capability_completeness_report(effective)
     return result

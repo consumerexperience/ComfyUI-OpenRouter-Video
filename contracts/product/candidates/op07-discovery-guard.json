@@ -11,7 +11,7 @@
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01capabilities_py",
       "operation": "replace",
       "before": "a67e1980c71aa64ddde5c4e2d0f3cec59dd738175ad3297306a1b822893f013c",
-      "after": "9b42ae48e963769de895eb93861fc4242f2da7b5bd6bb21557377ecf3a701d69"
+      "after": "e62983735b90d9d5eed2af1c41e6184905d678f8bca0709c8c6deedac0de2e29"
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01client_py",
@@ -121,6 +121,6 @@
   "UNKNOWN_DYNAMIC_SURFACES": [],
   "OBSERVED_EVIDENCE_CHANGES": [],
   "ACCEPTED_CONTRACT_DIGEST": "sha256:a2987facf690f1df565e246087f0bc54573f50a1fa80a74a8cfc8a5b1a4c57f5",
-  "CURRENT_CONTRACT_DIGEST": "sha256:3891443ffac45498bf5355d877d71e4d09766ca49e1c6b52c5dcfe93d9f5b047",
+  "CURRENT_CONTRACT_DIGEST": "sha256:5b18cc2109e154a1c3675f331d1cb894e16f8b07a8e9e0ced58a44edb243a0f7",
   "CONTRACT_DELTA_DIGEST": "sha256:5d2dc5f4a8914ea6426d0b424e9f5e79e4b30ea56e6126966a5514067dcf4958"
 }

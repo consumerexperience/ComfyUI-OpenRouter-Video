@@ -13,7 +13,7 @@
     "src/openrouter_video/comfy/nodes.py": "a785ef12145c92c0ea1d60099415e3a5aaa06115cd82a2e1c8899baa2fdd607f",
     "src/openrouter_video/application.py": "6f86c4c1367046a65946d0e4f69d07f5e1cffd6b48669cf410174e62aad48aa3",
     "src/openrouter_video/comfy/runtime.py": "44d3e29cfff3e0b305c18516e59a1ea15a178de2ec1cd50ee0a4aa5b5119ccec",
-    "src/openrouter_video/capabilities.py": "9b42ae48e963769de895eb93861fc4242f2da7b5bd6bb21557377ecf3a701d69",
+    "src/openrouter_video/capabilities.py": "e62983735b90d9d5eed2af1c41e6184905d678f8bca0709c8c6deedac0de2e29",
     "src/openrouter_video/persistence.py": "62369d569597f088de397b945b524551bbb6a3dc4514037ec42458b7078cbc2b",
     "src/openrouter_video/eligibility.py": "3380ef4a5e3e9c3b5fb628ef5d00f99ef20afb11a822267108f824ed74e28041",
     "src/openrouter_video/comfy/projection.py": "0a1146f56fc306f284a7c401b46bb24517d4dd5b72ade8b3fc1a647d2d67071b",

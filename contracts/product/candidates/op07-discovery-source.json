@@ -19,7 +19,7 @@
         "src~1openrouter_video~1app_identity_py": "94fc446b83ddd707ca4d6463b280dd0fa210e4f106ec08a059bf4abd260e7ed7"
       },
       "capabilities": {
-        "src~1openrouter_video~1capabilities_py": "9b42ae48e963769de895eb93861fc4242f2da7b5bd6bb21557377ecf3a701d69",
+        "src~1openrouter_video~1capabilities_py": "e62983735b90d9d5eed2af1c41e6184905d678f8bca0709c8c6deedac0de2e29",
         "src~1openrouter_video~1capability_overlays_py": "2faf6a156a6abe497992f6dfec594c3e6f6a0fcaaf45a963b3a6b428311cb232",
         "src~1openrouter_video~1client_py": "cb9f4e6d0a98a1b31d6886de793a317ba4875ca3fe5ed84937f60faedf89c369",
         "src~1openrouter_video~1configuration_py": "4ab478d436ed92447c57e7366dc65127558cb8f2ce7032353833e339679a5d4b",
