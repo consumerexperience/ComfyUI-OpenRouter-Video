@@ -11,19 +11,19 @@
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01capabilities_py",
       "operation": "replace",
       "before": "a67e1980c71aa64ddde5c4e2d0f3cec59dd738175ad3297306a1b822893f013c",
-      "after": "68bb07036b5e9b8d71482f4ef19425f16d8333c2945d7fe43112205d254f52ac"
+      "after": "9b42ae48e963769de895eb93861fc4242f2da7b5bd6bb21557377ecf3a701d69"
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01client_py",
       "operation": "replace",
       "before": "73cc21f9347453bac52616979d45266f6ab023cf6232b29ae6560ea1fa80abe0",
-      "after": "826450e88a82efdbeadbf84c1f6e152445db6d9053ccf9cb76d2b4afb5332b9c"
+      "after": "cb9f4e6d0a98a1b31d6886de793a317ba4875ca3fe5ed84937f60faedf89c369"
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01compat_py",
       "operation": "replace",
       "before": "404e53f450a78ce05dd8cfc282cc105cb647ea6d7ee53435d99689fb753587ef",
-      "after": "63fd2e4228006ada3cb3f989784da7a7d9731439efabde1dff9e1f1b82cb1730"
+      "after": "25d7562ff3059dff651007fa6a584b038bf517734a7917cd9c15cfd534f39260"
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01nodes_py",
@@ -41,13 +41,13 @@
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01routes_py",
       "operation": "replace",
       "before": "9481fbc4241e2b4363800c84c468cd89582367c9ecf52dfc8ef2f53d6212fff5",
-      "after": "3015039e7a7509382de5f18373c53956fa5511cddd227c661acb33da58e8901e"
+      "after": "c3ada54b010d2e4794be76c8b0fd7c87ad2a35188ed35927f8f13c04088e0504"
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01configuration_py",
       "operation": "replace",
       "before": "e8a3a63f2255d0fd36d795a5558c61e5705a8332eca35e17060b3cfb31160a0e",
-      "after": "7db0fd148dd0d8619c1aa82a56b116e97c9f320ffe0b02a66b6679f8ec82fc57"
+      "after": "4ab478d436ed92447c57e7366dc65127558cb8f2ce7032353833e339679a5d4b"
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01media_py",
@@ -62,10 +62,16 @@
       "after": "743595402a2df614e85501e3d105e0b28acd7d360cce7ec8bb7ca997de15b020"
     },
     {
+      "path": "/surfaces/product_owned/database_migrations/src~01openrouter_video~01persistence_py",
+      "operation": "replace",
+      "before": "da8297880feb43f6bb4bfd54b8b677462d0b859c72e72e1a78b0bd6d0a38cff4",
+      "after": "62369d569597f088de397b945b524551bbb6a3dc4514037ec42458b7078cbc2b"
+    },
+    {
       "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01data~01capability-evidence_json",
       "operation": "replace",
       "before": "ec25bd96a4b12bdb9b0b3b0559dfd8c113c7f2ebf34824719303f044b592844a",
-      "after": "4d9f78e52841d4086c2099483c899063cf79337c81ffdd73a3a1aa964602b4fa"
+      "after": "d1332b72c2ae2b66483a0f3af50d66b11d1effaee678d756d66a08470b2c14e9"
     },
     {
       "path": "/surfaces/product_owned/native_media/src~01openrouter_video~01comfy~01native_media_py",
@@ -101,7 +107,7 @@
       "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
       "operation": "replace",
       "before": "ff031603b9ff464096aaae8986970d92984b14f32ad5c92116cf876ecdcd981c",
-      "after": "9b5328e37dc8206c2a86eb973914b9eccd99a6f30266fab87e54a2b03591d93b"
+      "after": "1d67369772ce95faa3e726dd1f466b5df5717b9616a079630434237166471945"
     }
   ],
   "UNAUTHORIZED_DELTA": [],
@@ -115,6 +121,6 @@
   "UNKNOWN_DYNAMIC_SURFACES": [],
   "OBSERVED_EVIDENCE_CHANGES": [],
   "ACCEPTED_CONTRACT_DIGEST": "sha256:a2987facf690f1df565e246087f0bc54573f50a1fa80a74a8cfc8a5b1a4c57f5",
-  "CURRENT_CONTRACT_DIGEST": "sha256:fd83001f37cdc2f17d46a61359ae7a83cde6e2449b9e9ecb4a02ad2d45f81206",
-  "CONTRACT_DELTA_DIGEST": "sha256:fdd9b15b8841f7263c33c191716693e45e0c9534c7519e7e8402201ed5c89484"
+  "CURRENT_CONTRACT_DIGEST": "sha256:3891443ffac45498bf5355d877d71e4d09766ca49e1c6b52c5dcfe93d9f5b047",
+  "CONTRACT_DELTA_DIGEST": "sha256:5d2dc5f4a8914ea6426d0b424e9f5e79e4b30ea56e6126966a5514067dcf4958"
 }

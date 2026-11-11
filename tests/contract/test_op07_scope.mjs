@@ -14,7 +14,19 @@ test('all existing functions outside OP07 catalogue delta, including OAuth/billi
     for(const [name,text] of Object.entries(a))if(!allowed.has(name))assert.equal(b[name],text,name);
     // Registration/renderer hooks only gain lifecycle setup; no changes to
     // onConfigure/onNodeCreated, widget serialization or node definitions.
-    assert.equal(current.split('app.registerExtension({')[1].replace('        startCatalogueLifecycle();\n',''),before.split('app.registerExtension({')[1]);
+    const settingsDelta = `        {
+            id: "OpenRouter Video.Capabilities",
+            name: "Capability accounting",
+            category: ["OpenRouter Video", "Capabilities"],
+            type: capabilitySettingRenderer,
+            defaultValue: null,
+            telemetry: { trackChanges: false },
+        },
+`;
+    assert(current.includes(settingsDelta));
+    assert.equal(current.split('app.registerExtension({')[1]
+        .replace(settingsDelta, '').replace('        startCatalogueLifecycle();\n',''),
+        before.split('app.registerExtension({')[1]);
 });
 test('no browser credentials, queue, inference or new transport introduced',()=>{
     assert(!/localStorage|sessionStorage|indexedDB|Authorization\s*:/.test(current));

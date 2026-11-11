@@ -30,6 +30,7 @@ ALLOWED = {
     "src/openrouter_video/application.py": "submit_resume",
     "src/openrouter_video/comfy/runtime.py": "submit_resume",
     "src/openrouter_video/capabilities.py": "capabilities",
+    "src/openrouter_video/persistence.py": "database_migrations",
     "src/openrouter_video/eligibility.py": "capabilities",
     "src/openrouter_video/comfy/projection.py": "capabilities",
     "src/openrouter_video/comfy/routes.py": "capabilities",
@@ -88,6 +89,8 @@ def main():
                     "capability service and Owner FULL FEATURE PARITY continuation; "
                     "Owner cf05eca6: close verified catalogue gaps, typed composite "
                     "provider controls and documented output containers; "
+                    "Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite "
+                    "evolution metadata, semantic refresh and capability accounting; "
                     "not release acceptance."
                 ),
             }

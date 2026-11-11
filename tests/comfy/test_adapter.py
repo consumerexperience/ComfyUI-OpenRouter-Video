@@ -447,7 +447,7 @@ def test_specialized_adapter_fields_reach_real_core_wire(
     )
     assert captured[0][wire_key] == expected
     if method == "V2V_EDIT":
-        assert captured[0]["provider"] == {"options": {"google-ai-studio": {"task": "edit"}}}
+        assert "provider" not in captured[0]  # Optional task is not injected.
 
 
 def test_audio_helper_and_v2v_source_role_bridge_to_core(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -791,6 +791,8 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
         async def effective_catalog(self) -> object:
             return types.SimpleNamespace(
                 observed_at=observed,
+                source_state="FRESH",
+                evolution=None,
                 models=(
                     ModelCapabilities(
                         "vendor/model",
@@ -846,7 +848,9 @@ def test_empty_catalogue_is_not_misclassified_as_ui_desync(
 
     class Runtime(ProjectionCatalogRuntime):
         async def effective_catalog(self) -> object:
-            return types.SimpleNamespace(observed_at=observed, models=())
+            return types.SimpleNamespace(
+                observed_at=observed, models=(), source_state="FRESH", evolution=None
+            )
 
     monkeypatch.setattr(routes, "get_runtime", Runtime)
     monkeypatch.setattr(

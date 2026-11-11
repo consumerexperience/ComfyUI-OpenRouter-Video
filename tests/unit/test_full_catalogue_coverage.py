@@ -474,7 +474,10 @@ def test_omni12_reference_and_source_operation_wire(method: InferenceMethod) -> 
         if method is InferenceMethod.V2V_EXTEND
         else "reference_to_video"
     )
-    assert wire["provider"]["options"]["google-ai-studio"]["task"] == task
+    assert "provider" not in wire  # Natural-language inference is the documented default.
+    explicit = replace(req, provider_options=(ProviderOption("google-ai-studio", "task", task),))
+    RequestValidator().validate_capabilities(explicit, m)
+    assert payload(explicit)["provider"]["options"]["google-ai-studio"]["task"] == task
     if method is InferenceMethod.MI2V:
         refs = InputReferenceCollection(
             tuple(

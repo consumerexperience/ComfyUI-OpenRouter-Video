@@ -313,6 +313,11 @@ class JobStore:
                 )
                 """
             )
+            columns = {
+                r[1] for r in connection.execute("PRAGMA table_info(capability_catalog_meta)")
+            }
+            if "evolution" not in columns:
+                connection.execute("ALTER TABLE capability_catalog_meta ADD COLUMN evolution TEXT")
             connection.execute("""
                 CREATE TABLE IF NOT EXISTS staging_operations (
                     operation_id TEXT PRIMARY KEY,
@@ -488,7 +493,11 @@ class JobStore:
             raise PersistenceError("Unable to release pre-network durable claim") from exc
 
     def replace_capability_catalog(
-        self, capabilities: Iterable[ModelCapabilities], observed_at: datetime
+        self,
+        capabilities: Iterable[ModelCapabilities],
+        observed_at: datetime,
+        *,
+        evolution: dict[str, Any] | None = None,
     ) -> None:
         """Persist only normalized catalog fields from one successful live observation."""
 
@@ -537,15 +546,27 @@ class JobStore:
                     )
                 connection.execute(
                     """
-                    INSERT INTO capability_catalog_meta (singleton, observed_at)
-                    VALUES (1, ?)
-                    ON CONFLICT(singleton) DO UPDATE SET observed_at = excluded.observed_at
+                    INSERT INTO capability_catalog_meta (singleton, observed_at, evolution)
+                    VALUES (1, ?, ?)
+                    ON CONFLICT(singleton) DO UPDATE SET observed_at = excluded.observed_at,
+                        evolution = excluded.evolution
                     """,
-                    (observed,),
+                    (observed, json.dumps(evolution) if evolution is not None else None),
                 )
                 connection.commit()
         except sqlite3.Error as exc:
             raise PersistenceError("Unable to persist capability catalog") from exc
+
+    def load_capability_evolution(self) -> dict[str, Any] | None:
+        """Previous-observation comparison in existing catalogue metadata, never job state."""
+        try:
+            with self._connect() as connection:
+                row = connection.execute(
+                    "SELECT evolution FROM capability_catalog_meta WHERE singleton=1"
+                ).fetchone()
+        except sqlite3.Error as exc:
+            raise PersistenceError("Unable to read capability evolution") from exc
+        return json.loads(row[0]) if row is not None and row[0] is not None else None
 
     def load_capability_catalog(
         self,

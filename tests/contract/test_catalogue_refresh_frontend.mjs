@@ -41,6 +41,34 @@ test('R17/R18 new eligible IDs appear live, backend-only exclusions do not',asyn
     assert.equal(h.projections.length,1);
 });
 
+test('semantic revision ignores observation clock but tracks contract and fallback changes', async()=>{
+    const h=harness();
+    const base={models:[{model_id:'old/model'}],catalogue_revision:'same',source_state:'FRESH'};
+    h.snapshot({...base,observed_at:'first'}); await h.c.refreshCatalogue();
+    h.snapshot({...base,observed_at:'later'}); await h.c.refreshCatalogue();
+    assert.equal(h.projections.length,1);
+    h.snapshot({...base,catalogue_revision:'changed-domain'}); await h.c.refreshCatalogue();
+    assert.equal(h.projections.length,2);
+    h.snapshot({...base,catalogue_revision:'changed-domain',source_state:'STALE_FALLBACK'});
+    await h.c.refreshCatalogue(); assert.equal(h.projections.length,3);
+});
+
+test('Settings accounts for unavailable models safely without exposing raw JSON controls',async()=>{
+    const h=harness();
+    const element=()=>({children:[],value:'hidden/model',append(...v){this.children.push(...v);},
+        setAttribute(){},replaceChildren(){this.children=[];}});
+    h.c.document.createElement=element;
+    h.snapshot({models:[],source_state:'FRESH',capability_completeness:{
+        discovered_model_count:1,executable_method_count:0,models:[{model_id:'hidden/model',rows:[{
+            path:'new_control',disposition:'EVIDENCE_GAP',reason:'<script>untrusted</script>'}]}]}});
+    const root=h.c.capabilitySettingRenderer();
+    await h.c.loadCapabilities(); await Promise.resolve();
+    assert(root.children[0].textContent.includes('Accounted capabilities are not proof'));
+    assert.equal(root.children[1].children[0].textContent,'hidden/model');
+    assert(root.children[2].children[0].textContent.includes('EVIDENCE_GAP'));
+    assert.equal(root.children[2].children[0].innerHTML,undefined);
+});
+
 test('R19/R20/R24 capability-only upgrade/downgrade is reprojected',async()=>{
     const h=harness();
     for (const methods of [[],['T2V'],['T2V','I2V'],['T2V']]) {

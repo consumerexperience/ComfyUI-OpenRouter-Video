@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import ipaddress
+import json
 import math
 import random
 import re
@@ -73,6 +75,8 @@ class CapabilityObservation:
 
     observed_at: datetime
     models: tuple[ModelCapabilities, ...]
+    source_state: str = "FRESH"
+    evolution: dict[str, Any] | None = None
 
 
 class CapabilityModeStatus(str, Enum):
@@ -170,7 +174,7 @@ def infer_legacy_inference_method(
 class CapabilityService:
     """Serve fresh catalog data and bounded LKG only when live discovery fails."""
 
-    __slots__ = ("_client", "_jitter", "_now", "_sleep", "_store")
+    __slots__ = ("_client", "_jitter", "_now", "_sleep", "_store", "_catalog_lock")
 
     def __init__(
         self,
@@ -186,8 +190,14 @@ class CapabilityService:
         self._sleep = sleep
         self._now = now
         self._jitter = jitter
+        self._catalog_lock = asyncio.Lock()
 
     async def catalog(self) -> CapabilityObservation:
+        async with self._catalog_lock:
+            observation = await self._catalog()
+            return replace(observation, evolution=self._store.load_capability_evolution())
+
+    async def _catalog(self) -> CapabilityObservation:
         """Return fresh cached data, otherwise refresh and use LKG only on failure."""
 
         current = self._now()
@@ -218,7 +228,11 @@ class CapabilityService:
                 await self._sleep(delay)
             else:
                 observed_at = self._now()
-                self._store.replace_capability_catalog(models, observed_at)
+                self._store.replace_capability_catalog(
+                    models,
+                    observed_at,
+                    evolution=capability_evolution(cached[1] if cached is not None else (), models),
+                )
                 return CapabilityObservation(observed_at, models)
 
         if isinstance(failure, OpenRouterHTTPError) and failure.status_code in {401, 403}:
@@ -230,7 +244,7 @@ class CapabilityService:
                 )
             )
         if cached is not None and current - cached[0] <= LKG_TTL:
-            return CapabilityObservation(cached[0], cached[1])
+            return CapabilityObservation(cached[0], cached[1], "STALE_FALLBACK")
         raise ProductFailureError(
             ProductError(
                 ProductErrorCode.DISCOVERY_UNAVAILABLE,
@@ -266,12 +280,333 @@ class CapabilityService:
         return CapabilityObservation(
             observation.observed_at,
             tuple(enrich_capabilities(model) for model in observation.models),
+            observation.source_state,
+            observation.evolution,
         )
 
     def is_fresh(self, observation: CapabilityObservation) -> bool:
         """Return whether external truth is inside the approved freshness window."""
 
         return self._now() - observation.observed_at <= FRESH_TTL
+
+
+def catalogue_metadata(model: ModelCapabilities) -> dict[str, Any]:
+    """The existing persisted evidence is the only discovery observation store."""
+    return next(
+        (
+            f.value
+            for f in model.evidence_facts
+            if f.key == "__catalogue_observation__" and isinstance(f.value, dict)
+        ),
+        {},
+    )
+
+
+def canonical_semantics(value: Any, key: str = "") -> Any:
+    """Canonicalize set-like domains only; ordered media and wire paths retain order."""
+    if isinstance(value, dict):
+        return {
+            k: canonical_semantics(v, k)
+            for k, v in sorted(value.items())
+            if k not in {"observed_at", "upstream_observed_at", "artifact_version"}
+        }
+    if isinstance(value, (list, tuple)):
+        items = [canonical_semantics(v, key) for v in value]
+        if key.startswith("supported_") or key in {
+            "values",
+            "reference_kinds",
+            "kind_sets",
+            "allowed_passthrough_parameters",
+        }:
+            return sorted(items, key=lambda v: json.dumps(v, sort_keys=True))
+        if key == "models":
+            return sorted(items, key=lambda v: str(v.get("model_id", v.get("id", ""))))
+        if key in {"capability_evidence", "evidence"}:
+            return sorted(items, key=lambda v: json.dumps(v, sort_keys=True))
+        return items
+    return value
+
+
+def semantic_fingerprint(value: Any) -> str:
+    return hashlib.sha256(
+        json.dumps(canonical_semantics(value), sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+
+
+def capability_changes(
+    previous: tuple[ModelCapabilities, ...], current: tuple[ModelCapabilities, ...]
+) -> dict[str, Any]:
+    """Deterministic successive-observation diff, including absent versus null/type changes."""
+    before = {m.model_id: catalogue_metadata(m) for m in previous}
+    after = {m.model_id: catalogue_metadata(m) for m in current}
+    changes = []
+    for mid in sorted(before.keys() | after.keys()):
+        if mid not in before or mid not in after:
+            changes.append(
+                {
+                    "model_id": mid,
+                    "field": "model",
+                    "change": "ADDED" if mid in after else "REMOVED",
+                }
+            )
+        a, b = before.get(mid, {}), after.get(mid, {})
+        for key in sorted(a.keys() | b.keys()):
+            if key not in a or key not in b:
+                event = "ADDED" if key in b else "REMOVED"
+            elif semantic_fingerprint({key: a[key]}) == semantic_fingerprint({key: b[key]}):
+                continue
+            else:
+                event = "TYPE_CHANGED" if type(a[key]) is not type(b[key]) else "VALUE_CHANGED"
+            changes.append({"model_id": mid, "field": key, "change": event})
+    return {
+        "changes": changes,
+        "previous_model_count": len(before),
+        "current_model_count": len(after),
+    }
+
+
+def capability_completeness(model: ModelCapabilities) -> dict[str, Any]:
+    """Derived forward/reverse accounting; this report grants no execution authority."""
+    raw = catalogue_metadata(model)
+    profiles = {method.value: project_method(model, method.value) for method in InferenceMethod}
+    executable = {m.value for m in eligible_methods(model)}
+    rows: list[dict[str, Any]] = []
+    control_map = {
+        "supported_durations": "duration",
+        "supported_resolutions": "resolution",
+        "supported_aspect_ratios": "aspect_ratio",
+        "supported_sizes": "size",
+        "seed": "seed",
+        "generate_audio": "generate_audio",
+        "upscale_factor": "upscale_factor",
+        "creativity": "creativity",
+    }
+    for key, value in sorted(raw.items()):
+        state, reason = "EVIDENCE_GAP", "Unrecognized or incomplete API contract; not serialized"
+        if key in {
+            "id",
+            "canonical_slug",
+            "hugging_face_id",
+            "name",
+            "created",
+            "description",
+            "pricing_skus",
+        }:
+            state, reason = (
+                "DISCOVERED_CONTRACT_COMPLETE",
+                "Catalogue metadata retained; not a request control",
+            )
+        if key in control_map:
+            methods = [
+                m
+                for m in executable
+                if profiles[m]["controls"].get(control_map[key], {}).get("state") == "SUPPORTED"
+            ]
+            state = "SUPPORTED_EXECUTABLE" if methods else "EVIDENCE_GAP"
+            reason = (
+                "Applicable validated controls: " + ", ".join(sorted(methods))
+                if methods
+                else "No confirmed executable method mapping"
+            )
+        if key in {
+            "supported_frame_images",
+            "reference_kinds",
+            "max_reference_count",
+            "mixed_reference_kinds",
+            "supports_text_only",
+            "source_required",
+            "supports_edit",
+            "supports_extend",
+            REQUEST_SHAPES_KEY,
+            CONFIGURATION_KEY,
+        }:
+            state, reason = (
+                "DISCOVERED_CONTRACT_COMPLETE",
+                "Represented by method-specific Core profiles; see method/control rows",
+            )
+            matching = [f for f in model.evidence_facts if f.key == key]
+            if any(f.state.value == "CONFLICT" for f in matching):
+                state, reason = "CONTRACT_CONFLICT", "Conflicting contract observations retained"
+            elif not matching or any(f.state.value == "UNKNOWN" for f in matching):
+                state, reason = "EVIDENCE_GAP", "Contract metadata was not fully normalized"
+            elif key == REQUEST_SHAPES_KEY and any(
+                f.authority == "LIVE_STRUCTURED_API" and f.value != value for f in matching
+            ):
+                state, reason = "EVIDENCE_GAP", "Some supplied operation contracts were rejected"
+        if value is False and state != "CONTRACT_CONFLICT":
+            state, reason = "VERIFIED_UNSUPPORTED", "Explicit false; distinct from absent or null"
+        if value is None:
+            state, reason = "EVIDENCE_GAP", "Explicit null does not establish support or denial"
+        rows.append(
+            {
+                "path": key,
+                "value": value,
+                "disposition": state,
+                "reason": reason,
+                "source": "https://openrouter.ai/api/v1/videos/models",
+            }
+        )
+    allowed = raw.get("allowed_passthrough_parameters", [])
+    if isinstance(allowed, list):
+        for name in allowed:
+            if not isinstance(name, str):
+                continue
+            methods = [
+                m
+                for m in executable
+                if any(
+                    name in specs
+                    for specs in profiles[m]["controls"]
+                    .get("provider_options", {})
+                    .get("providers", {})
+                    .values()
+                )
+            ]
+            rows.append(
+                {
+                    "path": "provider_options." + name,
+                    "disposition": "SUPPORTED_EXECUTABLE" if methods else "EVIDENCE_GAP",
+                    "reason": "Typed validator/serializer and generic UI: "
+                    + ", ".join(sorted(methods))
+                    if methods
+                    else "Allowlisted name lacks a complete type/domain/route/method contract",
+                }
+            )
+    for method, profile in profiles.items():
+        state = profile["state"]
+        rows.append(
+            {
+                "path": "methods." + method,
+                "disposition": "SUPPORTED_EXECUTABLE"
+                if method in executable
+                else "CONTRACT_CONFLICT"
+                if state == "CONFLICT"
+                else "VERIFIED_UNSUPPORTED"
+                if state == "UNSUPPORTED"
+                else "EVIDENCE_GAP",
+                "reason": "Validated serializable request shape"
+                if method in executable
+                else "No complete compatible request shape; not offered as executable",
+            }
+        )
+        for control, spec in profile.get("controls", {}).items():
+            rows.append(
+                {
+                    "path": "methods." + method + "." + control,
+                    "disposition": "SUPPORTED_EXECUTABLE"
+                    if method in executable and spec.get("state") == "SUPPORTED"
+                    else "CONTRACT_CONFLICT"
+                    if spec.get("state") == "CONFLICT"
+                    else "VERIFIED_UNSUPPORTED"
+                    if spec.get("state") == "UNSUPPORTED"
+                    else "EVIDENCE_GAP",
+                    "value": spec,
+                    "reason": "UI, validator and serializer share this exact Core profile",
+                }
+            )
+    supplied = raw.get(REQUEST_SHAPES_KEY)
+    if isinstance(supplied, dict) and isinstance(supplied.get("methods"), dict):
+        for name in supplied["methods"]:
+            if name not in profiles:
+                rows.append(
+                    {
+                        "path": "methods." + str(name),
+                        "disposition": "IMPLEMENTATION_GAP",
+                        "reason": "Discovered operation lacks an existing execution primitive",
+                    }
+                )
+    observation = next(
+        (f for f in model.evidence_facts if f.key == "__catalogue_observation__"), None
+    )
+    for row in rows:
+        row["upstream_observed_at"] = observation.observed_at if observation else None
+        row["upstream_source"] = observation.source_reference if observation else None
+        evidence_keys = {row["path"].split(".")[0]}
+        if row["path"].startswith(("methods.", "provider_options.")):
+            evidence_keys = {
+                REQUEST_SHAPES_KEY,
+                "reference_kinds",
+                "max_reference_count",
+                "mixed_reference_kinds",
+                "supported_frame_images",
+                "supports_text_only",
+                "allowed_passthrough_parameters",
+            }
+        row["evidence"] = [
+            {
+                "key": f.key,
+                "state": f.state.value,
+                "authority": f.authority,
+                "source": f.source_reference,
+                "observed_at": f.observed_at,
+                "scope": f.scope,
+            }
+            for f in model.evidence_facts
+            if f.key in evidence_keys
+        ]
+        row["execution_authority"] = row["disposition"] == "SUPPORTED_EXECUTABLE"
+        row["core_projection"] = row["path"]
+        row["ui_representation"] = (
+            "Generic method/control projection and Settings accounting"
+            if row["execution_authority"]
+            else "Settings accounting only"
+        )
+        row["validator_serializer"] = (
+            "Core profile, validated request witness, canonical serializer"
+            if row["execution_authority"]
+            else "NOT_EXECUTABLE"
+        )
+    return {
+        "model_id": model.model_id,
+        "rows": rows,
+        "discovered_field_count": len(raw),
+        "accounted_field_count": len(raw),
+        "executable_methods": sorted(executable),
+        "semantic_fingerprint": semantic_fingerprint(raw),
+    }
+
+
+def capability_completeness_report(models: tuple[ModelCapabilities, ...]) -> dict[str, Any]:
+    """Account for discoveries separately from executable coverage, without granting support."""
+    reports = [capability_completeness(model) for model in sorted(models, key=lambda m: m.model_id)]
+    counts: dict[str, int] = {}
+    for report in reports:
+        for row in report["rows"]:
+            state = row["disposition"]
+            counts[state] = counts.get(state, 0) + 1
+    return {
+        "schema_version": 1,
+        "models": reports,
+        "dispositions": counts,
+        "discovered_model_count": len(models),
+        "discovered_field_count": sum(r["discovered_field_count"] for r in reports),
+        "accounted_field_count": sum(r["accounted_field_count"] for r in reports),
+        "executable_method_count": sum(len(r["executable_methods"]) for r in reports),
+        "accounting_is_execution_proof": False,
+    }
+
+
+def capability_evolution(
+    previous: tuple[ModelCapabilities, ...], current: tuple[ModelCapabilities, ...]
+) -> dict[str, Any]:
+    """Persist the same derived accounting that the UI uses alongside fresh discovery."""
+    result = capability_changes(previous, current)
+    before = {
+        m.model_id: {v.value for v in eligible_methods(enrich_capabilities(m))} for m in previous
+    }
+    effective = tuple(enrich_capabilities(m) for m in current)
+    after = {m.model_id: {v.value for v in eligible_methods(m)} for m in effective}
+    result["method_changes"] = [
+        {
+            "model_id": mid,
+            "method": method,
+            "change": "ACTIVATED" if method in after.get(mid, set()) else "REMOVED_OR_CHANGED",
+        }
+        for mid in sorted(before.keys() | after.keys())
+        for method in sorted(before.get(mid, set()) ^ after.get(mid, set()))
+    ]
+    result["completeness"] = capability_completeness_report(effective)
+    return result
 
 
 def _retryable_discovery(error: BaseException) -> bool:

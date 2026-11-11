@@ -56,7 +56,37 @@ def normalize_request_shapes(raw: object) -> dict[str, Any]:
         InferenceMethod(method)
         if not isinstance(entry, dict) or entry.get("state") not in states:
             raise ValueError("Invalid method evidence state")
+        if set(entry) - {
+            "state",
+            "controls",
+            "topology",
+            "media_limits",
+            "relations",
+            "notes",
+            "audit_scope",
+            "evidence_class",
+            "historical_findings",
+            "live_exception",
+            "live_shape_receipt",
+            "observed_at",
+            "provider_notes",
+            "review_sources",
+            "topology_scope",
+            "wire_shape",
+        }:
+            raise ValueError("Unknown method contract semantics")
         for name, control in entry.get("controls", {}).items():
+            if not isinstance(control, dict) or set(control) - {
+                "state",
+                "required",
+                "values",
+                "integer_range",
+                "min_length",
+                "max_length",
+                "providers",
+                "notes",
+            }:
+                raise ValueError("Unknown control contract semantics")
             if any(
                 type(control[key]) is not int or control[key] < 0
                 for key in ("min_length", "max_length")
@@ -560,17 +590,87 @@ def _provider_options(
 
 
 def request_shape_profile(model: ModelCapabilities) -> dict[str, Any]:
-    """No reviewed profile means UNKNOWN, including newly discovered models."""
+    """A current structured API recipe supersedes historical recipe observations."""
     facts = [f for f in model.evidence_facts if f.key == REQUEST_SHAPES_KEY]
+    live = [f for f in facts if f.authority == "LIVE_STRUCTURED_API"]
+    if live:
+        facts = live
     if len(facts) != 1 or facts[0].state is not CapabilityFactState.SUPPORTED:
         return {"schema_version": 1, "methods": {}}
     return normalize_request_shapes(facts[0].value)
+
+
+def derive_catalogue_method(model: ModelCapabilities, method: str) -> dict[str, Any] | None:
+    """Interpret explicit Level-A reference primitives through established wire recipes."""
+    from itertools import combinations
+
+    live = {f.key: f for f in model.evidence_facts if f.authority == "LIVE_STRUCTURED_API"}
+
+    def positive(key: str) -> bool:
+        return key in live and live[key].state is CapabilityFactState.SUPPORTED
+
+    if not (positive("reference_kinds") and positive("max_reference_count")):
+        return None
+    refs = model.input_reference_capabilities
+    if refs is None or refs.reference_kinds is None or refs.max_reference_count is None:
+        return None
+    kinds = sorted(k.value for k in refs.reference_kinds)
+    maximum = refs.max_reference_count
+    selected = {"IR2V": "image", "MI2V": "image", "VR2V": "video", "AR2V": "audio"}
+    minimum = 2 if method in {"MI2V", "MMR2V"} else 1
+    fixed: list[str] = []
+    if method == "MMR2V":
+        if not positive("mixed_reference_kinds") or refs.mixed_reference_kinds is not True:
+            return None
+        sets = [
+            list(s) for n in range(2, min(len(kinds), maximum) + 1) for s in combinations(kinds, n)
+        ]
+    elif method in selected and selected[method] in kinds:
+        kinds = [selected[method]]
+        sets = [kinds]
+        if method == "IR2V":
+            maximum = min(1, maximum)
+    else:
+        return None
+    if not sets or maximum < minimum:
+        return None
+    return {
+        "state": "SUPPORTED",
+        "controls": {
+            name: {"state": "SUPPORTED"}
+            for name in (
+                "prompt",
+                "duration",
+                "resolution",
+                "aspect_ratio",
+                "size",
+                "seed",
+                "generate_audio",
+            )
+        },
+        "topology": {
+            "fixed": fixed,
+            "reference_kinds": kinds,
+            "kind_sets": sets,
+            "min": minimum,
+            "max": maximum,
+            "per_kind_max": {k: maximum for k in kinds},
+        },
+    }
 
 
 def project_method(model: ModelCapabilities, method: str) -> dict[str, Any]:
     """Single semantic authority; intersect reviewed scopes with dynamic domains."""
     methods = request_shape_profile(model)["methods"]
     entry = methods.get(method)
+    if entry is None and any(
+        f.key == REQUEST_SHAPES_KEY
+        and (f.authority == "LIVE_STRUCTURED_API" or f.state is not CapabilityFactState.SUPPORTED)
+        for f in model.evidence_facts
+    ):
+        entry = {"state": "UNKNOWN"}
+    if entry is None:
+        entry = derive_catalogue_method(model, method)
     if entry is None:
         # Canonical frame_images is a documented generic wire contract. Positive
         # exact-model structured frame signals suffice; no reference/task shape

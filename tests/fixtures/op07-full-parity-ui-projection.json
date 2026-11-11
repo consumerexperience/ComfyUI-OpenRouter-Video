@@ -403,15 +403,14 @@
             },
             "provider_options": {
               "state": "SUPPORTED",
-              "required": true,
+              "required": false,
               "providers": {
                 "google-ai-studio": {
                   "task": {
                     "type": "string",
                     "values": [
                       "reference_to_video"
-                    ],
-                    "default": "reference_to_video"
+                    ]
                   }
                 }
               }
@@ -497,15 +496,14 @@
             },
             "provider_options": {
               "state": "SUPPORTED",
-              "required": true,
+              "required": false,
               "providers": {
                 "google-ai-studio": {
                   "task": {
                     "type": "string",
                     "values": [
                       "reference_to_video"
-                    ],
-                    "default": "reference_to_video"
+                    ]
                   }
                 }
               }
@@ -591,15 +589,14 @@
             },
             "provider_options": {
               "state": "SUPPORTED",
-              "required": true,
+              "required": false,
               "providers": {
                 "google-ai-studio": {
                   "task": {
                     "type": "string",
                     "values": [
                       "reference_to_video"
-                    ],
-                    "default": "reference_to_video"
+                    ]
                   }
                 }
               }
@@ -777,15 +774,14 @@
             },
             "provider_options": {
               "state": "SUPPORTED",
-              "required": true,
+              "required": false,
               "providers": {
                 "google-ai-studio": {
                   "task": {
                     "type": "string",
                     "values": [
                       "edit"
-                    ],
-                    "default": "edit"
+                    ]
                   }
                 }
               }
@@ -878,15 +874,14 @@
             },
             "provider_options": {
               "state": "SUPPORTED",
-              "required": true,
+              "required": false,
               "providers": {
                 "google-ai-studio": {
                   "task": {
                     "type": "string",
                     "values": [
                       "extend"
-                    ],
-                    "default": "extend"
+                    ]
                   }
                 }
               }

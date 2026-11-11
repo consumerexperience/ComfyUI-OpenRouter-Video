@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 env:
-  OPENROUTER_VIDEO_CONTRACT_BASELINE: contracts/product/baselines/rc2-c0d9600.source-contract.json
-  OPENROUTER_VIDEO_CONTRACT_DELTA: contracts/product/deltas/pr38-ci-remediation.contract-delta.json
+  OPENROUTER_VIDEO_CONTRACT_BASELINE: contracts/product/baselines/op07-frozen-058f5bc.json
+  OPENROUTER_VIDEO_CONTRACT_DELTA: contracts/product/deltas/op07-discovery-remediation.contract-delta.json
 
 jobs:
   quality:
@@ -30,6 +30,12 @@ jobs:
       - run: python -m ruff check .
       - run: python -m ruff format --check .
       - run: python -m mypy src tests
+      - name: Read-only public capability drift report
+        continue-on-error: true
+        shell: bash
+        run: |
+          curl --fail --silent --show-error --max-time 30 --max-filesize 2097152 https://openrouter.ai/api/v1/videos/models -o "$RUNNER_TEMP/video-models.json"
+          python scripts/report_capability_completeness.py --current "$RUNNER_TEMP/video-models.json" --previous tests/fixtures/op07-full-catalogue.json --output "$RUNNER_TEMP/capability-drift.json" --summary "$GITHUB_STEP_SUMMARY"
       - run: python -m build
       - run: python scripts/verify_release_artifacts.py --dist dist
       - run: python -m pip_audit

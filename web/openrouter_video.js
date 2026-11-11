@@ -754,7 +754,9 @@ function refreshCatalogue() {
         if (connection.state !== "CONNECTED") return;
         const projection = await loadCapabilities(true);
         // Include profiles, not just model IDs or observation timestamps.
-        const signature = JSON.stringify({ models: projection.models,
+        const signature = projection.catalogue_revision ? JSON.stringify({
+            revision: projection.catalogue_revision, source_state: projection.source_state,
+        }) : JSON.stringify({ models: projection.models,
             unavailable_models: projection.unavailable_models,
             ui_contract_version: projection.ui_contract_version });
         const changed = signature !== catalogueSignature;
@@ -2076,6 +2078,14 @@ async function projectSelectedModel(node, force = false, snapshot = null) {
         setVisible(node.__orvConnectionCta, false);
         const projection = snapshot || await loadCapabilities(force);
         if (node.__orvProjectionVersion !== version) return;
+        if (projection.source_state === "STALE_FALLBACK") {
+            node.__orvCatalogueFailed = true;
+            node.__orvSelectionBlocked = true;
+            node.__orvCapabilityStatus.value = "CATALOGUE STALE — refresh failed; saved settings and links preserved";
+            setVisible(node.__orvCapabilityStatus, true);
+            node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
+            return;
+        }
         node.__orvCatalogueFailed = false;
         if (projection.ui_contract_version !== UI_CONTRACT_VERSION) {
             node.__orvCapabilityStatus.value =
@@ -2156,9 +2166,49 @@ async function projectSelectedModel(node, force = false, snapshot = null) {
     node.setDirtyCanvas?.(true, true);
 }
 
+function capabilitySettingRenderer() {
+    const root = document.createElement("div");
+    const summary = document.createElement("p");
+    summary.textContent = "Loading capability accounting…";
+    const models = document.createElement("select");
+    models.setAttribute("aria-label", "Discovered model capabilities");
+    const details = document.createElement("div");
+    root.append(summary, models, details);
+    loadCapabilities().then(projection => {
+        const report = projection.capability_completeness;
+        if (!report) { summary.textContent = "Capability accounting unavailable in this server version."; return; }
+        summary.textContent = `${projection.source_state || "UNKNOWN"} · ${report.discovered_model_count} discovered models · ${report.executable_method_count} executable methods. Accounted capabilities are not proof of executable support.`;
+        for (const model of report.models) {
+            const option = document.createElement("option");
+            option.value = model.model_id; option.textContent = model.model_id;
+            models.append(option);
+        }
+        const paint = () => {
+            details.replaceChildren();
+            const model = report.models.find(item => item.model_id === models.value);
+            for (const row of model?.rows || []) {
+                const line = document.createElement("p");
+                const sources = [...new Set((row.evidence || []).map(item => item.source))];
+                line.textContent = `${row.path} — ${row.disposition}: ${row.reason}${sources.length ? ` · ${sources.join(", ")}` : ""}`;
+                details.append(line);
+            }
+        };
+        models.onchange = paint; paint();
+    }).catch(() => { summary.textContent = "Catalogue unavailable. Saved workflow settings are preserved."; });
+    return root;
+}
+
 app.registerExtension({
     name: EXTENSION,
     settings: [
+        {
+            id: "OpenRouter Video.Capabilities",
+            name: "Capability accounting",
+            category: ["OpenRouter Video", "Capabilities"],
+            type: capabilitySettingRenderer,
+            defaultValue: null,
+            telemetry: { trackChanges: false },
+        },
         {
             id: "OpenRouter Video.Connection",
             name: "Connection",

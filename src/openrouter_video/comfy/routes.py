@@ -7,6 +7,7 @@ import threading
 from importlib.metadata import PackageNotFoundError, version
 from typing import Any, Final
 
+from openrouter_video.capabilities import capability_completeness_report, semantic_fingerprint
 from openrouter_video.errors import OpenRouterHTTPError, ProductFailureError, RequestPolicyError
 from openrouter_video.models import InferenceMethod, InputReferenceKind
 from openrouter_video.oauth import exchange as exchange_pkce
@@ -79,11 +80,18 @@ async def _ui_capabilities_handler(_: Any) -> Any:
         )
     )
     model_ids = tuple(item.model_id for item in sorted_projected)
-    revision = compat.cache_catalogue_health(model_ids, observation.observed_at.isoformat())
+    completeness = capability_completeness_report(observation.models)
+    revision = semantic_fingerprint(
+        {"models": [item.as_dict() for item in projected], "completeness": completeness}
+    )
+    compat.cache_catalogue_health(model_ids, observation.observed_at.isoformat(), revision)
     return compat.json_response(
         {
             "observed_at": observation.observed_at.isoformat(),
             "catalogue_revision": revision,
+            "source_state": observation.source_state,
+            "capability_completeness": completeness,
+            "evolution": observation.evolution,
             "ui_contract_version": compat.UI_CONTRACT_VERSION,
             "models": [item.as_dict() for item in sorted_projected],
             "unavailable_models": [

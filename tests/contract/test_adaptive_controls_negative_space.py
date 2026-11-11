@@ -31,7 +31,12 @@ def definitions(text: str) -> dict[str, str]:
 
 def test_existing_method_recipes_discovery_cache_and_http_classes_are_unchanged() -> None:
     for relative, exceptions in {
-        "src/openrouter_video/capabilities.py": {"RequestValidator", "inference_method_matrix"},
+        "src/openrouter_video/capabilities.py": {
+            "RequestValidator",
+            "inference_method_matrix",
+            "CapabilityService",
+            "CapabilityObservation",
+        },
         "src/openrouter_video/client.py": {
             "_parse_capability",
             "_optional_int_tuple",

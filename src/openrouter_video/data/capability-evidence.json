@@ -7185,7 +7185,7 @@
                   "max": 0,
                   "per_kind_max": {}
                 },
-                "notes": "Current exact Atlas T2V schema confirms prompt, durations 3–15, aspect ratios and sound without a resolution input. Restore this method with geometry omitted; retain historical geometry conflict explicitly.",
+                "notes": "Current exact Atlas T2V schema confirms prompt, durations 3\u0432\u0402\u201c15, aspect ratios and sound without a resolution input. Restore this method with geometry omitted; retain historical geometry conflict explicitly.",
                 "historical_findings": [
                   {
                     "state": "CONFLICT",
@@ -11628,7 +11628,7 @@
                     }
                   }
                 },
-                "notes": "Exact OpenRouter model supports reference-video generation; Atlas confirms 1–3 videos, 5/10 second output and prompt subject labels character1, character2, character3. Existing canonical video input_references preserve ordered subjects.",
+                "notes": "Exact OpenRouter model supports reference-video generation; Atlas confirms 1\u0432\u0402\u201c3 videos, 5/10 second output and prompt subject labels character1, character2, character3. Existing canonical video input_references preserve ordered subjects.",
                 "audit_scope": "CURRENT_MODEL_METHOD",
                 "topology": {
                   "fixed": [],
@@ -12648,15 +12648,14 @@
                   },
                   "provider_options": {
                     "state": "SUPPORTED",
-                    "required": true,
+                    "required": false,
                     "providers": {
                       "google-ai-studio": {
                         "task": {
                           "type": "string",
                           "values": [
                             "reference_to_video"
-                          ],
-                          "default": "reference_to_video"
+                          ]
                         }
                       }
                     }
@@ -12707,15 +12706,14 @@
                   },
                   "provider_options": {
                     "state": "SUPPORTED",
-                    "required": true,
+                    "required": false,
                     "providers": {
                       "google-ai-studio": {
                         "task": {
                           "type": "string",
                           "values": [
                             "reference_to_video"
-                          ],
-                          "default": "reference_to_video"
+                          ]
                         }
                       }
                     }
@@ -12766,15 +12764,14 @@
                   },
                   "provider_options": {
                     "state": "SUPPORTED",
-                    "required": true,
+                    "required": false,
                     "providers": {
                       "google-ai-studio": {
                         "task": {
                           "type": "string",
                           "values": [
                             "reference_to_video"
-                          ],
-                          "default": "reference_to_video"
+                          ]
                         }
                       }
                     }
@@ -12859,15 +12856,14 @@
                   },
                   "provider_options": {
                     "state": "SUPPORTED",
-                    "required": true,
+                    "required": false,
                     "providers": {
                       "google-ai-studio": {
                         "task": {
                           "type": "string",
                           "values": [
                             "edit"
-                          ],
-                          "default": "edit"
+                          ]
                         }
                       }
                     }
@@ -12940,15 +12936,14 @@
                   },
                   "provider_options": {
                     "state": "SUPPORTED",
-                    "required": true,
+                    "required": false,
                     "providers": {
                       "google-ai-studio": {
                         "task": {
                           "type": "string",
                           "values": [
                             "extend"
-                          ],
-                          "default": "extend"
+                          ]
                         }
                       }
                     }
@@ -12988,8 +12983,8 @@
           },
           "authority": "OFFICIAL_OPENROUTER_AND_EXACT_SERVED_API_REVIEW",
           "source_reference": "https://openrouter.ai/google/gemini-omni-1.2-flash",
-          "observed_at": "2026-11-09T16:00:00+00:00",
-          "scope": "Canonical OpenRouter input_references and previous_job_id; reviewed task enum;6 image refs for AI Studio, not Cloud10-image limit; video refs2–3 requireduration<=10; Google AI Studio exact API: https://ai.google.dev/gemini-api/docs/omni"
+          "observed_at": "2026-11-11T21:28:23.245335+00:00",
+          "scope": "Canonical OpenRouter input_references and previous_job_id; reviewed task enum;6 image refs for AI Studio, not Cloud10-image limit; video refs2\u0432\u0402\u201c3 requireduration<=10; Google AI Studio exact API: https://ai.google.dev/gemini-api/docs/omni OP07 adaptive correction: task is optional explicit intent, not an automatically injected discriminator. Google recommends natural-language task selection first; mixed image/video references remain unresolved. OpenRouter non-Veo options use google-ai-studio.task directly, not parameters.task."
         },
         "reference_kinds": {
           "value": [
@@ -13020,7 +13015,7 @@
           "authority": "OFFICIAL_OPENROUTER_AND_EXACT_SERVED_API_REVIEW",
           "source_reference": "https://openrouter.ai/google/gemini-omni-1.2-flash",
           "observed_at": "2026-11-09T16:00:00+00:00",
-          "scope": "Uploaded or previous-job video extension;3–10seconds perturn; Google AI Studio exact API: https://ai.google.dev/gemini-api/docs/omni"
+          "scope": "Uploaded or previous-job video extension;3\u0432\u0402\u201c10seconds perturn; Google AI Studio exact API: https://ai.google.dev/gemini-api/docs/omni"
         }
       }
     },
@@ -13521,5 +13516,5 @@
       }
     }
   ],
-  "content_hash": "e458c06a7a8505cd82f2b914196ecb09a4e759f6d83662b12644514a807fde45"
+  "content_hash": "5d02e95676e4fa1ff553fd1af253c8aa2c25aaa56c7585c8091b6bc9d5b5aa68"
 }

@@ -105,11 +105,13 @@ def model_input() -> Any:
     )
 
 
-def cache_catalogue_health(model_ids: tuple[str, ...], observed_at: str) -> str:
+def cache_catalogue_health(
+    model_ids: tuple[str, ...], observed_at: str, semantic_revision: str | None = None
+) -> str:
     """Record a sanitized local catalogue snapshot without upstream work."""
 
     manifest = f"{observed_at}\n" + "\n".join(sorted(model_ids))
-    revision = sha256(manifest.encode("utf-8")).hexdigest()
+    revision = semantic_revision or sha256(manifest.encode("utf-8")).hexdigest()
     with _CATALOGUE_HEALTH_LOCK:
         _catalogue_health.update(
             catalogue_state="FRESH" if model_ids else "EMPTY",

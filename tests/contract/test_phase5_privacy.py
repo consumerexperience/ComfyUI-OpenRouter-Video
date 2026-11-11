@@ -57,7 +57,9 @@ def test_sensitive_generation_data_never_persists_or_leaks_to_diagnostics(
                         {
                             "id": "vendor/model",
                             "supported_frame_images": ["first_frame", "last_frame"],
-                            "catalog_additive": RESPONSE_BODY_CANARY,
+                            # Public discovery metadata is now retained by OP07.
+                            # Error/submit response bodies remain private canaries.
+                            "catalog_additive": {"public_capability": True},
                         }
                     ]
                 },

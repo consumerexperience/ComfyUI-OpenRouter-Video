@@ -253,10 +253,22 @@ def test_seed_contract_accepts_unbounded_integers_and_keeps_sentinel_semantics()
     fact = model.evidence_facts[0]
     shapes = json.loads(json.dumps(fact.value))
     del shapes["methods"]["T2V"]["controls"]["seed"]["integer_range"]
-    updated = replace(model, evidence_facts=(fact.__class__(
-        fact.model_id, fact.key, shapes, fact.state, fact.authority, fact.source_reference,
-        fact.observed_at, fact.scope, fact.artifact_version
-    ),))
+    updated = replace(
+        model,
+        evidence_facts=(
+            fact.__class__(
+                fact.model_id,
+                fact.key,
+                shapes,
+                fact.state,
+                fact.authority,
+                fact.source_reference,
+                fact.observed_at,
+                fact.scope,
+                fact.artifact_version,
+            ),
+        ),
+    )
     assert project_semantic_values(updated, "T2V", {"seed": 2**53 - 1})["seed"] == 2**53 - 1
     assert project_semantic_values(updated, "T2V", {"seed": True})["seed"] is None
     assert project_semantic_values(updated, "T2V", {"seed": -1})["seed"] is None
