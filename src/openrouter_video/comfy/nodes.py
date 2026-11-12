@@ -28,7 +28,7 @@ from . import compat
 from .image import ImageBridgeError, to_image_data_url
 from .native_media import native_reference
 from .runtime import get_runtime
-from .video import VideoBridgeError, to_native_video
+from .video import VideoBridgeError, to_native_last_frame, to_native_video
 
 
 class AdapterExecutionError(RuntimeError):
@@ -43,11 +43,11 @@ def _optional_text(value: str) -> str | None:
 
 
 def _duration(value: int) -> int | None:
-    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+    if isinstance(value, bool) or not isinstance(value, int) or value < -1:
         raise AdapterExecutionError(
-            "UNSUPPORTED_PARAMETER: duration must be zero or a positive integer."
+            "UNSUPPORTED_PARAMETER: duration must be -1, zero, or a positive integer."
         )
-    return value or None
+    return None if value == 0 else value
 
 
 def _model(value: object) -> str:
@@ -139,6 +139,8 @@ async def _node_output(result: GenerationResult, node_id: str | None) -> object:
         video = to_native_video(result.artifact)
     except VideoBridgeError as exc:
         raise AdapterExecutionError(str(exc)) from None
+    # LAST_FRAME is an auxiliary local decode; its failure never invalidates VIDEO.
+    last_frame = to_native_last_frame(result.artifact)
     cost = format(result.actual_cost_usd, "f") if result.actual_cost_usd is not None else ""
     output = compat.IO.NodeOutput(
         video,
@@ -146,6 +148,7 @@ async def _node_output(result: GenerationResult, node_id: str | None) -> object:
         result.model or "",
         cost,
         result.state.value,
+        last_frame,
     )
     await compat.report_phase(ExecutionPhase.DONE, node_id)
     return output
@@ -158,6 +161,7 @@ def _outputs() -> list[object]:
         compat.IO.String.Output("MODEL"),
         compat.IO.String.Output("ACTUAL_COST_USD"),
         compat.IO.String.Output("STATUS"),
+        compat.IO.Image.Output("LAST_FRAME"),
     ]
 
 
@@ -332,7 +336,7 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                 compat.IO.String.Input("prompt", display_name="Prompt", default="", multiline=True),
                 compat.IO.String.Input("resolution", default=""),
                 compat.IO.String.Input("aspect_ratio", default=""),
-                compat.IO.Int.Input("duration", default=0, min=0, step=1),
+                compat.IO.Int.Input("duration", default=0, min=-1, step=1),
                 compat.IO.String.Input("size", default="", advanced=True),
                 compat.IO.Int.Input(
                     "seed",

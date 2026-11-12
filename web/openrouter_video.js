@@ -818,7 +818,7 @@ function canonicalOptions(axis, values) {
     if (values === null) return null;
     const key = (value) => {
         const text = String(value);
-        if (value === AUTO || (axis === "duration" && value === 0)) return [-1, 0, 0, 0, 0, text];
+        if (value === AUTO || (axis === "duration" && (value === 0 || value === -1))) return [-1, 0, 0, 0, 0, text];
         let match;
         if (axis === "resolution" && (match = /^([0-9]+(?:\.[0-9]+)?)(p|k)$/i.exec(text))) {
             const nominal = Number(match[1]) * (match[2].toLowerCase() === "k" ? 1000 : 1);
@@ -893,7 +893,7 @@ function arithmeticStep(values) {
 function durationDomain(evidence) {
     if (Array.isArray(evidence)) {
         const values = canonicalOptions("duration", evidence);
-        if (!values.length || values.some(v => typeof v !== "number" || !Number.isFinite(v) || v <= 0)) {
+        if (!values.length || values.some(v => typeof v !== "number" || !Number.isFinite(v) || (v <= 0 && v !== -1))) {
             return { kind: "UNKNOWN" };
         }
         return { kind: "DISCRETE", allowed_values: values, min: values[0], max: values.at(-1) };
@@ -926,6 +926,11 @@ function durationAtPosition(domain, position) {
         return Number(Math.max(domain.min, Math.min(domain.max, position)).toFixed(domain.precision));
     }
     return null;
+}
+
+function durationValueAllowed(domain, value) {
+    if (domain.allowed_values) return domain.allowed_values.includes(value);
+    return domain.kind !== "UNKNOWN" && value >= domain.min && value <= domain.max;
 }
 
 function createDurationSlider(node, previous) {
@@ -971,7 +976,7 @@ function createDurationSlider(node, previous) {
         view.options = nativeOptions();
         view.width = item.width;
         view.label = "Duration";
-        const text = Number(item.value) > 0 ? `Duration ${item.value}s` : "Duration —";
+        const text = Number(item.value) === -1 ? "Duration Auto" : Number(item.value) > 0 ? `Duration ${item.value}s` : "Duration —";
         const drawContext = new Proxy(ctx, { get(target, key) {
             if (key === "fillText") return (_nativeText, ...args) => target.fillText(text, ...args);
             const value = Reflect.get(target, key, target);
@@ -999,8 +1004,8 @@ function configureDuration(node, supported) {
     setVisible(item, true);
     const values = domain.allowed_values || [];
     const current = Number(item.value || 0);
-    const valid = values.length ? values.includes(current) : domain.kind !== "UNKNOWN" && current >= domain.min && current <= domain.max;
-    if (!valid && domain.kind !== "UNKNOWN") item.value = productDefault("duration", values) ?? domain.min;
+    const valid = durationValueAllowed(domain, current);
+    if (!valid && domain.kind !== "UNKNOWN") item.value = productDefault("duration", values.filter(value => value > 0)) ?? domain.min;
     item.options.values = values;
     item.options.min = domain.min ?? 0;
     item.options.max = domain.max === domain.min ? domain.max + 1 : domain.max ?? 1;
@@ -2146,7 +2151,7 @@ function bindEstimateRefresh(node) {
                 projectSelectedModel(node);
                 return;
             }
-            if (item.name === "duration" && Number(item.value) > 0) {
+            if (item.name === "duration" && Number(item.value) !== 0) {
                 configureDuration(node, node.__orvDurationValues);
             }
             clearTimeout(node.__orvEstimateTimer);

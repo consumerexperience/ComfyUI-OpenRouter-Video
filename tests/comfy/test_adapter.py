@@ -80,6 +80,7 @@ def _install_fake_numbered_api() -> None:
         Hidden=types.SimpleNamespace(unique_id="UNIQUE_ID"),
         Combo=types.SimpleNamespace(Input=_Field),
         String=types.SimpleNamespace(Input=_Field, Output=_Field),
+        Image=types.SimpleNamespace(Output=_Field),
         Int=types.SimpleNamespace(Input=_Field),
         ControlAfterGenerate=types.SimpleNamespace(
             fixed="fixed", increment="increment", decrement="decrement", randomize="randomize"
@@ -151,6 +152,7 @@ def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
         "MODEL",
         "ACTUAL_COST_USD",
         "STATUS",
+        "LAST_FRAME",
     ]
     assert [item.name for item in resume.outputs] == [
         "VIDEO",
@@ -158,6 +160,7 @@ def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
         "MODEL",
         "ACTUAL_COST_USD",
         "STATUS",
+        "LAST_FRAME",
     ]
     assert [item.name for item in generate.inputs] == [
         "model",
@@ -288,6 +291,7 @@ def test_generate_normalizes_once_and_returns_exact_output(
         "vendor/model",
         "0.2500",
         "DONE",
+        None,
     )
 
 
@@ -301,6 +305,7 @@ def test_native_video_and_done_progress_are_truthful_and_ordered(
 
     monkeypatch.setattr(compat, "report_phase", report)
     monkeypatch.setattr(nodes, "to_native_video", lambda _: "native-video")
+    monkeypatch.setattr(nodes, "to_native_last_frame", lambda _: "last-image")
     result = GenerationResult(
         LocalLifecycleState.DONE,
         "job-progress",
@@ -310,6 +315,7 @@ def test_native_video_and_done_progress_are_truthful_and_ordered(
     output = asyncio.run(nodes._node_output(result, "node-progress"))
 
     assert output.values[0] == "native-video"
+    assert output.values[5] == "last-image"
     assert phases == [
         (ExecutionPhase.NATIVE_VIDEO, "node-progress"),
         (ExecutionPhase.DONE, "node-progress"),
@@ -583,7 +589,7 @@ def test_native_image_normalizes_into_existing_frame_and_ordered_reference_roles
     assert "api_key" not in caplog.text.lower()
 
 
-@pytest.mark.parametrize("duration", (-1, True, 1.5))
+@pytest.mark.parametrize("duration", (-2, True, 1.5))
 def test_generate_rejects_invalid_duration_without_runtime_call(
     duration: object, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -594,6 +600,20 @@ def test_generate_rejects_invalid_duration_without_runtime_call(
     )
     with pytest.raises(nodes.AdapterExecutionError, match="UNSUPPORTED_PARAMETER"):
         nodes._duration(duration)
+
+
+def test_automatic_duration_sentinel_is_preserved_for_capability_validation() -> None:
+    assert nodes._duration(-1) == -1
+    assert nodes._duration(0) is None
+
+
+def test_estimate_route_accepts_only_the_documented_automatic_sentinel() -> None:
+    assert (
+        routes._parse_estimate_inputs({"model_id": "vendor/model", "duration": -1}).duration == -1
+    )
+    for value in (0, -2, True):
+        with pytest.raises(ValueError, match="duration is invalid"):
+            routes._parse_estimate_inputs({"model_id": "vendor/model", "duration": value})
 
 
 @pytest.mark.parametrize("seed", ("1.2", "not-a-number"))
@@ -638,7 +658,7 @@ def test_resume_strips_job_id_and_has_no_submit_surface(monkeypatch: pytest.Monk
     output = asyncio.run(nodes.OpenRouterVideoResume.execute(" job-9 "))
 
     assert calls == ["job-9"]
-    assert output.values == ("native-video", "job-9", "", "", "DONE")
+    assert output.values == ("native-video", "job-9", "", "", "DONE", None)
     with pytest.raises(nodes.AdapterExecutionError, match="job_id"):
         asyncio.run(nodes.OpenRouterVideoResume.execute("   "))
 

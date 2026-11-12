@@ -19,10 +19,10 @@
         "src~1openrouter_video~1app_identity_py": "94fc446b83ddd707ca4d6463b280dd0fa210e4f106ec08a059bf4abd260e7ed7"
       },
       "capabilities": {
-        "src~1openrouter_video~1capabilities_py": "5f7939da5d4af79837138c2c29ccf6931f7a77b55447733eba50a105f761608e",
+        "src~1openrouter_video~1capabilities_py": "5aa2df80832b0e5191fe39272375d6db96c6c2e61199ebbcca34c72f5a55a116",
         "src~1openrouter_video~1capability_overlays_py": "2faf6a156a6abe497992f6dfec594c3e6f6a0fcaaf45a963b3a6b428311cb232",
         "src~1openrouter_video~1client_py": "8c4629c9f3425f1aa7ec7d6d33cdda3f21cda917ee0235d1abffaef6372961a1",
-        "src~1openrouter_video~1configuration_py": "e63419fb40c811cbfaa151ff050a5475a1a30e7cb3bf40332c80c5f150d58faa",
+        "src~1openrouter_video~1configuration_py": "58f45955b3a30a786cbebf74f6ebd94073c3e7e163d8a20ddaa9ea94fd6f2d34",
         "src~1openrouter_video~1credential_backend_py": "ddaa46fcae133aee57d09d039b91d0a840fbc8260150af6e796f56789b3f041e",
         "src~1openrouter_video~1eligibility_py": "3380ef4a5e3e9c3b5fb628ef5d00f99ef20afb11a822267108f824ed74e28041",
         "src~1openrouter_video~1errors_py": "2ee7cc10ae9e353b28539b82810b8a7bf54ed1c33f6373daab2d71c3dd50642f",
@@ -37,21 +37,21 @@
         "src~1openrouter_video~1request_policy_py": "df34611e8fcf10b280d3c6d94bafc48be4feeff7879e0380d7f417e8ff43a141",
         "src~1openrouter_video~1transport_py": "be05e33cc8ee5561185bb804848d2c2aba61f3229b622a035bb2f8d82a560a96",
         "src~1openrouter_video~1__init___py": "29609578652107b9020a259f63a9076e7128ac40d8638935b40f7d475417287b",
-        "src~1openrouter_video~1comfy~1compat_py": "25d7562ff3059dff651007fa6a584b038bf517734a7917cd9c15cfd534f39260",
+        "src~1openrouter_video~1comfy~1compat_py": "acf6f3ae92fe73214273b7971bb62337a3a6c0fbd045fb85acf6a59b4543378f",
         "src~1openrouter_video~1comfy~1extension_py": "e8e544a1cd58cd7933fb62fab5a42f834a630d29cc50446324a69a295d9107ae",
         "src~1openrouter_video~1comfy~1image_py": "ad04516d799f093ce6dfa65ecf0dc193970408119338c4da329dd9da4a88ba50",
-        "src~1openrouter_video~1comfy~1nodes_py": "a785ef12145c92c0ea1d60099415e3a5aaa06115cd82a2e1c8899baa2fdd607f",
+        "src~1openrouter_video~1comfy~1nodes_py": "2eab3384fa3fbd4782ce403de642a02f3a9c26f6a988009f0c9e8a8b3ae93e67",
         "src~1openrouter_video~1comfy~1oauth_diagnostics_py": "f6f07be096153de722339e48391fc283472504a6c2f74a747eed2d71f2c39948",
         "src~1openrouter_video~1comfy~1oauth_loopback_py": "5988509ad6c9b81339b2dd70747a89ea01d0456895c1d47921f99aa2975cb062",
         "src~1openrouter_video~1comfy~1projection_py": "ac5c9e5fc47ff5c6765967ceca354750d84cdbc700f9143b9cbdbe8455a072df",
-        "src~1openrouter_video~1comfy~1routes_py": "c3ada54b010d2e4794be76c8b0fd7c87ad2a35188ed35927f8f13c04088e0504",
-        "src~1openrouter_video~1comfy~1video_py": "4a68b60806cfce1e06712f0dcee3e0adef07d96ab553ce070d9c25bbfcf3aae4",
+        "src~1openrouter_video~1comfy~1routes_py": "d77103c9628bded79143c33c534a2474a89b3063a6979b1fe9af20f5e7fbddef",
+        "src~1openrouter_video~1comfy~1video_py": "abba994f7b8b8f8c424be4ea46339b2710b0f92ed1b0b5a2ae3597fb685b0480",
         "src~1openrouter_video~1comfy~1__init___py": "53c1674848551aacdf94a06520af63ff90947add1e69af174b3d983367958654",
         "src~1openrouter_video~1data~1geometry-relations_json": "43ba114f123a24b53de0adbe08544b3f43c3a4c28b3f96eb1501419ebb86b228"
       },
       "evidence_registry": {
         "src~1openrouter_video~1evidence_registry_py": "8d4cf176439faa8ca3578429db7a2bfee7c8cc7d2413ffc56d469cb8f8dc9b97",
-        "src~1openrouter_video~1data~1capability-evidence_json": "90b6c34e255663789378ca921d8403a56efdea8af8fa7618d820c5359778ea9c"
+        "src~1openrouter_video~1data~1capability-evidence_json": "f0f4f8a5241c575b37f186501938b16f163aed36135fe155656de5f5f4c44aa5"
       },
       "storage": {
         "src~1openrouter_video~1local_media_py": "9ed03216faa922f9bc95735304b33ddc4727df79a16446959192926f7a35cd23",
@@ -62,7 +62,7 @@
         "src~1openrouter_video~1persistence_py": "62369d569597f088de397b945b524551bbb6a3dc4514037ec42458b7078cbc2b"
       },
       "pricing": {
-        "src~1openrouter_video~1pricing_py": "c73360cad870769b21545b9453a5af5e38922812207075488d4ee596ea9e4e52",
+        "src~1openrouter_video~1pricing_py": "f2e53621eaedd3e90ec62d28ab62df1e393839d83b81678a62463a17dc2884f4",
         "src~1openrouter_video~1pricing_profile_py": "9fbd09ffa1bdd102a8042352edb1eda40004885f8d52c9a4080446293bb11f06"
       },
       "recipes": {
@@ -75,7 +75,7 @@
         "src~1openrouter_video~1comfy~1native_media_py": "55f0b01337e200732d7290d1cc05bc305712186bf6bedf42caebf834d21f8541"
       },
       "workflow_persistence": {
-        "web~1openrouter_video_js": "3c21dfddf367d173252a1d63937b1aa00a09467147a6cedd8be696bdbad17811"
+        "web~1openrouter_video_js": "3bf1a4c000cd9b13f4be74f274114c81688b398c9534f1bfc36e81d69b5c5d51"
       }
     },
     "upstream_dynamic": {},

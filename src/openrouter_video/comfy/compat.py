@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import logging
 import threading
 from hashlib import sha256
+from math import isfinite
 from pathlib import Path
 from typing import Any, Final, NoReturn
 
@@ -61,6 +63,8 @@ _catalogue_health: dict[str, object] = {
     "catalogue_model_count": 0,
     "catalogue_revision": None,
 }
+_LAST_FRAME_MAX_TAIL_SECONDS: Final = 2.0
+_LAST_FRAME_MAX_DECODED_FRAMES: Final = 8
 
 
 class UnsupportedComfyError(RuntimeError):
@@ -198,6 +202,39 @@ def video_from_file(path: Path) -> Any:
     return InputImpl.VideoFromFile(str(path))
 
 
+def last_frame_from_file(path: Path) -> Any | None:
+    """Decode a bounded suffix through Comfy's native API, always decoding it to EOF."""
+
+    validate_host_api()
+    probe = InputImpl.VideoFromFile(str(path))
+    duration = float(probe.get_duration())
+    frame_rate = float(probe.get_frame_rate())
+    if not isfinite(duration) or duration < 0 or not isfinite(frame_rate) or frame_rate <= 0:
+        return None
+    max_window = min(_LAST_FRAME_MAX_TAIL_SECONDS, duration)
+    window = min(1.0 / frame_rate, max_window)
+    while True:
+        start = max(0.0, duration - window)
+        selected = InputImpl.VideoFromFile(str(path), start_time=start)
+        try:
+            images = selected.get_components().images
+        except Exception:
+            images = ()
+        if len(images):
+            if len(images) <= _LAST_FRAME_MAX_DECODED_FRAMES:
+                return images[-1:].clone()
+            logging.getLogger(__name__).warning(
+                "LAST_FRAME omitted because native tail decoding exceeded its frame bound."
+            )
+            return None
+        if start <= 0 or window >= max_window:
+            logging.getLogger(__name__).warning(
+                "LAST_FRAME omitted because the native decoder found no frame in its bounded tail."
+            )
+            return None
+        window = min(max_window, window * 2)
+
+
 def prompt_server() -> Any:
     """Return the active host server without importing it outside this facade."""
 
@@ -243,6 +280,7 @@ __all__ = (
     "current_node_id",
     "host_interrupted",
     "json_response",
+    "last_frame_from_file",
     "mark_catalogue_unavailable",
     "model_input",
     "next_cache_token",

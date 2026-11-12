@@ -9,6 +9,8 @@ const before=execFileSync('git',['show',`${baseline}:web/openrouter_video.js`],{
 const current=readFileSync(new URL('web/openrouter_video.js',root),'utf8').replace(/\r\n/g,'\n');
 const functions=t=>Object.fromEntries(t.split(/(?=^function |^async function )/m).slice(1).map(p=>[p.match(/function (\w+)/)[1],p.slice(0,p.indexOf('\n}')+2)]));
 const allowed=new Set(['setConnectionPresentation','loadCapabilities','configureModelPicker','projectSelectedModel','reprojectNodeSemantics','configurationScope','fixedRolesForMethod','configureReferenceTopology','refreshEstimate','methodUsesReferences',
+    // F01: canonical ordering admits the explicitly documented -1 sentinel.
+    'canonicalOptions','durationDomain','createDurationSlider','configureDuration','bindEstimateRefresh',
     // Owner abcc0172: independent input bounds and preservation under uncertainty.
     'referenceShapeValid','scopedCapability','parkIncompatibleMedia','referenceSocketType']);
 test('all existing functions outside OP07 catalogue delta, including OAuth/billing/renderer, are exact',()=>{

@@ -29,6 +29,8 @@ ALLOWED = {
     "src/openrouter_video/image_transport.py": "capabilities",
     "src/openrouter_video/recipes.py": "recipes",
     "src/openrouter_video/comfy/nodes.py": "capabilities",
+    "src/openrouter_video/comfy/video.py": "capabilities",
+    "src/openrouter_video/pricing.py": "pricing",
     "src/openrouter_video/application.py": "submit_resume",
     "src/openrouter_video/comfy/runtime.py": "submit_resume",
     "src/openrouter_video/capabilities.py": "capabilities",
@@ -101,7 +103,13 @@ def main():
                     "without fabricated maxima; Owner all-model Documentation First: "
                     "compatible official contracts admit documented methods, scalar domains "
                     "and typed options without per-count paid proof; integrate supplied patch "
-                    "and recover positive ABSENCE_ONLY controls; not release acceptance."
+                    "and recover positive ABSENCE_ONLY controls; "
+                    "Owner F01-F09 functional remediation: "
+                    "advertised automatic duration, exact documented methods/media guards, "
+                    "nonexclusive documentation-first geometry, completeness detection and "
+                    "append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; "
+                    "first five outputs and billing/security remain protected; "
+                    "not release acceptance."
                 ),
             }
         )

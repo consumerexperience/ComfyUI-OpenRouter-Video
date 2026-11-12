@@ -48,7 +48,7 @@ def test_transform_seed_reaches_the_existing_canonical_wire(
     assert request.to_openrouter_payload()["seed"] == seed
 
 
-def test_manifest_delta_is_exactly_two_method_profiles_and_their_scope_note() -> None:
+def test_manifest_retains_edit_extend_history_and_current_method_support() -> None:
     git = shutil.which("git")
     assert git is not None
     data = json.loads(
@@ -65,12 +65,39 @@ def test_manifest_delta_is_exactly_two_method_profiles_and_their_scope_note() ->
     current_seedance = next(
         m for m in load_manifest()["models"] if m["exact_model_id"] == "bytedance/seedance-2.5"
     )
-    from tests.unit.test_model_eligibility import assert_reconciled_scalar_delta
-
-    assert_reconciled_scalar_delta(
-        next(m for m in data["models"] if m["exact_model_id"] == "bytedance/seedance-2.5"),
-        current_seedance,
+    # F03 adds documented pure-audio Seedance 2.5 admission. Keep the
+    # edit/extend regression scoped to its historical profile delta below.
+    baseline_seedance = next(
+        m for m in data["models"] if m["exact_model_id"] == "bytedance/seedance-2.5"
     )
+    current_methods = current_seedance["facts"]["request_shape_profiles"]["value"]["methods"]
+    baseline_methods = baseline_seedance["facts"]["request_shape_profiles"]["value"]["methods"]
+    assert (
+        current_methods["V2V_EDIT"]["state"] == baseline_methods["V2V_EDIT"]["state"] == "SUPPORTED"
+    )
+    assert (
+        current_methods["V2V_EXTEND"]["state"]
+        == baseline_methods["V2V_EXTEND"]["state"]
+        == "SUPPORTED"
+    )
+    assert current_methods["AR2V"]["state"] == "SUPPORTED"
+    prior = json.loads(
+        subprocess.check_output(  # noqa: S603 - exact local immutable candidate
+            [
+                git,
+                "show",
+                "afcf96390cde4f8616e765f8dc41e76df60d1665:src/openrouter_video/data/capability-evidence.json",
+            ],
+            text=True,
+            encoding="utf-8",
+        )
+    )
+    prior_seedance = next(
+        m for m in prior["models"] if m["exact_model_id"] == "bytedance/seedance-2.5"
+    )
+    prior_methods = prior_seedance["facts"]["request_shape_profiles"]["value"]["methods"]
+    for method in METHODS:
+        assert current_methods[method.value] == prior_methods[method.value]
     data.pop("content_hash")
     model = next(m for m in data["models"] if m["exact_model_id"] == "bytedance/seedance-2.5")
     fact = model["facts"]["request_shape_profiles"]

@@ -243,7 +243,72 @@ def test_op07_evidence_delta_preserves_every_other_model_and_historical_conflict
     from openrouter_video.evidence_registry import load_manifest
 
     after = load_manifest()
-    mapping = {m["exact_model_id"]: m for m in after["models"]}
+    # F02-F06 is checked independently against the immediately preceding exact
+    # candidate; restore only that explicit delta for this historical shield.
+    import copy
+
+    prior = json.loads(
+        subprocess.check_output(  # noqa: S603
+            [
+                git,
+                "show",
+                "afcf96390cde4f8616e765f8dc41e76df60d1665:src/openrouter_video/data/capability-evidence.json",
+            ],
+            text=True,
+            encoding="utf-8",
+        )
+    )
+    prior_models = {m["exact_model_id"]: m for m in prior["models"]}
+    mapping = {m["exact_model_id"]: copy.deepcopy(m) for m in after["models"]}
+    changed_methods = {
+        "minimax/hailuo-3": {"T2V"},
+        "bytedance/seedance-2.5": {"AR2V"},
+        "alibaba/happyhorse-1.0": {"IR2V", "MI2V"},
+        "x-ai/grok-imagine-video": {"MI2V"},
+    }
+    for mid, current in mapping.items():
+        old_model = prior_models[mid]
+        methods = current["facts"]["request_shape_profiles"]["value"]["methods"]
+        old_methods = old_model["facts"]["request_shape_profiles"]["value"]["methods"]
+        for name in changed_methods.get(mid, set()):
+            assert methods[name]["state"] == "SUPPORTED"
+            if name == "AR2V":
+                assert methods[name]["topology"]["reference_kinds"] == ["audio"]
+            elif mid == "alibaba/happyhorse-1.0":
+                assert methods[name]["topology"]["max"] == (1 if name == "IR2V" else 9)
+            elif mid == "x-ai/grok-imagine-video":
+                assert "relations" not in methods[name]
+            methods[name] = copy.deepcopy(old_methods[name])
+        if mid in changed_methods:
+            history = current.pop("historical_findings")
+            old_history = old_model.get("historical_findings", [])
+            assert history[: len(old_history)] == old_history
+            assert len(history) == len(old_history) + len(changed_methods[mid])
+            if old_history:
+                current["historical_findings"] = old_history
+        if mid in {
+            "bytedance/seedance-2.0",
+            "bytedance/seedance-2.0-fast",
+            "bytedance/seedance-2.0-mini",
+        }:
+            for name, method in methods.items():
+                if "video" not in method.get("topology", {}).get("reference_kinds", []):
+                    continue
+                assert method["media_limits"]["video"] == {
+                    "min_duration_seconds": 2,
+                    "max_duration_seconds": 15,
+                    "max_combined_duration_seconds": 15,
+                }
+                if "media_limits" in old_methods[name]:
+                    method["media_limits"] = old_methods[name]["media_limits"]
+                else:
+                    method.pop("media_limits")
+                assert (
+                    method["review_sources"][-1]
+                    == "https://docs.byteplus.com/en/docs/modelark/create-video-generation-task-api"
+                )
+                method["review_sources"].pop()
+        assert current == old_model, mid
     assert set(mapping) - {m["exact_model_id"] for m in before["models"]} == {
         "google/gemini-omni-1.2-flash",
         "google/gemini-omni-1.1-flash",

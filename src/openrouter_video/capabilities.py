@@ -376,6 +376,22 @@ def capability_completeness(model: ModelCapabilities) -> dict[str, Any]:
     profiles = {method.value: project_method(model, method.value) for method in InferenceMethod}
     executable = {m.value for m in eligible_methods(model)}
     rows: list[dict[str, Any]] = []
+    # A registered profile that claims support must yield a validated wire witness.
+    # Keep UNKNOWN/DEFERRED as evidence gaps; they are not positive coverage.
+    for method, profile in profiles.items():
+        if profile.get("state") == "SUPPORTED" and method not in executable:
+            rows.append(
+                {
+                    "path": "methods." + method,
+                    "origin": "DERIVED_PROJECTION",
+                    "disposition": "IMPLEMENTATION_GAP",
+                    "classification": "CAPABILITY_UNDEREXPOSURE_DEFECT",
+                    "reason": (
+                        "Registered SUPPORTED method has no validated serializable request witness"
+                    ),
+                    "value": {"projected_state": "SUPPORTED", "admitted": False},
+                }
+            )
     control_map = {
         "supported_durations": "duration",
         "supported_resolutions": "resolution",
@@ -452,6 +468,115 @@ def capability_completeness(model: ModelCapabilities) -> dict[str, Any]:
                 "source": "https://openrouter.ai/api/v1/videos/models",
             }
         )
+    # Compare each normalized catalogue scalar domain with every applicable method
+    # projection. This checks conditional method domains independently, without
+    # constructing a Cartesian product across unrelated controls.
+    scalar_domains = {
+        "supported_durations": ("duration", (int, float)),
+        "supported_resolutions": ("resolution", (str,)),
+        "supported_aspect_ratios": ("aspect_ratio", (str,)),
+        "supported_sizes": ("size", (str,)),
+    }
+    for field, (control_name, accepted_types) in scalar_domains.items():
+        values = raw.get(field)
+        if not isinstance(values, list):
+            continue
+        known = [
+            v
+            for v in values
+            if type(v) in accepted_types and (field != "supported_durations" or math.isfinite(v))
+        ]
+        for method, profile in profiles.items():
+            if profile.get("state") != "SUPPORTED":
+                continue
+            control = profile.get("controls", {}).get(control_name, {})
+            if control.get("state") != "SUPPORTED":
+                continue
+            projected = control.get("values")
+            if not isinstance(projected, list):
+                continue
+            missing = [v for v in known if v not in projected]
+            if missing:
+                scoped_evidence = []
+                for fact in model.evidence_facts:
+                    method_contract = (
+                        fact.value.get("methods", {}).get(method, {})
+                        if isinstance(fact.value, dict)
+                        else {}
+                    )
+                    scoped_control = method_contract.get("controls", {}).get(control_name, {})
+                    if (
+                        fact.key == REQUEST_SHAPES_KEY
+                        and fact.authority == "REVIEWED_AUDIT_DISPOSITION"
+                        and fact.state.value == "SUPPORTED"
+                        and "Exact model" in fact.scope
+                        and isinstance(scoped_control, dict)
+                        and scoped_control.get("state") == "SUPPORTED"
+                        and scoped_control.get("values")
+                        and scoped_control.get("evidence_class") != "ABSENCE_ONLY"
+                        and scoped_control.get("notes")
+                    ):
+                        scoped_evidence.append(scoped_control)
+                reviewed_values = {
+                    value
+                    for item in scoped_evidence
+                    for value in item.get("values", [])
+                    if type(value) in accepted_types
+                }
+                confirmed_loss = [value for value in missing if value in reviewed_values]
+                review_only = [value for value in missing if value not in reviewed_values]
+                if confirmed_loss:
+                    rows.append(
+                        {
+                            "path": f"methods.{method}.{control_name}.catalogue_domain",
+                            "origin": "DERIVED_PROJECTION",
+                            "disposition": "IMPLEMENTATION_GAP",
+                            "classification": "CAPABILITY_UNDEREXPOSURE_DEFECT",
+                            "reason": (
+                                "Exact reviewed method contract allows values absent from the "
+                                "projection"
+                            ),
+                            "value": {
+                                "catalogue_values": confirmed_loss,
+                                "projected_values": projected,
+                                "reviewed_values": sorted(reviewed_values),
+                                "scope_notes": [item.get("notes") for item in scoped_evidence],
+                            },
+                        }
+                    )
+                if review_only and scoped_evidence:
+                    rows.append(
+                        {
+                            "path": f"methods.{method}.{control_name}.catalogue_domain.review",
+                            "origin": "DERIVED_PROJECTION",
+                            "disposition": "EVIDENCE_GAP",
+                            "classification": "CONTRACT_REVIEW_REQUIRED",
+                            "reason": (
+                                "Top-level values outside the exact reviewed method domain "
+                                "remain unresolved"
+                            ),
+                            "value": {
+                                "catalogue_values": review_only,
+                                "projected_values": projected,
+                                "reviewed_values": sorted(reviewed_values),
+                                "scope_notes": [item.get("notes") for item in scoped_evidence],
+                            },
+                        }
+                    )
+                if not scoped_evidence:
+                    rows.append(
+                        {
+                            "path": f"methods.{method}.{control_name}.catalogue_domain",
+                            "origin": "DERIVED_PROJECTION",
+                            "disposition": "IMPLEMENTATION_GAP",
+                            "classification": "CAPABILITY_UNDEREXPOSURE_DEFECT",
+                            "reason": (
+                                "Known normalized catalogue values are absent without "
+                                "affirmative scoped restriction evidence"
+                            ),
+                            "value": {"catalogue_values": missing, "projected_values": projected},
+                        }
+                    )
     allowed = raw.get("allowed_passthrough_parameters", [])
     if isinstance(allowed, list):
         for name in allowed:
@@ -708,7 +833,7 @@ class RequestValidator:
         if request.prompt is not None and not request.prompt.strip():
             self._fail(ProductErrorCode.UNSUPPORTED_PARAMETER, "Prompt must not be blank.")
         if request.duration is not None and (
-            isinstance(request.duration, bool) or request.duration < 1
+            isinstance(request.duration, bool) or (request.duration < 1 and request.duration != -1)
         ):
             self._fail(ProductErrorCode.UNSUPPORTED_PARAMETER, "Duration must be positive.")
         if request.seed is not None and isinstance(request.seed, bool):

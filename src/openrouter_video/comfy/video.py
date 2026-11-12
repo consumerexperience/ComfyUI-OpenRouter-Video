@@ -17,8 +17,8 @@ class VideoBridgeError(RuntimeError):
 def to_native_video(artifact: VideoArtifact) -> Any:
     """Revalidate ownership/existence and return a file-backed native VIDEO."""
 
-    root = compat.output_directory().resolve()
     try:
+        root = compat.output_directory().resolve()
         path = Path(artifact.path).resolve(strict=True)
         path.relative_to(root)
         if not path.is_file() or artifact.media_type not in {"video/mp4", "video/webm"}:
@@ -28,4 +28,19 @@ def to_native_video(artifact: VideoArtifact) -> Any:
     return compat.video_from_file(path)
 
 
-__all__ = ("VideoBridgeError", "to_native_video")
+def to_native_last_frame(artifact: VideoArtifact) -> Any | None:
+    """Return a local native IMAGE extraction, omitting it on any optional decode error."""
+
+    try:
+        root = compat.output_directory().resolve()
+        path = Path(artifact.path).resolve(strict=True)
+        path.relative_to(root)
+        if not path.is_file() or artifact.media_type not in {"video/mp4", "video/webm"}:
+            return None
+        return compat.last_frame_from_file(path)
+    except Exception:
+        # LAST_FRAME must not invalidate the durable VIDEO or trigger another submit.
+        return None
+
+
+__all__ = ("VideoBridgeError", "to_native_last_frame", "to_native_video")

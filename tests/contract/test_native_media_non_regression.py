@@ -82,7 +82,7 @@ def test_native_media_does_not_change_model_catalog() -> None:
 def test_native_media_does_not_change_capability_matrix() -> None:
     from openrouter_video.capabilities import inference_method_matrix
     from openrouter_video.evidence_registry import enrich_capabilities
-    from openrouter_video.models import FrameType, ModelCapabilities
+    from openrouter_video.models import FrameType, InferenceMethod, ModelCapabilities
     from openrouter_video.recipes import RECIPES
 
     model = enrich_capabilities(
@@ -99,11 +99,12 @@ def test_native_media_does_not_change_capability_matrix() -> None:
         "IR2V",
         "MI2V",
         "VR2V",
+        "AR2V",  # Owner F03: exact documented pure-audio Seedance 2.5 contract.
         "MMR2V",
         "V2V_EDIT",
         "V2V_EXTEND",
     }
-    assert all(matrix[method].value == "UNKNOWN" for method in matrix if method.value in {"AR2V"})
+    assert matrix[InferenceMethod.AR2V].value == "READY"
     assert len(RECIPES) == 12
     assert all(
         matrix[m].value != "READY" for m in matrix if m.value in {"V2V_UPSCALE", "AVATAR_AUDIO"}

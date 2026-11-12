@@ -174,6 +174,8 @@ def test_hailuo_and_grok_joint_domains_are_not_cartesian_and_unrelated_modes_sur
     hailuo = current_model("minimax/hailuo-2.3")
     assert project_method(hailuo, "T2V")["controls"]["duration"]["values"] == [6]
     assert project_method(hailuo, "I2V")["controls"]["duration"]["values"] == [6]
+    hailuo_h3 = current_model("minimax/hailuo-3")
+    assert project_method(hailuo_h3, "T2V")["state"] == "SUPPORTED"
     grok = current_model("x-ai/grok-imagine-video")
     profile = project_method(grok, "MI2V")
     context = {"geometry_authority": "NORMALIZED", "inference_method": "MI2V", "reference_count": 2}
@@ -184,11 +186,13 @@ def test_hailuo_and_grok_joint_domains_are_not_cartesian_and_unrelated_modes_sur
         )
         == "READY"
     )
+    # Historical tuples demonstrated valid examples; they do not exhaust the
+    # documented independent duration domain.
     assert (
         configuration_status(
             relations, {"resolution": "480p", "duration": 10, "aspect_ratio": "16:9"}, context
         )
-        == "CONFIRMED_INCOMPATIBLE"
+        == "READY"
     )
     assert (
         configuration_status(
@@ -196,7 +200,7 @@ def test_hailuo_and_grok_joint_domains_are_not_cartesian_and_unrelated_modes_sur
             {"resolution": "480p", "duration": 1, "aspect_ratio": "16:9"},
             {**context, "reference_count": 3},
         )
-        == "CONFIRMED_INCOMPATIBLE"
+        == "READY"
     )
     assert 15 in project_method(grok, "T2V")["controls"]["duration"]["values"]
     assert "480p" in project_method(grok, "I2V")["controls"]["resolution"]["values"]

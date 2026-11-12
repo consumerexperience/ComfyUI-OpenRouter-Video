@@ -78,6 +78,8 @@ class PreflightCostEstimator:
     ) -> EstimateResult:
         if inputs.model_id not in {capabilities.model_id, capabilities.canonical_slug}:
             return EstimateResult.unavailable(observed_at, "model_mismatch")
+        if inputs.duration == -1:
+            return EstimateResult.unavailable(observed_at, "automatic_duration_unknown")
         if inputs.size is not None and (
             inputs.resolution is not None or inputs.aspect_ratio is not None
         ):

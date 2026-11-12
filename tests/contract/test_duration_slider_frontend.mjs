@@ -19,6 +19,17 @@ test("unknown and unconfirmed range fail closed", () => {
         assert.equal(context.durationDomain(value).kind,"UNKNOWN");
     }
 });
+test("automatic duration is selectable only when explicitly advertised", () => {
+    const domain=context.durationDomain([-1,4,8]);
+    assert.equal(domain.kind,"DISCRETE");
+    assert.deepEqual(plain(domain.allowed_values),[-1,4,8]);
+    assert.equal(context.durationAtPosition(domain,0),-1);
+    assert.equal(context.durationDomain([4,8]).allowed_values.includes(-1),false);
+    const range=context.durationDomain({kind:"STEPPED_RANGE",min:1,max:15,step:1});
+    assert.equal(context.durationValueAllowed(range,-1),false);
+    assert.equal(context.durationValueAllowed(range,4),true);
+    assert.equal(context.durationValueAllowed(domain,-1),true);
+});
 test("future explicitly confirmed range fixtures remain UI architecture only", () => {
     const stepped=context.durationDomain({kind:"STEPPED_RANGE",min:1,max:30,step:1});
     assert.equal(stepped.kind,"STEPPED_RANGE");

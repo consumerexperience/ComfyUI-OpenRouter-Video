@@ -23,7 +23,13 @@ from openrouter_video.client import _parse_capability, bounded_catalogue_metadat
 from openrouter_video.configuration import project_method
 from openrouter_video.errors import TransportError
 from openrouter_video.evidence_registry import enrich_capabilities
-from openrouter_video.models import InferenceMethod, ModelCapabilities, ProviderOption
+from openrouter_video.models import (
+    CapabilityFact,
+    CapabilityFactState,
+    InferenceMethod,
+    ModelCapabilities,
+    ProviderOption,
+)
 from openrouter_video.persistence import JobStore
 
 
@@ -59,6 +65,121 @@ def test_mixed_requires_explicit_positive_contract_not_native_modalities() -> No
     assert InferenceMethod.MMR2V not in eligible_methods(_parse_capability(raw))
     raw["mixed_reference_kinds"] = False
     assert InferenceMethod.MMR2V not in eligible_methods(_parse_capability(raw))
+
+
+def test_completeness_accepts_projected_duration_sentinel_without_false_defect() -> None:
+    raw = future()
+    raw["supported_durations"] = [-1, 4, 8]
+    model = enrich_capabilities(_parse_capability(raw))
+    report = capability_completeness(model)
+    assert not any(
+        row["path"].endswith("duration.catalogue_domain")
+        and row.get("classification") == "CAPABILITY_UNDEREXPOSURE_DEFECT"
+        for row in report["rows"]
+    )
+    # The provider sentinel has a narrow shape exception; catalogue support still
+    # decides whether a particular model may use it.
+    witness = request_witness(model, InferenceMethod.T2V)
+    assert witness is not None
+    RequestValidator().validate_shape(replace(witness, duration=-1))
+    complete = enrich_capabilities(
+        _parse_capability(future() | {"supported_durations": [-1, 4, 8]})
+    )
+    complete_witness = request_witness(complete, InferenceMethod.T2V)
+    assert complete_witness is not None
+    RequestValidator().validate_capabilities(replace(complete_witness, duration=-1), complete)
+
+
+def test_reviewed_scoped_domain_difference_remains_evidence_gap_not_defect() -> None:
+    raw = future()
+    raw["supported_durations"] = list(range(1, 16))
+    parsed = _parse_capability(raw)
+    profile = project_method(parsed, "T2V")
+    profile = {key: profile[key] for key in ("state", "controls", "topology")}
+    profile["controls"]["duration"]["values"] = list(range(1, 11))
+    profile["controls"]["duration"]["notes"] = "Documented method-specific duration limit"
+    profile["topology"].pop("execution_domain", None)
+    profile["topology"].pop("limit_completeness", None)
+    raw["request_shape_profiles"] = {"schema_version": 1, "methods": {"T2V": profile}}
+    model = enrich_capabilities(_parse_capability(raw))
+    model = replace(
+        model,
+        evidence_facts=model.evidence_facts
+        + (
+            CapabilityFact(
+                model.model_id,
+                "request_shape_profiles",
+                raw["request_shape_profiles"],
+                CapabilityFactState.SUPPORTED,
+                "REVIEWED_AUDIT_DISPOSITION",
+                "https://example.com/reviewed-contract",
+                "2026-11-13T00:00:00Z",
+                "Exact model + method",
+                "test-only",
+            ),
+        ),
+    )
+    row = next(
+        row
+        for row in capability_completeness(model)["rows"]
+        if row["path"] == "methods.T2V.duration.catalogue_domain.review"
+    )
+    assert row["disposition"] == "EVIDENCE_GAP"
+    assert row["classification"] == "CONTRACT_REVIEW_REQUIRED"
+    assert row["value"]["catalogue_values"] == [11, 12, 13, 14, 15]
+
+
+def test_reviewed_domain_value_lost_by_projection_remains_confirmed_defect() -> None:
+    raw = future()
+    raw["supported_resolutions"] = ["720p", "4K"]
+    parsed = _parse_capability(raw)
+    profile = project_method(parsed, "T2V")
+    profile = {key: profile[key] for key in ("state", "controls", "topology")}
+    profile["controls"]["resolution"]["values"] = ["720p"]
+    profile["controls"]["resolution"]["notes"] = "Reviewed exact method domain"
+    profile["topology"].pop("execution_domain", None)
+    profile["topology"].pop("limit_completeness", None)
+    raw["request_shape_profiles"] = {"schema_version": 1, "methods": {"T2V": profile}}
+    model = enrich_capabilities(_parse_capability(raw))
+    reviewed = {
+        "schema_version": 1,
+        "methods": {
+            "T2V": {
+                "controls": {
+                    "resolution": {
+                        "state": "SUPPORTED",
+                        "values": ["720p", "4K"],
+                        "notes": "Reviewed exact T2V resolution domain",
+                    }
+                }
+            }
+        },
+    }
+    model = replace(
+        model,
+        evidence_facts=model.evidence_facts
+        + (
+            CapabilityFact(
+                model.model_id,
+                "request_shape_profiles",
+                reviewed,
+                CapabilityFactState.SUPPORTED,
+                "REVIEWED_AUDIT_DISPOSITION",
+                "https://example.com/reviewed-contract",
+                "2026-11-13T00:00:00Z",
+                "Exact model + method T2V",
+                "test-only",
+            ),
+        ),
+    )
+    row = next(
+        row
+        for row in capability_completeness(model)["rows"]
+        if row["path"] == "methods.T2V.resolution.catalogue_domain"
+    )
+    assert row["disposition"] == "IMPLEMENTATION_GAP"
+    assert row["classification"] == "CAPABILITY_UNDEREXPOSURE_DEFECT"
+    assert row["value"]["catalogue_values"] == ["4K"]
 
 
 def test_new_enum_and_typed_provider_option_reach_validator_and_wire() -> None:

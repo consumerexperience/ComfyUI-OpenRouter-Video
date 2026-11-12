@@ -12,7 +12,12 @@ from collections.abc import Mapping
 from itertools import product
 from typing import Any
 
-from openrouter_video.models import CapabilityFactState, InferenceMethod, ModelCapabilities
+from openrouter_video.models import (
+    CapabilityFactState,
+    InferenceMethod,
+    InputReferenceKind,
+    ModelCapabilities,
+)
 
 CONFIGURATION_KEY = "configuration_constraints"
 AXES = ("resolution", "aspect_ratio", "duration", "size")
@@ -125,7 +130,11 @@ def normalize_request_shapes(raw: object) -> dict[str, Any]:
             if name not in CONTROL_FIELDS or control.get("state") not in states:
                 raise ValueError("Invalid control evidence state")
             if "values" in control:
-                finite_domain(control["values"], numeric=name in {"duration", "creativity"})
+                finite_domain(
+                    control["values"],
+                    numeric=name in {"duration", "creativity"},
+                    automatic_duration=name == "duration",
+                )
             if name == "seed" and control["state"] == "SUPPORTED" and "integer_range" in control:
                 bounds = control["integer_range"]
                 if (
@@ -1127,7 +1136,15 @@ def project_method(model: ModelCapabilities, method: str) -> dict[str, Any]:
         # some models require a visual input. A new explicit recipe may prove it.
         derived = (
             derive_catalogue_method(model, method)
-            if not (historical_placeholder and method == "AR2V")
+            if not (
+                historical_placeholder
+                and method == "AR2V"
+                and (
+                    model.input_reference_capabilities is None
+                    or model.input_reference_capabilities.reference_kinds
+                    != frozenset({InputReferenceKind.AUDIO})
+                )
+            )
             else None
         )
         if derived is not None:
@@ -1301,6 +1318,10 @@ def project_method(model: ModelCapabilities, method: str) -> dict[str, Any]:
                     or "values" not in control
                     or v in control["values"]
                 ]
+                # -1 is the documented automatic-duration sentinel, not an
+                # extension of an empirical positive-seconds subset.
+                if name == "duration" and -1 in domain and -1 not in values:
+                    values.insert(0, -1)
                 control["values"] = values
                 if not values:
                     control["state"] = "UNKNOWN"
@@ -1770,7 +1791,9 @@ def input_constraint_reconciliation(
     return result
 
 
-def finite_domain(raw: object, *, numeric: bool = False) -> list[Any]:
+def finite_domain(
+    raw: object, *, numeric: bool = False, automatic_duration: bool = False
+) -> list[Any]:
     """Validate discrete values or a bounded, exact integral range."""
     if numeric and isinstance(raw, dict):
         if set(raw) != {"min", "max", "step"}:
@@ -1788,8 +1811,11 @@ def finite_domain(raw: object, *, numeric: bool = False) -> list[Any]:
         raise ValueError("Configuration domain is empty or oversized")
     for value in values:
         if numeric:
-            if type(value) is not int or value < 0:
-                raise ValueError("Configuration domain requires nonnegative integers")
+            if type(value) is not int or (value < 0 and not (automatic_duration and value == -1)):
+                raise ValueError(
+                    "Configuration domain requires nonnegative integers "
+                    "or explicit automatic duration"
+                )
         elif not isinstance(value, (str, bool)) or (
             isinstance(value, str)
             and (not value or len(value) > 128 or any(ord(c) < 32 for c in value))
@@ -1849,11 +1875,13 @@ def normalize_constraints(raw: object) -> dict[str, Any]:
                 if not isinstance(row, dict) or set(row) != set(axes):
                     raise ValueError("Configuration row must declare every coupled axis")
                 domains = {
-                    axis: finite_domain(value, numeric=axis == "duration")
+                    axis: finite_domain(
+                        value, numeric=axis == "duration", automatic_duration=axis == "duration"
+                    )
                     for axis, value in row.items()
                 }
                 for axis, values in domains.items():
-                    if axis == "duration" and any(v < 1 for v in values):
+                    if axis == "duration" and any(v != -1 and v < 1 for v in values):
                         raise ValueError("Duration must be positive")
                     if axis != "duration" and any(type(v) is not str for v in values):
                         raise ValueError("Geometry requires wire strings")

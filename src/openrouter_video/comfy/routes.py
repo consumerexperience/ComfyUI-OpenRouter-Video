@@ -336,7 +336,10 @@ def _parse_estimate_inputs(value: object) -> CostEstimateInputs:
     model_id = _required_text(value.get("model_id"))
     duration_raw = value.get("duration")
     if duration_raw is not None and (
-        isinstance(duration_raw, bool) or not isinstance(duration_raw, int) or duration_raw <= 0
+        isinstance(duration_raw, bool)
+        or not isinstance(duration_raw, int)
+        or duration_raw < -1
+        or duration_raw == 0
     ):
         raise ValueError("duration is invalid")
     audio = value.get("generate_audio", False)
