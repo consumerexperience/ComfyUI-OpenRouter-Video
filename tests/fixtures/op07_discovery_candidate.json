@@ -17,7 +17,7 @@
     "src/openrouter_video/pricing.py": "f2e53621eaedd3e90ec62d28ab62df1e393839d83b81678a62463a17dc2884f4",
     "src/openrouter_video/application.py": "6f86c4c1367046a65946d0e4f69d07f5e1cffd6b48669cf410174e62aad48aa3",
     "src/openrouter_video/comfy/runtime.py": "2a8ee08cc62b029637eb9226101d99077ac90799885ba9a65553941b4873ab4c",
-    "src/openrouter_video/capabilities.py": "5aa2df80832b0e5191fe39272375d6db96c6c2e61199ebbcca34c72f5a55a116",
+    "src/openrouter_video/capabilities.py": "f43a9dbfbebd42bcd4916a39dfd6aa72a1a2f8ffa4c1f443d76f7a3354bb7b60",
     "src/openrouter_video/persistence.py": "62369d569597f088de397b945b524551bbb6a3dc4514037ec42458b7078cbc2b",
     "src/openrouter_video/eligibility.py": "3380ef4a5e3e9c3b5fb628ef5d00f99ef20afb11a822267108f824ed74e28041",
     "src/openrouter_video/comfy/projection.py": "ac5c9e5fc47ff5c6765967ceca354750d84cdbc700f9143b9cbdbe8455a072df",

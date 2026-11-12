@@ -507,14 +507,19 @@ def capability_completeness(model: ModelCapabilities) -> dict[str, Any]:
                     scoped_control = method_contract.get("controls", {}).get(control_name, {})
                     if (
                         fact.key == REQUEST_SHAPES_KEY
-                        and fact.authority == "REVIEWED_AUDIT_DISPOSITION"
+                        and fact.authority
+                        in {
+                            "REVIEWED_AUDIT_DISPOSITION",
+                            "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+                            "OFFICIAL_OPENROUTER_AND_EXACT_SERVED_API_REVIEW",
+                            "LIVE_STRUCTURED_API",
+                        }
+                        and fact.model_id == model.model_id
                         and fact.state.value == "SUPPORTED"
-                        and "Exact model" in fact.scope
                         and isinstance(scoped_control, dict)
                         and scoped_control.get("state") == "SUPPORTED"
                         and scoped_control.get("values")
                         and scoped_control.get("evidence_class") != "ABSENCE_ONLY"
-                        and scoped_control.get("notes")
                     ):
                         scoped_evidence.append(scoped_control)
                 reviewed_values = {

@@ -125,3 +125,24 @@ def test_automatic_duration_survives_exact_historical_method_domain() -> None:
 
     with pytest.raises(ProductFailureError):
         v.validate_capabilities(r, without)
+
+
+@pytest.mark.parametrize(
+    "mid,method",
+    [
+        ("google/gemini-omni-1.2-flash", "FLF2V"),
+        ("google/gemini-omni-1.2-flash", "V2V_EXTEND"),
+        ("google/veo-3.1-lite", "FLF2V"),
+    ],
+)
+def test_official_method_domains_are_accounted_without_false_underexposure(
+    mid: str, method: str
+) -> None:
+    from openrouter_video.capabilities import capability_completeness
+
+    rows = capability_completeness(model(mid))["rows"]
+    differences = [
+        row for row in rows if row["path"].startswith(f"methods.{method}.duration.catalogue_domain")
+    ]
+    assert differences
+    assert all(row["classification"] == "CONTRACT_REVIEW_REQUIRED" for row in differences)
