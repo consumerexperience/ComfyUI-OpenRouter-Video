@@ -72,12 +72,13 @@ def test_documented_method_and_partial_values_survive_missing_catalogue_limits()
     p = project_method(model, "MMR2V")
     assert p["state"] == p["method_support"] == "SUPPORTED"
     assert p["topology"]["max"] is None
-    assert p["topology"]["execution_domain"] == "VERIFIED_CONFIGURATIONS"
+    assert p["topology"]["execution_domain"] == "DOCUMENTED_CONTRACT"
     assert p["topology"]["limit_completeness"] == "PARTIAL"
     assert p["controls"]["duration"]["values"] == [4]
     assert projected_shape_valid(p, ("image", "video", "audio"))
-    assert not projected_shape_valid(p, ("image", "video"))
-    assert not projected_shape_valid(p, ("image", "image", "video", "audio"))
+    # Historical execution examples are not an exclusive paid-proof whitelist.
+    assert projected_shape_valid(p, ("image", "video"))
+    assert projected_shape_valid(p, ("image", "image", "video", "audio"))
     witness = request_witness(model, InferenceMethod.MMR2V)
     assert witness is not None and witness.duration == 4
     RequestValidator().validate_capabilities(witness, model)
@@ -94,12 +95,15 @@ def test_unknown_upper_bound_is_not_unlimited_or_loss_of_operation() -> None:
     raw["request_shape_profiles"]["methods"]["MMR2V"]["topology"].pop("verified_configurations")
     model = _parse_capability(raw)
     p = project_method(model, "MMR2V")
-    assert p["state"] == "SUPPORTED" and p["topology"]["execution_domain"] == "UNVERIFIED"
-    assert request_witness(model, InferenceMethod.MMR2V) is None
+    assert p["state"] == "SUPPORTED" and p["topology"]["execution_domain"] == "DOCUMENTED_CONTRACT"
+    assert p["topology"]["max"] is None
+    assert p["topology"]["limit_completeness"] == "UNKNOWN"
+    assert request_witness(model, InferenceMethod.MMR2V) is not None
     assert (
         "MMR2V" in project_selectable(model, datetime.now(timezone.utc)).supported_inference_methods
     )
-    assert not projected_shape_valid(p, ("image", "video", "audio"))
+    assert projected_shape_valid(p, ("image", "video", "audio"))
+    assert not projected_shape_valid(p, ("audio", "audio"))
 
 
 def test_current_domain_expands_partial_observation_without_promoting_it_to_maximum() -> None:

@@ -98,8 +98,10 @@ def main():
                     "separate operation support, "
                     "partial parameter domains and limit completeness; preserve documented "
                     "operations and re-admit evidence-backed configurations "
-                    "without fabricated maxima; "
-                    "not release acceptance."
+                    "without fabricated maxima; Owner all-model Documentation First: "
+                    "compatible official contracts admit documented methods, scalar domains "
+                    "and typed options without per-count paid proof; integrate supplied patch "
+                    "and recover positive ABSENCE_ONLY controls; not release acceptance."
                 ),
             }
         )

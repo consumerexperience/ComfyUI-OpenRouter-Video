@@ -86,8 +86,11 @@ def normalize_request_shapes(raw: object) -> dict[str, Any]:
                 "providers",
                 "notes",
                 "domain_completeness",
+                "evidence_class",
             }:
                 raise ValueError("Unknown control contract semantics")
+            if control.get("evidence_class") not in {None, "ABSENCE_ONLY"}:
+                raise ValueError("Invalid control evidence classification")
             if control.get("domain_completeness", "COMPLETE") not in {"COMPLETE", "PARTIAL"}:
                 raise ValueError("Invalid documented domain completeness")
             if any(
@@ -274,6 +277,7 @@ def normalize_request_shapes(raw: object) -> dict[str, Any]:
                     "max_bytes",
                     "max_total_duration_seconds",
                     "max_combined_duration_seconds",
+                    "max_combined_input_output_duration_seconds",
                     "min_width",
                     "max_width",
                     "min_height",
@@ -717,7 +721,7 @@ def derive_catalogue_method(model: ModelCapabilities, method: str) -> dict[str, 
         return key in live and live[key].state is CapabilityFactState.SUPPORTED
 
     if not positive("reference_kinds") or not (
-        positive("max_reference_count") or positive("per_kind_max")
+        positive("max_reference_count") or positive("per_kind_max") or method in {"IR2V", "MMR2V"}
     ):
         return None
     refs = model.input_reference_capabilities
@@ -787,7 +791,24 @@ def effective_input_constraints(
     invalid = False
     declarations = topology.get("constraint_evidence", {})
     unresolved = {k for k, v in declarations.items() if v.get("state") in {"UNKNOWN", "CONFLICT"}}
+    documented_counts = (
+        declarations.get("per_kind_max", {}).get("state") == "SUPPORTED"
+        and declarations["per_kind_max"].get("classification") == "PROVIDER_DOCUMENTED_COMPATIBLE"
+    )
+    derived_total = (
+        documented_counts
+        and declarations.get("max", {}).get("classification") == "DERIVED_PER_KIND_CEILING"
+    )
     original_state = topology.get("constraint_state")
+    if topology.get("reference_kinds") and any(
+        f.authority == "LIVE_STRUCTURED_API"
+        and f.key in {"max_reference_count", "per_kind_max", "min_reference_count", "per_kind_min"}
+        and f.value is not None
+        and f.state is not CapabilityFactState.SUPPORTED
+        for f in model.evidence_facts
+    ):
+        invalid = True
+        topology["constraint_state"] = "UNKNOWN"
     for key, declaration in declarations.items():
         if declaration.get("state") in {"UNKNOWN", "CONFLICT"}:
             if key == "max":
@@ -824,6 +845,10 @@ def effective_input_constraints(
             continue
         old = topology.get(key, {})
         topology[key] = {k: v for k, v in value.items() if k in kinds}
+        if not source_transport:
+            # A partial live map changes the fields it actually declares.
+            # Absence of a sibling field is not withdrawal of that constraint.
+            topology[key] = {**old, **topology[key]}
         if source_transport:
             topology["transport_" + key] = dict(value)
             topology[key] = (
@@ -915,6 +940,29 @@ def effective_input_constraints(
                 "source": cap.source_reference,
             }
         )
+    if derived_total and not source_transport and kinds <= set(topology["per_kind_max"]):
+        derived = sum(topology["per_kind_max"][k] for k in kinds)
+        topology["max"] = min(derived, cap.value) if valid_cap and cap is not None else derived
+        trace.append(
+            {
+                "field": "max",
+                "classification": "DERIVED_PER_KIND_CEILING",
+                "effective": topology["max"],
+                "source": declarations["max"]["source"],
+                "reason": (
+                    "Sum of effective per-kind ceilings, bounded by any explicit transport cap"
+                ),
+            }
+        )
+        trace.append(
+            {
+                "field": "per_kind_max",
+                "classification": "PROVIDER_DOCUMENTED_COMPATIBLE",
+                "effective": topology["per_kind_max"],
+                "source": declarations["per_kind_max"]["source"],
+                "reason": "Documented defaults; current explicit OpenRouter values take precedence",
+            }
+        )
     for key, target in (
         ("required_reference_kinds", "required_kinds"),
         ("mutually_exclusive_reference_kinds", "mutually_exclusive"),
@@ -969,6 +1017,10 @@ def effective_input_constraints(
     topology["execution_domain"] = (
         "CONFIRMED_BOUNDS"
         if bounded
+        else "DOCUMENTED_CONTRACT"
+        if entry.get("state") == "SUPPORTED"
+        and not invalid
+        and topology.get("constraint_state", "SUPPORTED") == "SUPPORTED"
         else "VERIFIED_CONFIGURATIONS"
         if topology.get("verified_configurations")
         else "UNVERIFIED"
@@ -986,7 +1038,61 @@ def effective_input_constraints(
         topology.get("per_kind_min", {}).get(k, 0) > v for k, v in topology["per_kind_max"].items()
     ) or any(topology["per_kind_max"].get(k) == 0 for k in topology.get("required_kinds", [])):
         topology["constraint_state"] = "CONFLICT"
+    # An explicit zero/small per-kind ceiling can make every declared shape
+    # impossible even when the total maximum is unknown. Do not advertise READY.
+    if topology.get("kind_sets") and not any(
+        set(topology.get("required_kinds", [])) <= set(group)
+        and not any(
+            len(set(excluded) & set(group)) > 1
+            for excluded in topology.get("mutually_exclusive", [])
+        )
+        and all(topology.get("per_kind_min", {}).get(k, 0) == 0 for k in kinds - set(group))
+        and all(
+            topology["per_kind_max"].get(k, math.inf)
+            >= max(1, topology.get("per_kind_min", {}).get(k, 0))
+            for k in group
+        )
+        and min(
+            topology.get("max") if topology.get("max") is not None else math.inf,
+            sum(topology["per_kind_max"].get(k, math.inf) for k in group),
+        )
+        >= max(
+            topology.get("min", 0),
+            sum(max(1, topology.get("per_kind_min", {}).get(k, 0)) for k in group),
+        )
+        for group in topology["kind_sets"]
+    ):
+        topology["constraint_state"] = "CONFLICT"
     return topology
+
+
+def _positive_absence_control(
+    model: ModelCapabilities, name: str, control: Mapping[str, Any]
+) -> bool:
+    """A historical missing scalar proof cannot suppress a compatible positive domain."""
+    if (
+        control.get("state") != "UNKNOWN"
+        or control.get("evidence_class") != "ABSENCE_ONLY"
+        or name not in {"duration", "resolution", "aspect_ratio", "size"}
+        or any(
+            f.key == REQUEST_SHAPES_KEY and f.authority == "LIVE_STRUCTURED_API"
+            for f in model.evidence_facts
+        )
+    ):
+        return False
+    field = CONTROL_FIELDS[name]
+    if field is None:
+        return False
+    domain = getattr(model, field)
+    facts = [f for f in model.evidence_facts if f.key == field]
+    return (
+        bool(domain)
+        and any(f.state is CapabilityFactState.SUPPORTED for f in facts)
+        and not any(
+            f.state in {CapabilityFactState.CONFLICT, CapabilityFactState.UNSUPPORTED}
+            for f in facts
+        )
+    )
 
 
 def project_method(model: ModelCapabilities, method: str) -> dict[str, Any]:
@@ -999,9 +1105,34 @@ def project_method(model: ModelCapabilities, method: str) -> dict[str, Any]:
         for f in model.evidence_facts
     ):
         entry = {"state": "UNKNOWN"}
-    if entry is None:
-        entry = derive_catalogue_method(model, method)
-    if entry is None:
+    # A historical absence-only row is not a denial. A current structured
+    # primitive may activate an established generic recipe, but never bypass
+    # a current explicit recipe (including malformed/withdrawn declarations).
+    historical_placeholder = (
+        entry is not None
+        and entry.get("state") == "UNKNOWN"
+        and not entry.get("topology")
+        and not entry.get("controls")
+        and not any(
+            f.key == REQUEST_SHAPES_KEY
+            and (
+                f.authority == "LIVE_STRUCTURED_API" or f.state is not CapabilityFactState.SUPPORTED
+            )
+            for f in model.evidence_facts
+        )
+        and entry.get("evidence_class") == "ABSENCE_ONLY"
+    )
+    if entry is None or historical_placeholder:
+        # Standalone audio is not implied by an audio reference modality:
+        # some models require a visual input. A new explicit recipe may prove it.
+        derived = (
+            derive_catalogue_method(model, method)
+            if not (historical_placeholder and method == "AR2V")
+            else None
+        )
+        if derived is not None:
+            entry = derived
+    if entry is None or (historical_placeholder and entry.get("state") == "UNKNOWN"):
         # Canonical frame_images is a documented generic wire contract. Positive
         # exact-model structured frame signals suffice; no reference/task shape
         # is inferred, and an explicit reviewed UNKNOWN/CONFLICT is never replaced.
@@ -1108,6 +1239,9 @@ def project_method(model: ModelCapabilities, method: str) -> dict[str, Any]:
         } and name not in entry.get("controls", {}):
             continue
         control = dict(entry.get("controls", {}).get(name, {"state": "UNKNOWN"}))
+        if state == "SUPPORTED" and _positive_absence_control(model, name, control):
+            control["state"] = "SUPPORTED"
+            control["domain_completeness"] = "PARTIAL"
         if field is None:
             if name == "provider_options" and control.get("state") == "SUPPORTED":
                 allowed = _catalogue_control(model, "allowed_passthrough_parameters")
@@ -1390,7 +1524,9 @@ def input_constraint_reconciliation(
         result.append(
             {
                 "field": "method_support",
-                "classification": "CONFIRMED_OPENROUTER_RESTRICTION"
+                "classification": "CONTRACT_CONFLICT"
+                if profile.get("state") == "CONFLICT"
+                else "CONFIRMED_OPENROUTER_RESTRICTION"
                 if actual_removal
                 else "CAPABILITY_UNDEREXPOSURE_DEFECT"
                 if excluded
@@ -1403,15 +1539,108 @@ def input_constraint_reconciliation(
                 "limit_completeness": topology.get("limit_completeness"),
             }
         )
-        if topology.get("execution_domain") in {"UNVERIFIED", "VERIFIED_CONFIGURATIONS"}:
+    if topology.get("execution_domain") in {
+        "UNVERIFIED",
+        "VERIFIED_CONFIGURATIONS",
+        "DOCUMENTED_CONTRACT",
+    }:
+        result.append(
+            {
+                "field": "reference_limits",
+                "classification": "MISSING_UPSTREAM_CONTRACT",
+                "source": registered.get("review_sources")
+                or sorted({f.source_reference for f in direct.values()}),
+                "reason": "Operation and compatible wire documented; unknown cardinality is not "
+                "an unlimited guarantee; known constraints remain enforced",
+                "verified_configurations": topology.get("verified_configurations", []),
+            }
+        )
+    # Compare independent documented controls with the final projection, not
+    # just whether their method has one witness. An explicit live restriction
+    # can narrow the expected domain; a missing field is not a denial.
+    for name, documented in registered.get("controls", {}).items():
+        if profile.get("state") != "SUPPORTED" or (
+            documented.get("state") != "SUPPORTED"
+            and not _positive_absence_control(model, name, documented)
+        ):
+            continue
+        actual = profile.get("controls", {}).get(name, {})
+        field = CONTROL_FIELDS.get(name)
+        if name == "provider_options":
+            allowlist = _catalogue_control(model, "allowed_passthrough_parameters")
+            if not isinstance(allowlist, (list, tuple)):
+                result.append(
+                    {
+                        "field": name,
+                        "classification": "MISSING_UPSTREAM_CONTRACT",
+                        "reason": (
+                            "Typed documented options exist; current route allowlist unavailable"
+                        ),
+                    }
+                )
+                continue
+            for provider, specs in documented.get("providers", {}).items():
+                for key, spec in specs.items():
+                    if key not in allowlist:
+                        continue
+                    observed = actual.get("providers", {}).get(provider, {}).get(key)
+                    if observed != spec or actual.get("state") != "SUPPORTED":
+                        result.append(
+                            {
+                                "field": f"{name}.{provider}.{key}",
+                                "classification": "CAPABILITY_UNDEREXPOSURE_DEFECT",
+                                "reason": "Allowlisted typed documented option lost or changed",
+                                "expected": spec,
+                                "effective": observed,
+                            }
+                        )
+            continue
+        expected: list[Any] | None = None
+        if name == "prompt" or field is None:
+            applicable = True
+        elif name in {"seed", "generate_audio"}:
+            applicable = getattr(model, field) is True
+        elif name in {"duration", "resolution", "aspect_ratio", "size"}:
+            live_domain = getattr(model, field)
+            facts = [f for f in model.evidence_facts if f.key == field]
+            negative = any(
+                f.state in {CapabilityFactState.UNSUPPORTED, CapabilityFactState.CONFLICT}
+                or (
+                    f.authority == "LIVE_STRUCTURED_API"
+                    and f.value is not None
+                    and (f.state != CapabilityFactState.SUPPORTED or live_domain is None)
+                )
+                for f in facts
+            )
+            declared = documented.get("values")
+            expected = (
+                list(declared or [])
+                if live_domain is None and not negative
+                else [
+                    v
+                    for v in live_domain
+                    if declared is None
+                    or v in declared
+                    or documented.get("domain_completeness") == "PARTIAL"
+                ]
+                if live_domain is not None
+                else []
+            )
+            applicable = bool(expected) and not negative
+        else:
+            # Specialized range controls retain the existing typed projection checks.
+            continue
+        if applicable and (
+            actual.get("state") != "SUPPORTED"
+            or (expected is not None and any(v not in actual.get("values", []) for v in expected))
+        ):
             result.append(
                 {
-                    "field": "verified_configurations",
-                    "classification": "MISSING_UPSTREAM_CONTRACT",
-                    "source": registered.get("review_sources", []),
-                    "reason": "Operation documented; only explicitly admitted configurations "
-                    "may execute while full cardinality domain is unresolved",
-                    "verified_configurations": topology.get("verified_configurations", []),
+                    "field": name,
+                    "classification": "CAPABILITY_UNDEREXPOSURE_DEFECT",
+                    "reason": "Documented compatible control or domain disappeared from projection",
+                    "expected": expected if expected is not None else "SUPPORTED",
+                    "effective": actual,
                 }
             )
     recipe = direct.get(REQUEST_SHAPES_KEY)

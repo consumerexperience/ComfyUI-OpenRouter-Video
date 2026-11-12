@@ -98,7 +98,7 @@ def inference_method_matrix(
     """Reviewed public shapes; raw conceptual fixtures retain the global recipes."""
 
     if any(
-        f.key in {REQUEST_SHAPES_KEY, "per_kind_max", "per_kind_min"}
+        f.key in {REQUEST_SHAPES_KEY, "per_kind_max", "per_kind_min", "__catalogue_observation__"}
         for f in capabilities.evidence_facts
     ):
         return {
@@ -754,7 +754,8 @@ class RequestValidator:
             self._fail(ProductErrorCode.UNSUPPORTED_MODEL, "The selected model does not match.")
         scoped = None
         if any(
-            f.key in {REQUEST_SHAPES_KEY, "per_kind_max", "per_kind_min"}
+            f.key
+            in {REQUEST_SHAPES_KEY, "per_kind_max", "per_kind_min", "__catalogue_observation__"}
             for f in capabilities.evidence_facts
         ):
             scoped = project_method(capabilities, request.inference_method.value)
@@ -789,6 +790,11 @@ class RequestValidator:
             if any(
                 projected.get(name, () if name == "provider_options" else None) != value
                 for name, value in raw.items()
+                if not (
+                    name == "generate_audio"
+                    and value is False
+                    and capabilities.generate_audio is not True
+                )
             ):
                 self._fail(
                     ProductErrorCode.UNSUPPORTED_PARAMETER, "Request contains nonprojected state."
@@ -1004,7 +1010,15 @@ class RequestValidator:
         )
         combined_checks: dict[InputReferenceKind, Callable[[], None]] = {}
         for kind in (InputReferenceKind.VIDEO, InputReferenceKind.AUDIO):
-            combined = limits.get(kind.value, {}).get("max_combined_duration_seconds")
+            rule = limits.get(kind.value, {})
+            combined = rule.get("max_combined_duration_seconds")
+            combined_with_output = rule.get("max_combined_input_output_duration_seconds")
+            if combined_with_output is not None:
+                # An omitted output duration is chosen upstream, not guessed here.
+                output_duration = request.duration
+                if output_duration is not None and output_duration > 0:
+                    remaining = combined_with_output - output_duration
+                    combined = remaining if combined is None else min(combined, remaining)
             if combined is not None:
                 group = [item for item in references if item.kind is kind]
                 if not group:
@@ -1095,6 +1109,7 @@ class RequestValidator:
                         "max_bytes",
                         "max_total_duration_seconds",
                         "max_combined_duration_seconds",
+                        "max_combined_input_output_duration_seconds",
                         "min_width",
                         "max_width",
                         "min_height",

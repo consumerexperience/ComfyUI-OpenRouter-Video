@@ -12,9 +12,7 @@ import httpx
 import pytest
 
 from openrouter_video.capabilities import (
-    CapabilityModeStatus,
     RequestValidator,
-    inference_method_matrix,
 )
 from openrouter_video.client import OpenRouterVideoClient, _parse_capability
 from openrouter_video.comfy.projection import project_selectable
@@ -113,7 +111,7 @@ def test_every_executable_historical_method_has_a_valid_serializer_witness() -> 
             assert witness.to_openrouter_payload()["model"] == model.model_id
 
 
-def test_documented_unverified_seedance_methods_are_selectable_but_not_executable() -> None:
+def test_documented_seedance_methods_are_selectable_and_wire_compatible() -> None:
     for model_id in (
         "bytedance/seedance-2.0",
         "bytedance/seedance-2.0-fast",
@@ -130,16 +128,23 @@ def test_documented_unverified_seedance_methods_are_selectable_but_not_executabl
         for method in (InferenceMethod.MI2V, InferenceMethod.MMR2V):
             profile = project_method(model, method.value)
             assert profile["state"] == profile["method_support"] == "SUPPORTED"
-            if model_id.endswith("mini") and method is InferenceMethod.MMR2V:
-                assert method.value in executable
-                witness = request_witness(model, method)
-                assert witness is not None
-                assert profile["topology"]["execution_domain"] == "VERIFIED_CONFIGURATIONS"
-            else:
-                assert method.value not in executable
-                assert request_witness(model, method) is None
-                assert profile["topology"]["execution_domain"] == "UNVERIFIED"
-                assert "verified_configurations" not in profile["topology"]
+            assert method.value in executable
+            witness = request_witness(model, method)
+            assert witness is not None
+            assert profile["topology"]["execution_domain"] == "CONFIRMED_BOUNDS"
+            expected = (
+                {"image": 9}
+                if method is InferenceMethod.MI2V
+                else {
+                    "image": 9,
+                    "video": 3,
+                    "audio": 3,
+                }
+            )
+            assert profile["topology"]["per_kind_max"] == expected
+            assert profile["topology"]["max"] == sum(expected.values())
+            RequestValidator().validate_shape(witness)
+            RequestValidator().validate_capabilities(witness, model)
 
 
 @pytest.mark.parametrize("mid", ["google/gemini-omni-1.2-flash", "google/veo-3.1-lite"])
@@ -263,26 +268,97 @@ def test_op07_evidence_delta_preserves_every_other_model_and_historical_conflict
         "minimax/hailuo-3-max",
         "alibaba/wan-2.6",
         "alibaba/wan-2.7",
-        # OP-07: preserve documented MI2V/MMR2V method support while keeping
-        # unknown counts out of executable witnesses; do not promote native 9/3/3.
+        # OP-07 documentation-first native/OpenRouter reconciliation for Wan 3.
+        "alibaba/wan-3.0",
+        "alibaba/wan-3.0-prime",
+        # OP-07 and documentation-first continuation: Seedance reference ceilings
+        # are compatible with the OpenRouter input_references wire and are enforced.
         "bytedance/seedance-2.0",
         "bytedance/seedance-2.0-fast",
         "bytedance/seedance-2.0-mini",
     }
-    seedance_quarantine = {
+    seedance_documented_bounds = {
         "bytedance/seedance-2.0",
         "bytedance/seedance-2.0-fast",
         "bytedance/seedance-2.0-mini",
     }
     for model in before["models"]:
         model_id = model["exact_model_id"]
-        if model_id in seedance_quarantine:
-            assert_seedance_reference_caps_quarantined(model, mapping[model_id])
+        if model_id == "alibaba/happyhorse-1.1":
+            assert_happyhorse_11_reference_methods(mapping[model_id])
+        if model_id in {"alibaba/wan-3.0", "alibaba/wan-3.0-prime"}:
+            assert_wan_3_documented_methods(mapping[model_id])
+        if model_id in seedance_documented_bounds:
+            assert_seedance_documented_reference_caps(model, mapping[model_id])
             assert_reconciled_scalar_delta(
-                model, mapping[model_id], allow_stale_seedance_reference_caps=True
+                model, mapping[model_id], allow_documented_seedance_reference_caps=True
             )
         elif model_id not in reviewed_delta:
-            assert_reconciled_scalar_delta(model, mapping[model["exact_model_id"]])
+            assert_reconciled_scalar_delta(
+                model,
+                mapping[model["exact_model_id"]],
+                allow_happyhorse_11_reference_methods=(model_id == "alibaba/happyhorse-1.1"),
+            )
+
+
+def assert_happyhorse_11_reference_methods(model: dict[str, Any]) -> None:
+    """Pin the documentation-first I2V reference ceilings and normalized fields."""
+    from openrouter_video.configuration import project_method
+    from openrouter_video.evidence_registry import enrich_capabilities
+
+    effective = enrich_capabilities(ModelCapabilities(model["exact_model_id"]))
+    expected = {"IR2V": (1, {"image": 1}), "MI2V": (9, {"image": 9})}
+    for method, (maximum, per_kind) in expected.items():
+        profile = project_method(effective, method)
+        assert profile["state"] == profile["method_support"] == "SUPPORTED"
+        assert profile["topology"]["max"] == maximum
+        assert profile["topology"]["per_kind_max"] == per_kind
+        assert profile["topology"]["constraint_evidence"]["max"]["classification"] == (
+            "DERIVED_PER_KIND_CEILING"
+        )
+        assert profile["controls"]["size"]["state"] == "UNKNOWN"
+        assert profile["controls"]["aspect_ratio"]["state"] == "SUPPORTED"
+        assert set(profile["controls"]["aspect_ratio"]["values"]) == set(
+            ("16:9", "9:16", "3:4", "4:3", "1:1", "9:21", "21:9")
+        )
+
+
+def assert_wan_3_documented_methods(model: dict[str, Any]) -> None:
+    """Pin the reviewed Wan 3 method and ratio additions and keep their history."""
+    model_id = model["exact_model_id"]
+    methods = model["facts"]["request_shape_profiles"]["value"]["methods"]
+    if model_id.endswith("prime"):
+        assert "reference_kinds" not in model["facts"]
+        assert "mixed_reference_kinds" not in model["facts"]
+        expected_supported = {"T2V", "I2V"}
+    else:
+        assert model["facts"]["reference_kinds"]["value"] == ["image", "video", "audio"]
+        assert model["facts"]["mixed_reference_kinds"]["value"] is True
+        expected_supported = {
+            "T2V",
+            "I2V",
+            "FLF2V",
+            "IR2V",
+            "MI2V",
+            "VR2V",
+            "AR2V",
+            "MMR2V",
+        }
+    assert {name for name, value in methods.items() if value["state"] == "SUPPORTED"} == (
+        expected_supported
+    )
+    ratio_methods = {"I2V"} if model_id.endswith("prime") else {"I2V", "FLF2V"}
+    for method in ratio_methods:
+        profile = methods[method]
+        ratio = profile["controls"]["aspect_ratio"]
+        assert ratio["state"] == "UNKNOWN"
+        assert ratio["evidence_class"] == "ABSENCE_ONLY"
+        assert "official Wan3 API supports output ratio" in ratio["notes"]
+        assert any(
+            item.get("control") == "aspect_ratio"
+            and "Source image owns native aspect" in item.get("superseded_note", "")
+            for item in profile.get("historical_findings", [])
+        )
 
 
 @pytest.mark.parametrize("mid", ["google/gemini-omni-1.2-flash", "google/veo-3.1-lite"])
@@ -314,80 +390,41 @@ def test_eligibility_compatibility_exports_have_no_independent_implementation() 
     assert request_witness.__module__ == "openrouter_video.capabilities"
 
 
-def assert_seedance_reference_caps_quarantined(
+def assert_seedance_documented_reference_caps(
     before: dict[str, Any], after: dict[str, Any]
 ) -> None:
-    """The old 3-valued fields stay visible as stale evidence, never as effective limits."""
+    """Documented compatible provider limits are enforced, not labeled live-tested."""
     model_id = before["exact_model_id"]
-    old_profile = before["facts"]["request_shape_profiles"]
-    new_profile = after["facts"]["request_shape_profiles"]
-    assert new_profile["scope"].startswith(f"{old_profile['scope']};")
-    assert "method support retained" in new_profile["scope"]
-    assert "only exact historical Mini I+V+A configuration re-admitted" in new_profile["scope"]
-
-    old_methods = old_profile["value"]["methods"]
-    new_methods = new_profile["value"]["methods"]
-    for method in ("MI2V", "MMR2V"):
-        old_method = old_methods[method]
-        new_method = new_methods[method]
-        assert new_method["state"] == "SUPPORTED"
-        old_topology = old_method["topology"]
-        new_topology = new_method["topology"]
-        assert new_topology["max"] == old_topology["max"] == 3
-        assert new_topology["per_kind_max"] == old_topology["per_kind_max"]
-        assert set(new_topology) - set(old_topology) <= {
-            "constraint_evidence",
-            "verified_configurations",
-        }
-        expected_verified = (
-            [{"image": 1, "video": 1, "audio": 1}]
-            if model_id.endswith("mini") and method == "MMR2V"
-            else []
+    methods = after["facts"]["request_shape_profiles"]["value"]["methods"]
+    for method in ("MI2V", "VR2V", "MMR2V"):
+        profile = methods[method]
+        expected = {
+            "MI2V": {"image": 9},
+            "VR2V": {"video": 3},
+            "MMR2V": {"image": 9, "video": 3, "audio": 3},
+        }[method]
+        assert profile["state"] == "SUPPORTED"
+        assert profile["topology"]["max"] == sum(expected.values())
+        assert profile["topology"]["per_kind_max"] == expected
+        assert profile["topology"]["constraint_evidence"]["max"]["classification"] == (
+            "DERIVED_PER_KIND_CEILING"
         )
-        if expected_verified:
-            assert new_topology["verified_configurations"] == expected_verified
-        else:
-            assert "verified_configurations" not in new_topology
-        evidence = new_topology["constraint_evidence"]
-        for field, scope in (("max", "total"), ("per_kind_max", "per_kind")):
-            item = evidence[field]
-            assert item["state"] == "UNKNOWN"
-            assert item["classification"] == "STALE_EVIDENCE"
-            assert item["scope"] == scope
-            assert item["source"] == (
-                "https://openrouter.ai/docs/guides/overview/multimodal/video-generation"
-            )
-            assert "native video3 does not establish total3 or image3" in item["reason"]
-
-    effective = enrich_capabilities(ModelCapabilities(model_id))
-    for method in (InferenceMethod.MI2V, InferenceMethod.MMR2V):
-        assert inference_method_matrix(effective)[method] is CapabilityModeStatus.READY
-        projected = project_method(effective, method.value)
-        assert projected["state"] == projected["method_support"] == "SUPPORTED"
-        topology = projected["topology"]
-        assert topology["max"] is None
-        assert topology["per_kind_max"] == {}
-        assert topology["limit_completeness"] == (
-            "PARTIAL"
-            if model_id.endswith("mini") and method is InferenceMethod.MMR2V
-            else "UNKNOWN"
+        assert profile["topology"]["constraint_evidence"]["per_kind_max"]["classification"] == (
+            "PROVIDER_DOCUMENTED_COMPATIBLE"
         )
-        assert topology["execution_domain"] == (
-            "VERIFIED_CONFIGURATIONS"
-            if model_id.endswith("mini") and method is InferenceMethod.MMR2V
-            else "UNVERIFIED"
-        )
-        witness = request_witness(effective, method)
-        assert (witness is not None) == (
-            model_id.endswith("mini") and method is InferenceMethod.MMR2V
-        )
+    # Mini history remains preserved as a witnessed example, not an exclusive ceiling.
+    if model_id.endswith("mini"):
+        assert methods["MMR2V"]["topology"]["verified_configurations"] == [
+            {"image": 1, "video": 1, "audio": 1}
+        ]
 
 
 def assert_reconciled_scalar_delta(
     before: dict[str, Any],
     after: dict[str, Any],
     *,
-    allow_stale_seedance_reference_caps: bool = False,
+    allow_documented_seedance_reference_caps: bool = False,
+    allow_happyhorse_11_reference_methods: bool = False,
 ) -> None:
     """Current positive scalar reconciliation cannot alter topology or other facts."""
     import copy
@@ -397,7 +434,7 @@ def assert_reconciled_scalar_delta(
     )["data"]
     raw = next(m for m in catalogue if m["id"] == before["exact_model_id"])
     restored = copy.deepcopy(after)
-    if allow_stale_seedance_reference_caps:
+    if allow_documented_seedance_reference_caps:
         assert before["exact_model_id"] in {
             "bytedance/seedance-2.0",
             "bytedance/seedance-2.0-fast",
@@ -407,31 +444,112 @@ def assert_reconciled_scalar_delta(
         profile["scope"] = before["facts"]["request_shape_profiles"]["scope"]
     old_methods = before["facts"]["request_shape_profiles"]["value"]["methods"]
     new_methods = restored["facts"]["request_shape_profiles"]["value"]["methods"]
+    profile_scope = restored["facts"]["request_shape_profiles"]["scope"]
+    old_scope = before["facts"]["request_shape_profiles"]["scope"]
+    if profile_scope != old_scope:
+        assert profile_scope == (
+            f"{old_scope}; documentation-first reference-domain delta 2026-11-12 "
+            "(see method review_sources; no live verification claim)."
+        )
+        restored["facts"]["request_shape_profiles"]["scope"] = old_scope
     for method, old in old_methods.items():
         new = new_methods[method]
-        if allow_stale_seedance_reference_caps and method in {"MI2V", "MMR2V"}:
+        if allow_happyhorse_11_reference_methods and method in {"IR2V", "MI2V"}:
+            assert before["exact_model_id"] == "alibaba/happyhorse-1.1"
             assert new["state"] == "SUPPORTED"
+            assert new["topology"]["max"] == (1 if method == "IR2V" else 9)
+            assert new["topology"]["per_kind_max"] == {"image": 1 if method == "IR2V" else 9}
+            assert new["controls"]["aspect_ratio"]["state"] == "SUPPORTED"
+            assert new["controls"]["size"]["state"] == "UNKNOWN"
+            new_methods[method] = old
+            new = old
+        historical = new.pop("historical_findings", None)
+        if historical is not None:
+            assert before["exact_model_id"] in {"alibaba/wan-3.0", "alibaba/wan-3.0-prime"}
+            assert method == "I2V" or (
+                before["exact_model_id"] == "alibaba/wan-3.0" and method == "FLF2V"
+            )
+            assert any(
+                item.get("control") == "aspect_ratio"
+                and "Source image owns native aspect" in item.get("superseded_note", "")
+                for item in historical
+            )
+        if new.get("evidence_class") == "ABSENCE_ONLY":
+            assert new["state"] == "UNKNOWN"
+            new.pop("evidence_class")
+        # These typed historical UNKNOWN stubs explicitly describe absence of
+        # evidence. They do not change a control's effective state or domain.
+        controls = new.get("controls", {})
+        old_controls = old.get("controls", {})
+        for control, current in list(controls.items()):
+            if current.get("evidence_class") == "ABSENCE_ONLY":
+                assert current["state"] == "UNKNOWN"
+                if control in old_controls:
+                    assert old_controls[control]["state"] == "UNKNOWN"
+                    controls[control] = old_controls[control]
+                else:
+                    controls.pop(control)
+        if allow_documented_seedance_reference_caps and method in {"MI2V", "MMR2V", "VR2V"}:
+            assert new["state"] == "SUPPORTED"
+            expected_limits = {
+                "MI2V": ({"image": 9}, 9),
+                "VR2V": ({"video": 3}, 3),
+                "MMR2V": ({"image": 9, "video": 3, "audio": 3}, 15),
+            }
+            expected_per_kind, expected_total = expected_limits[method]
+            assert new["topology"]["per_kind_max"] == expected_per_kind
+            assert new["topology"]["max"] == expected_total
+            assert new["topology"]["constraint_evidence"]["max"]["classification"] == (
+                "DERIVED_PER_KIND_CEILING"
+            )
+            assert new["topology"]["constraint_evidence"]["per_kind_max"]["classification"] == (
+                "PROVIDER_DOCUMENTED_COMPATIBLE"
+            )
             if "method_support" in new:
                 assert new["method_support"] == "SUPPORTED"
                 if "method_support" not in old:
                     new.pop("method_support")
-            new["state"] = old["state"]
             new["topology"] = old["topology"]
-            if new.get("notes") != old.get("notes"):
-                new["notes"] = old.get("notes")
+            new["topology_scope"] = old.get("topology_scope")
+            if new.get("topology_scope") is None:
+                new.pop("topology_scope", None)
+            new["state"] = old["state"]
+            new["notes"] = old.get("notes")
+            if new.get("notes") is None:
+                new.pop("notes", None)
+        if allow_documented_seedance_reference_caps and method == "AR2V":
+            assert new["state"] == "UNSUPPORTED"
+            assert "Provider documentation excludes audio-only input" in new.get("notes", "")
+            old_conformance = before["facts"].get("inference_method_conformance")
+            assert after["facts"].get("inference_method_conformance") == old_conformance
+            if old_conformance is not None:
+                assert old_conformance["value"]["method"] == "AR2V"
+            new_methods[method] = old
+            new = old
         if old.get("controls", {}).get("aspect_ratio") != new.get("controls", {}).get(
             "aspect_ratio"
         ):
-            assert old["controls"]["aspect_ratio"]["state"] == "UNKNOWN"
-            assert new["controls"]["aspect_ratio"]["state"] == "UNSUPPORTED"
-            assert (before["exact_model_id"], method) in {
-                ("x-ai/grok-imagine-video-1.5-lite", "I2V"),
-                ("x-ai/grok-imagine-video-1.5", "I2V"),
-                ("x-ai/grok-imagine-video", "I2V"),
-                ("alibaba/happyhorse-1.0", "I2V"),
-                ("alibaba/happyhorse-1.1", "I2V"),
-            }
-            new["controls"]["aspect_ratio"] = old["controls"]["aspect_ratio"]
+            if (
+                before["exact_model_id"] == "alibaba/happyhorse-1.1"
+                and method in {"IR2V", "MI2V"}
+                and "aspect_ratio" not in old.get("controls", {})
+            ):
+                assert new["controls"]["aspect_ratio"]["state"] == "SUPPORTED"
+                assert set(new["controls"]["aspect_ratio"]["values"]) == set(
+                    raw["supported_aspect_ratios"]
+                )
+                new["controls"].pop("aspect_ratio")
+            else:
+                assert old["controls"]["aspect_ratio"]["state"] == "UNKNOWN"
+                assert new["controls"]["aspect_ratio"]["state"] == "UNSUPPORTED"
+                assert (before["exact_model_id"], method) in {
+                    ("x-ai/grok-imagine-video-1.5-lite", "I2V"),
+                    ("x-ai/grok-imagine-video-1.5", "I2V"),
+                    ("x-ai/grok-imagine-video", "I2V"),
+                    ("alibaba/happyhorse-1.0", "I2V"),
+                    ("alibaba/happyhorse-1.1", "I2V"),
+                }
+                new["controls"]["aspect_ratio"] = old["controls"]["aspect_ratio"]
         if before["exact_model_id"] != "bytedance/seedance-2.0" and (
             old.get("controls", {}).get("size") != new.get("controls", {}).get("size")
         ):

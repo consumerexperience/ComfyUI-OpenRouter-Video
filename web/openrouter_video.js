@@ -1852,7 +1852,7 @@ function configureReferenceTopology(node, capability, method) {
         ? `${currentCount + sourceCount} connected${perKindSummary ? ` · ${perKindSummary}` : ""} · ${
             effectiveLimit !== null
             ? (allAtCaps ? (verifiedSubset ? "verified subset boundary · upper bound unverified" : "maximum reached") : `${effectiveLimit - currentCount - sourceCount} remaining`)
-                : (allAtCaps ? (verifiedSubset ? "verified subset boundary · upper bound unverified" : "maximum reached") : "limit unverified")
+                : (allAtCaps ? (verifiedSubset ? "verified subset boundary · upper bound unverified" : "maximum reached") : (topology.execution_domain === "DOCUMENTED_CONTRACT" ? "limit not published" : "limit unverified"))
         }`
         : executionUnverified
             ? unverifiedShape

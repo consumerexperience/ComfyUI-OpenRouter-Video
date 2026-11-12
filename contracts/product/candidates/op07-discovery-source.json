@@ -19,10 +19,10 @@
         "src~1openrouter_video~1app_identity_py": "94fc446b83ddd707ca4d6463b280dd0fa210e4f106ec08a059bf4abd260e7ed7"
       },
       "capabilities": {
-        "src~1openrouter_video~1capabilities_py": "2551fd0fb7f2183b27c4b4283b880ce5b94f140dee18bce1a6b61ce8cb643cf1",
+        "src~1openrouter_video~1capabilities_py": "5f7939da5d4af79837138c2c29ccf6931f7a77b55447733eba50a105f761608e",
         "src~1openrouter_video~1capability_overlays_py": "2faf6a156a6abe497992f6dfec594c3e6f6a0fcaaf45a963b3a6b428311cb232",
         "src~1openrouter_video~1client_py": "8c4629c9f3425f1aa7ec7d6d33cdda3f21cda917ee0235d1abffaef6372961a1",
-        "src~1openrouter_video~1configuration_py": "7e37a3164536fbdaa51c5192244513a857b2a9c35f38164387b0e24df62d913b",
+        "src~1openrouter_video~1configuration_py": "e63419fb40c811cbfaa151ff050a5475a1a30e7cb3bf40332c80c5f150d58faa",
         "src~1openrouter_video~1credential_backend_py": "ddaa46fcae133aee57d09d039b91d0a840fbc8260150af6e796f56789b3f041e",
         "src~1openrouter_video~1eligibility_py": "3380ef4a5e3e9c3b5fb628ef5d00f99ef20afb11a822267108f824ed74e28041",
         "src~1openrouter_video~1errors_py": "2ee7cc10ae9e353b28539b82810b8a7bf54ed1c33f6373daab2d71c3dd50642f",
@@ -51,7 +51,7 @@
       },
       "evidence_registry": {
         "src~1openrouter_video~1evidence_registry_py": "8d4cf176439faa8ca3578429db7a2bfee7c8cc7d2413ffc56d469cb8f8dc9b97",
-        "src~1openrouter_video~1data~1capability-evidence_json": "4ecd8bfeaa1fc8ab91f049b970f49b006ec78ad72050282016031e0b744fb734"
+        "src~1openrouter_video~1data~1capability-evidence_json": "90b6c34e255663789378ca921d8403a56efdea8af8fa7618d820c5359778ea9c"
       },
       "storage": {
         "src~1openrouter_video~1local_media_py": "9ed03216faa922f9bc95735304b33ddc4727df79a16446959192926f7a35cd23",
@@ -75,7 +75,7 @@
         "src~1openrouter_video~1comfy~1native_media_py": "55f0b01337e200732d7290d1cc05bc305712186bf6bedf42caebf834d21f8541"
       },
       "workflow_persistence": {
-        "web~1openrouter_video_js": "07511f6afef8563bd242d284c88d65ad9a30a8f37e096576aac8cf91fe627ca1"
+        "web~1openrouter_video_js": "3c21dfddf367d173252a1d63937b1aa00a09467147a6cedd8be696bdbad17811"
       }
     },
     "upstream_dynamic": {},

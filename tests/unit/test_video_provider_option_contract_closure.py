@@ -1,15 +1,22 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, cast
 
 import pytest
 
+from openrouter_video.capabilities import RequestValidator, request_witness
 from openrouter_video.client import _parse_capability
 from openrouter_video.configuration import project_method, project_semantic_values
 from openrouter_video.evidence_registry import enrich_capabilities, load_manifest
-from openrouter_video.models import GenerationRequest, ModelCapabilities, ProviderOption
+from openrouter_video.models import (
+    GenerationRequest,
+    InferenceMethod,
+    ModelCapabilities,
+    ProviderOption,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 CATALOGUE = json.loads(
@@ -34,6 +41,7 @@ def _provider_contract(model_id: str, method: str, provider: str) -> dict[str, A
 @pytest.mark.parametrize(
     ("model_id", "method"),
     [
+        ("kwaivgi/kling-v3.0-pro", "T2V"),
         ("kwaivgi/kling-v3.0-pro", "I2V"),
         ("kwaivgi/kling-v3.0-pro", "FLF2V"),
         ("kwaivgi/kling-v3.0-std", "T2V"),
@@ -41,13 +49,29 @@ def _provider_contract(model_id: str, method: str, provider: str) -> dict[str, A
         ("kwaivgi/kling-v3.0-std", "FLF2V"),
     ],
 )
-def test_kling_stale_only_controls_are_not_claimed_supported(model_id: str, method: str) -> None:
-    profile = project_method(_model(model_id), method)
-    assert profile["state"] == "SUPPORTED"
-    options = (
-        profile["controls"].get("provider_options", {}).get("providers", {}).get("atlas-cloud", {})
-    )
-    assert "cfg_scale" not in options and "negative_prompt" not in options
+def test_kling_documented_controls_reach_validator_and_current_route_wire(
+    model_id: str, method: str
+) -> None:
+    model = _model(model_id)
+    options = _provider_contract(model_id, method, "atlas-cloud")
+    assert options["cfg_scale"] == {"type": "number", "min": 0, "max": 1, "omitted_default": 0.5}
+    assert options["negative_prompt"] == {"type": "string"}
+    base = request_witness(model, InferenceMethod(method))
+    assert base is not None
+    for value in (0, 0.5, 1):
+        request = replace(
+            base,
+            provider_options=(
+                ProviderOption("atlas-cloud", "cfg_scale", value),
+                ProviderOption("atlas-cloud", "negative_prompt", "offline example"),
+            ),
+        )
+        RequestValidator().validate_capabilities(request, model)
+        wire = cast(dict[str, Any], request.to_openrouter_payload())
+        assert wire["provider"]["options"]["atlas-cloud"] == {
+            "cfg_scale": value,
+            "negative_prompt": "offline example",
+        }
 
 
 def test_kling_pro_t2v_restores_confirmed_method_without_claiming_geometry() -> None:

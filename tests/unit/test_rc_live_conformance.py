@@ -88,10 +88,10 @@ def test_live_exact_conflict_is_scoped_and_normalized_remains_available(
     )
 
 
-def test_standalone_audio_conflict_preserves_documented_mixed_methods_and_gates_execution() -> None:
+def test_standalone_audio_rejection_preserves_documented_mixed_methods_and_limits() -> None:
     mini = observed_model("bytedance/seedance-2.0-mini")
     matrix = inference_method_matrix(mini)
-    assert matrix[InferenceMethod.AR2V].value == "CONFLICT"
+    assert matrix[InferenceMethod.AR2V].value == "UNSUPPORTED"
     assert matrix[InferenceMethod.MMR2V].value == "READY"
     assert matrix[InferenceMethod.VR2V].value == "READY"
     projected = cast(dict[str, Any], project_model(mini, datetime.now(timezone.utc)).as_dict())
@@ -100,29 +100,33 @@ def test_standalone_audio_conflict_preserves_documented_mixed_methods_and_gates_
     assert "VR2V" in projected["supported_inference_methods"]
     mini_mixed = project_method(mini, "MMR2V")
     assert mini_mixed["state"] == mini_mixed["method_support"] == "SUPPORTED"
-    assert mini_mixed["topology"]["execution_domain"] == "VERIFIED_CONFIGURATIONS"
+    assert mini_mixed["topology"]["execution_domain"] == "CONFIRMED_BOUNDS"
+    assert mini_mixed["topology"]["max"] == 15
+    assert mini_mixed["topology"]["per_kind_max"] == {"image": 9, "video": 3, "audio": 3}
     assert mini_mixed["topology"]["verified_configurations"] == [
         {"image": 1, "video": 1, "audio": 1}
     ]
     assert request_witness(mini, InferenceMethod.MMR2V) is not None
     assert InferenceMethod.MMR2V in eligible_methods(mini)
     fast = observed_model("bytedance/seedance-2.0-fast")
-    assert inference_method_matrix(fast)[InferenceMethod.AR2V].value == "CONFLICT"
+    assert inference_method_matrix(fast)[InferenceMethod.AR2V].value == "UNSUPPORTED"
     assert inference_method_matrix(fast)[InferenceMethod.MMR2V].value == "READY"
     assert inference_method_matrix(fast)[InferenceMethod.VR2V].value == "READY"
     fast_mixed = project_method(fast, "MMR2V")
     assert fast_mixed["state"] == fast_mixed["method_support"] == "SUPPORTED"
-    assert fast_mixed["topology"]["execution_domain"] == "UNVERIFIED"
-    assert request_witness(fast, InferenceMethod.MMR2V) is None
-    assert InferenceMethod.MMR2V not in eligible_methods(fast)
+    assert fast_mixed["topology"]["execution_domain"] == "CONFIRMED_BOUNDS"
+    assert fast_mixed["topology"]["max"] == 15
+    assert request_witness(fast, InferenceMethod.MMR2V) is not None
+    assert InferenceMethod.MMR2V in eligible_methods(fast)
     other = observed_model("bytedance/seedance-2.0")
     assert inference_method_matrix(other)[InferenceMethod.AR2V].value == "UNSUPPORTED"
     assert inference_method_matrix(other)[InferenceMethod.MMR2V].value == "READY"
     assert inference_method_matrix(other)[InferenceMethod.VR2V].value == "READY"
     other_mixed = project_method(other, "MMR2V")
     assert other_mixed["state"] == other_mixed["method_support"] == "SUPPORTED"
-    assert other_mixed["topology"]["execution_domain"] == "UNVERIFIED"
-    assert request_witness(other, InferenceMethod.MMR2V) is None
+    assert other_mixed["topology"]["execution_domain"] == "CONFIRMED_BOUNDS"
+    assert other_mixed["topology"]["max"] == 15
+    assert request_witness(other, InferenceMethod.MMR2V) is not None
     for model in (mini, fast, other):
         selectable = project_selectable(model, datetime.now(timezone.utc)).as_dict()
         assert "MMR2V" in cast(list[str], selectable["supported_inference_methods"])

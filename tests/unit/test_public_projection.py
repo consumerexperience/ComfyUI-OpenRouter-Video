@@ -146,29 +146,26 @@ def test_future_evidence_update_exposes_method_and_new_domain_without_runtime_br
 
 
 @pytest.mark.parametrize("slug", ["bytedance/seedance-2.0-mini", "bytedance/seedance-2.0-fast"])
-def test_audio_only_conflict_keeps_mixed_method_and_unknown_limits_separate(slug: str) -> None:
+def test_audio_only_rejection_keeps_mixed_method_and_documented_limits_separate(slug: str) -> None:
     model = current_model(slug)
-    assert project_method(model, "AR2V")["state"] == "CONFLICT"
+    assert project_method(model, "AR2V")["state"] == "UNSUPPORTED"
     mixed = project_method(model, "MMR2V")
     assert mixed["state"] == mixed["method_support"] == "SUPPORTED"
-    assert mixed["topology"]["max"] is None
-    assert mixed["topology"]["per_kind_max"] == {}
-    assert mixed["topology"]["limit_completeness"] == (
-        "PARTIAL" if slug.endswith("mini") else "UNKNOWN"
+    assert mixed["topology"]["max"] == 15
+    assert mixed["topology"]["per_kind_max"] == {"image": 9, "video": 3, "audio": 3}
+    assert mixed["topology"]["limit_completeness"] == "COMPLETE"
+    assert mixed["topology"]["execution_domain"] == "CONFIRMED_BOUNDS"
+    assert mixed["topology"]["constraint_evidence"]["max"]["classification"] == (
+        "DERIVED_PER_KIND_CEILING"
+    )
+    assert mixed["topology"]["constraint_evidence"]["per_kind_max"]["classification"] == (
+        "PROVIDER_DOCUMENTED_COMPATIBLE"
     )
     if slug.endswith("mini"):
-        assert mixed["topology"]["execution_domain"] == "VERIFIED_CONFIGURATIONS"
         assert mixed["topology"]["verified_configurations"] == [
             {"image": 1, "video": 1, "audio": 1}
         ]
-        assert request_witness(model, InferenceMethod.MMR2V) is not None
-    else:
-        assert mixed["topology"]["execution_domain"] == "UNVERIFIED"
-        assert "verified_configurations" not in mixed["topology"]
-        assert request_witness(model, InferenceMethod.MMR2V) is None
-    assert all(
-        item["classification"] == "STALE_EVIDENCE" for item in mixed["topology"]["reconciliation"]
-    )
+    assert request_witness(model, InferenceMethod.MMR2V) is not None
     selectable = project_selectable(model, datetime.now(timezone.utc)).as_dict()
     assert "MMR2V" in cast(list[str], selectable["supported_inference_methods"])
 
@@ -287,7 +284,7 @@ def test_exact_enum_and_authority_are_scoped_and_explicit_supported_false_is_pre
     )
 
 
-def test_verified_mini_mixed_example_passes_but_expanded_unknown_count_fails_closed() -> None:
+def test_verified_mini_example_and_documented_reference_limit_are_enforced() -> None:
     mini = current_model("bytedance/seedance-2.0-mini")
     verified = GenerationRequest(
         mini.model_id,
@@ -324,8 +321,23 @@ def test_verified_mini_mixed_example_passes_but_expanded_unknown_count_fails_clo
         ),
     )
     RequestValidator().validate_shape(expanded)
+    RequestValidator().validate_capabilities(expanded, mini)
+
+    over_image_limit = replace(
+        expanded,
+        input_references=InputReferenceCollection(
+            tuple(
+                InputReference(InputReferenceKind.IMAGE, f"https://example.com/image-{index}.png")
+                for index in range(10)
+            )
+            + (
+                InputReference(InputReferenceKind.VIDEO, "https://example.com/reference.mp4"),
+                InputReference(InputReferenceKind.AUDIO, "https://example.com/reference.wav"),
+            )
+        ),
+    )
     with pytest.raises(ProductFailureError) as failure:
-        RequestValidator().validate_capabilities(expanded, mini)
+        RequestValidator().validate_capabilities(over_image_limit, mini)
     assert failure.value.error.code.value == "UNSUPPORTED_PARAMETER"
     assert failure.value.error.billing_context.value == "NO_SUBMIT"
     grok = current_model("x-ai/grok-imagine-video")

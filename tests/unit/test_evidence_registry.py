@@ -138,7 +138,7 @@ def test_future_documented_model_can_be_enriched_by_data_only() -> None:
         "bytedance/seedance-2.0-mini",
     ],
 )
-def test_seedance_20_reference_caps_are_quarantined_as_stale_evidence(model_id: str) -> None:
+def test_seedance_20_documented_reference_caps_are_effective_and_serialize(model_id: str) -> None:
     model = enrich_capabilities(ModelCapabilities(model_id))
     matrix = inference_method_matrix(model)
     for method in ("MI2V", "MMR2V"):
@@ -147,42 +147,29 @@ def test_seedance_20_reference_caps_are_quarantined_as_stale_evidence(model_id: 
         assert projected["state"] == "SUPPORTED"
         assert projected["method_support"] == "SUPPORTED"
         assert matrix[InferenceMethod(method)] is CapabilityModeStatus.READY
-        assert topology["max"] is None
-        assert topology["per_kind_max"] == {}
-        expected_verified = (
-            [{"image": 1, "video": 1, "audio": 1}]
-            if model_id.endswith("mini") and method == "MMR2V"
-            else []
+        expected_per_kind = (
+            {"image": 9}
+            if method == "MI2V"
+            else {
+                "image": 9,
+                "video": 3,
+                "audio": 3,
+            }
         )
-        if expected_verified:
-            assert topology["verified_configurations"] == expected_verified
-        else:
-            assert "verified_configurations" not in topology
-        expected_domain = "VERIFIED_CONFIGURATIONS" if expected_verified else "UNVERIFIED"
-        assert topology["execution_domain"] == expected_domain
-        stale = topology["constraint_evidence"]
-        for field, scope in (("max", "total"), ("per_kind_max", "per_kind")):
-            assert stale[field]["state"] == "UNKNOWN"
-            assert stale[field]["classification"] == "STALE_EVIDENCE"
-            assert stale[field]["scope"] == scope
-            assert "OpenRouter" in stale[field]["reason"]
+        assert topology["max"] == sum(expected_per_kind.values())
+        assert topology["per_kind_max"] == expected_per_kind
+        assert topology["execution_domain"] == "CONFIRMED_BOUNDS"
+        assert topology["limit_completeness"] == "COMPLETE"
+        evidence = topology["constraint_evidence"]
+        assert evidence["max"]["classification"] == "DERIVED_PER_KIND_CEILING"
+        assert evidence["max"]["state"] == "SUPPORTED"
+        assert evidence["per_kind_max"]["classification"] == "PROVIDER_DOCUMENTED_COMPATIBLE"
+        assert evidence["per_kind_max"]["state"] == "SUPPORTED"
         witness = request_witness(model, InferenceMethod(method))
-        if expected_verified:
-            assert witness is not None
-            assert witness.input_references is not None
-            assert [ref.kind.value for ref in witness.input_references.references] == [
-                "image",
-                "video",
-                "audio",
-            ]
-            RequestValidator().validate_capabilities(witness, model)
-        else:
-            assert witness is None
+        assert witness is not None
+        RequestValidator().validate_capabilities(witness, model)
     assert project_method(model, "VR2V")["state"] == "SUPPORTED"
-    if model_id.endswith("mini") or model_id.endswith("fast"):
-        assert project_method(model, "AR2V")["state"] == "CONFLICT"
-    else:
-        assert project_method(model, "AR2V")["state"] == "UNSUPPORTED"
+    assert project_method(model, "AR2V")["state"] == "UNSUPPORTED"
 
 
 def test_seedance_25_confirmed_method_and_reference_profile_remains_usable() -> None:

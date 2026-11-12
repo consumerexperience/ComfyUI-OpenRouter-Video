@@ -11,7 +11,7 @@
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01capabilities_py",
       "operation": "replace",
       "before": "a67e1980c71aa64ddde5c4e2d0f3cec59dd738175ad3297306a1b822893f013c",
-      "after": "2551fd0fb7f2183b27c4b4283b880ce5b94f140dee18bce1a6b61ce8cb643cf1"
+      "after": "5f7939da5d4af79837138c2c29ccf6931f7a77b55447733eba50a105f761608e"
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01client_py",
@@ -47,7 +47,7 @@
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01configuration_py",
       "operation": "replace",
       "before": "e8a3a63f2255d0fd36d795a5558c61e5705a8332eca35e17060b3cfb31160a0e",
-      "after": "7e37a3164536fbdaa51c5192244513a857b2a9c35f38164387b0e24df62d913b"
+      "after": "e63419fb40c811cbfaa151ff050a5475a1a30e7cb3bf40332c80c5f150d58faa"
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01image_transport_py",
@@ -77,7 +77,7 @@
       "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01data~01capability-evidence_json",
       "operation": "replace",
       "before": "ec25bd96a4b12bdb9b0b3b0559dfd8c113c7f2ebf34824719303f044b592844a",
-      "after": "4ecd8bfeaa1fc8ab91f049b970f49b006ec78ad72050282016031e0b744fb734"
+      "after": "90b6c34e255663789378ca921d8403a56efdea8af8fa7618d820c5359778ea9c"
     },
     {
       "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01evidence_registry_py",
@@ -119,7 +119,7 @@
       "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
       "operation": "replace",
       "before": "ff031603b9ff464096aaae8986970d92984b14f32ad5c92116cf876ecdcd981c",
-      "after": "07511f6afef8563bd242d284c88d65ad9a30a8f37e096576aac8cf91fe627ca1"
+      "after": "3c21dfddf367d173252a1d63937b1aa00a09467147a6cedd8be696bdbad17811"
     }
   ],
   "UNAUTHORIZED_DELTA": [],
@@ -133,6 +133,6 @@
   "UNKNOWN_DYNAMIC_SURFACES": [],
   "OBSERVED_EVIDENCE_CHANGES": [],
   "ACCEPTED_CONTRACT_DIGEST": "sha256:a2987facf690f1df565e246087f0bc54573f50a1fa80a74a8cfc8a5b1a4c57f5",
-  "CURRENT_CONTRACT_DIGEST": "sha256:05e7c367a254aa8662d5bb80a8781faf5a31cd53182f5963064d25439c258f51",
-  "CONTRACT_DELTA_DIGEST": "sha256:7925df6337058b384b90b497e5357dce2ed28ec0cf45e3de95802086190066c9"
+  "CURRENT_CONTRACT_DIGEST": "sha256:ce93629f060e63108ae7057473839a1d571d6d25b9b8f58dbb3dbe8153e18a54",
+  "CONTRACT_DELTA_DIGEST": "sha256:f15e38bb530438e3d2d2fe9797deea0a8827d7623d5c4a5f767e8b56873a3d37"
 }

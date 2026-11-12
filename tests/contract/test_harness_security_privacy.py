@@ -155,7 +155,15 @@ def test_unsupported_explicit_intent_is_rejected_before_submit(
         async with core_harness(scenario, tmp_path) as core:
             result = await core.generate.generate("operation-unsupported", generation_request)
             assert result.error is not None
-            assert result.error.code is ProductErrorCode.UNSUPPORTED_PARAMETER
+            # The canonical pipeline distinguishes missing FLF method proof from
+            # an unsupported scalar on an otherwise documented T2V operation.
+            expected = (
+                ProductErrorCode.CAPABILITY_SIGNAL_GAP
+                if generation_request.inference_method is InferenceMethod.FLF2V
+                else ProductErrorCode.UNSUPPORTED_PARAMETER
+            )
+            assert result.error.code is expected
+            assert result.error.billing_context.value == "NO_SUBMIT"
 
     asyncio.run(run())
     scenario.assert_complete()
