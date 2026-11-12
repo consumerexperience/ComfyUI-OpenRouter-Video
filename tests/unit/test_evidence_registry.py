@@ -5,7 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from openrouter_video.capabilities import CapabilityModeStatus, inference_method_matrix
+from openrouter_video.capabilities import (
+    CapabilityModeStatus,
+    RequestValidator,
+    inference_method_matrix,
+    request_witness,
+)
 from openrouter_video.client import _parse_capability
 from openrouter_video.comfy.projection import project_model
 from openrouter_video.configuration import project_method
@@ -139,17 +144,40 @@ def test_seedance_20_reference_caps_are_quarantined_as_stale_evidence(model_id: 
     for method in ("MI2V", "MMR2V"):
         projected = project_method(model, method)
         topology = projected["topology"]
-        assert projected["state"] == "UNKNOWN"
-        assert matrix[InferenceMethod(method)] is CapabilityModeStatus.UNKNOWN
+        assert projected["state"] == "SUPPORTED"
+        assert projected["method_support"] == "SUPPORTED"
+        assert matrix[InferenceMethod(method)] is CapabilityModeStatus.READY
         assert topology["max"] is None
         assert topology["per_kind_max"] == {}
-        assert topology["constraint_state"] == "UNKNOWN"
+        expected_verified = (
+            [{"image": 1, "video": 1, "audio": 1}]
+            if model_id.endswith("mini") and method == "MMR2V"
+            else []
+        )
+        if expected_verified:
+            assert topology["verified_configurations"] == expected_verified
+        else:
+            assert "verified_configurations" not in topology
+        expected_domain = "VERIFIED_CONFIGURATIONS" if expected_verified else "UNVERIFIED"
+        assert topology["execution_domain"] == expected_domain
         stale = topology["constraint_evidence"]
         for field, scope in (("max", "total"), ("per_kind_max", "per_kind")):
             assert stale[field]["state"] == "UNKNOWN"
             assert stale[field]["classification"] == "STALE_EVIDENCE"
             assert stale[field]["scope"] == scope
             assert "OpenRouter" in stale[field]["reason"]
+        witness = request_witness(model, InferenceMethod(method))
+        if expected_verified:
+            assert witness is not None
+            assert witness.input_references is not None
+            assert [ref.kind.value for ref in witness.input_references.references] == [
+                "image",
+                "video",
+                "audio",
+            ]
+            RequestValidator().validate_capabilities(witness, model)
+        else:
+            assert witness is None
     assert project_method(model, "VR2V")["state"] == "SUPPORTED"
     if model_id.endswith("mini") or model_id.endswith("fast"):
         assert project_method(model, "AR2V")["state"] == "CONFLICT"

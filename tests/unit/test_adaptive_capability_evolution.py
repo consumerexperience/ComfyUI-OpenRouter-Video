@@ -73,6 +73,9 @@ def test_new_enum_and_typed_provider_option_reach_validator_and_wire() -> None:
         "providers": {"synthetic": {"quality": {"type": "string", "values": ["ultra", "draft"]}}},
     }
     raw["allowed_passthrough_parameters"] = ["quality", "unknown_option"]
+    # Derived admission/completeness diagnostics are not upstream recipe fields.
+    for key in ("execution_domain", "limit_completeness", "reconciliation"):
+        profile["topology"].pop(key, None)
     raw["request_shape_profiles"] = {"schema_version": 1, "methods": {"T2V": profile}}
     model = _parse_capability(raw)
     witness = request_witness(model, InferenceMethod.T2V)

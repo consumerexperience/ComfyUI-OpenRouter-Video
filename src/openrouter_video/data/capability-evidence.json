@@ -3042,7 +3042,7 @@
                     }
                   }
                 },
-                "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
+                "notes": "Method shape is documented; this does not certify every parameter/media tuple.; Owner f65992ce: operation support is separate from parameter/limit completeness. Native maxima are not promoted without exact route equivalence.",
                 "audit_scope": "CURRENT_MODEL_METHOD",
                 "topology": {
                   "fixed": [],
@@ -3081,7 +3081,9 @@
                   "https://openrouter.ai/bytedance/seedance-2.0-mini",
                   "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
                   "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
-                  "https://docs.byteplus.com/en/docs/modelark/create-video-generation-task-api"
+                  "https://docs.byteplus.com/en/docs/modelark/create-video-generation-task-api",
+                  "https://openrouter.ai/docs/cookbook/video-generation/reference-to-video",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/create-videos"
                 ]
               },
               "VR2V": {
@@ -3286,7 +3288,7 @@
                     }
                   }
                 },
-                "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
+                "notes": "Method shape is documented; this does not certify every parameter/media tuple.; Owner f65992ce: operation support is separate from parameter/limit completeness. Native maxima are not promoted without exact route equivalence.",
                 "audit_scope": "CURRENT_MODEL_METHOD",
                 "topology": {
                   "fixed": [],
@@ -3335,8 +3337,22 @@
                       "scope": "per_kind",
                       "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
                       "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+                    },
+                    "verified_configurations": {
+                      "state": "SUPPORTED",
+                      "scope": "method",
+                      "source": "https://openrouter.ai/bytedance/seedance-2.0-mini",
+                      "classification": "CONFIRMED_VALID_CONFIGURATION",
+                      "reason": "Exact historical successful OpenRouter request: MMR2V 1 IMAGE + 1 VIDEO + 1 AUDIO, 4s 480p. Existing owner-mini-history.json SHA256 95d23bdd; full original receipt hashes retained in OP07 evidence-receipt. This example is not an upper bound or all-count transport guarantee."
                     }
-                  }
+                  },
+                  "verified_configurations": [
+                    {
+                      "image": 1,
+                      "video": 1,
+                      "audio": 1
+                    }
+                  ]
                 },
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "live_shape_receipt": "gen-vid-1791661746-JSqWE4btXWZBdeDBkqPS: IMAGE -> VIDEO -> AUDIO; 4s,480p,16:9,generate_audio=false.",
@@ -3344,7 +3360,9 @@
                   "https://openrouter.ai/bytedance/seedance-2.0-mini",
                   "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
                   "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
-                  "https://docs.byteplus.com/en/docs/modelark/create-video-generation-task-api"
+                  "https://docs.byteplus.com/en/docs/modelark/create-video-generation-task-api",
+                  "https://openrouter.ai/docs/cookbook/video-generation/reference-to-video",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/create-videos"
                 ]
               },
               "V2V_EDIT": {
@@ -3364,7 +3382,7 @@
           "authority": "REVIEWED_AUDIT_DISPOSITION",
           "source_reference": "https://openrouter.ai/bytedance/seedance-2.0-mini",
           "observed_at": "2026-10-13T13:37:34.589030+00:00",
-          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.; OP07 abcc0172 reconciliation: former MI2V/MMR2V three-input caps are stale, not proven OpenRouter restrictions. Do not promote provider-native 9/3/3 into OpenRouter executable limits.",
+          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.; OP07 abcc0172 reconciliation: former MI2V/MMR2V three-input caps are stale, not proven OpenRouter restrictions. Do not promote provider-native 9/3/3 into OpenRouter executable limits.; Owner f65992ce: method support retained, count-domain validation separate; only exact historical Mini I+V+A configuration re-admitted.",
           "audit_content_hash": "e51c615e57a05bc065ac7c3dcd651ac32ceb101877a8b9f436fc19ffc299c0c0"
         }
       }
@@ -7217,7 +7235,7 @@
                   "max": 0,
                   "per_kind_max": {}
                 },
-                "notes": "Current exact Atlas T2V schema confirms prompt, durations 3\u0432\u0402\u201c15, aspect ratios and sound without a resolution input. Restore this method with geometry omitted; retain historical geometry conflict explicitly.",
+                "notes": "Current exact Atlas T2V schema confirms prompt, durations 3вЂ“15, aspect ratios and sound without a resolution input. Restore this method with geometry omitted; retain historical geometry conflict explicitly.",
                 "historical_findings": [
                   {
                     "state": "CONFLICT",
@@ -9551,7 +9569,7 @@
                     "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
                   }
                 },
-                "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
+                "notes": "Method shape is documented; this does not certify every parameter/media tuple.; Owner f65992ce: operation support is separate from parameter/limit completeness. Native maxima are not promoted without exact route equivalence.",
                 "audit_scope": "CURRENT_MODEL_METHOD",
                 "topology": {
                   "fixed": [],
@@ -9589,7 +9607,9 @@
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-2.0",
                   "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
-                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options"
+                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options",
+                  "https://openrouter.ai/docs/cookbook/video-generation/reference-to-video",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/create-videos"
                 ]
               },
               "VR2V": {
@@ -9821,7 +9841,7 @@
                     "notes": "Typed public cookbook options only; intersect live allowlist; omitted values delegate to provider defaults."
                   }
                 },
-                "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
+                "notes": "Method shape is documented; this does not certify every parameter/media tuple.; Owner f65992ce: operation support is separate from parameter/limit completeness. Native maxima are not promoted without exact route equivalence.",
                 "audit_scope": "CURRENT_MODEL_METHOD",
                 "topology": {
                   "fixed": [],
@@ -9877,7 +9897,9 @@
                 "review_sources": [
                   "https://openrouter.ai/bytedance/seedance-2.0",
                   "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
-                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options"
+                  "https://openrouter.ai/docs/cookbook/video-generation/provider-specific-video-options",
+                  "https://openrouter.ai/docs/cookbook/video-generation/reference-to-video",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/create-videos"
                 ]
               },
               "V2V_EDIT": {
@@ -9897,7 +9919,7 @@
           "authority": "REVIEWED_AUDIT_DISPOSITION",
           "source_reference": "https://openrouter.ai/bytedance/seedance-2.0",
           "observed_at": "2026-10-13T13:37:34.589030+00:00",
-          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.; OP07 abcc0172 reconciliation: former MI2V/MMR2V three-input caps are stale, not proven OpenRouter restrictions. Do not promote provider-native 9/3/3 into OpenRouter executable limits.",
+          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.; OP07 abcc0172 reconciliation: former MI2V/MMR2V three-input caps are stale, not proven OpenRouter restrictions. Do not promote provider-native 9/3/3 into OpenRouter executable limits.; Owner f65992ce: method support retained, count-domain validation separate; only exact historical Mini I+V+A configuration re-admitted.",
           "audit_content_hash": "e51c615e57a05bc065ac7c3dcd651ac32ceb101877a8b9f436fc19ffc299c0c0"
         }
       }
@@ -11035,7 +11057,7 @@
                     }
                   }
                 },
-                "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
+                "notes": "Method shape is documented; this does not certify every parameter/media tuple.; Owner f65992ce: operation support is separate from parameter/limit completeness. Native maxima are not promoted without exact route equivalence.",
                 "audit_scope": "CURRENT_MODEL_METHOD",
                 "topology": {
                   "fixed": [],
@@ -11074,7 +11096,9 @@
                   "https://openrouter.ai/bytedance/seedance-2.0-fast",
                   "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
                   "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
-                  "https://docs.byteplus.com/en/docs/modelark/create-video-generation-task-api"
+                  "https://docs.byteplus.com/en/docs/modelark/create-video-generation-task-api",
+                  "https://openrouter.ai/docs/cookbook/video-generation/reference-to-video",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/create-videos"
                 ]
               },
               "VR2V": {
@@ -11279,7 +11303,7 @@
                     }
                   }
                 },
-                "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
+                "notes": "Method shape is documented; this does not certify every parameter/media tuple.; Owner f65992ce: operation support is separate from parameter/limit completeness. Native maxima are not promoted without exact route equivalence.",
                 "audit_scope": "CURRENT_MODEL_METHOD",
                 "topology": {
                   "fixed": [],
@@ -11336,7 +11360,9 @@
                   "https://openrouter.ai/bytedance/seedance-2.0-fast",
                   "https://docs.byteplus.com/en/docs/Byteplus_LAS/video_gen_enhanced",
                   "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
-                  "https://docs.byteplus.com/en/docs/modelark/create-video-generation-task-api"
+                  "https://docs.byteplus.com/en/docs/modelark/create-video-generation-task-api",
+                  "https://openrouter.ai/docs/cookbook/video-generation/reference-to-video",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/create-videos"
                 ]
               },
               "V2V_EDIT": {
@@ -11356,7 +11382,7 @@
           "authority": "REVIEWED_AUDIT_DISPOSITION",
           "source_reference": "https://openrouter.ai/bytedance/seedance-2.0-fast",
           "observed_at": "2026-10-13T13:37:34.589030+00:00",
-          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.; OP07 abcc0172 reconciliation: former MI2V/MMR2V three-input caps are stale, not proven OpenRouter restrictions. Do not promote provider-native 9/3/3 into OpenRouter executable limits.",
+          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.; OP07 abcc0172 reconciliation: former MI2V/MMR2V three-input caps are stale, not proven OpenRouter restrictions. Do not promote provider-native 9/3/3 into OpenRouter executable limits.; Owner f65992ce: method support retained, count-domain validation separate; only exact historical Mini I+V+A configuration re-admitted.",
           "audit_content_hash": "e51c615e57a05bc065ac7c3dcd651ac32ceb101877a8b9f436fc19ffc299c0c0"
         }
       }
@@ -11724,7 +11750,7 @@
                     }
                   }
                 },
-                "notes": "Exact OpenRouter model supports reference-video generation; Atlas confirms 1\u0432\u0402\u201c3 videos, 5/10 second output and prompt subject labels character1, character2, character3. Existing canonical video input_references preserve ordered subjects.",
+                "notes": "Exact OpenRouter model supports reference-video generation; Atlas confirms 1вЂ“3 videos, 5/10 second output and prompt subject labels character1, character2, character3. Existing canonical video input_references preserve ordered subjects.",
                 "audit_scope": "CURRENT_MODEL_METHOD",
                 "topology": {
                   "fixed": [],
@@ -13080,7 +13106,7 @@
           "authority": "OFFICIAL_OPENROUTER_AND_EXACT_SERVED_API_REVIEW",
           "source_reference": "https://openrouter.ai/google/gemini-omni-1.2-flash",
           "observed_at": "2026-11-11T21:28:23.245335+00:00",
-          "scope": "Canonical OpenRouter input_references and previous_job_id; reviewed task enum;6 image refs for AI Studio, not Cloud10-image limit; video refs2\u0432\u0402\u201c3 requireduration<=10; Google AI Studio exact API: https://ai.google.dev/gemini-api/docs/omni OP07 adaptive correction: task is optional explicit intent, not an automatically injected discriminator. Google recommends natural-language task selection first; mixed image/video references remain unresolved. OpenRouter non-Veo options use google-ai-studio.task directly, not parameters.task."
+          "scope": "Canonical OpenRouter input_references and previous_job_id; reviewed task enum;6 image refs for AI Studio, not Cloud10-image limit; video refs2вЂ“3 requireduration<=10; Google AI Studio exact API: https://ai.google.dev/gemini-api/docs/omni OP07 adaptive correction: task is optional explicit intent, not an automatically injected discriminator. Google recommends natural-language task selection first; mixed image/video references remain unresolved. OpenRouter non-Veo options use google-ai-studio.task directly, not parameters.task."
         },
         "reference_kinds": {
           "value": [
@@ -13111,7 +13137,7 @@
           "authority": "OFFICIAL_OPENROUTER_AND_EXACT_SERVED_API_REVIEW",
           "source_reference": "https://openrouter.ai/google/gemini-omni-1.2-flash",
           "observed_at": "2026-11-09T16:00:00+00:00",
-          "scope": "Uploaded or previous-job video extension;3\u0432\u0402\u201c10seconds perturn; Google AI Studio exact API: https://ai.google.dev/gemini-api/docs/omni"
+          "scope": "Uploaded or previous-job video extension;3вЂ“10seconds perturn; Google AI Studio exact API: https://ai.google.dev/gemini-api/docs/omni"
         }
       }
     },
@@ -13612,5 +13638,5 @@
       }
     }
   ],
-  "content_hash": "27bbd22d2b17cf76ff99dcde15b02afd01449090da284eb2199664f12547f38a"
+  "content_hash": "e716eccf840595b42962915abe427e807c25d896ba2ee593920dc1cef5c00dcf"
 }

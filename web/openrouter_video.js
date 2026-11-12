@@ -1205,7 +1205,14 @@ function referenceShapeValid(topology, kinds) {
     if (Object.entries(topology.per_kind_max || {}).some(([kind, max]) => counts[kind] > max)) return false;
     if (Object.entries(topology.per_kind_min || {}).some(([kind, min]) => (counts[kind] || 0) < min)) return false;
     if ((topology.required_kinds || []).some(kind => !counts[kind])) return false;
-    return !(topology.mutually_exclusive || []).some(group => group.filter(kind => counts[kind]).length > 1);
+    if ((topology.mutually_exclusive || []).some(group => group.filter(kind => counts[kind]).length > 1)) return false;
+    if (topology.execution_domain === "UNVERIFIED" && kinds.length) return false;
+    if (topology.execution_domain === "VERIFIED_CONFIGURATIONS") {
+        return (topology.verified_configurations || []).some(configuration =>
+            Object.keys(configuration).every(kind => topology.reference_kinds.includes(kind)) &&
+            topology.reference_kinds.every(kind => (counts[kind] || 0) === (configuration[kind] || 0)));
+    }
+    return true;
 }
 
 function referencePartialAllowed(topology, kinds) {
@@ -1216,6 +1223,14 @@ function referencePartialAllowed(topology, kinds) {
     if (maximum !== null && kinds.length > maximum) return false;
     if (Object.entries(topology.per_kind_max || {}).some(([kind, max]) => (counts[kind] || 0) > max)) return false;
     if ((topology.mutually_exclusive || []).some(group => group.filter(kind => counts[kind]).length > 1)) return false;
+    if (topology.execution_domain === "UNVERIFIED") return referenceShapeValid(topology, kinds);
+    if (topology.execution_domain === "VERIFIED_CONFIGURATIONS") {
+        const configurations = topology.verified_configurations || [];
+        const fitsConfiguration = configurations.some(configuration =>
+            Object.keys(configuration).every(kind => topology.reference_kinds?.includes(kind)) &&
+            topology.reference_kinds?.every(kind => (counts[kind] || 0) <= (configuration[kind] || 0)));
+        if (!fitsConfiguration) return false;
+    }
     if (referenceShapeValid(topology, kinds)) return true;
     if (maximum !== null && kinds.length >= maximum) return false;
     return (topology.kind_sets || []).some(set => {
@@ -1755,6 +1770,7 @@ function configureReferenceTopology(node, capability, method) {
     const topology = applyTransportInputConstraints(
         capability.__methodProfile?.topology || { fixed: [], reference_kinds: [], max: 0 }, sourcePresent);
     const topologyUncertain = topology.constraint_state === "UNKNOWN" || topology.constraint_state === "CONFLICT";
+    const executionUnverified = topology.execution_domain === "UNVERIFIED";
     if (!topologyUncertain) parkIncompatibleMedia(node, topology);
     const keepFixed = new Set(topology.fixed || []);
     for (const name of keepFixed) ensureFixedInput(node, name);
@@ -1778,12 +1794,13 @@ function configureReferenceTopology(node, capability, method) {
     const sourceCount = capability.__methodProfile ? 0 : inputByName(node, "source_video")?.link != null ? 1 : 0;
     const reservedSourceCount = capability.__methodProfile ? 0 : keepFixed.has("source_video") ? 1 : 0;
     const referencesConfirmed = topology.constraint_state !== "UNKNOWN" && topology.constraint_state !== "CONFLICT";
-    const usesReferences = Boolean(topology.reference_kinds?.length) && referencesConfirmed;
+    const usesReferences = Boolean(topology.reference_kinds?.length) && referencesConfirmed && !executionUnverified;
     const exactOne = method === "IR2V";
     const possibleKinds = topology.reference_kinds || [];
     const linkedKinds = [...linked.map(connectedReferenceKind).filter(Boolean),
         ...(legacy?.link != null ? legacyReferenceKinds(legacy) || [] : [])];
     const canGrow = usesReferences && possibleKinds.some(kind => referencePartialAllowed(topology, [...linkedKinds, kind]));
+    const verifiedSubset = topology.execution_domain === "VERIFIED_CONFIGURATIONS";
     const keepTrailing = canGrow &&
         legacy?.link == null &&
         (effectiveLimit === null || linked.length + reservedSourceCount < effectiveLimit) &&
@@ -1830,13 +1847,18 @@ function configureReferenceTopology(node, capability, method) {
     const perKindCounts = Object.fromEntries([...new Set(linkedKinds)].map(kind =>
         [kind, linkedKinds.filter(value => value === kind).length]));
     const perKindSummary = Object.entries(perKindCounts).map(([kind, count]) => `${kind} ${count}`).join(" · ");
+    const unverifiedShape = executionUnverified && !referenceShapeValid(topology, linkedKinds);
     node.__orvReferenceSummary = usesReferences
         ? `${currentCount + sourceCount} connected${perKindSummary ? ` · ${perKindSummary}` : ""} · ${
             effectiveLimit !== null
-                ? (allAtCaps ? "maximum reached" : `${effectiveLimit - currentCount - sourceCount} remaining`)
-                : (allAtCaps ? "maximum reached" : "limit unverified")
+            ? (allAtCaps ? (verifiedSubset ? "verified subset boundary · upper bound unverified" : "maximum reached") : `${effectiveLimit - currentCount - sourceCount} remaining`)
+                : (allAtCaps ? (verifiedSubset ? "verified subset boundary · upper bound unverified" : "maximum reached") : "limit unverified")
         }`
-        : topology.constraint_state === "UNKNOWN" || topology.constraint_state === "CONFLICT"
+        : executionUnverified
+            ? unverifiedShape
+                ? "METHOD DOCUMENTED · input configurations require verification · existing links preserved; Generate blocked"
+                : "Additional reference configurations require verification · existing links preserved"
+            : topology.constraint_state === "UNKNOWN" || topology.constraint_state === "CONFLICT"
             ? "Reference limit unverified · existing links preserved" : "";
     if (node.__orvSummary) {
         node.__orvSummary.value = node.__orvReferenceSummary;
@@ -1856,14 +1878,16 @@ function configureReferenceTopology(node, capability, method) {
     const orphanedFixed = ["first_frame", "last_frame", "source_video"].some(name =>
         inputByName(node, name)?.link != null && !keepFixed.has(name));
     const incompatibleReferences = !referencePartialAllowed(topology, linkedKinds);
-    node.__orvReferenceInvalid = topologyUncertain || topology.transport_source_overflow || wrongReferenceKind || wrongFixedKind ||
+    node.__orvReferenceInvalid = topologyUncertain || unverifiedShape || topology.transport_source_overflow || wrongReferenceKind || wrongFixedKind ||
         orphanedFixed || incompatibleReferences || (effectiveLimit !== null && currentCount + sourceCount > effectiveLimit);
     if ((wrongReferenceKind || wrongFixedKind) && !node.__orvMethodBlocked) {
         node.__orvCapabilityStatus.value = "INCOMPATIBLE · media kind · links preserved";
         setVisible(node.__orvCapabilityStatus, true);
     }
     if (node.__orvReferenceInvalid) {
-        disclose(node, topologyUncertain
+        disclose(node, unverifiedShape
+            ? "METHOD DOCUMENTED · INPUT CONFIGURATIONS REQUIRE VERIFICATION; existing links preserved; Generate blocked"
+            : topologyUncertain
             ? "REFERENCES · limit unverified; existing links preserved; Generate blocked"
             : topology.transport_source_overflow
                 ? "SOURCE VIDEO EXCEEDS TRANSPORT INPUT LIMIT; Generate blocked"

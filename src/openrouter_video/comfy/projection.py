@@ -24,7 +24,20 @@ def project_selectable(
 ) -> UiModelCapabilities:
     """One selection authority shared by routes and frontend bootstrap."""
     view = project_model(capabilities, observed_at)
-    methods = tuple(method.value for method in eligible_methods(capabilities))
+    # Operation discovery is not a claim that its full count domain is verified.
+    # Keep documented operations visible with the Core domain diagnostic; paid
+    # execution still requires an admitted, validated request witness.
+    executable = {method.value for method in eligible_methods(capabilities)}
+    methods = tuple(
+        method.value
+        for method in _UI_METHODS
+        if method.value in executable
+        or (
+            (profile := project_method(capabilities, method.value))["state"] == "SUPPORTED"
+            and profile["topology"].get("execution_domain") == "UNVERIFIED"
+            and profile.get("method_support") == "SUPPORTED"
+        )
+    )
     return replace(
         view,
         supported_inference_methods=methods,

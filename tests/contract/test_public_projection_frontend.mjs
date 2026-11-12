@@ -452,6 +452,83 @@ test('reference sockets use independent per-kind caps when total is unverified a
     assert.equal(n.__orvReferenceInvalid,false);
 });
 
+test('supported method with unknown maximum admits verified configurations without inventing a maximum',()=>{
+    const capability=plain(currentProjection.models.find(m=>m.model_id==='bytedance/seedance-2.5'));
+    const topology=capability.method_profiles.MMR2V.topology;
+    Object.assign(topology,{reference_kinds:['image','video','audio'],kind_sets:[['image'],['image','video'],['image','video','audio']],
+        min:0,max:null,per_kind_min:{},per_kind_max:{},required_kinds:[],mutually_exclusive:[],constraint_state:'SUPPORTED',
+        execution_domain:'VERIFIED_CONFIGURATIONS',verified_configurations:[{image:2},{image:1,video:1},{image:1,video:1,audio:1}],limit_completeness:'PARTIAL'});
+    const profile=capability.method_profiles.MMR2V;
+    assert.equal(profile.state,'SUPPORTED');
+    assert(capability.supported_inference_methods.includes('MMR2V'));
+    assert(c.referenceShapeValid(topology,['image','image']));
+    assert(c.referenceShapeValid(topology,['image','video']));
+    assert(c.referenceShapeValid(topology,['image','video','audio']));
+    assert(!c.referenceShapeValid(topology,['image','image','image']));
+    assert(c.referencePartialAllowed(topology,['image']));
+    assert(c.referencePartialAllowed(topology,['image','video']));
+    assert(c.referencePartialAllowed(topology,['audio']));
+    assert(!c.referenceShapeValid(topology,['audio']));
+    assert(!c.referenceShapeValid({...topology,constraint_state:'UNKNOWN'},['image','video']));
+});
+
+test('verified subset autogrows to admitted configurations then reports its boundary without dropping links',()=>{
+    const capability=plain(currentProjection.models.find(m=>m.model_id==='bytedance/seedance-2.5'));
+    Object.assign(capability.method_profiles.MMR2V.topology,{reference_kinds:['image','video'],kind_sets:[['image','video']],
+        min:0,max:null,per_kind_min:{},per_kind_max:{},required_kinds:[],mutually_exclusive:[],constraint_state:'SUPPORTED',
+        execution_domain:'VERIFIED_CONFIGURATIONS',verified_configurations:[{image:1,video:1}],limit_completeness:'PARTIAL'});
+    const n=operationNode(capability.model_id,'MMR2V');apply(n,capability,'MMR2V');
+    const connect=(kind,id)=>{
+        c.configureReferenceTopology(n,c.scopedCapability(capability,'MMR2V'),'MMR2V');
+        const input=n.inputs.find(item=>item.name.startsWith('direct_references.reference_')&&item.link==null);
+        assert(input,`expected ${kind} socket before verified boundary`);
+        assert(input.type.includes(kind.toUpperCase()));
+        graph.nodes[id]={outputs:[{type:kind.toUpperCase()}]};
+        graph.links[id]={origin_id:id,origin_slot:0,type:kind.toUpperCase()};input.link=id;
+    };
+    connect('image',1201);connect('video',1202);
+    c.configureReferenceTopology(n,c.scopedCapability(capability,'MMR2V'),'MMR2V');
+    assert.equal(n.inputs.filter(item=>item.name.startsWith('direct_references.reference_')&&item.link!=null).length,2);
+    assert(!n.inputs.some(item=>item.name.startsWith('direct_references.reference_')&&item.link==null));
+    assert.match(n.__orvReferenceSummary,/verified subset boundary · upper bound unverified/);
+    assert.equal(n.__orvReferenceInvalid,false);
+});
+
+test('documented method with unverified input counts remains selectable but creates no reference socket',()=>{
+    const capability=plain(currentProjection.models.find(m=>m.model_id==='bytedance/seedance-2.5'));
+    Object.assign(capability.method_profiles.MMR2V.topology,{reference_kinds:['image','video','audio'],kind_sets:[['image','video'],['image','audio'],['video','audio'],['image','video','audio']],
+        min:0,max:null,per_kind_min:{},per_kind_max:{},required_kinds:[],mutually_exclusive:[],constraint_state:'SUPPORTED',
+        execution_domain:'UNVERIFIED',verified_configurations:[],limit_completeness:'UNKNOWN'});
+    const n=operationNode(capability.model_id,'MMR2V');apply(n,capability,'MMR2V');
+    assert(capability.supported_inference_methods.includes('MMR2V'));
+    assert(widget(n,'inference_method').options.values.includes('MMR2V'));
+    c.configureReferenceTopology(n,c.scopedCapability(capability,'MMR2V'),'MMR2V');
+    assert(!n.inputs.some(item=>item.name.startsWith('direct_references.reference_')));
+    assert.match(n.__orvReferenceSummary,/METHOD DOCUMENTED · input configurations require verification/);
+    assert.equal(n.__orvReferenceInvalid,true);
+    assert.match(n.__orvCapabilityStatus.value,/Generate blocked/);
+});
+
+test('expanded confirmed bounds replace the verified subset and explicit shrink preserves existing links',()=>{
+    const capability=plain(currentProjection.models.find(m=>m.model_id==='bytedance/seedance-2.5'));
+    const topology=capability.method_profiles.MMR2V.topology;
+    Object.assign(topology,{reference_kinds:['image','video'],kind_sets:[['image','video']],min:0,max:null,
+        per_kind_min:{},per_kind_max:{},required_kinds:[],mutually_exclusive:[],constraint_state:'SUPPORTED',
+        execution_domain:'VERIFIED_CONFIGURATIONS',verified_configurations:[{image:1,video:1}],limit_completeness:'PARTIAL'});
+    assert(!c.referenceShapeValid(topology,['image','image','video']));
+    Object.assign(topology,{execution_domain:'CONFIRMED_BOUNDS',verified_configurations:[],limit_completeness:'COMPLETE',max:5,
+        per_kind_max:{image:3,video:2}});
+    assert(c.referenceShapeValid(topology,['image','image','video']));
+    assert(!c.referenceShapeValid(topology,['image','image','image','image','video']));
+    const n=operationNode(capability.model_id,'MMR2V');apply(n,capability,'MMR2V');
+    const input=n.inputs.find(item=>item.name.startsWith('direct_references.reference_'));
+    graph.nodes[1210]={outputs:[{type:'IMAGE'}]};graph.links[1211]={origin_id:1210,origin_slot:0,type:'IMAGE'};input.link=1211;
+    Object.assign(topology,{max:0,per_kind_max:{image:0,video:0}});
+    c.configureReferenceTopology(n,c.scopedCapability(capability,'MMR2V'),'MMR2V');
+    assert.equal(n.inputs.find(item=>item.name===input.name).link,1211);
+    assert.equal(n.__orvReferenceInvalid,true);
+});
+
 test('reference completeness honors minima, required kinds, exclusions and uncertain topology fails closed',()=>{
     const topology={reference_kinds:['image','video','audio'],kind_sets:[['image','video'],['image','audio'],['video','audio'],['image','video','audio']],min:2,max:null,
         per_kind_min:{image:1},per_kind_max:{image:9,video:3,audio:3},required_kinds:['video'],mutually_exclusive:[['video','audio']],constraint_state:'SUPPORTED'};
@@ -646,4 +723,21 @@ test('avatar audio workflow preserves its exact method and mixed sockets, while 
     assert(widget(restored,'prompt').hidden);
     apply(n,capability,'IR2V');
     assert.equal(widget(n,'provider_option:heygen::voice_id').value,'TEST_ONLY_VOICE');
+});
+
+
+test('unknown optional-reference counts preserve an admitted source-only configuration',()=>{
+    const capability=plain(model('bytedance/seedance-2.5'));
+    capability.method_profiles.V2V_EDIT.topology={fixed:['source_video'],reference_kinds:['video'],
+        kind_sets:[[],['video']],min:0,max:null,per_kind_max:{},execution_domain:'UNVERIFIED',limit_completeness:'UNKNOWN'};
+    const n=node(capability.model_id,'V2V_EDIT');
+    apply(n,capability,'V2V_EDIT');
+    graph.nodes[881]={outputs:[{type:'VIDEO'}]};
+    graph.links[882]={origin_id:881,origin_slot:0,target_id:n.id,target_slot:n.inputs.findIndex(i=>i.name==='source_video'),type:'VIDEO'};
+    n.inputs.find(i=>i.name==='source_video').link=882;
+    apply(n,capability,'V2V_EDIT');
+    assert.equal(n.__orvReferenceInvalid,false);
+    assert(!n.__orvReferenceSummary.includes('Generate blocked'));
+    assert.equal(n.inputs.find(i=>i.name==='source_video').link,882);
+    assert(!n.inputs.some(i=>i.name.startsWith('direct_references.')));
 });

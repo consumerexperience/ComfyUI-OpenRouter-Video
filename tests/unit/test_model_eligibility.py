@@ -17,6 +17,7 @@ from openrouter_video.capabilities import (
     inference_method_matrix,
 )
 from openrouter_video.client import OpenRouterVideoClient, _parse_capability
+from openrouter_video.comfy.projection import project_selectable
 from openrouter_video.configuration import project_method
 from openrouter_video.eligibility import eligible_methods, request_witness
 from openrouter_video.evidence_registry import enrich_capabilities
@@ -99,7 +100,7 @@ def test_partial_support_and_roundtrip_through_real_mock_client() -> None:
     asyncio.run(run())
 
 
-def test_every_selectable_historical_method_has_a_valid_serializer_witness() -> None:
+def test_every_executable_historical_method_has_a_valid_serializer_witness() -> None:
     fixture = Path(__file__).parents[1] / "fixtures/capability-audit-catalogue.json"
     models = json.loads(fixture.read_text(encoding="utf-8"))["models"]
     for raw in models:
@@ -110,6 +111,35 @@ def test_every_selectable_historical_method_has_a_valid_serializer_witness() -> 
             RequestValidator().validate_shape(witness)
             RequestValidator().validate_capabilities(witness, model)
             assert witness.to_openrouter_payload()["model"] == model.model_id
+
+
+def test_documented_unverified_seedance_methods_are_selectable_but_not_executable() -> None:
+    for model_id in (
+        "bytedance/seedance-2.0",
+        "bytedance/seedance-2.0-fast",
+        "bytedance/seedance-2.0-mini",
+    ):
+        model = enrich_capabilities(ModelCapabilities(model_id))
+        selectable = project_selectable(
+            model, datetime(2026, 11, 12, tzinfo=timezone.utc)
+        ).as_dict()
+        selectable_methods = cast(list[str], selectable["supported_inference_methods"])
+        assert "MI2V" in selectable_methods
+        assert "MMR2V" in selectable_methods
+        executable = {method.value for method in eligible_methods(model)}
+        for method in (InferenceMethod.MI2V, InferenceMethod.MMR2V):
+            profile = project_method(model, method.value)
+            assert profile["state"] == profile["method_support"] == "SUPPORTED"
+            if model_id.endswith("mini") and method is InferenceMethod.MMR2V:
+                assert method.value in executable
+                witness = request_witness(model, method)
+                assert witness is not None
+                assert profile["topology"]["execution_domain"] == "VERIFIED_CONFIGURATIONS"
+            else:
+                assert method.value not in executable
+                assert request_witness(model, method) is None
+                assert profile["topology"]["execution_domain"] == "UNVERIFIED"
+                assert "verified_configurations" not in profile["topology"]
 
 
 @pytest.mark.parametrize("mid", ["google/gemini-omni-1.2-flash", "google/veo-3.1-lite"])
@@ -233,8 +263,8 @@ def test_op07_evidence_delta_preserves_every_other_model_and_historical_conflict
         "minimax/hailuo-3-max",
         "alibaba/wan-2.6",
         "alibaba/wan-2.7",
-        # Owner attachment abcc0172: quarantine the unproven historical MI2V/MMR2V
-        # three-reference caps as stale evidence; do not promote native 9/3/3.
+        # OP-07: preserve documented MI2V/MMR2V method support while keeping
+        # unknown counts out of executable witnesses; do not promote native 9/3/3.
         "bytedance/seedance-2.0",
         "bytedance/seedance-2.0-fast",
         "bytedance/seedance-2.0-mini",
@@ -291,24 +321,33 @@ def assert_seedance_reference_caps_quarantined(
     model_id = before["exact_model_id"]
     old_profile = before["facts"]["request_shape_profiles"]
     new_profile = after["facts"]["request_shape_profiles"]
-    declaration = (
-        "OP07 abcc0172 reconciliation: former MI2V/MMR2V three-input caps are stale, "
-        "not proven OpenRouter restrictions. Do not promote provider-native 9/3/3 into "
-        "OpenRouter executable limits."
-    )
-    assert new_profile["scope"] == f"{old_profile['scope']}; {declaration}"
+    assert new_profile["scope"].startswith(f"{old_profile['scope']};")
+    assert "method support retained" in new_profile["scope"]
+    assert "only exact historical Mini I+V+A configuration re-admitted" in new_profile["scope"]
 
     old_methods = old_profile["value"]["methods"]
     new_methods = new_profile["value"]["methods"]
     for method in ("MI2V", "MMR2V"):
         old_method = old_methods[method]
         new_method = new_methods[method]
-        assert new_method["state"] == old_method["state"]
+        assert new_method["state"] == "SUPPORTED"
         old_topology = old_method["topology"]
         new_topology = new_method["topology"]
         assert new_topology["max"] == old_topology["max"] == 3
         assert new_topology["per_kind_max"] == old_topology["per_kind_max"]
-        assert set(new_topology) - set(old_topology) == {"constraint_evidence"}
+        assert set(new_topology) - set(old_topology) <= {
+            "constraint_evidence",
+            "verified_configurations",
+        }
+        expected_verified = (
+            [{"image": 1, "video": 1, "audio": 1}]
+            if model_id.endswith("mini") and method == "MMR2V"
+            else []
+        )
+        if expected_verified:
+            assert new_topology["verified_configurations"] == expected_verified
+        else:
+            assert "verified_configurations" not in new_topology
         evidence = new_topology["constraint_evidence"]
         for field, scope in (("max", "total"), ("per_kind_max", "per_kind")):
             item = evidence[field]
@@ -322,12 +361,26 @@ def assert_seedance_reference_caps_quarantined(
 
     effective = enrich_capabilities(ModelCapabilities(model_id))
     for method in (InferenceMethod.MI2V, InferenceMethod.MMR2V):
-        assert inference_method_matrix(effective)[method] is CapabilityModeStatus.UNKNOWN
-        assert project_method(effective, method.value)["state"] == "UNKNOWN"
-        topology = project_method(effective, method.value)["topology"]
+        assert inference_method_matrix(effective)[method] is CapabilityModeStatus.READY
+        projected = project_method(effective, method.value)
+        assert projected["state"] == projected["method_support"] == "SUPPORTED"
+        topology = projected["topology"]
         assert topology["max"] is None
         assert topology["per_kind_max"] == {}
-        assert topology["constraint_state"] == "UNKNOWN"
+        assert topology["limit_completeness"] == (
+            "PARTIAL"
+            if model_id.endswith("mini") and method is InferenceMethod.MMR2V
+            else "UNKNOWN"
+        )
+        assert topology["execution_domain"] == (
+            "VERIFIED_CONFIGURATIONS"
+            if model_id.endswith("mini") and method is InferenceMethod.MMR2V
+            else "UNVERIFIED"
+        )
+        witness = request_witness(effective, method)
+        assert (witness is not None) == (
+            model_id.endswith("mini") and method is InferenceMethod.MMR2V
+        )
 
 
 def assert_reconciled_scalar_delta(
@@ -357,8 +410,15 @@ def assert_reconciled_scalar_delta(
     for method, old in old_methods.items():
         new = new_methods[method]
         if allow_stale_seedance_reference_caps and method in {"MI2V", "MMR2V"}:
-            assert "constraint_evidence" in new["topology"]
-            new["topology"].pop("constraint_evidence")
+            assert new["state"] == "SUPPORTED"
+            if "method_support" in new:
+                assert new["method_support"] == "SUPPORTED"
+                if "method_support" not in old:
+                    new.pop("method_support")
+            new["state"] = old["state"]
+            new["topology"] = old["topology"]
+            if new.get("notes") != old.get("notes"):
+                new["notes"] = old.get("notes")
         if old.get("controls", {}).get("aspect_ratio") != new.get("controls", {}).get(
             "aspect_ratio"
         ):

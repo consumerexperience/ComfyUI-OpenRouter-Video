@@ -124,6 +124,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -191,12 +192,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -266,12 +270,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -337,12 +344,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "IR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -430,12 +440,15 @@
             "max": 1,
             "per_kind_max": {
               "image": 1
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "MI2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -523,12 +536,15 @@
             "max": 6,
             "per_kind_max": {
               "image": 6
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "VR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -616,7 +632,9 @@
             "max": 3,
             "per_kind_max": {
               "video": 3
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -655,6 +673,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -683,6 +702,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -711,6 +731,7 @@
         },
         "V2V_EDIT": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -805,7 +826,9 @@
             "max": 6,
             "per_kind_max": {
               "image": 6
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [],
           "media_limits": {
@@ -816,6 +839,7 @@
         },
         "V2V_EXTEND": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -905,7 +929,9 @@
             "max": 6,
             "per_kind_max": {
               "image": 6
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [],
           "media_limits": {
@@ -916,6 +942,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -944,6 +971,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -1150,6 +1178,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -1212,12 +1241,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -1282,12 +1314,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -1353,12 +1388,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "IR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -1442,12 +1480,15 @@
             "max": 1,
             "per_kind_max": {
               "image": 1
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -1476,6 +1517,7 @@
         },
         "VR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -1559,12 +1601,15 @@
             "max": 3,
             "per_kind_max": {
               "video": 3
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -1593,6 +1638,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -1621,6 +1667,7 @@
         },
         "V2V_EDIT": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -1704,12 +1751,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "V2V_EXTEND": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -1793,12 +1843,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -1827,6 +1880,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2008,6 +2062,7 @@
       "method_profiles": {
         "T2V": {
           "state": "UNSUPPORTED",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2036,6 +2091,7 @@
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -2085,12 +2141,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2119,6 +2178,7 @@
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2147,6 +2207,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2175,6 +2236,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2203,6 +2265,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2231,6 +2294,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2259,6 +2323,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2287,6 +2352,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2315,6 +2381,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2343,6 +2410,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2500,6 +2568,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -2569,12 +2638,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -2637,12 +2709,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2671,6 +2746,7 @@
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2699,6 +2775,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2727,6 +2804,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2755,6 +2833,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2783,6 +2862,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2811,6 +2891,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2839,6 +2920,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2867,6 +2949,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -2895,6 +2978,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -3055,6 +3139,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -3148,12 +3233,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -3249,12 +3337,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -3283,6 +3374,7 @@
         },
         "IR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -3382,12 +3474,15 @@
             "max": 1,
             "per_kind_max": {
               "image": 1
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -3416,6 +3511,7 @@
         },
         "VR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -3515,12 +3611,15 @@
             "max": 1,
             "per_kind_max": {
               "video": 1
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "AR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -3620,12 +3719,15 @@
             "max": 1,
             "per_kind_max": {
               "audio": 1
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -3654,6 +3756,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -3682,6 +3785,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -3710,6 +3814,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -3738,6 +3843,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -3852,6 +3958,7 @@
       "method_profiles": {
         "T2V": {
           "state": "UNSUPPORTED",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -3880,6 +3987,7 @@
         },
         "I2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -3908,6 +4016,7 @@
         },
         "FLF2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -3936,6 +4045,7 @@
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -3964,6 +4074,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -3992,6 +4103,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -4020,6 +4132,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -4048,6 +4161,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -4076,6 +4190,7 @@
         },
         "V2V_EDIT": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -4132,7 +4247,9 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [],
           "media_limits": {
@@ -4144,6 +4261,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -4172,6 +4290,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -4200,6 +4319,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -4338,6 +4458,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -4410,12 +4531,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -4482,12 +4606,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -4555,12 +4682,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -4589,6 +4719,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -4617,6 +4748,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -4645,6 +4777,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -4673,6 +4806,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -4701,6 +4835,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -4729,6 +4864,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -4757,6 +4893,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -4785,6 +4922,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -4940,6 +5078,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -5021,12 +5160,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -5103,12 +5245,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5137,6 +5282,7 @@
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5165,6 +5311,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5193,6 +5340,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5221,6 +5369,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5249,6 +5398,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5277,6 +5427,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5305,6 +5456,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5333,6 +5485,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5361,6 +5514,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5516,6 +5670,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -5597,12 +5752,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -5679,12 +5837,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5713,6 +5874,7 @@
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5741,6 +5903,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5769,6 +5932,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5797,6 +5961,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5825,6 +5990,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5853,6 +6019,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5881,6 +6048,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5909,6 +6077,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -5937,6 +6106,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -6060,6 +6230,7 @@
       "method_profiles": {
         "T2V": {
           "state": "UNSUPPORTED",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -6088,6 +6259,7 @@
         },
         "I2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -6116,6 +6288,7 @@
         },
         "FLF2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -6144,6 +6317,7 @@
         },
         "IR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -6422,12 +6596,15 @@
             "max": 1,
             "per_kind_max": {
               "image": 1
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -6456,6 +6633,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -6484,6 +6662,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -6512,6 +6691,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -6540,6 +6720,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -6568,6 +6749,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -6596,6 +6778,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -6624,6 +6807,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "UNSUPPORTED",
@@ -6777,7 +6961,9 @@
             "per_kind_max": {
               "image": 1,
               "audio": 1
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         }
@@ -6869,6 +7055,7 @@
       "method_profiles": {
         "T2V": {
           "state": "UNSUPPORTED",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -6897,6 +7084,7 @@
         },
         "I2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -6925,6 +7113,7 @@
         },
         "FLF2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -6953,6 +7142,7 @@
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -6981,6 +7171,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -7009,6 +7200,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -7037,6 +7229,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -7065,6 +7258,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -7093,6 +7287,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -7121,6 +7316,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -7149,6 +7345,7 @@
         },
         "V2V_UPSCALE": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -7219,7 +7416,9 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [],
           "media_limits": {
@@ -7231,6 +7430,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -7328,7 +7528,9 @@
         "I2V",
         "FLF2V",
         "IR2V",
-        "VR2V"
+        "MI2V",
+        "VR2V",
+        "MMR2V"
       ],
       "inference_method_statuses": [
         {
@@ -7349,7 +7551,7 @@
         },
         {
           "method": "MI2V",
-          "status": "UNKNOWN"
+          "status": "READY"
         },
         {
           "method": "VR2V",
@@ -7361,7 +7563,7 @@
         },
         {
           "method": "MMR2V",
-          "status": "UNKNOWN"
+          "status": "READY"
         },
         {
           "method": "V2V_EDIT",
@@ -7430,6 +7632,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -7521,7 +7724,9 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -7564,6 +7769,7 @@
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -7657,7 +7863,9 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -7700,6 +7908,7 @@
         },
         "FLF2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -7794,7 +8003,9 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -7837,6 +8048,7 @@
         },
         "IR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -7934,7 +8146,9 @@
             "max": 1,
             "per_kind_max": {
               "image": 1
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -7976,7 +8190,8 @@
           ]
         },
         "MI2V": {
-          "state": "UNKNOWN",
+          "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -8089,7 +8304,8 @@
                 "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
               }
             },
-            "constraint_state": "UNKNOWN",
+            "execution_domain": "UNVERIFIED",
+            "limit_completeness": "UNKNOWN",
             "reconciliation": [
               {
                 "field": "max",
@@ -8146,6 +8362,7 @@
         },
         "VR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -8243,7 +8460,9 @@
             "max": 1,
             "per_kind_max": {
               "video": 1
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -8286,6 +8505,7 @@
         },
         "AR2V": {
           "state": "CONFLICT",
+          "method_support": "CONFLICT",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -8350,7 +8570,8 @@
           ]
         },
         "MMR2V": {
-          "state": "UNKNOWN",
+          "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -8477,9 +8698,24 @@
                 "scope": "per_kind",
                 "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
                 "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              },
+              "verified_configurations": {
+                "state": "SUPPORTED",
+                "scope": "method",
+                "source": "https://openrouter.ai/bytedance/seedance-2.0-mini",
+                "classification": "CONFIRMED_VALID_CONFIGURATION",
+                "reason": "Exact historical successful OpenRouter request: MMR2V 1 IMAGE + 1 VIDEO + 1 AUDIO, 4s 480p. Existing owner-mini-history.json SHA256 95d23bdd; full original receipt hashes retained in OP07 evidence-receipt. This example is not an upper bound or all-count transport guarantee."
               }
             },
-            "constraint_state": "UNKNOWN",
+            "verified_configurations": [
+              {
+                "image": 1,
+                "video": 1,
+                "audio": 1
+              }
+            ],
+            "execution_domain": "VERIFIED_CONFIGURATIONS",
+            "limit_completeness": "PARTIAL",
             "reconciliation": [
               {
                 "field": "max",
@@ -8536,6 +8772,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -8601,6 +8838,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -8666,6 +8904,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -8731,6 +8970,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -9037,6 +9277,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -9149,12 +9390,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -9269,12 +9513,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -9390,12 +9637,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "IR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -9514,12 +9764,15 @@
             "max": 1,
             "per_kind_max": {
               "image": 1
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "MI2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -9638,12 +9891,15 @@
             "max": 30,
             "per_kind_max": {
               "image": 30
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "VR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -9762,12 +10018,15 @@
             "max": 10,
             "per_kind_max": {
               "video": 10
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -9796,6 +10055,7 @@
         },
         "MMR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -9932,12 +10192,15 @@
               "image": 30,
               "video": 10,
               "audio": 10
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "V2V_EDIT": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -10086,12 +10349,15 @@
               "image": 30,
               "video": 9,
               "audio": 10
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "V2V_EXTEND": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -10240,12 +10506,15 @@
               "image": 30,
               "video": 9,
               "audio": 10
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -10274,6 +10543,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -10505,6 +10775,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -10610,12 +10881,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -10723,12 +10997,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -10837,12 +11114,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -10871,6 +11151,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -10899,6 +11180,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -10927,6 +11209,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -10955,6 +11238,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -10983,6 +11267,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11011,6 +11296,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11039,6 +11325,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11067,6 +11354,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11204,6 +11492,7 @@
       "method_profiles": {
         "T2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11232,6 +11521,7 @@
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -11298,12 +11588,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -11371,12 +11664,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11405,6 +11701,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11433,6 +11730,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11461,6 +11759,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11489,6 +11788,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11517,6 +11817,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11545,6 +11846,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11573,6 +11875,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11601,6 +11904,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11724,6 +12028,7 @@
       "method_profiles": {
         "T2V": {
           "state": "UNSUPPORTED",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11752,6 +12057,7 @@
         },
         "I2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11780,6 +12086,7 @@
         },
         "FLF2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11808,6 +12115,7 @@
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11836,6 +12144,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11864,6 +12173,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11892,6 +12202,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11920,6 +12231,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -11948,6 +12260,7 @@
         },
         "V2V_EDIT": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -12077,12 +12390,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -12111,6 +12427,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -12139,6 +12456,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -12271,6 +12589,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -12350,12 +12669,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -12437,12 +12759,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -12471,6 +12796,7 @@
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -12499,6 +12825,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -12527,6 +12854,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -12555,6 +12883,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -12583,6 +12912,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -12611,6 +12941,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -12639,6 +12970,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -12667,6 +12999,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -12695,6 +13028,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -12852,6 +13186,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -12921,12 +13256,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -12989,12 +13327,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13023,6 +13364,7 @@
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13051,6 +13393,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13079,6 +13422,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13107,6 +13451,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13135,6 +13480,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13163,6 +13509,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13191,6 +13538,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13219,6 +13567,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13247,6 +13596,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13403,6 +13753,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -13485,12 +13836,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -13550,12 +13904,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13584,6 +13941,7 @@
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13612,6 +13970,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13640,6 +13999,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13668,6 +14028,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13696,6 +14057,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13724,6 +14086,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13752,6 +14115,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13780,6 +14144,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -13808,6 +14173,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -14063,6 +14429,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -14145,12 +14512,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -14210,12 +14580,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -14244,6 +14617,7 @@
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -14272,6 +14646,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -14300,6 +14675,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -14328,6 +14704,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -14356,6 +14733,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -14384,6 +14762,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -14412,6 +14791,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -14440,6 +14820,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -14468,6 +14849,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -14727,6 +15109,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -14811,12 +15194,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -14878,12 +15264,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -14912,6 +15301,7 @@
         },
         "IR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -14980,12 +15370,15 @@
             "max": 1,
             "per_kind_max": {
               "image": 1
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "MI2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -15055,7 +15448,9 @@
             "max": 7,
             "per_kind_max": {
               "image": 7
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -15152,6 +15547,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -15180,6 +15576,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -15208,6 +15605,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -15236,6 +15634,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -15264,6 +15663,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -15292,6 +15692,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -15320,6 +15721,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -15559,6 +15961,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -15614,12 +16017,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -15683,12 +16089,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -15753,12 +16162,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -15787,6 +16199,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -15815,6 +16228,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -15843,6 +16257,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -15871,6 +16286,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -15899,6 +16315,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -15927,6 +16344,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -15955,6 +16373,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -15983,6 +16402,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -16145,6 +16565,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -16205,12 +16626,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -16274,12 +16698,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -16344,12 +16771,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -16378,6 +16808,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -16406,6 +16837,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -16434,6 +16866,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -16462,6 +16895,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -16490,6 +16924,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -16518,6 +16953,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -16546,6 +16982,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -16574,6 +17011,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -16730,6 +17168,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -16798,7 +17237,9 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -16842,6 +17283,7 @@
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -16910,7 +17352,9 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -16952,6 +17396,7 @@
         },
         "FLF2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -17021,7 +17466,9 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -17063,6 +17510,7 @@
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -17091,6 +17539,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -17119,6 +17568,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -17147,6 +17597,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -17175,6 +17626,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -17203,6 +17655,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -17231,6 +17684,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -17259,6 +17713,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -17287,6 +17742,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -17461,6 +17917,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -17528,7 +17985,9 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -17603,6 +18062,7 @@
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -17672,7 +18132,9 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -17747,6 +18209,7 @@
         },
         "FLF2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -17815,7 +18278,9 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -17890,6 +18355,7 @@
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -17918,6 +18384,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -17946,6 +18413,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -17974,6 +18442,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -18002,6 +18471,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -18030,6 +18500,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -18058,6 +18529,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -18086,6 +18558,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -18114,6 +18587,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -18272,6 +18746,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -18321,12 +18796,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -18378,12 +18856,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -18436,12 +18917,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -18470,6 +18954,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -18498,6 +18983,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -18526,6 +19012,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -18554,6 +19041,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -18582,6 +19070,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -18610,6 +19099,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -18638,6 +19128,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -18666,6 +19157,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -18811,6 +19303,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -18874,7 +19367,9 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -18916,6 +19411,7 @@
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -18978,7 +19474,9 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -19020,6 +19518,7 @@
         },
         "FLF2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -19048,6 +19547,7 @@
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -19076,6 +19576,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -19104,6 +19605,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -19132,6 +19634,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -19160,6 +19663,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -19188,6 +19692,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -19216,6 +19721,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -19244,6 +19750,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -19272,6 +19779,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -19377,7 +19885,9 @@
         "I2V",
         "FLF2V",
         "IR2V",
-        "VR2V"
+        "MI2V",
+        "VR2V",
+        "MMR2V"
       ],
       "inference_method_statuses": [
         {
@@ -19398,7 +19908,7 @@
         },
         {
           "method": "MI2V",
-          "status": "UNKNOWN"
+          "status": "READY"
         },
         {
           "method": "VR2V",
@@ -19410,7 +19920,7 @@
         },
         {
           "method": "MMR2V",
-          "status": "UNKNOWN"
+          "status": "READY"
         },
         {
           "method": "V2V_EDIT",
@@ -19441,6 +19951,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -19532,12 +20043,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -19631,12 +20145,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -19731,12 +20248,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "IR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -19834,12 +20354,15 @@
             "max": 1,
             "per_kind_max": {
               "image": 1
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "MI2V": {
-          "state": "UNKNOWN",
+          "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -19952,7 +20475,8 @@
                 "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
               }
             },
-            "constraint_state": "UNKNOWN",
+            "execution_domain": "UNVERIFIED",
+            "limit_completeness": "UNKNOWN",
             "reconciliation": [
               {
                 "field": "max",
@@ -19972,6 +20496,7 @@
         },
         "VR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -20069,12 +20594,15 @@
             "max": 1,
             "per_kind_max": {
               "video": 1
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "AR2V": {
           "state": "CONFLICT",
+          "method_support": "CONFLICT",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -20102,7 +20630,8 @@
           "configuration_relations": []
         },
         "MMR2V": {
-          "state": "UNKNOWN",
+          "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -20231,7 +20760,8 @@
                 "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
               }
             },
-            "constraint_state": "UNKNOWN",
+            "execution_domain": "UNVERIFIED",
+            "limit_completeness": "UNKNOWN",
             "reconciliation": [
               {
                 "field": "max",
@@ -20251,6 +20781,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -20279,6 +20810,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -20307,6 +20839,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -20335,6 +20868,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -20577,6 +21111,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -20668,12 +21203,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -20749,12 +21287,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -20831,12 +21372,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "IR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -20925,12 +21469,15 @@
             "max": 1,
             "per_kind_max": {
               "image": 1
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "MI2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -21019,12 +21566,15 @@
             "max": 5,
             "per_kind_max": {
               "image": 5
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -21053,6 +21603,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -21081,6 +21632,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -21109,6 +21661,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -21137,6 +21690,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -21165,6 +21719,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -21193,6 +21748,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -21375,7 +21931,9 @@
         "I2V",
         "FLF2V",
         "IR2V",
-        "VR2V"
+        "MI2V",
+        "VR2V",
+        "MMR2V"
       ],
       "inference_method_statuses": [
         {
@@ -21396,7 +21954,7 @@
         },
         {
           "method": "MI2V",
-          "status": "UNKNOWN"
+          "status": "READY"
         },
         {
           "method": "VR2V",
@@ -21408,7 +21966,7 @@
         },
         {
           "method": "MMR2V",
-          "status": "UNKNOWN"
+          "status": "READY"
         },
         {
           "method": "V2V_EDIT",
@@ -21438,6 +21996,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -21543,12 +22102,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -21656,12 +22218,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -21770,12 +22335,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "IR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -21887,12 +22455,15 @@
             "max": 1,
             "per_kind_max": {
               "image": 1
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "MI2V": {
-          "state": "UNKNOWN",
+          "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -22019,7 +22590,8 @@
                 "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
               }
             },
-            "constraint_state": "UNKNOWN",
+            "execution_domain": "UNVERIFIED",
+            "limit_completeness": "UNKNOWN",
             "reconciliation": [
               {
                 "field": "max",
@@ -22039,6 +22611,7 @@
         },
         "VR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -22150,12 +22723,15 @@
             "max": 1,
             "per_kind_max": {
               "video": 1
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "AR2V": {
           "state": "UNSUPPORTED",
+          "method_support": "UNSUPPORTED",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -22183,7 +22759,8 @@
           "configuration_relations": []
         },
         "MMR2V": {
-          "state": "UNKNOWN",
+          "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -22326,7 +22903,8 @@
                 "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
               }
             },
-            "constraint_state": "UNKNOWN",
+            "execution_domain": "UNVERIFIED",
+            "limit_completeness": "UNKNOWN",
             "reconciliation": [
               {
                 "field": "max",
@@ -22346,6 +22924,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -22374,6 +22953,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -22402,6 +22982,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -22430,6 +23011,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -22738,6 +23320,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -22843,12 +23426,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -22926,12 +23512,15 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": []
         },
         "FLF2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -22960,6 +23549,7 @@
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -22988,6 +23578,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -23016,6 +23607,7 @@
         },
         "VR2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -23124,7 +23716,9 @@
             "max": 3,
             "per_kind_max": {
               "video": 3
-            }
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [],
           "media_limits": {
@@ -23137,6 +23731,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -23165,6 +23760,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -23193,6 +23789,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -23221,6 +23818,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -23249,6 +23847,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -23277,6 +23876,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -23503,6 +24103,7 @@
       "method_profiles": {
         "T2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -23568,6 +24169,7 @@
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -23667,7 +24269,9 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -23710,6 +24314,7 @@
         },
         "FLF2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -23810,7 +24415,9 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -23853,6 +24460,7 @@
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -23918,6 +24526,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -23983,6 +24592,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -24048,6 +24658,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -24113,6 +24724,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -24178,6 +24790,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -24243,6 +24856,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -24308,6 +24922,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -24373,6 +24988,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -24693,6 +25309,7 @@
       "method_profiles": {
         "T2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -24761,7 +25378,9 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -24805,6 +25424,7 @@
         },
         "I2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -24873,7 +25493,9 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -24915,6 +25537,7 @@
         },
         "FLF2V": {
           "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -24984,7 +25607,9 @@
             ],
             "min": 0,
             "max": 0,
-            "per_kind_max": {}
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
           },
           "configuration_relations": [
             {
@@ -25026,6 +25651,7 @@
         },
         "IR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -25054,6 +25680,7 @@
         },
         "MI2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -25082,6 +25709,7 @@
         },
         "VR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -25110,6 +25738,7 @@
         },
         "AR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -25138,6 +25767,7 @@
         },
         "MMR2V": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -25166,6 +25796,7 @@
         },
         "V2V_EDIT": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -25194,6 +25825,7 @@
         },
         "V2V_EXTEND": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -25222,6 +25854,7 @@
         },
         "V2V_UPSCALE": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"
@@ -25250,6 +25883,7 @@
         },
         "AVATAR_AUDIO": {
           "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "UNKNOWN"

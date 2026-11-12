@@ -1416,7 +1416,11 @@ def request_witness(model: ModelCapabilities, method: InferenceMethod) -> Genera
         domains[name] = (
             control.get("values", [None]) if control.get("state") == "SUPPORTED" else [None]
         )
-    references: list[tuple[str, ...]] = []
+    references: list[tuple[str, ...]] = [
+        tuple(kind for kind, count in configuration.items() for _ in range(count))
+        for configuration in topology.get("verified_configurations", [])
+        if sum(configuration.values()) <= 1000
+    ]
     for kinds in topology["kind_sets"]:
         # Bound witness construction work, not the advertised model capacity.
         if (

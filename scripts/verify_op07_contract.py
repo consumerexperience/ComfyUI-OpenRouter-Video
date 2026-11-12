@@ -94,7 +94,12 @@ def main():
                     "Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite "
                     "evolution metadata, semantic refresh and capability accounting; "
                     "Owner abcc0172: input reconciliation, media budgets, native metadata "
-                    "and explicit stale bound quarantine; not release acceptance."
+                    "and explicit stale bound quarantine; Owner f65992ce: "
+                    "separate operation support, "
+                    "partial parameter domains and limit completeness; preserve documented "
+                    "operations and re-admit evidence-backed configurations "
+                    "without fabricated maxima; "
+                    "not release acceptance."
                 ),
             }
         )

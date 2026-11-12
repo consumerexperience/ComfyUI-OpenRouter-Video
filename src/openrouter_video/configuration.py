@@ -85,8 +85,11 @@ def normalize_request_shapes(raw: object) -> dict[str, Any]:
                 "max_length",
                 "providers",
                 "notes",
+                "domain_completeness",
             }:
                 raise ValueError("Unknown control contract semantics")
+            if control.get("domain_completeness", "COMPLETE") not in {"COMPLETE", "PARTIAL"}:
+                raise ValueError("Invalid documented domain completeness")
             if any(
                 type(control[key]) is not int or control[key] < 0
                 for key in ("min_length", "max_length")
@@ -133,6 +136,7 @@ def normalize_request_shapes(raw: object) -> dict[str, Any]:
         if entry["state"] == "SUPPORTED":
             if set(topology) - {
                 "source_alternative",
+                "verified_configurations",
                 "per_kind_min",
                 "required_kinds",
                 "mutually_exclusive",
@@ -219,6 +223,7 @@ def normalize_request_shapes(raw: object) -> dict[str, Any]:
                 if field not in {
                     "max",
                     "per_kind_max",
+                    "verified_configurations",
                     "per_kind_min",
                     "required_kinds",
                     "mutually_exclusive",
@@ -239,6 +244,24 @@ def normalize_request_shapes(raw: object) -> dict[str, Any]:
                     if k in {"source", "reason", "classification"}
                 ):
                     raise ValueError("Invalid input constraint provenance text")
+            configurations = topology.get("verified_configurations", [])
+            if not isinstance(configurations, list) or any(
+                not isinstance(counts, dict)
+                or not counts
+                or not set(counts) <= set(topology["reference_kinds"])
+                or any(type(n) is not int or n <= 0 for n in counts.values())
+                or set(counts) not in [set(group) for group in topology["kind_sets"]]
+                for counts in configurations
+            ):
+                raise ValueError("Invalid documented reference configurations")
+            if configurations:
+                proof = declarations.get("verified_configurations", {})
+                if (
+                    proof.get("state") != "SUPPORTED"
+                    or proof.get("scope") != "method"
+                    or not proof.get("source", "").startswith("https://openrouter.ai/")
+                ):
+                    raise ValueError("Documented configurations need scoped OpenRouter evidence")
         if entry.get("media_limits"):
             for role, limits in entry["media_limits"].items():
                 if role not in {"source_video", "image", "video", "audio"} or not isinstance(
@@ -771,7 +794,10 @@ def effective_input_constraints(
                 topology["max"] = None
             elif key in {"per_kind_max", "per_kind_min"}:
                 topology[key] = {}
-            topology["constraint_state"] = declaration["state"]
+            # Incomplete upper bounds do not revoke a positively documented
+            # operation. Execution is separately bounded by the admitted domain.
+            if key not in {"max", "per_kind_max"} or declaration["state"] == "CONFLICT":
+                topology["constraint_state"] = declaration["state"]
             trace.append(
                 {
                     "field": key,
@@ -913,13 +939,6 @@ def effective_input_constraints(
                 topology["constraint_state"] = "UNKNOWN"
                 invalid = True
     if (
-        kinds
-        and topology.get("max") is None
-        and not kinds
-        <= (set(topology["per_kind_max"]) | set(topology.get("transport_per_kind_max", {})))
-    ):
-        topology["constraint_state"] = "UNKNOWN"
-    if (
         "max" in unresolved
         and declarations["max"].get("classification") == "STALE_EVIDENCE"
         and "per_kind_max" in live
@@ -941,6 +960,26 @@ def effective_input_constraints(
         and topology.get("constraint_state") == "UNKNOWN"
     ):
         topology["constraint_state"] = "SUPPORTED"
+    bounded = (
+        topology.get("max") is not None
+        or topology.get("transport_max") is not None
+        or kinds
+        <= (set(topology["per_kind_max"]) | set(topology.get("transport_per_kind_max", {})))
+    )
+    topology["execution_domain"] = (
+        "CONFIRMED_BOUNDS"
+        if bounded
+        else "VERIFIED_CONFIGURATIONS"
+        if topology.get("verified_configurations")
+        else "UNVERIFIED"
+    )
+    topology["limit_completeness"] = (
+        "COMPLETE"
+        if bounded and not unresolved
+        else "PARTIAL"
+        if bounded or topology.get("verified_configurations")
+        else "UNKNOWN"
+    )
     if trace:
         topology["reconciliation"] = trace
     if any(
@@ -1109,9 +1148,25 @@ def project_method(model: ModelCapabilities, method: str) -> dict[str, Any]:
                     if not control["values"]:
                         control["state"] = "UNKNOWN"
             elif domain is None:
-                control["state"] = "UNKNOWN"
+                # Exact documented values remain usable on absence, never over
+                # a conflict, explicit withdrawal or malformed current value.
+                facts = [f for f in model.evidence_facts if f.key == field]
+                if any(f.state is CapabilityFactState.CONFLICT for f in facts):
+                    control["state"] = "CONFLICT"
+                elif any(f.state is CapabilityFactState.UNSUPPORTED for f in facts):
+                    control["state"] = "UNSUPPORTED"
+                elif any(
+                    f.authority == "LIVE_STRUCTURED_API" and f.value is not None for f in facts
+                ) or not control.get("values"):
+                    control["state"] = "UNKNOWN"
             else:
-                values = [v for v in domain if "values" not in control or v in control["values"]]
+                values = [
+                    v
+                    for v in domain
+                    if control.get("domain_completeness") == "PARTIAL"
+                    or "values" not in control
+                    or v in control["values"]
+                ]
                 control["values"] = values
                 if not values:
                     control["state"] = "UNKNOWN"
@@ -1136,6 +1191,7 @@ def project_method(model: ModelCapabilities, method: str) -> dict[str, Any]:
         )
     return {
         "state": state,
+        "method_support": entry["state"],
         "controls": controls,
         "topology": topology,
         "configuration_relations": relations,
@@ -1293,6 +1349,13 @@ def projected_shape_valid(
     topology = apply_transport_input_constraints(profile["topology"], source_present)
     if topology.get("constraint_state", "SUPPORTED") != "SUPPORTED":
         return False
+    if topology.get("execution_domain") == "UNVERIFIED" and kinds:
+        return False
+    if topology.get("execution_domain") == "VERIFIED_CONFIGURATIONS" and not any(
+        {k: kinds.count(k) for k in set(kinds)} == counts
+        for counts in topology.get("verified_configurations", [])
+    ):
+        return False
     if len(kinds) < topology["min"] or (
         topology["max"] is not None and len(kinds) > topology["max"]
     ):
@@ -1320,6 +1383,37 @@ def input_constraint_reconciliation(
         for f in model.evidence_facts
         if f.authority == "LIVE_STRUCTURED_API" and f.state is CapabilityFactState.SUPPORTED
     }
+    registered = request_shape_profile(model).get("methods", {}).get(method, {})
+    if registered.get("state") == "SUPPORTED":
+        excluded = profile.get("state") != "SUPPORTED"
+        actual_removal = profile.get("state") in {"UNSUPPORTED", "CONFLICT"}
+        result.append(
+            {
+                "field": "method_support",
+                "classification": "CONFIRMED_OPENROUTER_RESTRICTION"
+                if actual_removal
+                else "CAPABILITY_UNDEREXPOSURE_DEFECT"
+                if excluded
+                else "AUTOMATICALLY_RECONCILED",
+                "source": registered.get("review_sources", []),
+                "reason": "Registered positive operation evidence compared with projection; "
+                "method support is independent of complete parameter limits",
+                "method_support": registered["state"],
+                "execution_domain": topology.get("execution_domain"),
+                "limit_completeness": topology.get("limit_completeness"),
+            }
+        )
+        if topology.get("execution_domain") in {"UNVERIFIED", "VERIFIED_CONFIGURATIONS"}:
+            result.append(
+                {
+                    "field": "verified_configurations",
+                    "classification": "MISSING_UPSTREAM_CONTRACT",
+                    "source": registered.get("review_sources", []),
+                    "reason": "Operation documented; only explicitly admitted configurations "
+                    "may execute while full cardinality domain is unresolved",
+                    "verified_configurations": topology.get("verified_configurations", []),
+                }
+            )
     recipe = direct.get(REQUEST_SHAPES_KEY)
     expected_topology = (
         recipe.value.get("methods", {}).get(method, {}).get("topology", {})

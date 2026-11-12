@@ -8,9 +8,9 @@ from typing import Any, cast
 
 import pytest
 
-from openrouter_video.capabilities import RequestValidator, inference_method_matrix
+from openrouter_video.capabilities import RequestValidator, inference_method_matrix, request_witness
 from openrouter_video.client import _parse_capability
-from openrouter_video.comfy.projection import project_model
+from openrouter_video.comfy.projection import project_model, project_selectable
 from openrouter_video.configuration import (
     REQUEST_SHAPES_KEY,
     configuration_status,
@@ -146,17 +146,31 @@ def test_future_evidence_update_exposes_method_and_new_domain_without_runtime_br
 
 
 @pytest.mark.parametrize("slug", ["bytedance/seedance-2.0-mini", "bytedance/seedance-2.0-fast"])
-def test_audio_only_conflict_keeps_mixed_reference_limits_quarantined(slug: str) -> None:
+def test_audio_only_conflict_keeps_mixed_method_and_unknown_limits_separate(slug: str) -> None:
     model = current_model(slug)
     assert project_method(model, "AR2V")["state"] == "CONFLICT"
     mixed = project_method(model, "MMR2V")
-    assert mixed["state"] == "UNKNOWN"
+    assert mixed["state"] == mixed["method_support"] == "SUPPORTED"
     assert mixed["topology"]["max"] is None
     assert mixed["topology"]["per_kind_max"] == {}
-    assert mixed["topology"]["constraint_state"] == "UNKNOWN"
+    assert mixed["topology"]["limit_completeness"] == (
+        "PARTIAL" if slug.endswith("mini") else "UNKNOWN"
+    )
+    if slug.endswith("mini"):
+        assert mixed["topology"]["execution_domain"] == "VERIFIED_CONFIGURATIONS"
+        assert mixed["topology"]["verified_configurations"] == [
+            {"image": 1, "video": 1, "audio": 1}
+        ]
+        assert request_witness(model, InferenceMethod.MMR2V) is not None
+    else:
+        assert mixed["topology"]["execution_domain"] == "UNVERIFIED"
+        assert "verified_configurations" not in mixed["topology"]
+        assert request_witness(model, InferenceMethod.MMR2V) is None
     assert all(
         item["classification"] == "STALE_EVIDENCE" for item in mixed["topology"]["reconciliation"]
     )
+    selectable = project_selectable(model, datetime.now(timezone.utc)).as_dict()
+    assert "MMR2V" in cast(list[str], selectable["supported_inference_methods"])
 
 
 def test_hailuo_and_grok_joint_domains_are_not_cartesian_and_unrelated_modes_survive() -> None:
@@ -273,9 +287,9 @@ def test_exact_enum_and_authority_are_scoped_and_explicit_supported_false_is_pre
     )
 
 
-def test_quarantined_mixed_fails_before_submit_while_grok_remains_valid() -> None:
+def test_verified_mini_mixed_example_passes_but_expanded_unknown_count_fails_closed() -> None:
     mini = current_model("bytedance/seedance-2.0-mini")
-    mixed = GenerationRequest(
+    verified = GenerationRequest(
         mini.model_id,
         "test",
         InferenceMethod.MMR2V,
@@ -283,15 +297,36 @@ def test_quarantined_mixed_fails_before_submit_while_grok_remains_valid() -> Non
         resolution="480p",
         aspect_ratio="16:9",
         input_references=InputReferenceCollection(
-            tuple(
-                InputReference(kind, "https://example.com/reference") for kind in InputReferenceKind
+            (
+                InputReference(InputReferenceKind.IMAGE, "https://example.com/reference.png"),
+                InputReference(InputReferenceKind.VIDEO, "https://example.com/reference.mp4"),
+                InputReference(InputReferenceKind.AUDIO, "https://example.com/reference.wav"),
             )
         ),
     )
-    RequestValidator().validate_shape(mixed)
+    RequestValidator().validate_shape(verified)
+    RequestValidator().validate_capabilities(verified, mini)
+
+    expanded = GenerationRequest(
+        mini.model_id,
+        "test",
+        InferenceMethod.MMR2V,
+        duration=4,
+        resolution="480p",
+        aspect_ratio="16:9",
+        input_references=InputReferenceCollection(
+            (
+                InputReference(InputReferenceKind.IMAGE, "https://example.com/reference.png"),
+                InputReference(InputReferenceKind.IMAGE, "https://example.com/reference-2.png"),
+                InputReference(InputReferenceKind.VIDEO, "https://example.com/reference.mp4"),
+                InputReference(InputReferenceKind.AUDIO, "https://example.com/reference.wav"),
+            )
+        ),
+    )
+    RequestValidator().validate_shape(expanded)
     with pytest.raises(ProductFailureError) as failure:
-        RequestValidator().validate_capabilities(mixed, mini)
-    assert failure.value.error.code.value == "CAPABILITY_SIGNAL_GAP"
+        RequestValidator().validate_capabilities(expanded, mini)
+    assert failure.value.error.code.value == "UNSUPPORTED_PARAMETER"
     assert failure.value.error.billing_context.value == "NO_SUBMIT"
     grok = current_model("x-ai/grok-imagine-video")
     images = InputReferenceCollection(

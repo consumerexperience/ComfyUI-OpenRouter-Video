@@ -233,7 +233,14 @@ def test_every_discovered_model_has_a_real_validator_serializer_witness(
     methods = eligible_methods(m)
     assert methods, raw["id"]
     view = project_selectable(m, datetime.now(timezone.utc))
-    assert view.supported_inference_methods == tuple(x.value for x in methods)
+    executable = {x.value for x in methods}
+    assert executable <= set(view.supported_inference_methods)
+    for documented in set(view.supported_inference_methods) - executable:
+        profile = project_method(m, documented)
+        assert profile["state"] == profile["method_support"] == "SUPPORTED"
+        assert profile["topology"]["execution_domain"] == "UNVERIFIED"
+        assert request_witness(m, InferenceMethod(documented)) is None
+        # Documented operations remain visible; this never grants a paid witness.
     for method in methods:
         request = witness(m, method)
         RequestValidator().validate_shape(request)
