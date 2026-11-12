@@ -8216,8 +8216,17 @@
                     "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
                   },
                   "aspect_ratio": {
-                    "state": "UNSUPPORTED",
-                    "notes": "Documented input-driven output aspect for this image-frame method; explicit aspect override is ignored/not offered. This is method-specific inapplicability, not a missing generation capability."
+                    "state": "SUPPORTED",
+                    "values": [
+                      "9:21",
+                      "9:16",
+                      "3:4",
+                      "1:1",
+                      "4:3",
+                      "16:9",
+                      "21:9"
+                    ],
+                    "notes": "Reference conditioning is not first-frame source geometry: documented R2V output ratio is configurable. Use the compatible exact OpenRouter model aspect domain; do not inherit I2V ignored-ratio policy."
                   },
                   "size": {
                     "state": "UNKNOWN",
@@ -8254,7 +8263,8 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/alibaba/happyhorse-1.0-20260624",
-                  "https://www.alibabacloud.com/help/en/model-studio/happyhorse-1-0-r2v"
+                  "https://www.alibabacloud.com/help/en/model-studio/happyhorse-1-0-r2v",
+                  "https://www.alibabacloud.com/help/en/model-studio/happyhorse-reference-to-video-api-reference/"
                 ]
               },
               "MI2V": {
@@ -8292,8 +8302,17 @@
                     "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
                   },
                   "aspect_ratio": {
-                    "state": "UNSUPPORTED",
-                    "notes": "Documented input-driven output aspect for this image-frame method; explicit aspect override is ignored/not offered. This is method-specific inapplicability, not a missing generation capability."
+                    "state": "SUPPORTED",
+                    "values": [
+                      "9:21",
+                      "9:16",
+                      "3:4",
+                      "1:1",
+                      "4:3",
+                      "16:9",
+                      "21:9"
+                    ],
+                    "notes": "Reference conditioning is not first-frame source geometry: documented R2V output ratio is configurable. Use the compatible exact OpenRouter model aspect domain; do not inherit I2V ignored-ratio policy."
                   },
                   "size": {
                     "state": "UNKNOWN",
@@ -8330,7 +8349,8 @@
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
                 "review_sources": [
                   "https://openrouter.ai/alibaba/happyhorse-1.0-20260624",
-                  "https://www.alibabacloud.com/help/en/model-studio/happyhorse-1-0-r2v"
+                  "https://www.alibabacloud.com/help/en/model-studio/happyhorse-1-0-r2v",
+                  "https://www.alibabacloud.com/help/en/model-studio/happyhorse-reference-to-video-api-reference/"
                 ]
               },
               "VR2V": {
@@ -15736,5 +15756,5 @@
       }
     }
   ],
-  "content_hash": "0b1de4452570dfb0d38e88c3131ea0af7b57a4b5f7365dbe03e7a2ecc6daa80c"
+  "content_hash": "765c39ea67a8e364559265162fb351142bf6cf848fc383085a2aa56ac8ec5908"
 }

@@ -11,7 +11,7 @@
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01capabilities_py",
       "operation": "replace",
       "before": "a67e1980c71aa64ddde5c4e2d0f3cec59dd738175ad3297306a1b822893f013c",
-      "after": "f43a9dbfbebd42bcd4916a39dfd6aa72a1a2f8ffa4c1f443d76f7a3354bb7b60"
+      "after": "5cb420b0e41d5c8026e6c51fd3117a6ae8ed77fe99874d2dc6002beb4b0bd95b"
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01client_py",
@@ -83,7 +83,7 @@
       "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01data~01capability-evidence_json",
       "operation": "replace",
       "before": "ec25bd96a4b12bdb9b0b3b0559dfd8c113c7f2ebf34824719303f044b592844a",
-      "after": "f0f4f8a5241c575b37f186501938b16f163aed36135fe155656de5f5f4c44aa5"
+      "after": "8f029442dd4b361c432fdcca2b682eedc44069a4ac57433b806e5a7eaa18a6cb"
     },
     {
       "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01evidence_registry_py",
@@ -145,6 +145,6 @@
   "UNKNOWN_DYNAMIC_SURFACES": [],
   "OBSERVED_EVIDENCE_CHANGES": [],
   "ACCEPTED_CONTRACT_DIGEST": "sha256:a2987facf690f1df565e246087f0bc54573f50a1fa80a74a8cfc8a5b1a4c57f5",
-  "CURRENT_CONTRACT_DIGEST": "sha256:9e88a7bbdc3671c3dab9474c5eded6161196608deb60aea36f5c14cb29286cbf",
+  "CURRENT_CONTRACT_DIGEST": "sha256:a2eb437e5d1c311c0000402130a1b3d3c00c2cf4dbe3caa94a16ab94fb52bb97",
   "CONTRACT_DELTA_DIGEST": "sha256:1c59ef72ddbbc2380119ad2ffe6e762f714ad01e802ed5c0ca0bead1e531b3ce"
 }

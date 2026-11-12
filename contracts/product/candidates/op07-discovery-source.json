@@ -19,7 +19,7 @@
         "src~1openrouter_video~1app_identity_py": "94fc446b83ddd707ca4d6463b280dd0fa210e4f106ec08a059bf4abd260e7ed7"
       },
       "capabilities": {
-        "src~1openrouter_video~1capabilities_py": "f43a9dbfbebd42bcd4916a39dfd6aa72a1a2f8ffa4c1f443d76f7a3354bb7b60",
+        "src~1openrouter_video~1capabilities_py": "5cb420b0e41d5c8026e6c51fd3117a6ae8ed77fe99874d2dc6002beb4b0bd95b",
         "src~1openrouter_video~1capability_overlays_py": "2faf6a156a6abe497992f6dfec594c3e6f6a0fcaaf45a963b3a6b428311cb232",
         "src~1openrouter_video~1client_py": "8c4629c9f3425f1aa7ec7d6d33cdda3f21cda917ee0235d1abffaef6372961a1",
         "src~1openrouter_video~1configuration_py": "58f45955b3a30a786cbebf74f6ebd94073c3e7e163d8a20ddaa9ea94fd6f2d34",
@@ -51,7 +51,7 @@
       },
       "evidence_registry": {
         "src~1openrouter_video~1evidence_registry_py": "8d4cf176439faa8ca3578429db7a2bfee7c8cc7d2413ffc56d469cb8f8dc9b97",
-        "src~1openrouter_video~1data~1capability-evidence_json": "f0f4f8a5241c575b37f186501938b16f163aed36135fe155656de5f5f4c44aa5"
+        "src~1openrouter_video~1data~1capability-evidence_json": "8f029442dd4b361c432fdcca2b682eedc44069a4ac57433b806e5a7eaa18a6cb"
       },
       "storage": {
         "src~1openrouter_video~1local_media_py": "9ed03216faa922f9bc95735304b33ddc4727df79a16446959192926f7a35cd23",

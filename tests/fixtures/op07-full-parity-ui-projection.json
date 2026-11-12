@@ -16107,8 +16107,17 @@
               "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
             },
             "aspect_ratio": {
-              "state": "UNSUPPORTED",
-              "notes": "Documented input-driven output aspect for this image-frame method; explicit aspect override is ignored/not offered. This is method-specific inapplicability, not a missing generation capability."
+              "state": "SUPPORTED",
+              "values": [
+                "16:9",
+                "9:16",
+                "1:1",
+                "4:3",
+                "3:4",
+                "21:9",
+                "9:21"
+              ],
+              "notes": "Reference conditioning is not first-frame source geometry: documented R2V output ratio is configurable. Use the compatible exact OpenRouter model aspect domain; do not inherit I2V ignored-ratio policy."
             },
             "size": {
               "state": "SUPPORTED",
@@ -16197,8 +16206,17 @@
               "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
             },
             "aspect_ratio": {
-              "state": "UNSUPPORTED",
-              "notes": "Documented input-driven output aspect for this image-frame method; explicit aspect override is ignored/not offered. This is method-specific inapplicability, not a missing generation capability."
+              "state": "SUPPORTED",
+              "values": [
+                "16:9",
+                "9:16",
+                "1:1",
+                "4:3",
+                "3:4",
+                "21:9",
+                "9:21"
+              ],
+              "notes": "Reference conditioning is not first-frame source geometry: documented R2V output ratio is configurable. Use the compatible exact OpenRouter model aspect domain; do not inherit I2V ignored-ratio policy."
             },
             "size": {
               "state": "SUPPORTED",

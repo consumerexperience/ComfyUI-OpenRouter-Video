@@ -146,3 +146,41 @@ def test_official_method_domains_are_accounted_without_false_underexposure(
     ]
     assert differences
     assert all(row["classification"] == "CONTRACT_REVIEW_REQUIRED" for row in differences)
+
+
+def test_happyhorse_reference_ratio_and_nine_images_reach_canonical_wire() -> None:
+    from openrouter_video.errors import ProductFailureError
+
+    m = model("alibaba/happyhorse-1.0")
+    w = request_witness(m, InferenceMethod.MI2V)
+    assert w is not None
+    refs = tuple(
+        InputReference(InputReferenceKind.IMAGE, f"https://example.com/{i}.png") for i in range(10)
+    )
+    r = replace(
+        w,
+        input_references=InputReferenceCollection(refs[:9]),
+        resolution="720p",
+        aspect_ratio="16:9",
+        size=None,
+    )
+    v = RequestValidator()
+    v.validate_shape(r)
+    v.validate_capabilities(r, m)
+    payload = cast(dict[str, Any], r.to_openrouter_payload())
+    assert payload["aspect_ratio"] == "16:9"
+    assert len(payload["input_references"]) == 9
+    with pytest.raises(ProductFailureError):
+        v.validate_capabilities(replace(r, input_references=InputReferenceCollection(refs)), m)
+
+
+def test_positive_catalogue_domain_with_unresolved_control_is_not_silent() -> None:
+    from openrouter_video.capabilities import capability_completeness
+
+    rows = capability_completeness(model("minimax/hailuo-2.3"))["rows"]
+    row = next(
+        row for row in rows if row["path"] == "methods.I2V.aspect_ratio.catalogue_applicability"
+    )
+    assert row["classification"] == "CONTRACT_REVIEW_REQUIRED"
+    assert row["value"]["catalogue_values"]
+    assert row["value"]["control_state"] == "UNKNOWN"

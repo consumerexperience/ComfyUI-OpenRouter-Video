@@ -491,6 +491,24 @@ def capability_completeness(model: ModelCapabilities) -> dict[str, Any]:
                 continue
             control = profile.get("controls", {}).get(control_name, {})
             if control.get("state") != "SUPPORTED":
+                if known:
+                    rows.append(
+                        {
+                            "path": f"methods.{method}.{control_name}.catalogue_applicability",
+                            "origin": "DERIVED_PROJECTION",
+                            "disposition": "EVIDENCE_GAP",
+                            "classification": "CONTRACT_REVIEW_REQUIRED",
+                            "reason": (
+                                "Positive catalogue domain has no applicable method control; "
+                                "reconcile scoped inapplicability without silently enabling it"
+                            ),
+                            "value": {
+                                "catalogue_values": known,
+                                "control_state": control.get("state", "ABSENT"),
+                                "scope_notes": control.get("notes"),
+                            },
+                        }
+                    )
                 continue
             projected = control.get("values")
             if not isinstance(projected, list):
