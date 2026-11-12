@@ -43,7 +43,13 @@ def native_reference(value: Any) -> InputReference:
                     output.writeframesraw(pcm.T.astype("<i2").tobytes())
 
         return InputReference(
-            InputReferenceKind.AUDIO, local_media=LocalMedia("audio/wav", ".wav", write_audio)
+            InputReferenceKind.AUDIO,
+            local_media=LocalMedia(
+                "audio/wav",
+                ".wav",
+                write_audio,
+                duration=lambda: int(shape[2]) / rate,
+            ),
         )
     if callable(getattr(value, "save_to", None)):
 
@@ -55,8 +61,18 @@ def native_reference(value: Any) -> InputReference:
                 raise NativeMediaError("VIDEO must contain non-empty frames.")
             value.save_to(str(path), format=Types.VideoContainer.MP4, codec=Types.VideoCodec.H264)
 
+        def geometry() -> tuple[int, int]:
+            dimensions = value.get_dimensions()
+            return int(dimensions[0]), int(dimensions[1])
+
         return InputReference(
             InputReferenceKind.VIDEO,
-            local_media=LocalMedia("video/mp4", ".mp4", write_video, duration=value.get_duration),
+            local_media=LocalMedia(
+                "video/mp4",
+                ".mp4",
+                write_video,
+                duration=value.get_duration,
+                geometry=geometry,
+            ),
         )
     raise NativeMediaError("Expected native VIDEO or AUDIO input.")

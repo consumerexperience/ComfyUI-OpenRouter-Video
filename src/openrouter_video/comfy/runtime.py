@@ -262,8 +262,10 @@ class ProcessRuntime:
                         return EstimateResult.unavailable(
                             observation.observed_at, "omitted_audio_pricing_ambiguous"
                         )
-                    kinds = inputs.reference_kinds if profile["topology"]["max"] else ()
-                    if not projected_shape_valid(profile, tuple(k.value for k in kinds)):
+                    kinds = inputs.reference_kinds if profile["topology"]["reference_kinds"] else ()
+                    if not projected_shape_valid(
+                        profile, tuple(k.value for k in kinds), inputs.source_video_present
+                    ):
                         return EstimateResult.unavailable(
                             observation.observed_at, "reference_shape_not_projected"
                         )

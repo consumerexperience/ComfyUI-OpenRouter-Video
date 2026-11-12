@@ -15,7 +15,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/storage/src~01openrouter_video~01local_media_py",
@@ -23,7 +23,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/native_media/src~01openrouter_video~01comfy~01native_media_py",
@@ -31,7 +31,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01compat_py",
@@ -39,7 +39,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01models_py",
@@ -47,7 +47,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01client_py",
@@ -55,7 +55,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01configuration_py",
@@ -63,7 +63,23 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01evidence_registry_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01image_transport_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/recipes/src~01openrouter_video~01recipes_py",
@@ -71,7 +87,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01nodes_py",
@@ -79,7 +95,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/submit_resume/src~01openrouter_video~01application_py",
@@ -87,7 +103,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/submit_resume/src~01openrouter_video~01comfy~01runtime_py",
@@ -95,7 +111,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01capabilities_py",
@@ -103,7 +119,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/database_migrations/src~01openrouter_video~01persistence_py",
@@ -111,7 +127,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01eligibility_py",
@@ -119,7 +135,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01projection_py",
@@ -127,7 +143,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01routes_py",
@@ -135,7 +151,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01data~01capability-evidence_json",
@@ -143,7 +159,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
     },
     {
       "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
@@ -151,7 +167,7 @@
         "add",
         "replace"
       ],
-      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; not release acceptance."
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; not release acceptance."
     }
   ],
   "protected_surfaces": [
@@ -169,6 +185,8 @@
     "src/openrouter_video/models.py",
     "src/openrouter_video/client.py",
     "src/openrouter_video/configuration.py",
+    "src/openrouter_video/evidence_registry.py",
+    "src/openrouter_video/image_transport.py",
     "src/openrouter_video/recipes.py",
     "src/openrouter_video/comfy/nodes.py",
     "src/openrouter_video/application.py",

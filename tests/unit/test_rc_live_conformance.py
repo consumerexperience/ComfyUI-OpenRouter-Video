@@ -83,21 +83,24 @@ def test_live_exact_conflict_is_scoped_and_normalized_remains_available(
     )
 
 
-def test_standalone_audio_conflict_does_not_deny_mixed_audio_or_other_models() -> None:
+def test_standalone_audio_conflict_preserves_state_and_quarantines_unproven_mixed_caps() -> None:
     mini = observed_model("bytedance/seedance-2.0-mini")
     matrix = inference_method_matrix(mini)
     assert matrix[InferenceMethod.AR2V].value == "CONFLICT"
-    assert matrix[InferenceMethod.MMR2V].value == "READY"
+    assert matrix[InferenceMethod.MMR2V].value == "UNKNOWN"
     assert matrix[InferenceMethod.VR2V].value == "READY"
     projected = cast(dict[str, Any], project_model(mini, datetime.now(timezone.utc)).as_dict())
     assert "AR2V" not in projected["supported_inference_methods"]
-    assert "MMR2V" in projected["supported_inference_methods"]
+    assert "MMR2V" not in projected["supported_inference_methods"]
+    assert "VR2V" in projected["supported_inference_methods"]
     fast = observed_model("bytedance/seedance-2.0-fast")
     assert inference_method_matrix(fast)[InferenceMethod.AR2V].value == "CONFLICT"
-    assert inference_method_matrix(fast)[InferenceMethod.MMR2V].value == "READY"
+    assert inference_method_matrix(fast)[InferenceMethod.MMR2V].value == "UNKNOWN"
+    assert inference_method_matrix(fast)[InferenceMethod.VR2V].value == "READY"
     other = observed_model("bytedance/seedance-2.0")
     assert inference_method_matrix(other)[InferenceMethod.AR2V].value == "UNSUPPORTED"
-    assert inference_method_matrix(other)[InferenceMethod.MMR2V].value == "READY"
+    assert inference_method_matrix(other)[InferenceMethod.MMR2V].value == "UNKNOWN"
+    assert inference_method_matrix(other)[InferenceMethod.VR2V].value == "READY"
 
 
 def test_audio_wire_matches_first_party_shape_without_synthetic_fields() -> None:

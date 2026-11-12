@@ -16,8 +16,8 @@ from openrouter_video.configuration import (
     configuration_status,
     project_method,
     project_semantic_values,
-    projected_shape_valid,
 )
+from openrouter_video.errors import ProductFailureError
 from openrouter_video.evidence_registry import enrich_capabilities, load_manifest
 from openrouter_video.models import (
     CapabilityFactState,
@@ -146,15 +146,17 @@ def test_future_evidence_update_exposes_method_and_new_domain_without_runtime_br
 
 
 @pytest.mark.parametrize("slug", ["bytedance/seedance-2.0-mini", "bytedance/seedance-2.0-fast"])
-def test_audio_only_conflict_does_not_remove_confirmed_mixed_audio(slug: str) -> None:
+def test_audio_only_conflict_keeps_mixed_reference_limits_quarantined(slug: str) -> None:
     model = current_model(slug)
     assert project_method(model, "AR2V")["state"] == "CONFLICT"
     mixed = project_method(model, "MMR2V")
-    assert mixed["state"] == "SUPPORTED"
-    assert projected_shape_valid(mixed, ("image", "video", "audio"))
-    assert not projected_shape_valid(mixed, ("audio", "audio"))
-    assert not projected_shape_valid(mixed, ("audio",))
-    assert not projected_shape_valid(mixed, ("image", "video", "audio", "audio"))
+    assert mixed["state"] == "UNKNOWN"
+    assert mixed["topology"]["max"] is None
+    assert mixed["topology"]["per_kind_max"] == {}
+    assert mixed["topology"]["constraint_state"] == "UNKNOWN"
+    assert all(
+        item["classification"] == "STALE_EVIDENCE" for item in mixed["topology"]["reconciliation"]
+    )
 
 
 def test_hailuo_and_grok_joint_domains_are_not_cartesian_and_unrelated_modes_survive() -> None:
@@ -257,9 +259,12 @@ def test_exact_enum_and_authority_are_scoped_and_explicit_supported_false_is_pre
     )
     assert values["size"] == "1280x720" and values["resolution"] is values["aspect_ratio"] is None
     mini = current_model("bytedance/seedance-2.0-mini")
-    assert (
-        project_semantic_values(mini, "MMR2V", {"generate_audio": False})["generate_audio"] is False
-    )
+    for method in ("T2V", "IR2V"):
+        assert project_method(mini, method)["state"] == "SUPPORTED"
+        assert (
+            project_semantic_values(mini, method, {"generate_audio": False})["generate_audio"]
+            is False
+        )
     assert (
         GenerationRequest("synthetic/valid", "test", generate_audio=False).to_openrouter_payload()[
             "generate_audio"
@@ -268,7 +273,7 @@ def test_exact_enum_and_authority_are_scoped_and_explicit_supported_false_is_pre
     )
 
 
-def test_accepted_native_mixed_and_image_reference_semantic_requests_still_validate() -> None:
+def test_quarantined_mixed_fails_before_submit_while_grok_remains_valid() -> None:
     mini = current_model("bytedance/seedance-2.0-mini")
     mixed = GenerationRequest(
         mini.model_id,
@@ -284,7 +289,10 @@ def test_accepted_native_mixed_and_image_reference_semantic_requests_still_valid
         ),
     )
     RequestValidator().validate_shape(mixed)
-    RequestValidator().validate_capabilities(mixed, mini)
+    with pytest.raises(ProductFailureError) as failure:
+        RequestValidator().validate_capabilities(mixed, mini)
+    assert failure.value.error.code.value == "CAPABILITY_SIGNAL_GAP"
+    assert failure.value.error.billing_context.value == "NO_SUBMIT"
     grok = current_model("x-ai/grok-imagine-video")
     images = InputReferenceCollection(
         tuple(

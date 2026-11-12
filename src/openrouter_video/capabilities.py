@@ -22,6 +22,7 @@ from openrouter_video.configuration import (
     CONFIGURATION_KEY,
     REQUEST_SHAPES_KEY,
     configuration_status,
+    input_constraint_reconciliation,
     profile_constraints,
     project_method,
     project_semantic_values,
@@ -34,7 +35,8 @@ from openrouter_video.errors import (
     TransportError,
 )
 from openrouter_video.evidence_registry import enrich_capabilities
-from openrouter_video.image_transport import is_supported_image_data_url
+from openrouter_video.image_transport import image_data_url_metadata, is_supported_image_data_url
+from openrouter_video.local_media import NativeMediaError
 from openrouter_video.models import (
     BillingContext,
     FrameReference,
@@ -95,7 +97,10 @@ def inference_method_matrix(
 ) -> dict[InferenceMethod, CapabilityModeStatus]:
     """Reviewed public shapes; raw conceptual fixtures retain the global recipes."""
 
-    if any(f.key == REQUEST_SHAPES_KEY for f in capabilities.evidence_facts):
+    if any(
+        f.key in {REQUEST_SHAPES_KEY, "per_kind_max", "per_kind_min"}
+        for f in capabilities.evidence_facts
+    ):
         return {
             method: CapabilityModeStatus.READY
             if (state := project_method(capabilities, method.value)["state"]) == "SUPPORTED"
@@ -474,6 +479,23 @@ def capability_completeness(model: ModelCapabilities) -> dict[str, Any]:
                 }
             )
     for method, profile in profiles.items():
+        for item in input_constraint_reconciliation(model, method, profile):
+            rows.append(
+                {
+                    "path": "methods." + method + ".constraints." + item["field"],
+                    "disposition": "IMPLEMENTATION_GAP"
+                    if item["classification"]
+                    in {"CAPABILITY_UNDEREXPOSURE_DEFECT", "IMPLEMENTATION_GAP"}
+                    else "CONTRACT_CONFLICT"
+                    if item["classification"] == "CONTRACT_CONFLICT"
+                    else "EVIDENCE_GAP"
+                    if item["classification"] in {"MISSING_UPSTREAM_CONTRACT", "STALE_EVIDENCE"}
+                    else "DISCOVERED_CONTRACT_COMPLETE",
+                    "reason": item.get("reason", item["classification"]),
+                    "classification": item["classification"],
+                    "value": item,
+                }
+            )
         state = profile["state"]
         rows.append(
             {
@@ -588,6 +610,11 @@ def capability_completeness_report(models: tuple[ModelCapabilities, ...]) -> dic
         "accounted_field_count": sum(r["accounted_field_count"] for r in reports),
         "executable_method_count": sum(len(r["executable_methods"]) for r in reports),
         "accounting_is_execution_proof": False,
+        "underexposure_defect_count": sum(
+            row.get("classification") == "CAPABILITY_UNDEREXPOSURE_DEFECT"
+            for report in reports
+            for row in report["rows"]
+        ),
     }
 
 
@@ -726,7 +753,10 @@ class RequestValidator:
         if request.model not in {capabilities.model_id, capabilities.canonical_slug}:
             self._fail(ProductErrorCode.UNSUPPORTED_MODEL, "The selected model does not match.")
         scoped = None
-        if any(f.key == REQUEST_SHAPES_KEY for f in capabilities.evidence_facts):
+        if any(
+            f.key in {REQUEST_SHAPES_KEY, "per_kind_max", "per_kind_min"}
+            for f in capabilities.evidence_facts
+        ):
             scoped = project_method(capabilities, request.inference_method.value)
             raw = {
                 name: getattr(request, name)
@@ -768,7 +798,7 @@ class RequestValidator:
                 if request.input_references
                 else ()
             )
-            if not projected_shape_valid(scoped, kinds):
+            if not projected_shape_valid(scoped, kinds, request.source_video is not None):
                 self._fail(
                     ProductErrorCode.UNSUPPORTED_PARAMETER,
                     "Reference combination is not supported.",
@@ -930,7 +960,7 @@ class RequestValidator:
                 f"evidence is {status.value}.",
             )
         total_reference_count = len(references) + (request.source_video is not None)
-        if total_reference_count:
+        if total_reference_count and scoped is None:
             reference_capabilities = capabilities.input_reference_capabilities
             if (
                 reference_capabilities is not None
@@ -940,6 +970,23 @@ class RequestValidator:
                 self._fail(
                     ProductErrorCode.UNSUPPORTED_PARAMETER,
                     "The input reference collection exceeds the proven model limit.",
+                )
+        if total_reference_count:
+            direct_cap = next(
+                (
+                    f.value
+                    for f in capabilities.evidence_facts
+                    if f.key == "max_reference_count"
+                    and f.authority == "LIVE_STRUCTURED_API"
+                    and type(f.value) is int
+                    and f.state.value == "SUPPORTED"
+                ),
+                None,
+            )
+            if direct_cap is not None and total_reference_count > direct_cap:
+                self._fail(
+                    ProductErrorCode.UNSUPPORTED_PARAMETER,
+                    "Input references exceed confirmed transport capacity.",
                 )
 
     def prepare_native_media(
@@ -952,12 +999,115 @@ class RequestValidator:
         if not limits:
             return request
 
+        references = ([request.source_video] if request.source_video is not None else []) + list(
+            request.input_references.references if request.input_references else ()
+        )
+        combined_checks: dict[InputReferenceKind, Callable[[], None]] = {}
+        for kind in (InputReferenceKind.VIDEO, InputReferenceKind.AUDIO):
+            combined = limits.get(kind.value, {}).get("max_combined_duration_seconds")
+            if combined is not None:
+                group = [item for item in references if item.kind is kind]
+                if not group:
+                    continue
+                if any(item.local_media is None for item in group):
+                    self._fail(
+                        ProductErrorCode.CAPABILITY_SIGNAL_GAP,
+                        "Combined reference duration cannot be verified for external media.",
+                    )
+
+                def check_duration(
+                    group: tuple[InputReference, ...] = tuple(group), cap: float = float(combined)
+                ) -> None:
+                    total = 0.0
+                    for item in group:
+                        source = item.local_media
+                        if source is None or source.duration is None:
+                            raise NativeMediaError(
+                                "Combined reference duration could not be verified."
+                            )
+                        value = source.duration()
+                        if not math.isfinite(value) or value <= 0:
+                            raise NativeMediaError(
+                                "Combined reference duration could not be verified."
+                            )
+                        total += value
+                    if total > cap:
+                        raise NativeMediaError(
+                            "Combined reference duration exceeds the selected method's limit."
+                        )
+
+                combined_checks[kind] = check_duration
+
+        metadata_keys = {
+            "max_bytes",
+            "min_width",
+            "max_width",
+            "min_height",
+            "max_height",
+            "min_pixels",
+            "max_pixels",
+        }
+
+        def check_image(url: str, role: str) -> None:
+            rule = {**limits.get("image", {}), **limits.get(role, {})}
+            if not metadata_keys.intersection(rule):
+                return
+            metadata = image_data_url_metadata(url)
+            if metadata is None:
+                self._fail(
+                    ProductErrorCode.CAPABILITY_SIGNAL_GAP,
+                    "Image metadata cannot be verified for the selected method.",
+                )
+            byte_size, width, height = metadata
+            pixels = width * height
+            if (
+                ("max_bytes" in rule and byte_size > rule["max_bytes"])
+                or ("min_width" in rule and width < rule["min_width"])
+                or ("max_width" in rule and width > rule["max_width"])
+                or ("min_height" in rule and height < rule["min_height"])
+                or ("max_height" in rule and height > rule["max_height"])
+                or ("min_pixels" in rule and pixels < rule["min_pixels"])
+                or ("max_pixels" in rule and pixels > rule["max_pixels"])
+            ):
+                self._fail(
+                    ProductErrorCode.UNSUPPORTED_PARAMETER,
+                    "Image exceeds the selected method's size or geometry limits.",
+                )
+
         def constrained(
             reference: InputReference | None, role: str | None = None
         ) -> InputReference | None:
-            if reference is None or reference.local_media is None:
+            if reference is None:
                 return reference
-            rule = limits.get(role or reference.kind.value, {})
+            rule = {
+                **limits.get(reference.kind.value, {}),
+                **limits.get(role or reference.kind.value, {}),
+            }
+            if reference.kind is InputReferenceKind.IMAGE:
+                check_image(reference.url, role or reference.kind.value)
+                return reference
+            if reference.local_media is None:
+                if any(
+                    key in rule
+                    for key in (
+                        "max_duration_seconds",
+                        "min_duration_seconds",
+                        "max_bytes",
+                        "max_total_duration_seconds",
+                        "max_combined_duration_seconds",
+                        "min_width",
+                        "max_width",
+                        "min_height",
+                        "max_height",
+                        "min_pixels",
+                        "max_pixels",
+                    )
+                ):
+                    self._fail(
+                        ProductErrorCode.CAPABILITY_SIGNAL_GAP,
+                        "Media metadata cannot be verified for the selected method.",
+                    )
+                return reference
             media = reference.local_media
             max_bytes = min(media.max_bytes, int(rule.get("max_bytes", media.max_bytes)))
             durations = [
@@ -978,6 +1128,18 @@ class RequestValidator:
                         "Extension duration cannot be verified before submit.",
                     )
                 durations.append(rule["max_total_duration_seconds"] - output_duration)
+            geometry_rules = {
+                key: rule[key]
+                for key in (
+                    "min_width",
+                    "max_width",
+                    "min_height",
+                    "max_height",
+                    "min_pixels",
+                    "max_pixels",
+                )
+                if key in rule
+            }
             return replace(
                 reference,
                 local_media=replace(
@@ -988,12 +1150,20 @@ class RequestValidator:
                         media.min_duration_seconds or 0, rule.get("min_duration_seconds", 0)
                     )
                     or None,
+                    **geometry_rules,
+                    combined_duration_check=combined_checks.get(reference.kind),
                 ),
             )
 
+        if request.first_frame is not None:
+            check_image(request.first_frame.url, "first_frame")
+        if request.last_frame is not None:
+            check_image(request.last_frame.url, "last_frame")
         refs = request.input_references
         return replace(
             request,
+            first_frame=request.first_frame,
+            last_frame=request.last_frame,
             source_video=constrained(request.source_video, "source_video"),
             input_references=InputReferenceCollection(
                 tuple(
@@ -1248,6 +1418,31 @@ def request_witness(model: ModelCapabilities, method: InferenceMethod) -> Genera
         )
     references: list[tuple[str, ...]] = []
     for kinds in topology["kind_sets"]:
+        # Bound witness construction work, not the advertised model capacity.
+        if (
+            max(
+                topology["min"],
+                sum(max(1, topology.get("per_kind_min", {}).get(k, 0)) for k in kinds),
+            )
+            > 1000
+        ):
+            continue
+        minimum_shape = [
+            kind
+            for kind in kinds
+            for _ in range(max(1, topology.get("per_kind_min", {}).get(kind, 0)))
+        ]
+        while minimum_shape and len(minimum_shape) < topology["min"]:
+            available = [
+                k
+                for k in kinds
+                if minimum_shape.count(k) < topology["per_kind_max"].get(k, topology["min"])
+            ]
+            if not available:
+                break
+            minimum_shape.append(available[0])
+        if projected_shape_valid(profile, tuple(minimum_shape)):
+            references.append(tuple(minimum_shape))
         for count in range(topology["min"], max(topology["min"], len(kinds)) + 1):
             if not kinds and count:
                 continue
@@ -1268,7 +1463,16 @@ def request_witness(model: ModelCapabilities, method: InferenceMethod) -> Genera
         seed = seed_control.get("integer_range", {}).get("min", 0)
     previous_job_id = None
     previous_control = scalar_controls.get("previous_job_id", {})
-    if previous_control.get("state") == "SUPPORTED" and previous_control.get("required") is True:
+    if previous_control.get("state") == "SUPPORTED" and (
+        previous_control.get("required") is True
+        or (
+            topology.get("source_alternative") == "previous_job_id"
+            and (
+                topology.get("transport_max") == 0
+                or topology.get("transport_per_kind_max", {}).get("video") == 0
+            )
+        )
+    ):
         previous_job_id = "gen-vid-1234567890-12345678901234567890"
     provider_options: tuple[ProviderOption, ...] = ()
     option_control = scalar_controls.get("provider_options", {})

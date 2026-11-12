@@ -1148,10 +1148,88 @@ function capabilityIntent(node) {
     return node.properties.orv_capability_intent ||= { controls: {}, media: [], methods: {} };
 }
 
+function applyTransportInputConstraints(topology, sourcePresent) {
+    const projected = { ...topology,
+        per_kind_min: { ...(topology?.per_kind_min || {}) },
+        per_kind_max: { ...(topology?.per_kind_max || {}) },
+        required_kinds: [...(topology?.required_kinds || [])],
+        mutually_exclusive: [...(topology?.mutually_exclusive || [])],
+    };
+    const consumesSource = Boolean(sourcePresent && (topology?.fixed || []).includes("source_video"));
+    let sourceOverflow = false;
+    const intersectMaximum = (current, transportMaximum, kind = null) => {
+        if (!Number.isInteger(transportMaximum) || transportMaximum < 0) return current;
+        let available = transportMaximum - (consumesSource && kind === "video" ? 1 : 0);
+        if (kind === null && consumesSource) available -= 1;
+        if (available < 0) { sourceOverflow = true; available = 0; }
+        return Number.isInteger(current) && current >= 0 ? Math.min(current, available) : available;
+    };
+    if (Number.isInteger(topology?.transport_max)) {
+        projected.max = intersectMaximum(topology.max, topology.transport_max);
+    }
+    if (Number.isInteger(topology?.transport_min) && topology.transport_min >= 0) {
+        const available = Math.max(0, topology.transport_min - (consumesSource ? 1 : 0));
+        projected.min = Math.max(Number.isInteger(topology.min) ? topology.min : 0, available);
+    }
+    for (const [kind, maximum] of Object.entries(topology?.transport_per_kind_max || {})) {
+        projected.per_kind_max[kind] = intersectMaximum(projected.per_kind_max[kind], maximum, kind);
+    }
+    for (const [kind, minimum] of Object.entries(topology?.transport_per_kind_min || {})) {
+        if (!Number.isInteger(minimum) || minimum < 0) continue;
+        const available = Math.max(0, minimum - (consumesSource && kind === "video" ? 1 : 0));
+        projected.per_kind_min[kind] = Math.max(projected.per_kind_min[kind] || 0, available);
+    }
+    const transportRequired = topology?.transport_required_kinds || [];
+    projected.required_kinds = [...new Set([...projected.required_kinds,
+        ...transportRequired.filter(kind => !(consumesSource && kind === "video"))])];
+    for (const group of topology?.transport_mutually_exclusive || []) {
+        if (consumesSource && group.includes("video")) {
+            for (const kind of group.filter(item => item !== "video")) {
+                projected.per_kind_max[kind] = Number.isInteger(projected.per_kind_max[kind])
+                    ? Math.min(projected.per_kind_max[kind], 0) : 0;
+            }
+        } else projected.mutually_exclusive.push(group);
+    }
+    projected.transport_source_overflow = sourceOverflow;
+    return projected;
+}
+
 function referenceShapeValid(topology, kinds) {
-    return Array.isArray(kinds) && kinds.length >= topology.min && kinds.length <= topology.max &&
-        topology.kind_sets.some(set => new Set(kinds).size === set.length && set.every(kind => kinds.includes(kind))) &&
-        !Object.entries(topology.per_kind_max).some(([kind, max]) => kinds.filter(value => value === kind).length > max);
+    if (!topology || !Array.isArray(kinds) || !Array.isArray(topology.kind_sets) ||
+        topology.constraint_state === "UNKNOWN" || topology.constraint_state === "CONFLICT" ||
+        topology.transport_source_overflow) return false;
+    const counts = kinds.reduce((result, kind) => ({ ...result, [kind]: (result[kind] || 0) + 1 }), {});
+    const maximum = Number.isInteger(topology.max) && topology.max >= 0 ? topology.max : null;
+    if (kinds.length < (topology.min ?? 0) || (maximum !== null && kinds.length > maximum)) return false;
+    if (!topology.kind_sets.some(set => kinds.every(kind => set.includes(kind)) && set.every(kind => counts[kind]))) return false;
+    if (Object.entries(topology.per_kind_max || {}).some(([kind, max]) => counts[kind] > max)) return false;
+    if (Object.entries(topology.per_kind_min || {}).some(([kind, min]) => (counts[kind] || 0) < min)) return false;
+    if ((topology.required_kinds || []).some(kind => !counts[kind])) return false;
+    return !(topology.mutually_exclusive || []).some(group => group.filter(kind => counts[kind]).length > 1);
+}
+
+function referencePartialAllowed(topology, kinds) {
+    if (!topology || topology.constraint_state === "UNKNOWN" || topology.constraint_state === "CONFLICT" ||
+        topology.transport_source_overflow) return false;
+    const counts = kinds.reduce((result, kind) => ({ ...result, [kind]: (result[kind] || 0) + 1 }), {});
+    const maximum = Number.isInteger(topology.max) && topology.max >= 0 ? topology.max : null;
+    if (maximum !== null && kinds.length > maximum) return false;
+    if (Object.entries(topology.per_kind_max || {}).some(([kind, max]) => (counts[kind] || 0) > max)) return false;
+    if ((topology.mutually_exclusive || []).some(group => group.filter(kind => counts[kind]).length > 1)) return false;
+    if (referenceShapeValid(topology, kinds)) return true;
+    if (maximum !== null && kinds.length >= maximum) return false;
+    return (topology.kind_sets || []).some(set => {
+        if (!kinds.every(kind => set.includes(kind))) return false;
+        const needed = new Set([...set.filter(kind => !counts[kind]), ...(topology.required_kinds || []),
+            ...Object.entries(topology.per_kind_min || {}).filter(([kind, min]) => (counts[kind] || 0) < min).map(([kind]) => kind)]);
+        if ([...needed].some(kind => !set.includes(kind) ||
+            (topology.per_kind_max?.[kind] ?? maximum) !== null &&
+            (counts[kind] || 0) >= (topology.per_kind_max?.[kind] ?? maximum))) return false;
+        const requiredAdditions = [...needed].reduce((sum, kind) => sum + Math.max(1,
+            (topology.per_kind_min?.[kind] || 0) - (counts[kind] || 0)), 0);
+        const minimumAdditions = Math.max(requiredAdditions, (topology.min ?? 0) - kinds.length, 0);
+        return maximum === null || kinds.length + minimumAdditions <= maximum;
+    });
 }
 
 function legacyReferenceKinds(input, savedOrigin = null) {
@@ -1182,7 +1260,7 @@ function scopedCapability(capability, method) {
         seed: "supports_seed", generate_audio: "generate_audio" };
     const result = { ...capability, __methodProfile: profile,
         configuration_relations: profile.configuration_relations || [],
-        max_reference_count: profile.topology?.max ?? 0,
+        max_reference_count: profile.topology?.max ?? null,
         supported_reference_kinds: profile.topology?.reference_kinds || [] };
     for (const [name, field] of Object.entries(fields)) {
         const control = profile.controls?.[name];
@@ -1493,6 +1571,7 @@ function reprojectNodeSemantics(node, capability, method) {
 function parkIncompatibleMedia(node, topology) {
     const intent = capabilityIntent(node);
     let references = 0;
+    const acceptedKinds = [];
     const fixed = topology.fixed || [];
     const legacy = inputByName(node, "input_references");
     const legacyValid = legacy?.link != null && referenceShapeValid(topology, legacyReferenceKinds(legacy));
@@ -1502,20 +1581,20 @@ function parkIncompatibleMedia(node, topology) {
         const direct = isDirectReferenceInput(input);
         if (!direct && !["first_frame", "last_frame", "source_video", "input_references"].includes(input.name)) continue;
         const kind = connectedReferenceKind(input);
-        const allowed = direct ? !legacyValid && !invalidFallback && topology.reference_kinds?.includes(kind) && references < (topology.max || 0)
+        const allowed = direct ? !legacyValid && !invalidFallback && topology.reference_kinds?.includes(kind) &&
+                referencePartialAllowed(topology, [...acceptedKinds, kind])
             : input.name === "input_references" ? legacyValid
             : fixed.includes(input.name) && (kind === null || kind === (input.name === "source_video" ? "video" : "image"));
-        if (input.link != null && !allowed) {
-            const link = app.graph?.links?.[input.link];
-            if (link && !intent.media.some(item => item.name === input.name && item.origin_id === link.origin_id && item.origin_slot === link.origin_slot)) {
-                intent.media.push({ name: input.name, kind, type: input.type, origin_id: link.origin_id, origin_slot: link.origin_slot });
-            }
-            node.removeInput?.(node.inputs.indexOf(input));
-        } else if (direct && input.link != null) references += 1;
+        // Connected sockets stay on the canvas even when the new contract rejects
+        // them. Validation reports the mismatch; only the Owner disconnects links.
+        if (direct && input.link != null && allowed) {
+            references += 1; acceptedKinds.push(kind);
+        }
     }
     for (const saved of [...intent.media]) {
         const direct = String(saved.name).startsWith("direct_references.reference_");
-        const allowed = direct ? !invalidFallback && inputByName(node, "input_references")?.link == null && topology.reference_kinds?.includes(saved.kind) && references < (topology.max || 0)
+        const allowed = direct ? !invalidFallback && inputByName(node, "input_references")?.link == null && topology.reference_kinds?.includes(saved.kind) &&
+                referencePartialAllowed(topology, [...acceptedKinds, saved.kind])
             : saved.name === "input_references" ? references === 0 && referenceShapeValid(topology, legacyReferenceKinds(null, saved))
             : fixed.includes(saved.name) && saved.kind === (saved.name === "source_video" ? "video" : "image");
         const origin = app.graph?.getNodeById?.(saved.origin_id);
@@ -1524,7 +1603,7 @@ function parkIncompatibleMedia(node, topology) {
         origin.connect?.(saved.origin_slot, node, node.inputs.indexOf(inputByName(node, saved.name)));
         if (inputByName(node, saved.name)?.link != null) {
             intent.media.splice(intent.media.indexOf(saved), 1);
-            if (direct) references += 1;
+            if (direct) { references += 1; acceptedKinds.push(saved.kind); }
         }
     }
 }
@@ -1539,9 +1618,7 @@ function projectedWidgetValue(node, name) {
 function referenceSocketType(topology, connectedKinds) {
     const valid = (topology.reference_kinds || []).filter(kind => {
         const next = [...connectedKinds, kind];
-        if (next.length > topology.max || next.filter(value => value === kind).length > (topology.per_kind_max?.[kind] ?? topology.max)) return false;
-        return (topology.kind_sets || []).some(set => next.every(value => set.includes(value)) &&
-            next.length + set.filter(value => !next.includes(value)).length <= topology.max);
+        return referencePartialAllowed(topology, next);
     });
     return [...valid.map(kind => kind.toUpperCase()), "OPENROUTER_VIDEO_INPUT_REFERENCE"].join(",");
 }
@@ -1674,8 +1751,11 @@ function addTrailingReferenceInput(node, current, socketType = "OPENROUTER_VIDEO
 }
 
 function configureReferenceTopology(node, capability, method) {
-    const topology = capability.__methodProfile?.topology || { fixed: [], reference_kinds: [], max: 0 };
-    parkIncompatibleMedia(node, topology);
+    const sourcePresent = inputByName(node, "source_video")?.link != null;
+    const topology = applyTransportInputConstraints(
+        capability.__methodProfile?.topology || { fixed: [], reference_kinds: [], max: 0 }, sourcePresent);
+    const topologyUncertain = topology.constraint_state === "UNKNOWN" || topology.constraint_state === "CONFLICT";
+    if (!topologyUncertain) parkIncompatibleMedia(node, topology);
     const keepFixed = new Set(topology.fixed || []);
     for (const name of keepFixed) ensureFixedInput(node, name);
     removeUnusedFixedInputs(node, keepFixed);
@@ -1691,16 +1771,20 @@ function configureReferenceTopology(node, capability, method) {
     for (const input of inputs) input.type = socketType;
     const linked = inputs.filter((item) => item.link != null);
     const unlinked = inputs.filter((item) => item.link == null);
-    const limit = capability.max_reference_count;
-    const effectiveLimit = Number.isInteger(limit) && limit >= 0 ? limit : null;
+    const effectiveLimit = Number.isInteger(topology.max) && topology.max >= 0 ? topology.max : null;
     // Reviewed topology.max counts optional references; the fixed source is
     // already reserved when deriving that method profile. Legacy global
     // budgets still include it. Do not reserve the same source twice.
     const sourceCount = capability.__methodProfile ? 0 : inputByName(node, "source_video")?.link != null ? 1 : 0;
     const reservedSourceCount = capability.__methodProfile ? 0 : keepFixed.has("source_video") ? 1 : 0;
-    const usesReferences = topology.max > 0;
+    const referencesConfirmed = topology.constraint_state !== "UNKNOWN" && topology.constraint_state !== "CONFLICT";
+    const usesReferences = Boolean(topology.reference_kinds?.length) && referencesConfirmed;
     const exactOne = method === "IR2V";
-    const keepTrailing = usesReferences &&
+    const possibleKinds = topology.reference_kinds || [];
+    const linkedKinds = [...linked.map(connectedReferenceKind).filter(Boolean),
+        ...(legacy?.link != null ? legacyReferenceKinds(legacy) || [] : [])];
+    const canGrow = usesReferences && possibleKinds.some(kind => referencePartialAllowed(topology, [...linkedKinds, kind]));
+    const keepTrailing = canGrow &&
         legacy?.link == null &&
         (effectiveLimit === null || linked.length + reservedSourceCount < effectiveLimit) &&
         (!exactOne || linked.length === 0);
@@ -1742,13 +1826,18 @@ function configureReferenceTopology(node, capability, method) {
 
     const currentCount = finalInputs.filter((item) => item.link != null).length +
         (legacy?.link != null ? legacyReferenceKinds(legacy)?.length || 0 : 0);
-    node.__orvReferenceSummary = usesReferences && effectiveLimit !== null
-        ? `${currentCount + sourceCount} connected · ${
-            currentCount + sourceCount >= effectiveLimit
-                ? "maximum reached"
-                : `${effectiveLimit - currentCount - sourceCount} remaining`
+    const allAtCaps = !possibleKinds.some(kind => referencePartialAllowed(topology, [...linkedKinds, kind]));
+    const perKindCounts = Object.fromEntries([...new Set(linkedKinds)].map(kind =>
+        [kind, linkedKinds.filter(value => value === kind).length]));
+    const perKindSummary = Object.entries(perKindCounts).map(([kind, count]) => `${kind} ${count}`).join(" · ");
+    node.__orvReferenceSummary = usesReferences
+        ? `${currentCount + sourceCount} connected${perKindSummary ? ` · ${perKindSummary}` : ""} · ${
+            effectiveLimit !== null
+                ? (allAtCaps ? "maximum reached" : `${effectiveLimit - currentCount - sourceCount} remaining`)
+                : (allAtCaps ? "maximum reached" : "limit unverified")
         }`
-        : "";
+        : topology.constraint_state === "UNKNOWN" || topology.constraint_state === "CONFLICT"
+            ? "Reference limit unverified · existing links preserved" : "";
     if (node.__orvSummary) {
         node.__orvSummary.value = node.__orvReferenceSummary;
         setVisible(node.__orvSummary, Boolean(node.__orvReferenceSummary));
@@ -1764,14 +1853,21 @@ function configureReferenceTopology(node, capability, method) {
         return input?.link != null && connectedReferenceKind(input) !==
             (name === "source_video" ? "video" : "image");
     });
-    node.__orvReferenceInvalid = wrongReferenceKind || wrongFixedKind ||
-        (effectiveLimit !== null && currentCount + sourceCount > effectiveLimit);
+    const orphanedFixed = ["first_frame", "last_frame", "source_video"].some(name =>
+        inputByName(node, name)?.link != null && !keepFixed.has(name));
+    const incompatibleReferences = !referencePartialAllowed(topology, linkedKinds);
+    node.__orvReferenceInvalid = topologyUncertain || topology.transport_source_overflow || wrongReferenceKind || wrongFixedKind ||
+        orphanedFixed || incompatibleReferences || (effectiveLimit !== null && currentCount + sourceCount > effectiveLimit);
     if ((wrongReferenceKind || wrongFixedKind) && !node.__orvMethodBlocked) {
         node.__orvCapabilityStatus.value = "INCOMPATIBLE · media kind · links preserved";
         setVisible(node.__orvCapabilityStatus, true);
     }
     if (node.__orvReferenceInvalid) {
-        disclose(node, `REFERENCES ${currentCount + sourceCount}/${effectiveLimit}: preserve links; reduce explicitly before Generate`);
+        disclose(node, topologyUncertain
+            ? "REFERENCES · limit unverified; existing links preserved; Generate blocked"
+            : topology.transport_source_overflow
+                ? "SOURCE VIDEO EXCEEDS TRANSPORT INPUT LIMIT; Generate blocked"
+                : `REFERENCES ${currentCount + sourceCount}/${effectiveLimit}: preserve links; reduce explicitly before Generate`);
     }
 }
 
@@ -1956,7 +2052,7 @@ async function refreshEstimate(node) {
         node.setDirtyCanvas?.(true,true);
         return;
     }
-    if (geometryAuthority(node) === "AMBIGUOUS") {
+    if (node.__orvReferenceInvalid || geometryAuthority(node) === "AMBIGUOUS") {
         node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
         return;
     }
@@ -1971,7 +2067,8 @@ async function refreshEstimate(node) {
         return;
     }
     const profile = node.__orvCapability?.__methodProfile;
-    const topology = profile?.topology;
+    const topology = applyTransportInputConstraints(profile?.topology,
+        inputByName(node, "source_video")?.link != null);
     if (profile?.state !== "SUPPORTED" || !topology || !referenceShapeValid(topology, referenceKinds)) {
         node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
         return;
@@ -2141,6 +2238,11 @@ async function projectSelectedModel(node, force = false, snapshot = null) {
             setVisible(node.__orvCapabilityStatus, true);
             node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
             node.__orvModelCapability = capability;
+            node.__orvReferenceSummary = `${selectedReferenceKinds(node)?.length ?? 0} connected · limit unverified`;
+            if (node.__orvSummary) {
+                node.__orvSummary.value = node.__orvReferenceSummary;
+                setVisible(node.__orvSummary, true);
+            }
             return;
         }
         node.__orvSelectionBlocked = false;

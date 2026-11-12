@@ -4,6 +4,7 @@ import ast
 import shutil
 import subprocess
 from pathlib import Path
+from typing import cast
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -40,6 +41,38 @@ if any(
     normalization = NormalizeEstimateGuard()
     after = normalization.visit(after)
     assert normalization.removed == 1
+
+    # Owner abcc0172 authorizes nullable totals and actual source reservation.
+    # Normalize only these two exact read-only estimate expressions, preserving
+    # every other historical runtime member and the original accepted baseline.
+    replacements = {
+        ast.dump(ast.parse(new, mode="eval").body): ast.parse(old, mode="eval").body
+        for new, old in (
+            (
+                'inputs.reference_kinds if profile["topology"]["reference_kinds"] else ()',
+                'inputs.reference_kinds if profile["topology"]["max"] else ()',
+            ),
+            (
+                "projected_shape_valid(profile, tuple(k.value for k in kinds), "
+                "inputs.source_video_present)",
+                "projected_shape_valid(profile, tuple(k.value for k in kinds))",
+            ),
+        )
+    }
+
+    class NormalizeReferenceEstimate(ast.NodeTransformer):
+        replaced = 0
+
+        def visit(self, node: ast.AST) -> ast.AST:
+            replacement = replacements.get(ast.dump(node))
+            if replacement is not None:
+                self.replaced += 1
+                return replacement
+            return cast(ast.AST, super().visit(node))
+
+    references = NormalizeReferenceEstimate()
+    after = cast(ast.Module, references.visit(after))
+    assert references.replaced == 2
 
     def members(tree: ast.Module) -> dict[str, str]:
         cls = next(

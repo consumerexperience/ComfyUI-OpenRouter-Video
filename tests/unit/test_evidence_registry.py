@@ -8,6 +8,7 @@ import pytest
 from openrouter_video.capabilities import CapabilityModeStatus, inference_method_matrix
 from openrouter_video.client import _parse_capability
 from openrouter_video.comfy.projection import project_model
+from openrouter_video.configuration import project_method
 from openrouter_video.evidence_registry import enrich_capabilities, load_manifest
 from openrouter_video.models import (
     InferenceMethod,
@@ -113,7 +114,7 @@ def test_future_documented_model_can_be_enriched_by_data_only() -> None:
     )
     manifest = load_manifest()
     template = next(
-        e for e in manifest["models"] if e["exact_model_id"] == "bytedance/seedance-2.0-mini"
+        e for e in manifest["models"] if e["exact_model_id"] == "bytedance/seedance-2.5"
     )
     updated = {
         **manifest,
@@ -124,9 +125,39 @@ def test_future_documented_model_can_be_enriched_by_data_only() -> None:
     assert enrich_capabilities(enriched, updated) == enriched
 
 
-def test_mini_ready_and_accepted_seedance_methods_preserved() -> None:
-    mini = enrich_capabilities(ModelCapabilities("bytedance/seedance-2.0-mini"))
-    assert inference_method_matrix(mini)[InferenceMethod.MMR2V] is CapabilityModeStatus.READY
+@pytest.mark.parametrize(
+    "model_id",
+    [
+        "bytedance/seedance-2.0",
+        "bytedance/seedance-2.0-fast",
+        "bytedance/seedance-2.0-mini",
+    ],
+)
+def test_seedance_20_reference_caps_are_quarantined_as_stale_evidence(model_id: str) -> None:
+    model = enrich_capabilities(ModelCapabilities(model_id))
+    matrix = inference_method_matrix(model)
+    for method in ("MI2V", "MMR2V"):
+        projected = project_method(model, method)
+        topology = projected["topology"]
+        assert projected["state"] == "UNKNOWN"
+        assert matrix[InferenceMethod(method)] is CapabilityModeStatus.UNKNOWN
+        assert topology["max"] is None
+        assert topology["per_kind_max"] == {}
+        assert topology["constraint_state"] == "UNKNOWN"
+        stale = topology["constraint_evidence"]
+        for field, scope in (("max", "total"), ("per_kind_max", "per_kind")):
+            assert stale[field]["state"] == "UNKNOWN"
+            assert stale[field]["classification"] == "STALE_EVIDENCE"
+            assert stale[field]["scope"] == scope
+            assert "OpenRouter" in stale[field]["reason"]
+    assert project_method(model, "VR2V")["state"] == "SUPPORTED"
+    if model_id.endswith("mini") or model_id.endswith("fast"):
+        assert project_method(model, "AR2V")["state"] == "CONFLICT"
+    else:
+        assert project_method(model, "AR2V")["state"] == "UNSUPPORTED"
+
+
+def test_seedance_25_confirmed_method_and_reference_profile_remains_usable() -> None:
     full = enrich_capabilities(ModelCapabilities("bytedance/seedance-2.5"))
     assert full.input_reference_capabilities is not None
     assert full.input_reference_capabilities.max_reference_count == 50

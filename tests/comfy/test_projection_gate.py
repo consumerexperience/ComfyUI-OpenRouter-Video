@@ -234,3 +234,80 @@ def test_required_provider_configuration_yields_unavailable_estimate_without_net
             await process.aclose(timeout=2)
 
     asyncio.run(scenario())
+
+
+def test_estimate_preserves_references_with_nullable_total_without_network(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    capability = _parse_capability(
+        {
+            "id": "synthetic/nullable-total-estimate",
+            "reference_kinds": ["image", "video"],
+            "mixed_reference_kinds": True,
+            "request_shape_profiles": {
+                "schema_version": 1,
+                "methods": {
+                    "MMR2V": {
+                        "state": "SUPPORTED",
+                        "controls": {"prompt": {"state": "SUPPORTED"}},
+                        "topology": {
+                            "fixed": [],
+                            "reference_kinds": ["image", "video"],
+                            "kind_sets": [["image", "video"]],
+                            "min": 2,
+                            "max": None,
+                            "per_kind_max": {"image": 9, "video": 3},
+                        },
+                    }
+                },
+            },
+        }
+    )
+    observed = datetime.now(timezone.utc)
+    captured: list[CostEstimateInputs] = []
+
+    class Capabilities:
+        async def effective_catalog(self) -> CapabilityObservation:
+            return CapabilityObservation(observed, (capability,))
+
+        def is_fresh(self, _: object) -> bool:
+            return True
+
+    class Estimator:
+        def estimate(self, _: object, inputs: CostEstimateInputs, **kwargs: object) -> object:
+            captured.append(inputs)
+            return runtime.EstimateResult.unavailable(observed, "synthetic_no_pricing")
+
+    def forbidden(_: httpx.Request) -> httpx.Response:
+        pytest.fail("Offline estimate must not issue HTTP")
+
+    monkeypatch.setattr(
+        runtime.HttpxTransport,
+        "create",
+        classmethod(lambda cls: cls.for_test(httpx.MockTransport(forbidden))),
+    )
+    monkeypatch.setattr(runtime, "PreflightCostEstimator", Estimator)
+    monkeypatch.setattr(runtime.compat, "host_interrupted", lambda: False)
+
+    async def scenario() -> None:
+        process = runtime.ProcessRuntime(tmp_path / "jobs.sqlite3", tmp_path / "output")
+        try:
+            process._resources = replace(process._require_resources(), capabilities=Capabilities())
+            await process.estimate_cost(
+                CostEstimateInputs(
+                    capability.model_id,
+                    inference_method=InferenceMethod.MMR2V,
+                    reference_kinds=(InputReferenceKind.IMAGE, InputReferenceKind.VIDEO),
+                    reference_count=2,
+                )
+            )
+            assert len(captured) == 1
+            assert captured[0].reference_count == 2
+            assert captured[0].reference_kinds == (
+                InputReferenceKind.IMAGE,
+                InputReferenceKind.VIDEO,
+            )
+        finally:
+            await process.aclose(timeout=2)
+
+    asyncio.run(scenario())

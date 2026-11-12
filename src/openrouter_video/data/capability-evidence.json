@@ -3058,6 +3058,22 @@
                   "max": 3,
                   "per_kind_max": {
                     "image": 3
+                  },
+                  "constraint_evidence": {
+                    "max": {
+                      "state": "UNKNOWN",
+                      "classification": "STALE_EVIDENCE",
+                      "scope": "total",
+                      "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                      "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+                    },
+                    "per_kind_max": {
+                      "state": "UNKNOWN",
+                      "classification": "STALE_EVIDENCE",
+                      "scope": "per_kind",
+                      "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                      "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+                    }
                   }
                 },
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
@@ -3304,6 +3320,22 @@
                     "image": 3,
                     "video": 3,
                     "audio": 3
+                  },
+                  "constraint_evidence": {
+                    "max": {
+                      "state": "UNKNOWN",
+                      "classification": "STALE_EVIDENCE",
+                      "scope": "total",
+                      "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                      "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+                    },
+                    "per_kind_max": {
+                      "state": "UNKNOWN",
+                      "classification": "STALE_EVIDENCE",
+                      "scope": "per_kind",
+                      "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                      "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+                    }
                   }
                 },
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
@@ -3332,7 +3364,7 @@
           "authority": "REVIEWED_AUDIT_DISPOSITION",
           "source_reference": "https://openrouter.ai/bytedance/seedance-2.0-mini",
           "observed_at": "2026-10-13T13:37:34.589030+00:00",
-          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.",
+          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.; OP07 abcc0172 reconciliation: former MI2V/MMR2V three-input caps are stale, not proven OpenRouter restrictions. Do not promote provider-native 9/3/3 into OpenRouter executable limits.",
           "audit_content_hash": "e51c615e57a05bc065ac7c3dcd651ac32ceb101877a8b9f436fc19ffc299c0c0"
         }
       }
@@ -9535,6 +9567,22 @@
                   "max": 3,
                   "per_kind_max": {
                     "image": 3
+                  },
+                  "constraint_evidence": {
+                    "max": {
+                      "state": "UNKNOWN",
+                      "classification": "STALE_EVIDENCE",
+                      "scope": "total",
+                      "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                      "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+                    },
+                    "per_kind_max": {
+                      "state": "UNKNOWN",
+                      "classification": "STALE_EVIDENCE",
+                      "scope": "per_kind",
+                      "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                      "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+                    }
                   }
                 },
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
@@ -9807,6 +9855,22 @@
                     "image": 3,
                     "video": 3,
                     "audio": 3
+                  },
+                  "constraint_evidence": {
+                    "max": {
+                      "state": "UNKNOWN",
+                      "classification": "STALE_EVIDENCE",
+                      "scope": "total",
+                      "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                      "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+                    },
+                    "per_kind_max": {
+                      "state": "UNKNOWN",
+                      "classification": "STALE_EVIDENCE",
+                      "scope": "per_kind",
+                      "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                      "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+                    }
                   }
                 },
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
@@ -9833,7 +9897,7 @@
           "authority": "REVIEWED_AUDIT_DISPOSITION",
           "source_reference": "https://openrouter.ai/bytedance/seedance-2.0",
           "observed_at": "2026-10-13T13:37:34.589030+00:00",
-          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.",
+          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.; OP07 abcc0172 reconciliation: former MI2V/MMR2V three-input caps are stale, not proven OpenRouter restrictions. Do not promote provider-native 9/3/3 into OpenRouter executable limits.",
           "audit_content_hash": "e51c615e57a05bc065ac7c3dcd651ac32ceb101877a8b9f436fc19ffc299c0c0"
         }
       }
@@ -10987,6 +11051,22 @@
                   "max": 3,
                   "per_kind_max": {
                     "image": 3
+                  },
+                  "constraint_evidence": {
+                    "max": {
+                      "state": "UNKNOWN",
+                      "classification": "STALE_EVIDENCE",
+                      "scope": "total",
+                      "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                      "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+                    },
+                    "per_kind_max": {
+                      "state": "UNKNOWN",
+                      "classification": "STALE_EVIDENCE",
+                      "scope": "per_kind",
+                      "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                      "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+                    }
                   }
                 },
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
@@ -11233,6 +11313,22 @@
                     "image": 3,
                     "video": 3,
                     "audio": 3
+                  },
+                  "constraint_evidence": {
+                    "max": {
+                      "state": "UNKNOWN",
+                      "classification": "STALE_EVIDENCE",
+                      "scope": "total",
+                      "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                      "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+                    },
+                    "per_kind_max": {
+                      "state": "UNKNOWN",
+                      "classification": "STALE_EVIDENCE",
+                      "scope": "per_kind",
+                      "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                      "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+                    }
                   }
                 },
                 "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
@@ -11260,7 +11356,7 @@
           "authority": "REVIEWED_AUDIT_DISPOSITION",
           "source_reference": "https://openrouter.ai/bytedance/seedance-2.0-fast",
           "observed_at": "2026-10-13T13:37:34.589030+00:00",
-          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.",
+          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.; OP07 abcc0172 reconciliation: former MI2V/MMR2V three-input caps are stale, not proven OpenRouter restrictions. Do not promote provider-native 9/3/3 into OpenRouter executable limits.",
           "audit_content_hash": "e51c615e57a05bc065ac7c3dcd651ac32ceb101877a8b9f436fc19ffc299c0c0"
         }
       }
@@ -13516,5 +13612,5 @@
       }
     }
   ],
-  "content_hash": "5d02e95676e4fa1ff553fd1af253c8aa2c25aaa56c7585c8091b6bc9d5b5aa68"
+  "content_hash": "27bbd22d2b17cf76ff99dcde15b02afd01449090da284eb2199664f12547f38a"
 }

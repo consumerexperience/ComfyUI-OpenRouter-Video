@@ -7328,9 +7328,7 @@
         "I2V",
         "FLF2V",
         "IR2V",
-        "MI2V",
-        "VR2V",
-        "MMR2V"
+        "VR2V"
       ],
       "inference_method_statuses": [
         {
@@ -7351,7 +7349,7 @@
         },
         {
           "method": "MI2V",
-          "status": "READY"
+          "status": "UNKNOWN"
         },
         {
           "method": "VR2V",
@@ -7363,7 +7361,7 @@
         },
         {
           "method": "MMR2V",
-          "status": "READY"
+          "status": "UNKNOWN"
         },
         {
           "method": "V2V_EDIT",
@@ -7978,7 +7976,7 @@
           ]
         },
         "MI2V": {
-          "state": "SUPPORTED",
+          "state": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -8073,10 +8071,39 @@
               ]
             ],
             "min": 2,
-            "max": 3,
-            "per_kind_max": {
-              "image": 3
-            }
+            "max": null,
+            "per_kind_max": {},
+            "constraint_evidence": {
+              "max": {
+                "state": "UNKNOWN",
+                "classification": "STALE_EVIDENCE",
+                "scope": "total",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              },
+              "per_kind_max": {
+                "state": "UNKNOWN",
+                "classification": "STALE_EVIDENCE",
+                "scope": "per_kind",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              }
+            },
+            "constraint_state": "UNKNOWN",
+            "reconciliation": [
+              {
+                "field": "max",
+                "classification": "STALE_EVIDENCE",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              },
+              {
+                "field": "per_kind_max",
+                "classification": "STALE_EVIDENCE",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              }
+            ]
           },
           "configuration_relations": [
             {
@@ -8323,7 +8350,7 @@
           ]
         },
         "MMR2V": {
-          "state": "SUPPORTED",
+          "state": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -8434,12 +8461,39 @@
               ]
             ],
             "min": 2,
-            "max": 3,
-            "per_kind_max": {
-              "image": 3,
-              "video": 3,
-              "audio": 3
-            }
+            "max": null,
+            "per_kind_max": {},
+            "constraint_evidence": {
+              "max": {
+                "state": "UNKNOWN",
+                "classification": "STALE_EVIDENCE",
+                "scope": "total",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              },
+              "per_kind_max": {
+                "state": "UNKNOWN",
+                "classification": "STALE_EVIDENCE",
+                "scope": "per_kind",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              }
+            },
+            "constraint_state": "UNKNOWN",
+            "reconciliation": [
+              {
+                "field": "max",
+                "classification": "STALE_EVIDENCE",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              },
+              {
+                "field": "per_kind_max",
+                "classification": "STALE_EVIDENCE",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              }
+            ]
           },
           "configuration_relations": [
             {
@@ -19323,9 +19377,7 @@
         "I2V",
         "FLF2V",
         "IR2V",
-        "MI2V",
-        "VR2V",
-        "MMR2V"
+        "VR2V"
       ],
       "inference_method_statuses": [
         {
@@ -19346,7 +19398,7 @@
         },
         {
           "method": "MI2V",
-          "status": "READY"
+          "status": "UNKNOWN"
         },
         {
           "method": "VR2V",
@@ -19358,7 +19410,7 @@
         },
         {
           "method": "MMR2V",
-          "status": "READY"
+          "status": "UNKNOWN"
         },
         {
           "method": "V2V_EDIT",
@@ -19787,7 +19839,7 @@
           "configuration_relations": []
         },
         "MI2V": {
-          "state": "SUPPORTED",
+          "state": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -19882,10 +19934,39 @@
               ]
             ],
             "min": 2,
-            "max": 3,
-            "per_kind_max": {
-              "image": 3
-            }
+            "max": null,
+            "per_kind_max": {},
+            "constraint_evidence": {
+              "max": {
+                "state": "UNKNOWN",
+                "classification": "STALE_EVIDENCE",
+                "scope": "total",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              },
+              "per_kind_max": {
+                "state": "UNKNOWN",
+                "classification": "STALE_EVIDENCE",
+                "scope": "per_kind",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              }
+            },
+            "constraint_state": "UNKNOWN",
+            "reconciliation": [
+              {
+                "field": "max",
+                "classification": "STALE_EVIDENCE",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              },
+              {
+                "field": "per_kind_max",
+                "classification": "STALE_EVIDENCE",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              }
+            ]
           },
           "configuration_relations": []
         },
@@ -20021,7 +20102,7 @@
           "configuration_relations": []
         },
         "MMR2V": {
-          "state": "SUPPORTED",
+          "state": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -20132,12 +20213,39 @@
               ]
             ],
             "min": 2,
-            "max": 3,
-            "per_kind_max": {
-              "image": 3,
-              "video": 3,
-              "audio": 3
-            }
+            "max": null,
+            "per_kind_max": {},
+            "constraint_evidence": {
+              "max": {
+                "state": "UNKNOWN",
+                "classification": "STALE_EVIDENCE",
+                "scope": "total",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              },
+              "per_kind_max": {
+                "state": "UNKNOWN",
+                "classification": "STALE_EVIDENCE",
+                "scope": "per_kind",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              }
+            },
+            "constraint_state": "UNKNOWN",
+            "reconciliation": [
+              {
+                "field": "max",
+                "classification": "STALE_EVIDENCE",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              },
+              {
+                "field": "per_kind_max",
+                "classification": "STALE_EVIDENCE",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              }
+            ]
           },
           "configuration_relations": []
         },
@@ -21267,9 +21375,7 @@
         "I2V",
         "FLF2V",
         "IR2V",
-        "MI2V",
-        "VR2V",
-        "MMR2V"
+        "VR2V"
       ],
       "inference_method_statuses": [
         {
@@ -21290,7 +21396,7 @@
         },
         {
           "method": "MI2V",
-          "status": "READY"
+          "status": "UNKNOWN"
         },
         {
           "method": "VR2V",
@@ -21302,7 +21408,7 @@
         },
         {
           "method": "MMR2V",
-          "status": "READY"
+          "status": "UNKNOWN"
         },
         {
           "method": "V2V_EDIT",
@@ -21786,7 +21892,7 @@
           "configuration_relations": []
         },
         "MI2V": {
-          "state": "SUPPORTED",
+          "state": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -21895,10 +22001,39 @@
               ]
             ],
             "min": 2,
-            "max": 3,
-            "per_kind_max": {
-              "image": 3
-            }
+            "max": null,
+            "per_kind_max": {},
+            "constraint_evidence": {
+              "max": {
+                "state": "UNKNOWN",
+                "classification": "STALE_EVIDENCE",
+                "scope": "total",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              },
+              "per_kind_max": {
+                "state": "UNKNOWN",
+                "classification": "STALE_EVIDENCE",
+                "scope": "per_kind",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              }
+            },
+            "constraint_state": "UNKNOWN",
+            "reconciliation": [
+              {
+                "field": "max",
+                "classification": "STALE_EVIDENCE",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              },
+              {
+                "field": "per_kind_max",
+                "classification": "STALE_EVIDENCE",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              }
+            ]
           },
           "configuration_relations": []
         },
@@ -22048,7 +22183,7 @@
           "configuration_relations": []
         },
         "MMR2V": {
-          "state": "SUPPORTED",
+          "state": "UNKNOWN",
           "controls": {
             "prompt": {
               "state": "SUPPORTED",
@@ -22173,12 +22308,39 @@
               ]
             ],
             "min": 2,
-            "max": 3,
-            "per_kind_max": {
-              "image": 3,
-              "video": 3,
-              "audio": 3
-            }
+            "max": null,
+            "per_kind_max": {},
+            "constraint_evidence": {
+              "max": {
+                "state": "UNKNOWN",
+                "classification": "STALE_EVIDENCE",
+                "scope": "total",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              },
+              "per_kind_max": {
+                "state": "UNKNOWN",
+                "classification": "STALE_EVIDENCE",
+                "scope": "per_kind",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              }
+            },
+            "constraint_state": "UNKNOWN",
+            "reconciliation": [
+              {
+                "field": "max",
+                "classification": "STALE_EVIDENCE",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              },
+              {
+                "field": "per_kind_max",
+                "classification": "STALE_EVIDENCE",
+                "source": "https://openrouter.ai/docs/guides/overview/multimodal/video-generation",
+                "reason": "Historical value3 lacks a confirmed OpenRouter total/per-kind count contract; native video3 does not establish total3 or image3. Exact OpenRouter limits remain unresolved."
+              }
+            ]
           },
           "configuration_relations": []
         },

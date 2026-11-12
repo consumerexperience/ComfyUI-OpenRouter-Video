@@ -35,7 +35,7 @@ jobs:
         shell: bash
         run: |
           curl --fail --silent --show-error --max-time 30 --max-filesize 2097152 https://openrouter.ai/api/v1/videos/models -o "$RUNNER_TEMP/video-models.json"
-          python scripts/report_capability_completeness.py --current "$RUNNER_TEMP/video-models.json" --previous tests/fixtures/op07-full-catalogue.json --output "$RUNNER_TEMP/capability-drift.json" --summary "$GITHUB_STEP_SUMMARY"
+          python scripts/report_capability_completeness.py --current "$RUNNER_TEMP/video-models.json" --previous tests/fixtures/op07-full-catalogue.json --output "$RUNNER_TEMP/capability-drift.json" --summary "$GITHUB_STEP_SUMMARY" --fail-underexposure
       - run: python -m build
       - run: python scripts/verify_release_artifacts.py --dist dist
       - run: python -m pip_audit

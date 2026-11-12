@@ -37,6 +37,7 @@ def main() -> None:
     parser.add_argument("--previous", type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--summary", type=Path, help="Optional bounded review/CI Markdown summary")
+    parser.add_argument("--fail-underexposure", action="store_true")
     args = parser.parse_args()
     result = capability_evolution(load(args.previous) if args.previous else (), load(args.current))
     result["inputs"] = {
@@ -55,6 +56,20 @@ def main() -> None:
             "models": result["current_model_count"],
             "executable_methods": result["completeness"]["executable_method_count"],
             "dispositions": result["completeness"]["dispositions"],
+            "underexposure_defect_count": result["completeness"]["underexposure_defect_count"],
+            "actionable_constraints": [
+                {"model_id": model["model_id"], **row}
+                for model in result["completeness"]["models"]
+                for row in model["rows"]
+                if row.get("classification")
+                in {
+                    "CAPABILITY_UNDEREXPOSURE_DEFECT",
+                    "STALE_EVIDENCE",
+                    "MISSING_UPSTREAM_CONTRACT",
+                    "IMPLEMENTATION_GAP",
+                    "CONTRACT_CONFLICT",
+                }
+            ][:100],
             "changes": result["changes"][:100],
             "remaining_change_count": max(0, len(result["changes"]) - 100),
             "accounting_is_execution_proof": False,
@@ -76,6 +91,8 @@ def main() -> None:
         )
         + "\n"
     )
+    if args.fail_underexposure and result["completeness"]["underexposure_defect_count"]:
+        raise SystemExit(2)
 
 
 if __name__ == "__main__":

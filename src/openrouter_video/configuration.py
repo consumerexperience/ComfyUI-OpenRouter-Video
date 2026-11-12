@@ -131,7 +131,20 @@ def normalize_request_shapes(raw: object) -> dict[str, Any]:
                     raise ValueError("Invalid declared seed integer bounds")
         topology = entry.get("topology", {})
         if entry["state"] == "SUPPORTED":
-            if set(topology) - {"source_alternative"} != {
+            if set(topology) - {
+                "source_alternative",
+                "per_kind_min",
+                "required_kinds",
+                "mutually_exclusive",
+                "constraint_state",
+                "constraint_evidence",
+                "transport_max",
+                "transport_per_kind_max",
+                "transport_min",
+                "transport_per_kind_min",
+                "transport_required_kinds",
+                "transport_mutually_exclusive",
+            } != {
                 "fixed",
                 "reference_kinds",
                 "kind_sets",
@@ -155,13 +168,77 @@ def normalize_request_shapes(raw: object) -> dict[str, Any]:
             if any(not set(s) <= set(topology["reference_kinds"]) for s in topology["kind_sets"]):
                 raise ValueError("Invalid reference combination")
             low, high = topology["min"], topology["max"]
-            if type(low) is not int or type(high) is not int or not 0 <= low <= high <= 100:
+            if (
+                type(low) is not int
+                or low < 0
+                or (high is not None and (type(high) is not int or high < low))
+            ):
                 raise ValueError("Invalid reference bounds")
             if any(
-                k not in kinds or type(v) is not int or v < 1
+                k not in kinds or type(v) is not int or v < 0
                 for k, v in topology["per_kind_max"].items()
             ):
                 raise ValueError("Invalid per-kind limit")
+            for k, v in topology.get("per_kind_min", {}).items():
+                if k not in kinds or type(v) is not int or v < 0:
+                    raise ValueError("Invalid per-kind minimum")
+            if not set(topology.get("required_kinds", [])) <= set(topology["reference_kinds"]):
+                raise ValueError("Invalid required media kinds")
+            if any(
+                not set(group) <= kinds or len(set(group)) < 2
+                for group in topology.get("mutually_exclusive", [])
+            ):
+                raise ValueError("Invalid mutually exclusive media kinds")
+            if topology.get("constraint_state", "SUPPORTED") not in states:
+                raise ValueError("Invalid input constraint state")
+            for name in ("transport_min", "transport_max"):
+                transport = topology.get(name)
+                if transport is not None and (type(transport) is not int or transport < 0):
+                    raise ValueError("Invalid transport total bound")
+            if any(
+                k not in kinds or type(v) is not int or v < 0
+                for k, v in topology.get("transport_per_kind_max", {}).items()
+            ):
+                raise ValueError("Invalid transport per-kind bound")
+            if any(
+                k not in kinds or type(v) is not int or v < 0
+                for k, v in topology.get("transport_per_kind_min", {}).items()
+            ):
+                raise ValueError("Invalid transport per-kind minimum")
+            if not set(topology.get("transport_required_kinds", [])) <= kinds or any(
+                not isinstance(group, list)
+                or not all(isinstance(k, str) and k in kinds for k in group)
+                or len(set(group)) < 2
+                for group in topology.get("transport_mutually_exclusive", [])
+            ):
+                raise ValueError("Invalid transport media combination")
+            declarations = topology.get("constraint_evidence", {})
+            if not isinstance(declarations, dict):
+                raise ValueError("Invalid input constraint provenance")
+            for field, declaration in declarations.items():
+                if field not in {
+                    "max",
+                    "per_kind_max",
+                    "per_kind_min",
+                    "required_kinds",
+                    "mutually_exclusive",
+                } or not isinstance(declaration, dict):
+                    raise ValueError("Invalid scoped input constraint declaration")
+                if declaration.get("state") not in states or declaration.get("scope") not in {
+                    None,
+                    "method",
+                    "total",
+                    "per_kind",
+                }:
+                    raise ValueError("Invalid scoped input constraint status")
+                if declaration.get("state") == "SUPPORTED" and not declaration.get("source"):
+                    raise ValueError("Confirmed input bound needs explicit provenance")
+                if any(
+                    not isinstance(v, str)
+                    for k, v in declaration.items()
+                    if k in {"source", "reason", "classification"}
+                ):
+                    raise ValueError("Invalid input constraint provenance text")
         if entry.get("media_limits"):
             for role, limits in entry["media_limits"].items():
                 if role not in {"source_video", "image", "video", "audio"} or not isinstance(
@@ -173,6 +250,13 @@ def normalize_request_shapes(raw: object) -> dict[str, Any]:
                     "min_duration_seconds",
                     "max_bytes",
                     "max_total_duration_seconds",
+                    "max_combined_duration_seconds",
+                    "min_width",
+                    "max_width",
+                    "min_height",
+                    "max_height",
+                    "min_pixels",
+                    "max_pixels",
                 }:
                     raise ValueError("Unknown media limit")
                 if any(
@@ -609,10 +693,12 @@ def derive_catalogue_method(model: ModelCapabilities, method: str) -> dict[str, 
     def positive(key: str) -> bool:
         return key in live and live[key].state is CapabilityFactState.SUPPORTED
 
-    if not (positive("reference_kinds") and positive("max_reference_count")):
+    if not positive("reference_kinds") or not (
+        positive("max_reference_count") or positive("per_kind_max")
+    ):
         return None
     refs = model.input_reference_capabilities
-    if refs is None or refs.reference_kinds is None or refs.max_reference_count is None:
+    if refs is None or refs.reference_kinds is None:
         return None
     kinds = sorted(k.value for k in refs.reference_kinds)
     maximum = refs.max_reference_count
@@ -623,16 +709,18 @@ def derive_catalogue_method(model: ModelCapabilities, method: str) -> dict[str, 
         if not positive("mixed_reference_kinds") or refs.mixed_reference_kinds is not True:
             return None
         sets = [
-            list(s) for n in range(2, min(len(kinds), maximum) + 1) for s in combinations(kinds, n)
+            list(s)
+            for n in range(2, min(len(kinds), maximum if maximum is not None else len(kinds)) + 1)
+            for s in combinations(kinds, n)
         ]
     elif method in selected and selected[method] in kinds:
         kinds = [selected[method]]
         sets = [kinds]
         if method == "IR2V":
-            maximum = min(1, maximum)
+            maximum = min(1, maximum) if maximum is not None else 1
     else:
         return None
-    if not sets or maximum < minimum:
+    if not sets or (maximum is not None and maximum < minimum):
         return None
     return {
         "state": "SUPPORTED",
@@ -654,9 +742,212 @@ def derive_catalogue_method(model: ModelCapabilities, method: str) -> dict[str, 
             "kind_sets": sets,
             "min": minimum,
             "max": maximum,
-            "per_kind_max": {k: maximum for k in kinds},
+            "per_kind_max": {},
         },
     }
+
+
+def effective_input_constraints(
+    model: ModelCapabilities, method: str, entry: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Compose independent scoped bounds; a per-kind cap never becomes a total."""
+    topology = dict(entry.get("topology", {}))
+    if not topology:
+        return topology
+    topology["per_kind_max"] = dict(topology.get("per_kind_max", {}))
+    live = {
+        f.key: f
+        for f in model.evidence_facts
+        if f.authority == "LIVE_STRUCTURED_API" and f.state is CapabilityFactState.SUPPORTED
+    }
+    trace: list[dict[str, Any]] = []
+    invalid = False
+    declarations = topology.get("constraint_evidence", {})
+    unresolved = {k for k, v in declarations.items() if v.get("state") in {"UNKNOWN", "CONFLICT"}}
+    original_state = topology.get("constraint_state")
+    for key, declaration in declarations.items():
+        if declaration.get("state") in {"UNKNOWN", "CONFLICT"}:
+            if key == "max":
+                topology["max"] = None
+            elif key in {"per_kind_max", "per_kind_min"}:
+                topology[key] = {}
+            topology["constraint_state"] = declaration["state"]
+            trace.append(
+                {
+                    "field": key,
+                    "classification": declaration.get(
+                        "classification", "MISSING_UPSTREAM_CONTRACT"
+                    ),
+                    "source": declaration.get("source"),
+                    "reason": declaration.get("reason", "Unverified constraint"),
+                }
+            )
+    kinds = set(topology.get("reference_kinds", []))
+    source_transport = "source_video" in topology.get("fixed", [])
+    for key in ("per_kind_max", "per_kind_min"):
+        fact = live.get(key)
+        if fact is None:
+            continue
+        value = fact.value
+        if not isinstance(value, dict) or any(
+            k not in {"image", "video", "audio"} or type(v) is not int or v < 0
+            for k, v in value.items()
+        ):
+            topology["constraint_state"] = "UNKNOWN"
+            invalid = True
+            continue
+        old = topology.get(key, {})
+        topology[key] = {k: v for k, v in value.items() if k in kinds}
+        if source_transport:
+            topology["transport_" + key] = dict(value)
+            topology[key] = (
+                dict(old)
+                if REQUEST_SHAPES_KEY in live or declarations.get(key, {}).get("scope") == "method"
+                else {}
+            )
+        if REQUEST_SHAPES_KEY in live or (
+            declarations.get(key, {}).get("scope") == "method"
+            and declarations[key].get("state") == "SUPPORTED"
+            and declarations[key].get("source", "").startswith("https://openrouter.ai/")
+        ):
+            topology[key] = {
+                k: min(v, old[k])
+                if key == "per_kind_max" and k in old
+                else max(v, old[k])
+                if key == "per_kind_min" and k in old
+                else v
+                for k, v in topology[key].items()
+            }
+        unresolved.discard(key)
+        if (
+            key == "per_kind_max"
+            and REQUEST_SHAPES_KEY not in live
+            and declarations.get("max", {}).get("scope") != "method"
+            and topology.get("max") is not None
+            and declarations.get("max", {}).get("state") != "SUPPORTED"
+        ):
+            trace.append(
+                {
+                    "field": "max",
+                    "classification": "STALE_EVIDENCE",
+                    "previous": topology["max"],
+                    "effective": None,
+                    "source": fact.source_reference,
+                    "reason": "Historical total cannot suppress confirmed per-kind capacity",
+                }
+            )
+            topology["max"] = None
+        if method == "IR2V" and key == "per_kind_max" and "image" in topology[key]:
+            topology[key]["image"] = min(1, topology[key]["image"])
+        trace.append(
+            {
+                "field": key,
+                "classification": "AUTOMATICALLY_RECONCILED",
+                "previous": old,
+                "effective": topology[key],
+                "source": fact.source_reference,
+            }
+        )
+    cap = live.get("max_reference_count")
+    minimum = live.get("min_reference_count")
+    if minimum is not None:
+        if type(minimum.value) is not int or minimum.value < 0:
+            invalid = True
+            topology["constraint_state"] = "UNKNOWN"
+        elif source_transport:
+            topology["transport_min"] = minimum.value
+        else:
+            topology["min"] = max(topology.get("min", 0), minimum.value)
+    valid_cap = cap is not None and type(cap.value) is int and cap.value >= 0
+    if cap is not None and not valid_cap:
+        invalid = True
+        topology["constraint_state"] = "UNKNOWN"
+    if valid_cap and source_transport and cap is not None:
+        topology["transport_max"] = cap.value
+    if valid_cap and kinds and not source_transport and cap is not None and type(cap.value) is int:
+        maximum = min(1, cap.value) if method == "IR2V" else cap.value
+        old = topology.get("max")
+        scoped = declarations.get("max", {}).get("scope") == "method" and declarations.get(
+            "max", {}
+        ).get("source", "").startswith("https://openrouter.ai/")
+        topology["max"] = (
+            min(old, maximum)
+            if old is not None and (REQUEST_SHAPES_KEY in live or scoped)
+            else maximum
+        )
+        if (
+            declarations.get("max", {}).get("scope") != "method"
+            or declarations.get("max", {}).get("classification") == "STALE_EVIDENCE"
+        ):
+            unresolved.discard("max")
+        trace.append(
+            {
+                "field": "max",
+                "classification": "CONFIRMED_OPENROUTER_RESTRICTION",
+                "previous": old,
+                "effective": topology["max"],
+                "source": cap.source_reference,
+            }
+        )
+    for key, target in (
+        ("required_reference_kinds", "required_kinds"),
+        ("mutually_exclusive_reference_kinds", "mutually_exclusive"),
+    ):
+        if key in live:
+            value = live[key].value
+            valid = isinstance(value, list) and (
+                all(isinstance(k, str) and k in {"image", "video", "audio"} for k in value)
+                if target == "required_kinds"
+                else all(
+                    isinstance(group, list)
+                    and all(isinstance(k, str) for k in group)
+                    and len(set(group)) >= 2
+                    and set(group) <= {"image", "video", "audio"}
+                    for group in value
+                )
+            )
+            if valid:
+                topology["transport_" + target if source_transport else target] = value
+                unresolved.discard(target)
+            else:
+                topology["constraint_state"] = "UNKNOWN"
+                invalid = True
+    if (
+        kinds
+        and topology.get("max") is None
+        and not kinds
+        <= (set(topology["per_kind_max"]) | set(topology.get("transport_per_kind_max", {})))
+    ):
+        topology["constraint_state"] = "UNKNOWN"
+    if (
+        "max" in unresolved
+        and declarations["max"].get("classification") == "STALE_EVIDENCE"
+        and "per_kind_max" in live
+        and kinds <= set(topology["per_kind_max"])
+        and (
+            len(kinds) == 1
+            or "mixed_reference_kinds" in live
+            and live["mixed_reference_kinds"].value is True
+        )
+    ):
+        unresolved.discard("max")
+    if (
+        not invalid
+        and not unresolved
+        and original_state is None
+        and kinds
+        and (valid_cap or kinds <= set(topology["per_kind_max"]))
+        and declarations
+        and topology.get("constraint_state") == "UNKNOWN"
+    ):
+        topology["constraint_state"] = "SUPPORTED"
+    if trace:
+        topology["reconciliation"] = trace
+    if any(
+        topology.get("per_kind_min", {}).get(k, 0) > v for k, v in topology["per_kind_max"].items()
+    ) or any(topology["per_kind_max"].get(k) == 0 for k in topology.get("required_kinds", [])):
+        topology["constraint_state"] = "CONFLICT"
+    return topology
 
 
 def project_method(model: ModelCapabilities, method: str) -> dict[str, Any]:
@@ -719,44 +1010,52 @@ def project_method(model: ModelCapabilities, method: str) -> dict[str, Any]:
         else:
             entry = {"state": "UNKNOWN"}
     state = entry["state"]
+    live_recipe = any(
+        f.key == REQUEST_SHAPES_KEY
+        and f.authority == "LIVE_STRUCTURED_API"
+        and f.state is CapabilityFactState.SUPPORTED
+        for f in model.evidence_facts
+    )
     if (
         state == "UNKNOWN"
         and method == "T2V"
         and (model.supports_text_only is False or model.source_required is True)
     ):
         state = "UNSUPPORTED"
-    topology = dict(entry.get("topology", {}))
+    topology = effective_input_constraints(model, method, entry)
+    if topology.get("constraint_state") in {"UNKNOWN", "CONFLICT"}:
+        state = topology["constraint_state"]
     if state == "SUPPORTED" and topology.get("min") == topology.get("max") == 0:
         topology["kind_sets"] = [[]]
     if state == "SUPPORTED":
         frames = model.supported_frame_types
         for role in topology["fixed"]:
             if role in {"first_frame", "last_frame"}:
-                if frames is None:
+                if frames is None and not live_recipe:
                     state = "UNKNOWN"
-                elif role not in {frame.value for frame in frames}:
+                elif frames is not None and role not in {frame.value for frame in frames}:
                     state = "CONFLICT"
         refs = model.input_reference_capabilities
-        if topology["max"]:
-            if refs is None or refs.reference_kinds is None:
+        if topology.get("reference_kinds"):
+            if (refs is None or refs.reference_kinds is None) and not live_recipe:
                 state = "UNKNOWN"
-            elif refs.conflicts:
+            elif refs is not None and refs.conflicts and not live_recipe:
                 state = "CONFLICT"
-            else:
+            elif refs is not None and refs.reference_kinds is not None:
                 kinds = {kind.value for kind in refs.reference_kinds}
                 topology["reference_kinds"] = [
                     kind for kind in topology["reference_kinds"] if kind in kinds
                 ]
                 topology["kind_sets"] = [s for s in topology["kind_sets"] if set(s) <= kinds]
-                if refs.max_reference_count is not None:
-                    topology["max"] = min(topology["max"], refs.max_reference_count)
                 topology["kind_sets"] = [
                     s
                     for s in topology["kind_sets"]
-                    if len(s) <= topology["max"]
+                    if (topology["max"] is None or len(s) <= topology["max"])
                     and (len(s) < 2 or refs.mixed_reference_kinds is not False)
                 ]
-                if not topology["kind_sets"] or topology["max"] < topology["min"]:
+                if not topology["kind_sets"] or (
+                    topology["max"] is not None and topology["max"] < topology["min"]
+                ):
                     state = "CONFLICT"
         if method == "T2V" and (model.supports_text_only is False or model.source_required is True):
             state = "CONFLICT"
@@ -936,18 +1235,216 @@ def project_semantic_values(
     for role in ("first_frame", "last_frame", "source_video"):
         result[role] = values.get(role) if role in profile["topology"]["fixed"] else None
     for role in ("direct_references", "input_references"):
-        result[role] = values.get(role) if profile["topology"]["max"] else None
+        result[role] = values.get(role) if profile["topology"].get("reference_kinds") else None
     return result
 
 
-def projected_shape_valid(profile: Mapping[str, Any], kinds: tuple[str, ...]) -> bool:
+def apply_transport_input_constraints(
+    topology: Mapping[str, Any], source_present: bool
+) -> dict[str, Any]:
+    """Transport counts include the actual source, independently of optional references."""
+    result = dict(topology)
+    result["per_kind_max"] = dict(topology.get("per_kind_max", {}))
+    result["per_kind_min"] = dict(topology.get("per_kind_min", {}))
+    if topology.get("transport_min") is not None:
+        result["min"] = max(
+            result.get("min", 0), max(0, topology["transport_min"] - int(source_present))
+        )
+    cap = topology.get("transport_max")
+    if cap is not None:
+        remaining = cap - int(source_present)
+        if remaining < 0:
+            result["constraint_state"] = "CONFLICT"
+        result["max"] = (
+            min(result["max"], remaining) if result.get("max") is not None else remaining
+        )
+    for kind, maximum in topology.get("transport_per_kind_max", {}).items():
+        remaining = maximum - int(source_present and kind == "video")
+        if remaining < 0:
+            result["constraint_state"] = "CONFLICT"
+        if kind in topology.get("reference_kinds", []):
+            old = result["per_kind_max"].get(kind)
+            result["per_kind_max"][kind] = min(old, remaining) if old is not None else remaining
+    for kind, minimum in topology.get("transport_per_kind_min", {}).items():
+        remaining = max(0, minimum - int(source_present and kind == "video"))
+        result["per_kind_min"][kind] = max(result["per_kind_min"].get(kind, 0), remaining)
+    result["required_kinds"] = sorted(
+        set(topology.get("required_kinds", []))
+        | (
+            set(topology.get("transport_required_kinds", []))
+            - ({"video"} if source_present else set())
+        )
+    )
+    result["mutually_exclusive"] = list(topology.get("mutually_exclusive", []))
+    for group in topology.get("transport_mutually_exclusive", []):
+        if source_present and "video" in group:
+            for kind in group:
+                if kind != "video":
+                    result["per_kind_max"][kind] = 0
+        else:
+            result["mutually_exclusive"].append(group)
+    return result
+
+
+def projected_shape_valid(
+    profile: Mapping[str, Any], kinds: tuple[str, ...], source_present: bool = False
+) -> bool:
     """Validate complete ordered shape, without deriving a Cartesian modality set."""
-    topology = profile["topology"]
-    if not topology["min"] <= len(kinds) <= topology["max"]:
+    topology = apply_transport_input_constraints(profile["topology"], source_present)
+    if topology.get("constraint_state", "SUPPORTED") != "SUPPORTED":
+        return False
+    if len(kinds) < topology["min"] or (
+        topology["max"] is not None and len(kinds) > topology["max"]
+    ):
         return False
     if set(kinds) not in [set(s) for s in topology["kind_sets"]]:
         return False
-    return all(kinds.count(k) <= v for k, v in topology["per_kind_max"].items())
+    return (
+        all(kinds.count(k) <= v for k, v in topology["per_kind_max"].items())
+        and all(kinds.count(k) >= v for k, v in topology.get("per_kind_min", {}).items())
+        and set(topology.get("required_kinds", [])) <= set(kinds)
+        and not any(
+            len(set(group) & set(kinds)) > 1 for group in topology.get("mutually_exclusive", [])
+        )
+    )
+
+
+def input_constraint_reconciliation(
+    model: ModelCapabilities, method: str, profile: Mapping[str, Any]
+) -> list[dict[str, Any]]:
+    """Machine-check current structured evidence against the actual projected bounds."""
+    topology = profile.get("topology", {})
+    result = list(topology.get("reconciliation", []))
+    direct = {
+        f.key: f
+        for f in model.evidence_facts
+        if f.authority == "LIVE_STRUCTURED_API" and f.state is CapabilityFactState.SUPPORTED
+    }
+    recipe = direct.get(REQUEST_SHAPES_KEY)
+    expected_topology = (
+        recipe.value.get("methods", {}).get(method, {}).get("topology", {})
+        if recipe and isinstance(recipe.value, dict)
+        else {}
+    )
+    if expected_topology:
+        expected_max, actual_max = expected_topology.get("max"), topology.get("max")
+        smaller = actual_max is not None and (expected_max is None or actual_max < expected_max)
+        if smaller and "max_reference_count" not in direct:
+            result.append(
+                {
+                    "field": "max",
+                    "classification": "CAPABILITY_UNDEREXPOSURE_DEFECT",
+                    "expected": expected_max,
+                    "effective": actual_max,
+                    "reason": "Effective total restricts the current contract without proven cap",
+                }
+            )
+        if {tuple(sorted(s)) for s in expected_topology.get("kind_sets", [])} - {
+            tuple(sorted(s)) for s in topology.get("kind_sets", [])
+        }:
+            result.append(
+                {
+                    "field": "kind_sets",
+                    "classification": "CAPABILITY_UNDEREXPOSURE_DEFECT",
+                    "reason": "Confirmed combinations disappeared from projection",
+                }
+            )
+        if (
+            profile.get("state") == "UNKNOWN"
+            and topology.get("constraint_state", "SUPPORTED") == "SUPPORTED"
+            and all(
+                v.get("state") == "SUPPORTED"
+                for v in profile.get("controls", {}).values()
+                if v.get("required", False)
+            )
+        ):
+            result.append(
+                {
+                    "field": "state",
+                    "classification": "IMPLEMENTATION_GAP",
+                    "reason": "Recipe unavailable: inspect non-topology contract gaps",
+                }
+            )
+    maxima = direct.get("per_kind_max")
+    proven_method_cap = bool(expected_topology and expected_topology.get("max") is not None) or (
+        topology.get("constraint_evidence", {}).get("max", {}).get("state") == "SUPPORTED"
+    )
+    if (
+        maxima is not None
+        and isinstance(maxima.value, dict)
+        and "max_reference_count" not in direct
+        and not proven_method_cap
+    ):
+        potential = max(
+            (
+                sum(maxima.value.get(k, 0) for k in group)
+                for group in topology.get("kind_sets", [])
+                if all(type(maxima.value.get(k)) is int for k in group)
+            ),
+            default=0,
+        )
+        actual = topology.get("max")
+        if method != "IR2V" and actual is not None and actual < potential:
+            result.append(
+                {
+                    "field": "max",
+                    "classification": "CAPABILITY_UNDEREXPOSURE_DEFECT",
+                    "expected": None,
+                    "effective": actual,
+                    "reason": "Unproven total ceiling truncates confirmed per-kind capacities",
+                }
+            )
+    for fact in model.evidence_facts:
+        if "STALE_EVIDENCE" in fact.scope:
+            result.append(
+                {
+                    "field": fact.key,
+                    "classification": "STALE_EVIDENCE",
+                    "source": fact.source_reference,
+                    "reason": fact.scope,
+                }
+            )
+        if (
+            fact.authority != "LIVE_STRUCTURED_API"
+            or fact.state is not CapabilityFactState.SUPPORTED
+        ):
+            continue
+        if fact.key == "per_kind_max" and isinstance(fact.value, dict):
+            for kind, expected in fact.value.items():
+                if kind not in topology.get("reference_kinds", []) or method == "IR2V":
+                    continue
+                actual = topology.get("per_kind_max", {}).get(kind)
+                scoped = topology.get("constraint_evidence", {}).get("per_kind_max", {})
+                proven = expected_topology.get("per_kind_max", {}).get(kind) is not None or (
+                    scoped.get("state") == "SUPPORTED" and scoped.get("scope") == "method"
+                )
+                defect = (
+                    not proven and type(expected) is int and (actual is None or actual < expected)
+                )
+                result.append(
+                    {
+                        "field": "per_kind_max." + kind,
+                        "classification": "CAPABILITY_UNDEREXPOSURE_DEFECT"
+                        if defect
+                        else "CONFIRMED_OPENROUTER_RESTRICTION"
+                        if proven and actual is not None and actual < expected
+                        else "AUTOMATICALLY_RECONCILED",
+                        "expected": expected,
+                        "effective": actual,
+                        "source": fact.source_reference,
+                        "reason": "Current per-kind capacity versus effective UI profile",
+                    }
+                )
+    if topology.get("reference_kinds") and not topology.get("reconciliation"):
+        result.append(
+            {
+                "field": "max",
+                "classification": "MISSING_UPSTREAM_CONTRACT",
+                "effective": topology.get("max"),
+                "reason": "Historical bound lacks current structured method-limit confirmation",
+            }
+        )
+    return result
 
 
 def finite_domain(raw: object, *, numeric: bool = False) -> list[Any]:

@@ -20,6 +20,28 @@ SNAPSHOTS = json.loads(
 
 def _digest(path: str, selected: list[str] | None) -> str:
     tree = ast.parse((ROOT / path).read_text(encoding="utf-8"))
+    if path == "src/openrouter_video/image_transport.py" and selected is None:
+        # Owner abcc0172 authorizes one metadata reader; retain the complete
+        # historical AST shield for the canonical PNG validator and constants.
+        helpers = [
+            n
+            for n in tree.body
+            if isinstance(n, ast.FunctionDef) and n.name == "image_data_url_metadata"
+        ]
+        assert len(helpers) == 1
+        tree.body.remove(helpers[0])
+        exported = next(
+            n
+            for n in tree.body
+            if isinstance(n, ast.Assign)
+            and any(isinstance(t, ast.Name) and t.id == "__all__" for t in n.targets)
+        )
+        assert isinstance(exported.value, ast.Tuple)
+        exported.value.elts = [
+            e
+            for e in exported.value.elts
+            if not (isinstance(e, ast.Constant) and e.value == "image_data_url_metadata")
+        ]
     nodes = (
         tree.body
         if selected is None

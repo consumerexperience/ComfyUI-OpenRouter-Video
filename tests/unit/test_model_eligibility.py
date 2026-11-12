@@ -11,11 +11,16 @@ from typing import Any, cast
 import httpx
 import pytest
 
-from openrouter_video.capabilities import RequestValidator
+from openrouter_video.capabilities import (
+    CapabilityModeStatus,
+    RequestValidator,
+    inference_method_matrix,
+)
 from openrouter_video.client import OpenRouterVideoClient, _parse_capability
+from openrouter_video.configuration import project_method
 from openrouter_video.eligibility import eligible_methods, request_witness
 from openrouter_video.evidence_registry import enrich_capabilities
-from openrouter_video.models import CapabilityFactState, InferenceMethod
+from openrouter_video.models import CapabilityFactState, InferenceMethod, ModelCapabilities
 from openrouter_video.transport import HttpxTransport
 from tests.projection_fixtures import synthetic_projected_model
 from tests.unit.test_client import _policy
@@ -228,9 +233,25 @@ def test_op07_evidence_delta_preserves_every_other_model_and_historical_conflict
         "minimax/hailuo-3-max",
         "alibaba/wan-2.6",
         "alibaba/wan-2.7",
+        # Owner attachment abcc0172: quarantine the unproven historical MI2V/MMR2V
+        # three-reference caps as stale evidence; do not promote native 9/3/3.
+        "bytedance/seedance-2.0",
+        "bytedance/seedance-2.0-fast",
+        "bytedance/seedance-2.0-mini",
+    }
+    seedance_quarantine = {
+        "bytedance/seedance-2.0",
+        "bytedance/seedance-2.0-fast",
+        "bytedance/seedance-2.0-mini",
     }
     for model in before["models"]:
-        if model["exact_model_id"] not in reviewed_delta:
+        model_id = model["exact_model_id"]
+        if model_id in seedance_quarantine:
+            assert_seedance_reference_caps_quarantined(model, mapping[model_id])
+            assert_reconciled_scalar_delta(
+                model, mapping[model_id], allow_stale_seedance_reference_caps=True
+            )
+        elif model_id not in reviewed_delta:
             assert_reconciled_scalar_delta(model, mapping[model["exact_model_id"]])
 
 
@@ -263,7 +284,58 @@ def test_eligibility_compatibility_exports_have_no_independent_implementation() 
     assert request_witness.__module__ == "openrouter_video.capabilities"
 
 
-def assert_reconciled_scalar_delta(before: dict[str, Any], after: dict[str, Any]) -> None:
+def assert_seedance_reference_caps_quarantined(
+    before: dict[str, Any], after: dict[str, Any]
+) -> None:
+    """The old 3-valued fields stay visible as stale evidence, never as effective limits."""
+    model_id = before["exact_model_id"]
+    old_profile = before["facts"]["request_shape_profiles"]
+    new_profile = after["facts"]["request_shape_profiles"]
+    declaration = (
+        "OP07 abcc0172 reconciliation: former MI2V/MMR2V three-input caps are stale, "
+        "not proven OpenRouter restrictions. Do not promote provider-native 9/3/3 into "
+        "OpenRouter executable limits."
+    )
+    assert new_profile["scope"] == f"{old_profile['scope']}; {declaration}"
+
+    old_methods = old_profile["value"]["methods"]
+    new_methods = new_profile["value"]["methods"]
+    for method in ("MI2V", "MMR2V"):
+        old_method = old_methods[method]
+        new_method = new_methods[method]
+        assert new_method["state"] == old_method["state"]
+        old_topology = old_method["topology"]
+        new_topology = new_method["topology"]
+        assert new_topology["max"] == old_topology["max"] == 3
+        assert new_topology["per_kind_max"] == old_topology["per_kind_max"]
+        assert set(new_topology) - set(old_topology) == {"constraint_evidence"}
+        evidence = new_topology["constraint_evidence"]
+        for field, scope in (("max", "total"), ("per_kind_max", "per_kind")):
+            item = evidence[field]
+            assert item["state"] == "UNKNOWN"
+            assert item["classification"] == "STALE_EVIDENCE"
+            assert item["scope"] == scope
+            assert item["source"] == (
+                "https://openrouter.ai/docs/guides/overview/multimodal/video-generation"
+            )
+            assert "native video3 does not establish total3 or image3" in item["reason"]
+
+    effective = enrich_capabilities(ModelCapabilities(model_id))
+    for method in (InferenceMethod.MI2V, InferenceMethod.MMR2V):
+        assert inference_method_matrix(effective)[method] is CapabilityModeStatus.UNKNOWN
+        assert project_method(effective, method.value)["state"] == "UNKNOWN"
+        topology = project_method(effective, method.value)["topology"]
+        assert topology["max"] is None
+        assert topology["per_kind_max"] == {}
+        assert topology["constraint_state"] == "UNKNOWN"
+
+
+def assert_reconciled_scalar_delta(
+    before: dict[str, Any],
+    after: dict[str, Any],
+    *,
+    allow_stale_seedance_reference_caps: bool = False,
+) -> None:
     """Current positive scalar reconciliation cannot alter topology or other facts."""
     import copy
 
@@ -272,10 +344,21 @@ def assert_reconciled_scalar_delta(before: dict[str, Any], after: dict[str, Any]
     )["data"]
     raw = next(m for m in catalogue if m["id"] == before["exact_model_id"])
     restored = copy.deepcopy(after)
+    if allow_stale_seedance_reference_caps:
+        assert before["exact_model_id"] in {
+            "bytedance/seedance-2.0",
+            "bytedance/seedance-2.0-fast",
+            "bytedance/seedance-2.0-mini",
+        }
+        profile = restored["facts"]["request_shape_profiles"]
+        profile["scope"] = before["facts"]["request_shape_profiles"]["scope"]
     old_methods = before["facts"]["request_shape_profiles"]["value"]["methods"]
     new_methods = restored["facts"]["request_shape_profiles"]["value"]["methods"]
     for method, old in old_methods.items():
         new = new_methods[method]
+        if allow_stale_seedance_reference_caps and method in {"MI2V", "MMR2V"}:
+            assert "constraint_evidence" in new["topology"]
+            new["topology"].pop("constraint_evidence")
         if old.get("controls", {}).get("aspect_ratio") != new.get("controls", {}).get(
             "aspect_ratio"
         ):

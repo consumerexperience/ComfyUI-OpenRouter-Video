@@ -167,13 +167,13 @@ test("visible reference sockets lead hidden widget inputs and preserve link slot
         ],
     );
     assert.equal(context.app.graph.links[7].target_slot, 0);
-    assert.equal(target.__orvReferenceSummary, "1 connected · 1 remaining");
+    assert.equal(target.__orvReferenceSummary, "1 connected · image 1 · 1 remaining");
 
     target.inputs[1].link = 8;
     context.app.graph.links[8] = { target_id: 42, target_slot: 1, origin_id: 9 };
     context.configureReferenceTopology(target, { max_reference_count: 2, __methodProfile: { topology: { fixed: [], reference_kinds: ["image"], kind_sets: [["image"]], min: 2, max: 2, per_kind_max: { image: 2 } } } }, "MI2V");
     assert.equal(target.inputs.filter((item) => item.name.startsWith("direct_references.")).length, 2);
-    assert.equal(target.__orvReferenceSummary, "2 connected · maximum reached");
+    assert.equal(target.__orvReferenceSummary, "2 connected · image 2 · maximum reached");
     assert.equal(context.app.graph.links[7].target_slot, 0);
     assert.equal(context.app.graph.links[8].target_slot, 1);
 });

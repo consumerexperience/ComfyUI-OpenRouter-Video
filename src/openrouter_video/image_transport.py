@@ -37,4 +37,19 @@ def is_supported_image_data_url(value: str) -> bool:
     return bool(struct.unpack(">I", binary[29:33])[0] == zlib.crc32(binary[12:29]))
 
 
-__all__ = ("MAX_IMAGE_PIXELS", "MAX_PNG_BYTES", "PNG_DATA_PREFIX", "is_supported_image_data_url")
+def image_data_url_metadata(value: str) -> tuple[int, int, int] | None:
+    """Reuse the canonical bounded PNG validator before exposing metadata."""
+    if not is_supported_image_data_url(value):
+        return None
+    binary = base64.b64decode(value[len(PNG_DATA_PREFIX) :], validate=True)
+    width, height = struct.unpack(">II", binary[16:24])
+    return len(binary), width, height
+
+
+__all__ = (
+    "MAX_IMAGE_PIXELS",
+    "MAX_PNG_BYTES",
+    "PNG_DATA_PREFIX",
+    "image_data_url_metadata",
+    "is_supported_image_data_url",
+)

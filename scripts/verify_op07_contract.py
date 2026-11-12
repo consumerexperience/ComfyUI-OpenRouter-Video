@@ -25,6 +25,8 @@ ALLOWED = {
     "src/openrouter_video/models.py": "capabilities",
     "src/openrouter_video/client.py": "capabilities",
     "src/openrouter_video/configuration.py": "capabilities",
+    "src/openrouter_video/evidence_registry.py": "evidence_registry",
+    "src/openrouter_video/image_transport.py": "capabilities",
     "src/openrouter_video/recipes.py": "recipes",
     "src/openrouter_video/comfy/nodes.py": "capabilities",
     "src/openrouter_video/application.py": "submit_resume",
@@ -91,7 +93,8 @@ def main():
                     "provider controls and documented output containers; "
                     "Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite "
                     "evolution metadata, semantic refresh and capability accounting; "
-                    "not release acceptance."
+                    "Owner abcc0172: input reconciliation, media budgets, native metadata "
+                    "and explicit stale bound quarantine; not release acceptance."
                 ),
             }
         )

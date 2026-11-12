@@ -169,6 +169,31 @@ def enrich_capabilities(
             if current is not None:
                 current = normalize_constraints(current)
         if current is not None and current != effective and effective is not None:
+            authoritative = any(
+                f.key == key
+                and f.authority == "LIVE_STRUCTURED_API"
+                and f.state is CapabilityFactState.SUPPORTED
+                for f in model.evidence_facts
+            )
+            if key in reference_fields and authoritative:
+                # Current OpenRouter constraints supersede the same historical field.
+                # Preserve the old observation as stale evidence, not an execution veto.
+                stale = CapabilityFact(
+                    model.model_id,
+                    key,
+                    value,
+                    CapabilityFactState.UNKNOWN,
+                    evidence["authority"],
+                    evidence["source_reference"],
+                    evidence["observed_at"],
+                    evidence["scope"]
+                    + "; STALE_EVIDENCE superseded by current OpenRouter constraint",
+                    data["artifact_version"],
+                    (current, value),
+                )
+                if stale not in facts:
+                    facts.append(stale)
+                continue
             state = CapabilityFactState.CONFLICT
             conflicts += (current, value)
             if key in reference_fields:

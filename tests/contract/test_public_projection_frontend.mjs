@@ -49,11 +49,16 @@ for (const method of ["V2V_EDIT", "V2V_EXTEND"]) test(`Seedance ${method} source
     const away = model("x-ai/grok-imagine-video-1.5-lite");
     widget(n, "model").value = away.model_id;
     apply(n, away);
-    assert(!n.inputs.some(i => i.name === "source_video"));
+    assert.equal(n.inputs.find(i => i.name === "source_video").link, 77);
+    assert.equal(n.__orvReferenceInvalid, true);
+    const requestsBefore = payloads.length;
+    await c.refreshEstimate(n);
+    assert.equal(payloads.length, requestsBefore);
     assert(!widget(n, "inference_method").options.values.includes(method));
     const saved = plain(n.properties);
     const restored = node(capability.model_id, method);
     restored.properties = saved;
+    restored.inputs = plain(n.inputs);
     apply(restored, capability, method);
     assert.equal(restored.inputs.find(i => i.name === "source_video").link, 77);
     assert.equal(widget(restored, "inference_method").value, method);
@@ -136,7 +141,7 @@ test("MI2V sockets are image-only; MMR keeps AUDIO without AUDIO-only completion
     assert(next.split(",").includes("VIDEO"));
 });
 
-test("model/method switch parks incompatible links and save/reload restores compatible origins", () => {
+test("model/method switch preserves incompatible canvas links and legacy parked workflow intent", () => {
     const capability = model("x-ai/grok-imagine-video-1.5-lite");
     const origin = { outputs: [{ type: "IMAGE" }], connect(slot, target, targetSlot) { const id = 9; graph.links[id] = { origin_id: 1, origin_slot: slot, target_id: target.id, target_slot: targetSlot, type: "IMAGE" }; target.inputs[targetSlot].link = id; } };
     graph.nodes[1] = origin;
@@ -144,9 +149,12 @@ test("model/method switch parks incompatible links and save/reload restores comp
     apply(n, capability);
     origin.connect(0, n, n.inputs.findIndex(i => i.name === "first_frame"));
     apply(n, capability, "T2V");
-    assert(!n.inputs.some(i => i.name === "first_frame"));
-    assert.equal(n.properties.orv_capability_intent.media.length, 1);
+    assert.equal(n.inputs.find(i => i.name === "first_frame").link, 9);
+    assert.equal(n.__orvReferenceInvalid, true);
+    assert.equal(n.properties.orv_capability_intent.media.length, 0);
     const saved = plain(n.properties);
+    // Old workflow intent is still restored, without disconnecting current links.
+    saved.orv_capability_intent.media.push({name:"first_frame",kind:"image",type:"IMAGE",origin_id:1,origin_slot:0});
     const reloaded = node(capability.model_id, "I2V");
     reloaded.properties = saved;
     apply(reloaded, capability);
@@ -237,8 +245,9 @@ test("legacy collection shape is known only from the owned typed producer and ca
     assert(!n.inputs.some(input => input.name.startsWith("direct_references.")));
     graph.nodes[102] = { type: "OpenRouterVideoAudioReference" };
     apply(n, capability);
-    assert(!n.inputs.some(input => input.name === "input_references"));
-    assert(n.properties.orv_capability_intent.media.some(input => input.origin_id === 103));
+    assert.equal(n.inputs.find(input => input.name === "input_references").link, 700);
+    assert.equal(n.__orvReferenceInvalid, true);
+    assert(!n.properties.orv_capability_intent.media.some(input => input.origin_id === 103));
 });
 
 test("supported Seed uses confirmed bounds and preserves rejected intent without a deterministic promise", () => {
@@ -413,6 +422,117 @@ test('reviewed prompt constraints are visible without truncating saved text',()=
     apply(n,capability,'I2V');
     assert.equal(widget(n,'prompt').label,'Prompt');
     assert.match(widget(n,'prompt').options.tooltip,/minimum 1 characters/);
+});
+
+test('reference sockets use independent per-kind caps when total is unverified and preserve links',()=>{
+    const capability=plain(currentProjection.models.find(m=>m.model_id==='bytedance/seedance-2.5'));
+    const topology=capability.method_profiles.MMR2V.topology;
+    Object.assign(topology,{reference_kinds:['image','video','audio'],kind_sets:[['image','video'],['image','audio'],['video','audio'],['image','video','audio']],
+        min:0,max:null,per_kind_min:{},per_kind_max:{image:9,video:3,audio:3},required_kinds:[],mutually_exclusive:[],constraint_state:'SUPPORTED'});
+    const n=operationNode(capability.model_id,'MMR2V');apply(n,capability,'MMR2V');
+    const add=(kind,id)=>{
+        c.configureReferenceTopology(n,c.scopedCapability(capability,'MMR2V'),'MMR2V');
+        const input=n.inputs.find(item=>item.name.startsWith('direct_references.reference_')&&item.link==null);
+        assert(input,`expected an available ${kind} socket`);
+        assert(input.type.split(',').includes(kind.toUpperCase()),`${kind} should be accepted`);
+        graph.nodes[id]={outputs:[{type:kind.toUpperCase()}]};
+        graph.links[id]={origin_id:id,origin_slot:0,type:kind.toUpperCase()};input.link=id;
+    };
+    add('image',961);add('image',962);add('video',963);
+    c.configureReferenceTopology(n,c.scopedCapability(capability,'MMR2V'),'MMR2V');
+    assert.equal(n.__orvReferenceSummary,'3 connected · image 2 · video 1 · limit unverified');
+    assert.equal(n.__orvReferenceInvalid,false);
+    for(let i=0;i<7;i++)add('image',970+i);
+    for(let i=0;i<2;i++)add('video',980+i);
+    for(let i=0;i<3;i++)add('audio',990+i);
+    c.configureReferenceTopology(n,c.scopedCapability(capability,'MMR2V'),'MMR2V');
+    assert.equal(n.inputs.filter(item=>item.name.startsWith('direct_references.reference_')&&item.link!=null).length,15);
+    assert(!n.inputs.some(item=>item.name.startsWith('direct_references.reference_')&&item.link==null));
+    assert.match(n.__orvReferenceSummary,/maximum reached$/);
+    assert.equal(n.__orvReferenceInvalid,false);
+});
+
+test('reference completeness honors minima, required kinds, exclusions and uncertain topology fails closed',()=>{
+    const topology={reference_kinds:['image','video','audio'],kind_sets:[['image','video'],['image','audio'],['video','audio'],['image','video','audio']],min:2,max:null,
+        per_kind_min:{image:1},per_kind_max:{image:9,video:3,audio:3},required_kinds:['video'],mutually_exclusive:[['video','audio']],constraint_state:'SUPPORTED'};
+    assert(c.referenceShapeValid(topology,['image','video']));
+    assert(!c.referenceShapeValid(topology,['image']));
+    assert(!c.referenceShapeValid(topology,['image','video','audio']));
+    assert(!c.referenceShapeValid({...topology,constraint_state:'UNKNOWN'},['image','video']));
+    assert(!c.referenceShapeValid({...topology,constraint_state:'CONFLICT'},['image','video']));
+});
+
+test('unknown reference topology keeps connected sockets and exposes an uncertain state',()=>{
+    const capability=plain(currentProjection.models.find(m=>m.model_id==='bytedance/seedance-2.5'));
+    Object.assign(capability.method_profiles.MMR2V.topology,{reference_kinds:['image','video'],kind_sets:[['image','video']],
+        min:0,max:null,per_kind_max:{image:9,video:3},constraint_state:'UNKNOWN'});
+    const n=operationNode(capability.model_id,'MMR2V');
+    n.addInput('direct_references.reference_0','IMAGE,VIDEO,OPENROUTER_VIDEO_INPUT_REFERENCE');
+    graph.nodes[1001]={outputs:[{type:'IMAGE'}]};graph.links[1001]={origin_id:1001,origin_slot:0,type:'IMAGE'};
+    const input=n.inputs[0];input.link=1001;
+    apply(n,capability,'MMR2V');
+    c.configureReferenceTopology(n,c.scopedCapability(capability,'MMR2V'),'MMR2V');
+    assert.equal(n.inputs.find(item=>item.name===input.name).link,1001);
+    assert.match(n.__orvReferenceSummary,/unverified/);
+    assert.equal(n.__orvReferenceInvalid,true);
+});
+
+test('transport input bounds subtract a linked fixed video source but not a previous-job route',()=>{
+    const capability=plain(currentProjection.models.find(m=>m.model_id==='bytedance/seedance-2.5'));
+    const topology=capability.method_profiles.MMR2V.topology;
+    Object.assign(topology,{fixed:['source_video'],reference_kinds:['video'],kind_sets:[[],['video']],
+        min:0,max:null,per_kind_min:{},per_kind_max:{},required_kinds:[],mutually_exclusive:[],
+        transport_max:3,transport_per_kind_max:{video:3},constraint_state:'SUPPORTED'});
+    const makeNode=()=>{
+        const n=operationNode(capability.model_id,'MMR2V');apply(n,capability,'MMR2V');return n;
+    };
+    const connect=(n,kind,id)=>{
+        c.configureReferenceTopology(n,c.scopedCapability(capability,'MMR2V'),'MMR2V');
+        const input=n.inputs.find(item=>item.name.startsWith('direct_references.reference_')&&item.link==null);
+        assert(input,`expected an available ${kind} socket`);
+        graph.nodes[id]={outputs:[{type:kind.toUpperCase()}]};
+        graph.links[id]={origin_id:id,origin_slot:0,type:kind.toUpperCase()};input.link=id;
+    };
+
+    const sourced=makeNode();
+    const source=sourced.inputs.find(item=>item.name==='source_video');
+    graph.nodes[1100]={outputs:[{type:'VIDEO'}]};graph.links[1100]={origin_id:1100,origin_slot:0,type:'VIDEO'};source.link=1100;
+    c.configureReferenceTopology(sourced,c.scopedCapability(capability,'MMR2V'),'MMR2V');
+    connect(sourced,'video',1101);
+    c.configureReferenceTopology(sourced,c.scopedCapability(capability,'MMR2V'),'MMR2V');
+    assert.equal(sourced.__orvReferenceSummary,'1 connected · video 1 · 1 remaining');
+    connect(sourced,'video',1102);
+    c.configureReferenceTopology(sourced,c.scopedCapability(capability,'MMR2V'),'MMR2V');
+    assert.equal(sourced.__orvReferenceSummary,'2 connected · video 2 · maximum reached');
+    assert.equal(sourced.__orvReferenceInvalid,false);
+
+    const previousJob=makeNode();widget(previousJob,'previous_job_id').value='prior-job';
+    for(let i=0;i<3;i++)connect(previousJob,'video',1110+i);
+    c.configureReferenceTopology(previousJob,c.scopedCapability(capability,'MMR2V'),'MMR2V');
+    assert.equal(previousJob.inputs.filter(item=>item.name.startsWith('direct_references.reference_')&&item.link!=null).length,3);
+    assert.equal(previousJob.__orvReferenceSummary,'3 connected · video 3 · maximum reached');
+    assert.equal(previousJob.__orvReferenceInvalid,false);
+});
+
+test('transport minimum and required video are satisfied by the linked fixed source, while exclusivity blocks audio',()=>{
+    const topology={fixed:['source_video'],reference_kinds:['video','audio'],kind_sets:[[],['video'],['audio'],['video','audio']],
+        min:0,max:null,per_kind_min:{},per_kind_max:{},required_kinds:[],mutually_exclusive:[],
+        transport_min:1,transport_per_kind_min:{video:1},transport_required_kinds:['video'],
+        transport_mutually_exclusive:[['video','audio']],constraint_state:'SUPPORTED'};
+    const withoutSource=c.applyTransportInputConstraints(topology,false);
+    assert.equal(withoutSource.min,1);
+    assert.equal(withoutSource.per_kind_min.video,1);
+    assert.deepEqual(plain(withoutSource.required_kinds),['video']);
+    assert(!c.referenceShapeValid(withoutSource,[]));
+    assert(c.referenceShapeValid(withoutSource,['video']));
+
+    const withSource=c.applyTransportInputConstraints(topology,true);
+    assert.equal(withSource.min,0);
+    assert.equal(withSource.per_kind_min.video,0);
+    assert.deepEqual(plain(withSource.required_kinds),[]);
+    assert(c.referenceShapeValid(withSource,[]));
+    assert.equal(withSource.per_kind_max.audio,0);
+    assert(!c.referencePartialAllowed(withSource,['audio']));
 });
 
 test('provider object variants project only selected fields and preserve incompatible workflow intent',()=>{

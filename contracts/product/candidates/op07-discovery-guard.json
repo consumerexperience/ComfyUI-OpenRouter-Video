@@ -11,13 +11,13 @@
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01capabilities_py",
       "operation": "replace",
       "before": "a67e1980c71aa64ddde5c4e2d0f3cec59dd738175ad3297306a1b822893f013c",
-      "after": "e62983735b90d9d5eed2af1c41e6184905d678f8bca0709c8c6deedac0de2e29"
+      "after": "022990427174aa033043f82fd229ccca5363e7641b9027e5e77004c2680d9a85"
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01client_py",
       "operation": "replace",
       "before": "73cc21f9347453bac52616979d45266f6ab023cf6232b29ae6560ea1fa80abe0",
-      "after": "cb9f4e6d0a98a1b31d6886de793a317ba4875ca3fe5ed84937f60faedf89c369"
+      "after": "8c4629c9f3425f1aa7ec7d6d33cdda3f21cda917ee0235d1abffaef6372961a1"
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01compat_py",
@@ -47,7 +47,13 @@
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01configuration_py",
       "operation": "replace",
       "before": "e8a3a63f2255d0fd36d795a5558c61e5705a8332eca35e17060b3cfb31160a0e",
-      "after": "4ab478d436ed92447c57e7366dc65127558cb8f2ce7032353833e339679a5d4b"
+      "after": "158d5d5acca5edfba933e9e5592e73125dd88573003ee405b0974b30b4b58818"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01image_transport_py",
+      "operation": "replace",
+      "before": "b855df55ecf95d08d0aae6972a8f31ddb09945ea4686888ba28c9bef660761f0",
+      "after": "abebb6011eae69993f5077873663557408996415b824b2eabcef3a588ca2a9c5"
     },
     {
       "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01media_py",
@@ -71,13 +77,19 @@
       "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01data~01capability-evidence_json",
       "operation": "replace",
       "before": "ec25bd96a4b12bdb9b0b3b0559dfd8c113c7f2ebf34824719303f044b592844a",
-      "after": "d1332b72c2ae2b66483a0f3af50d66b11d1effaee678d756d66a08470b2c14e9"
+      "after": "02eea621da4bfca22b61b0f1864fc6e0e3296616a0939a346189957f8ff7fca3"
+    },
+    {
+      "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01evidence_registry_py",
+      "operation": "replace",
+      "before": "5586744579d6ebae23c4176d78ae9f9b4a5335aa3978c781f9027adfcd2da457",
+      "after": "8d4cf176439faa8ca3578429db7a2bfee7c8cc7d2413ffc56d469cb8f8dc9b97"
     },
     {
       "path": "/surfaces/product_owned/native_media/src~01openrouter_video~01comfy~01native_media_py",
       "operation": "replace",
       "before": "b299ac091d9191f3dcd35b8611b4b88cba0faa302a0bc9c5502d8c78afea435e",
-      "after": "ecd7c523f9fef5241a8c14018b4280d566f0ccffaf14a3ef7818eee13671433a"
+      "after": "55f0b01337e200732d7290d1cc05bc305712186bf6bedf42caebf834d21f8541"
     },
     {
       "path": "/surfaces/product_owned/recipes/src~01openrouter_video~01recipes_py",
@@ -89,7 +101,7 @@
       "path": "/surfaces/product_owned/storage/src~01openrouter_video~01local_media_py",
       "operation": "replace",
       "before": "67ecfd50ba69076b254c6dfee979535ef0e65d7b62c8f9627d95ec8efdf5fce6",
-      "after": "bc71a70a6446737900a976221b31b2880139f42b5f6e80b48eaaf23b2ae2a5b0"
+      "after": "9ed03216faa922f9bc95735304b33ddc4727df79a16446959192926f7a35cd23"
     },
     {
       "path": "/surfaces/product_owned/submit_resume/src~01openrouter_video~01application_py",
@@ -101,13 +113,13 @@
       "path": "/surfaces/product_owned/submit_resume/src~01openrouter_video~01comfy~01runtime_py",
       "operation": "replace",
       "before": "5690f3efb49086147a307b920841e3e6ec9f750fa0e3e9dbec51f0c5552a45c3",
-      "after": "44d3e29cfff3e0b305c18516e59a1ea15a178de2ec1cd50ee0a4aa5b5119ccec"
+      "after": "2a8ee08cc62b029637eb9226101d99077ac90799885ba9a65553941b4873ab4c"
     },
     {
       "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
       "operation": "replace",
       "before": "ff031603b9ff464096aaae8986970d92984b14f32ad5c92116cf876ecdcd981c",
-      "after": "1d67369772ce95faa3e726dd1f466b5df5717b9616a079630434237166471945"
+      "after": "a1c44444f0676bac6f35a9810c2ed8ca216fc77b3a78482cfd41d11c340deb7e"
     }
   ],
   "UNAUTHORIZED_DELTA": [],
@@ -121,6 +133,6 @@
   "UNKNOWN_DYNAMIC_SURFACES": [],
   "OBSERVED_EVIDENCE_CHANGES": [],
   "ACCEPTED_CONTRACT_DIGEST": "sha256:a2987facf690f1df565e246087f0bc54573f50a1fa80a74a8cfc8a5b1a4c57f5",
-  "CURRENT_CONTRACT_DIGEST": "sha256:5b18cc2109e154a1c3675f331d1cb894e16f8b07a8e9e0ced58a44edb243a0f7",
-  "CONTRACT_DELTA_DIGEST": "sha256:5d2dc5f4a8914ea6426d0b424e9f5e79e4b30ea56e6126966a5514067dcf4958"
+  "CURRENT_CONTRACT_DIGEST": "sha256:4b34d414c8821bd7bb47749dac942a2f46dd211824849da3177861ee23e5c8c9",
+  "CONTRACT_DELTA_DIGEST": "sha256:4c51ffcb9dc47a299b08dc47b19e8e42f09edbf97b6a6fcc918a587ea23949ce"
 }
