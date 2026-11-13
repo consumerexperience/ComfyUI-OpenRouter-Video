@@ -1252,12 +1252,13 @@ function referencePartialAllowed(topology, kinds) {
     });
 }
 
-function legacyReferenceKinds(input, savedOrigin = null) {
-    const link = savedOrigin || app.graph?.links?.[input?.link];
-    const origin = link ? app.graph?.getNodeById?.(link.origin_id) : null;
+function legacyReferenceKinds(input, savedOrigin = null, graph = mediaInputGraphs.get(input) || app.graph) {
+    const link = savedOrigin || mediaLink(graph, input?.link);
+    const origin = link ? graph?.getNodeById?.(link.origin_id) : null;
     if ((origin?.type || origin?.comfyClass) !== "OpenRouterVideoReferenceCollection") return null;
     const linked = (origin.inputs || []).filter(item => item.link != null && /(^|\.)reference_\d+$/.test(item.name));
     linked.sort((a, b) => referenceInputSuffix(a) - referenceInputSuffix(b));
+    for (const item of linked) mediaInputGraphs.set(item, graph);
     const kinds = linked.map(connectedReferenceKind);
     return kinds.every(Boolean) ? kinds : null;
 }
@@ -1529,7 +1530,7 @@ function configureOperationControls(node, profile) {
     return issue;
 }
 
-function reprojectNodeSemantics(node, capability, method) {
+function reprojectNodeSemantics(node, capability, method, transition = {}) {
     const key = `${capability.model_id}|${method || ""}`;
     const intent = capabilityIntent(node);
     const fields = ["resolution", "aspect_ratio", "duration", "size", "seed", "generate_audio", "geometry_authority", "previous_job_id", "upscale_factor", "creativity", "provider_options"];
@@ -1545,7 +1546,7 @@ function reprojectNodeSemantics(node, capability, method) {
     const scoped = scopedCapability(capability, method);
     node.__orvCapability = scoped;
     if (!scoped.supported_sizes.length && geometryAuthority(node) === "EXACT") setGeometryAuthority(node, "NORMALIZED");
-    configureReferenceTopology(node, scoped, method);
+    configureReferenceTopology(node, scoped, method, transition);
     configureGenerationConfiguration(node, scoped);
     for (const name of ["prompt", "duration", "resolution", "aspect_ratio", "size", "seed", "generate_audio"]) {
         setVisible(widget(node, name), scoped.__methodProfile.controls?.[name]?.state === "SUPPORTED");
@@ -1588,42 +1589,181 @@ function reprojectNodeSemantics(node, capability, method) {
     return scoped;
 }
 
-function parkIncompatibleMedia(node, topology) {
-    const intent = capabilityIntent(node);
-    let references = 0;
-    const acceptedKinds = [];
-    const fixed = topology.fixed || [];
-    const legacy = inputByName(node, "input_references");
-    const legacyValid = legacy?.link != null && referenceShapeValid(topology, legacyReferenceKinds(legacy));
-    const currentKinds = directReferenceInputs(node).filter(input => input.link != null).map(connectedReferenceKind);
-    const invalidFallback = node.__orvMethodFallback && currentKinds.length && !referenceShapeValid(topology, currentKinds);
-    for (const input of [...(node.inputs || [])]) {
-        const direct = isDirectReferenceInput(input);
-        if (!direct && !["first_frame", "last_frame", "source_video", "input_references"].includes(input.name)) continue;
-        const kind = connectedReferenceKind(input);
-        const allowed = direct ? !legacyValid && !invalidFallback && topology.reference_kinds?.includes(kind) &&
-                referencePartialAllowed(topology, [...acceptedKinds, kind])
-            : input.name === "input_references" ? legacyValid
-            : fixed.includes(input.name) && (kind === null || kind === (input.name === "source_video" ? "video" : "image"));
-        // Connected sockets stay on the canvas even when the new contract rejects
-        // them. Validation reports the mismatch; only the Owner disconnects links.
-        if (direct && input.link != null && allowed) {
-            references += 1; acceptedKinds.push(kind);
+const mediaInputGraphs = new WeakMap();
+const MEDIA_KINDS = ["image", "video", "audio"];
+const FIXED_MEDIA_ROLES = ["first_frame", "last_frame", "source_video"];
+
+function mediaGraph(node) { return node?.graph || app.graph; }
+function mediaLink(graph, id) { return graph?.links?.get?.(id) || graph?.links?.[id]; }
+function isMediaInput(input) {
+    return isDirectReferenceInput(input) || FIXED_MEDIA_ROLES.includes(input.name) || input.name === "input_references";
+}
+
+function outputMediaKind(origin, slot) {
+    const type = origin?.outputs?.[slot]?.type;
+    if (["IMAGE", "VIDEO", "AUDIO"].includes(type)) return type.toLowerCase();
+    if (type !== "OPENROUTER_VIDEO_INPUT_REFERENCE") return null;
+    return { OpenRouterVideoImageReference: "image", OpenRouterVideoVideoReference: "video",
+        OpenRouterVideoAudioReference: "audio" }[origin?.comfyClass || origin?.type] || null;
+}
+
+function mediaSourceToken(origin) {
+    origin.properties ||= {};
+    return origin.properties.orv_media_source_token ||= `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
+// This is the existing intent store, extended to retain each occurrence while it
+// is active as well as parked. Never deduplicate intentionally repeated sources.
+function captureMediaIntent(node) {
+    // Native configure restores target links before every source's properties.
+    // Observing that intermediate state must never retire saved occurrences.
+    if (app.configuringGraph || node.__orvConfiguringMedia) {
+        const media = node.properties?.orv_capability_intent?.media;
+        return Array.isArray(media) ? media : [];
+    }
+    const intent = capabilityIntent(node), graph = mediaGraph(node);
+    for (const input of node.inputs || []) mediaInputGraphs.set(input, graph);
+    for (const input of directReferenceInputs(node)) if (input.link == null && input.orv_occurrence_id) {
+        delete input.orv_occurrence_id;
+        input.orv_pending_reference = true;
+    }
+    const inputs = (node.inputs || []).filter(input => isMediaInput(input) && input.link != null);
+    const previous = Array.isArray(intent.media) ? intent.media : [];
+    const ids = new Set(), names = new Set();
+    node.__orvMediaIntentInvalid = !Array.isArray(intent.media) || previous.some(entry => {
+        if (!entry || typeof entry !== "object" || !["string", "number"].includes(typeof entry.origin_id) ||
+            !Number.isInteger(entry.origin_slot) || entry.origin_slot < 0) return true;
+        if (entry.id != null && (typeof entry.id !== "string" || ids.has(entry.id))) return true;
+        if (entry.reference_name != null && (!/^direct_references\.reference_\d+$/.test(entry.reference_name) ||
+            (!entry.unresolved && names.has(entry.reference_name)))) return true;
+        if (entry.roles != null && (!Array.isArray(entry.roles) || entry.roles.some(role => !FIXED_MEDIA_ROLES.includes(role)))) return true;
+        ids.add(entry.id); if (!entry.unresolved) names.add(entry.reference_name);
+        return false;
+    });
+    if (node.__orvMediaIntentInvalid) return [];
+    let suffix = Math.max(-1, ...directReferenceInputs(node).map(referenceInputSuffix),
+        ...previous.map(entry => referenceInputSuffix({ name: entry.reference_name || entry.name })));
+    let ordinal = Math.max(-1, ...previous.map(entry => Number.isInteger(entry.order) ? entry.order : -1));
+    const retained = [];
+    for (const entry of previous) {
+        if (entry.owner_id != null && entry.owner_id !== node.id) {
+            retained.push({ ...entry, active_name: null, unresolved: true });
+            continue;
+        }
+        const origin = graph?.getNodeById?.(entry.origin_id);
+        if (!origin || (entry.origin_token && origin.properties?.orv_media_source_token !== entry.origin_token)) continue;
+        if (entry.active_name != null) {
+            const input = inputs.find(item => item.orv_occurrence_id === entry.id || item.name === entry.active_name);
+            const link = mediaLink(graph, input?.link);
+            // A user disconnect/replacement is authoritative, including after reload.
+            if (!link || link.origin_id !== entry.origin_id || link.origin_slot !== entry.origin_slot) continue;
+        }
+        const migrated = { ...entry, owner_id: node.id, origin_token: mediaSourceToken(origin),
+            active_name: entry.active_name ?? null, roles: entry.roles || (FIXED_MEDIA_ROLES.includes(entry.name) ? [entry.name] : []),
+            legacy_parked: entry.active_name === undefined && entry.id === undefined,
+            order: Number.isInteger(entry.order) ? entry.order : ++ordinal };
+        migrated.id ||= `media_${migrated.order}`;
+        migrated.reference_name ||= isDirectReferenceInput({ name: migrated.name }) ? migrated.name : `direct_references.reference_${++suffix}`;
+        migrated.kind = outputMediaKind(origin, migrated.origin_slot);
+        if (migrated.name === "input_references") migrated.collection = true;
+        retained.push(migrated);
+    }
+    for (const input of inputs.sort((a, b) => isDirectReferenceInput(a) && isDirectReferenceInput(b)
+        ? referenceInputSuffix(a) - referenceInputSuffix(b) : 0)) {
+        const link = mediaLink(graph, input.link), origin = graph?.getNodeById?.(link?.origin_id);
+        if (!link || !origin) continue;
+        let entry = retained.find(item => item.id === input.orv_occurrence_id && item.active_name === input.name);
+        entry ||= retained.find(item => item.active_name === input.name && item.origin_id === link.origin_id && item.origin_slot === link.origin_slot);
+        if (!entry) {
+            // Group placeholders have provisional names. Allocate their wire
+            // position on connection; regrouping never changes it afterwards.
+            if (input.orv_pending_reference) input.name = `direct_references.reference_${++suffix}`;
+            const order = ++ordinal;
+            entry = { id: `media_${order}`, order, owner_id: node.id, origin_id: link.origin_id,
+                origin_slot: link.origin_slot, origin_token: mediaSourceToken(origin), kind: outputMediaKind(origin, link.origin_slot),
+                reference_name: isDirectReferenceInput(input) ? input.name : `direct_references.reference_${++suffix}`,
+                roles: FIXED_MEDIA_ROLES.includes(input.name) ? [input.name] : [], collection: input.name === "input_references" };
+            retained.push(entry);
+        }
+        entry.active_name = input.name;
+        entry.kind = outputMediaKind(origin, link.origin_slot);
+        input.orv_occurrence_id = entry.id;
+        delete input.orv_pending_reference;
+    }
+    intent.media = retained.sort((a, b) => a.order - b.order);
+    return intent.media;
+}
+
+// Pure occurrence-to-role projection. Graph reconciliation is performed once by
+// the caller, under a guard that suppresses reentrant connection callbacks.
+function projectMediaIntent(entries, baseTopology, collectionKinds) {
+    const assigned = new Map(), used = new Set();
+    // Reserve every explicit role before selecting fallback materials, so an
+    // earlier role cannot steal a retained Last Frame occurrence.
+    for (const explicit of [true, false]) for (const role of baseTopology.fixed || []) {
+        if ([...assigned.values()].includes(role)) continue;
+        const kind = role === "source_video" ? "video" : "image";
+        const entry = entries.find(item => !item.unresolved && !used.has(item.id) && !item.collection && item.kind === kind &&
+            (!explicit || item.roles.includes(role)));
+        if (entry) { assigned.set(entry.id, role); used.add(entry.id); }
+    }
+    const topology = applyTransportInputConstraints(baseTopology, [...assigned.values()].includes("source_video"));
+    const collection = entries.find(entry => !entry.unresolved && entry.collection && referenceShapeValid(topology, collectionKinds(entry)));
+    if (collection) assigned.set(collection.id, "input_references");
+    else {
+        const kinds = [];
+        for (const entry of entries) {
+            if (entry.unresolved || used.has(entry.id) || entry.collection || !topology.reference_kinds?.includes(entry.kind)) continue;
+            if (!referencePartialAllowed(topology, [...kinds, entry.kind])) continue;
+            assigned.set(entry.id, entry.reference_name); kinds.push(entry.kind);
         }
     }
-    for (const saved of [...intent.media]) {
-        const direct = String(saved.name).startsWith("direct_references.reference_");
-        const allowed = direct ? !invalidFallback && inputByName(node, "input_references")?.link == null && topology.reference_kinds?.includes(saved.kind) &&
-                referencePartialAllowed(topology, [...acceptedKinds, saved.kind])
-            : saved.name === "input_references" ? references === 0 && referenceShapeValid(topology, legacyReferenceKinds(null, saved))
-            : fixed.includes(saved.name) && saved.kind === (saved.name === "source_video" ? "video" : "image");
-        const origin = app.graph?.getNodeById?.(saved.origin_id);
-        if (!allowed || !origin || inputByName(node, saved.name)?.link != null) continue;
-        if (!inputByName(node, saved.name)) node.addInput?.(saved.name, saved.type);
-        origin.connect?.(saved.origin_slot, node, node.inputs.indexOf(inputByName(node, saved.name)));
-        if (inputByName(node, saved.name)?.link != null) {
-            intent.media.splice(intent.media.indexOf(saved), 1);
-            if (direct) { references += 1; acceptedKinds.push(saved.kind); }
+    return assigned;
+}
+
+function parkIncompatibleMedia(node, topology, transition = {}) {
+    const graph = mediaGraph(node), entries = captureMediaIntent(node);
+    if (node.__orvMediaIntentInvalid || topology.constraint_state === "UNKNOWN" ||
+        topology.constraint_state === "CONFLICT" || topology.execution_domain === "UNVERIFIED") return;
+    let assigned;
+    if (transition.cause !== "explicit") {
+        // Accepted older workflows only stored parked entries. Migrate their
+        // exact saved roles where already compatible; never reassign active
+        // intent or use passive refresh as permission to shrink the graph.
+        if (!entries.some(entry => entry.legacy_parked)) return;
+        assigned = new Map(entries.filter(entry => entry.active_name != null).map(entry => [entry.id, entry.active_name]));
+        const effective = applyTransportInputConstraints(topology, [...assigned.values()].includes("source_video"));
+        const kinds = entries.filter(entry => isDirectReferenceInput({ name: assigned.get(entry.id) })).map(entry => entry.kind);
+        for (const entry of entries.filter(item => item.legacy_parked && !item.unresolved)) {
+            const name = entry.name;
+            if ([...assigned.values()].includes(name)) continue;
+            const allowed = FIXED_MEDIA_ROLES.includes(name) ? topology.fixed?.includes(name) && entry.kind === (name === "source_video" ? "video" : "image")
+                : entry.collection ? kinds.length === 0 && referenceShapeValid(effective, legacyReferenceKinds(null, entry, graph))
+                : isDirectReferenceInput({ name }) && ![...assigned.values()].includes("input_references") &&
+                    effective.reference_kinds?.includes(entry.kind) && referencePartialAllowed(effective, [...kinds, entry.kind]);
+            if (allowed) { assigned.set(entry.id, name); if (isDirectReferenceInput({ name })) kinds.push(entry.kind); }
+        }
+    } else assigned = projectMediaIntent(entries, topology, entry => legacyReferenceKinds(null, entry, graph));
+    for (let index = (node.inputs?.length || 0) - 1; index >= 0; index -= 1) {
+        const input = node.inputs[index];
+        if (!isMediaInput(input) || input.link == null) continue;
+        const entry = entries.find(item => item.id === input.orv_occurrence_id);
+        if (!entry || assigned.get(entry.id) !== input.name) node.removeInput?.(index);
+    }
+    for (const entry of entries) {
+        const name = assigned.get(entry.id);
+        delete entry.legacy_parked;
+        entry.active_name = null;
+        if (!name) continue;
+        if (!inputByName(node, name)) node.addInput?.(name, entry.collection ? "OPENROUTER_VIDEO_INPUT_REFERENCE_COLLECTION"
+            : `${entry.kind.toUpperCase()},OPENROUTER_VIDEO_INPUT_REFERENCE`);
+        const input = inputByName(node, name);
+        mediaInputGraphs.set(input, graph);
+        input.orv_occurrence_id = entry.id;
+        if (input.link == null) graph?.getNodeById?.(entry.origin_id)?.connect?.(entry.origin_slot, node, node.inputs.indexOf(input));
+        if (input.link != null) {
+            entry.active_name = name;
+            if (FIXED_MEDIA_ROLES.includes(name) && !entry.roles.includes(name)) entry.roles.push(name);
         }
     }
 }
@@ -1658,17 +1798,9 @@ function inputByName(node, name) {
 
 function connectedReferenceKind(input) {
     if (input?.link == null) return null;
-    const link = app.graph?.links?.[input.link];
-    const origin = link ? app.graph?.getNodeById?.(link.origin_id) : null;
-    const outputType = origin?.outputs?.[link?.origin_slot]?.type || link?.type;
-    if (outputType === "IMAGE") return "image";
-    if (outputType === "VIDEO") return "video";
-    if (outputType === "AUDIO") return "audio";
-    const type = String(origin?.type || origin?.comfyClass || "");
-    if (type.includes("ImageReference")) return "image";
-    if (type.includes("VideoReference")) return "video";
-    if (type.includes("AudioReference")) return "audio";
-    return null;
+    const graph = mediaInputGraphs.get(input) || app.graph;
+    const link = mediaLink(graph, input.link);
+    return outputMediaKind(graph?.getNodeById?.(link?.origin_id), link?.origin_slot);
 }
 
 function fixedRolesForMethod(method) {
@@ -1680,13 +1812,6 @@ function fixedRolesForMethod(method) {
 
 function methodUsesReferences(method) {
     return ["IR2V", "MI2V", "VR2V", "AR2V", "MMR2V", "V2V_EDIT", "V2V_EXTEND", "AVATAR_AUDIO"].includes(method);
-}
-
-function referencePrefix(method, input) {
-    if (method === "IR2V" || method === "MI2V") return "image";
-    if (method === "VR2V") return "video";
-    if (method === "AR2V") return "audio";
-    return connectedReferenceKind(input) || "reference";
 }
 
 function connectedRoles(node) {
@@ -1738,7 +1863,7 @@ function moveInputToFrontPreservingLinks(node, name) {
     node.inputs.unshift(input);
     for (let slot = 0; slot < node.inputs.length; slot += 1) {
         const linkId = node.inputs[slot].link;
-        const link = linkId == null ? null : app.graph?.links?.[linkId];
+        const link = linkId == null ? null : mediaLink(mediaGraph(node), linkId);
         if (link && link.target_id === node.id) link.target_slot = slot;
     }
 }
@@ -1753,30 +1878,33 @@ function removeUnusedFixedInputs(node, keep) {
     for (const index of removable) node.removeInput?.(index);
 }
 
-function addTrailingReferenceInput(node, current, socketType = "OPENROUTER_VIDEO_INPUT_REFERENCE") {
-    if (!node.addInput) return;
-    if (current.length === 0) {
-        node.addInput(
-            "direct_references.reference_0",
-            socketType,
-        );
-        return;
-    }
-    const last = [...current].sort(
-        (left, right) => referenceInputSuffix(left) - referenceInputSuffix(right),
-    ).at(-1);
-    const suffix = referenceInputSuffix(last) + 1;
-    const name = String(last.name).replace(/reference_\d+$/, `reference_${suffix}`);
-    node.addInput(name, last.type);
+function addTrailingReferenceInput(node, kind) {
+    const stored = capabilityIntent(node).media;
+    const suffix = Math.max(-1, ...directReferenceInputs(node).map(referenceInputSuffix),
+        ...(Array.isArray(stored) ? stored : []).filter(Boolean).map(entry => referenceInputSuffix({ name: entry.reference_name || entry.name }))) + 1;
+    const name = `direct_references.reference_${suffix}`;
+    node.addInput?.(name, `${kind.toUpperCase()},OPENROUTER_VIDEO_INPUT_REFERENCE`);
+    const input = inputByName(node, name);
+    if (input) { input.orv_reference_kind = kind; input.orv_pending_reference = true; mediaInputGraphs.set(input, mediaGraph(node)); }
 }
 
-function configureReferenceTopology(node, capability, method) {
+function configureReferenceTopology(node, capability, method, transition = {}) {
+    if (app.configuringGraph || node.__orvConfiguringMedia || node.__orvReconcilingMedia) return;
+    node.__orvReconcilingMedia = true;
+    try {
+        reconcileReferenceTopology(node, capability, method, transition);
+    } finally { node.__orvReconcilingMedia = false; }
+    publishSemanticProjection(node);
+}
+
+function reconcileReferenceTopology(node, capability, method, transition) {
+    const baseTopology = capability.__methodProfile?.topology || { fixed: [], reference_kinds: [], kind_sets: [[]], min: 0, max: 0 };
+    parkIncompatibleMedia(node, baseTopology, transition);
     const sourcePresent = inputByName(node, "source_video")?.link != null;
     const topology = applyTransportInputConstraints(
-        capability.__methodProfile?.topology || { fixed: [], reference_kinds: [], max: 0 }, sourcePresent);
+        baseTopology, sourcePresent);
     const topologyUncertain = topology.constraint_state === "UNKNOWN" || topology.constraint_state === "CONFLICT";
     const executionUnverified = topology.execution_domain === "UNVERIFIED";
-    if (!topologyUncertain) parkIncompatibleMedia(node, topology);
     const keepFixed = new Set(topology.fixed || []);
     for (const name of keepFixed) ensureFixedInput(node, name);
     removeUnusedFixedInputs(node, keepFixed);
@@ -1788,8 +1916,6 @@ function configureReferenceTopology(node, capability, method) {
     }
 
     const inputs = directReferenceInputs(node);
-    const socketType = [...(topology.reference_kinds || []).map(kind => kind.toUpperCase()), "OPENROUTER_VIDEO_INPUT_REFERENCE"].join(",");
-    for (const input of inputs) input.type = socketType;
     const linked = inputs.filter((item) => item.link != null);
     const unlinked = inputs.filter((item) => item.link == null);
     const effectiveLimit = Number.isInteger(topology.max) && topology.max >= 0 ? topology.max : null;
@@ -1800,35 +1926,36 @@ function configureReferenceTopology(node, capability, method) {
     const reservedSourceCount = capability.__methodProfile ? 0 : keepFixed.has("source_video") ? 1 : 0;
     const referencesConfirmed = topology.constraint_state !== "UNKNOWN" && topology.constraint_state !== "CONFLICT";
     const usesReferences = Boolean(topology.reference_kinds?.length) && referencesConfirmed && !executionUnverified;
-    const exactOne = method === "IR2V";
     const possibleKinds = topology.reference_kinds || [];
-    const linkedKinds = [...linked.map(connectedReferenceKind).filter(Boolean),
+    const linkedKinds = [...linked.map(connectedReferenceKind),
         ...(legacy?.link != null ? legacyReferenceKinds(legacy) || [] : [])];
-    const canGrow = usesReferences && possibleKinds.some(kind => referencePartialAllowed(topology, [...linkedKinds, kind]));
     const verifiedSubset = topology.execution_domain === "VERIFIED_CONFIGURATIONS";
-    const keepTrailing = canGrow &&
-        legacy?.link == null &&
-        (effectiveLimit === null || linked.length + reservedSourceCount < effectiveLimit) &&
-        (!exactOne || linked.length === 0);
-
-    if (node.removeInput && unlinked.length > (keepTrailing ? 1 : 0)) {
-        const keep = keepTrailing ? unlinked[0] : null;
-        const removable = unlinked
-            .filter((item) => item !== keep)
-            .map((item) => node.inputs.indexOf(item))
-            .filter((index) => index >= 0)
-            .sort((left, right) => right - left);
-        for (const index of removable) node.removeInput(index);
+    const extensible = usesReferences && legacy?.link == null &&
+        (effectiveLimit === null || linked.length + reservedSourceCount < effectiveLimit)
+        ? MEDIA_KINDS.filter(kind => possibleKinds.includes(kind) && referencePartialAllowed(topology, [...linkedKinds, kind])) : [];
+    const freeKinds = new Set();
+    for (const input of unlinked) {
+        const kind = input.orv_reference_kind;
+        if (!extensible.includes(kind) || freeKinds.has(kind)) node.removeInput?.(node.inputs.indexOf(input));
+        else freeKinds.add(kind);
     }
-    const afterTrim = directReferenceInputs(node);
-    if (keepTrailing && afterTrim.every((item) => item.link != null)) {
-        addTrailingReferenceInput(node, afterTrim, socketType);
+    for (const kind of extensible) if (!freeKinds.has(kind)) addTrailingReferenceInput(node, kind);
+    const finalInputs = directReferenceInputs(node).sort((left, right) => {
+        const leftKind = connectedReferenceKind(left) || left.orv_reference_kind;
+        const rightKind = connectedReferenceKind(right) || right.orv_reference_kind;
+        return MEDIA_KINDS.indexOf(leftKind) - MEDIA_KINDS.indexOf(rightKind) ||
+            Number(left.link == null) - Number(right.link == null) || referenceInputSuffix(left) - referenceInputSuffix(right);
+    });
+    const visibleCounts = {};
+    for (const input of finalInputs) {
+        const kind = connectedReferenceKind(input) || (input.link == null ? input.orv_reference_kind : null);
+        // Unknown/invalid saved source types remain visibly unresolved and blocked.
+        input.type = kind ? `${kind.toUpperCase()},OPENROUTER_VIDEO_INPUT_REFERENCE` : "OPENROUTER_VIDEO_INPUT_REFERENCE";
+        const prefix = kind || "unknown";
+        visibleCounts[prefix] = (visibleCounts[prefix] || 0) + 1;
+        input.label = `${prefix}_${visibleCounts[prefix]}`;
+        mediaInputGraphs.set(input, mediaGraph(node));
     }
-    const finalInputs = directReferenceInputs(node).sort(
-        (left, right) => referenceInputSuffix(left) - referenceInputSuffix(right),
-    );
-    for (const input of finalInputs) input.type = referenceSocketType(topology,
-        finalInputs.filter(other => other !== input && other.link != null).map(connectedReferenceKind).filter(Boolean));
     // Comfy uses slot indexes for canvas hit-testing. Widget-backed inputs are
     // hidden from the socket drawing, so media sockets must lead the actual
     // inputs array as well as the visual order. Otherwise dragging image_1 can
@@ -1842,31 +1969,37 @@ function configureReferenceTopology(node, capability, method) {
     const legacyNames = legacy?.link != null ? ["input_references"] : [];
     const mediaNames = [...fixedNames, ...legacyNames, ...finalInputs.map((item) => item.name)];
     for (const name of mediaNames.reverse()) moveInputToFrontPreservingLinks(node, name);
-    for (let index = 0; index < finalInputs.length; index += 1) {
-        finalInputs[index].label = `${referencePrefix(method, finalInputs[index])}_${index + 1}`;
-    }
-
     const currentCount = finalInputs.filter((item) => item.link != null).length +
         (legacy?.link != null ? legacyReferenceKinds(legacy)?.length || 0 : 0);
     const allAtCaps = !possibleKinds.some(kind => referencePartialAllowed(topology, [...linkedKinds, kind]));
     const perKindCounts = Object.fromEntries([...new Set(linkedKinds)].map(kind =>
         [kind, linkedKinds.filter(value => value === kind).length]));
     const perKindSummary = Object.entries(perKindCounts).map(([kind, count]) => `${kind} ${count}`).join(" · ");
+    const remainingByKind = extensible.map(kind => {
+        const kindMax = topology.per_kind_max?.[kind];
+        const totalRemaining = effectiveLimit === null ? null : effectiveLimit - currentCount - sourceCount;
+        const remaining = Number.isInteger(kindMax) ? Math.min(kindMax - (perKindCounts[kind] || 0), totalRemaining ?? Infinity) : totalRemaining;
+        return `${kind.toUpperCase()} ${remaining === null || verifiedSubset ? "capacity unverified" : `${remaining} available`}`;
+    }).join(" · ");
     const unverifiedShape = executionUnverified && !referenceShapeValid(topology, linkedKinds);
     node.__orvReferenceSummary = usesReferences
         ? `${currentCount + sourceCount} connected${perKindSummary ? ` · ${perKindSummary}` : ""} · ${
             effectiveLimit !== null
             ? (allAtCaps ? (verifiedSubset ? "verified subset boundary · upper bound unverified" : "maximum reached") : `${effectiveLimit - currentCount - sourceCount} remaining`)
                 : (allAtCaps ? (verifiedSubset ? "verified subset boundary · upper bound unverified" : "maximum reached") : (topology.execution_domain === "DOCUMENTED_CONTRACT" ? "limit not published" : "limit unverified"))
-        }`
+        }${remainingByKind ? ` · ${remainingByKind}` : ""}`
         : executionUnverified
             ? unverifiedShape
                 ? "METHOD DOCUMENTED · input configurations require verification · existing links preserved; Generate blocked"
                 : "Additional reference configurations require verification · existing links preserved"
             : topology.constraint_state === "UNKNOWN" || topology.constraint_state === "CONFLICT"
             ? "Reference limit unverified · existing links preserved" : "";
+    const storedMedia = capabilityIntent(node).media;
+    const parkedCount = Array.isArray(storedMedia) ? storedMedia.filter(entry => entry?.active_name === null).length : 0;
+    if (parkedCount) node.__orvReferenceSummary = `${node.__orvReferenceSummary || `${currentCount} connected`} · ${parkedCount} parked`;
     if (node.__orvSummary) {
         node.__orvSummary.value = node.__orvReferenceSummary;
+        (node.__orvSummary.options ||= {}).tooltip = node.__orvReferenceSummary;
         setVisible(node.__orvSummary, Boolean(node.__orvReferenceSummary));
     }
     const expectedKind = {
@@ -1882,15 +2015,16 @@ function configureReferenceTopology(node, capability, method) {
     });
     const orphanedFixed = ["first_frame", "last_frame", "source_video"].some(name =>
         inputByName(node, name)?.link != null && !keepFixed.has(name));
-    const incompatibleReferences = !referencePartialAllowed(topology, linkedKinds);
-    node.__orvReferenceInvalid = topologyUncertain || unverifiedShape || topology.transport_source_overflow || wrongReferenceKind || wrongFixedKind ||
+    const incompatibleReferences = !referencePartialAllowed(topology, linkedKinds) ||
+        (legacy?.link != null && legacyReferenceKinds(legacy) === null);
+    node.__orvReferenceInvalid = node.__orvMediaIntentInvalid || topologyUncertain || unverifiedShape || topology.transport_source_overflow || wrongReferenceKind || wrongFixedKind ||
         orphanedFixed || incompatibleReferences || (effectiveLimit !== null && currentCount + sourceCount > effectiveLimit);
     if ((wrongReferenceKind || wrongFixedKind) && !node.__orvMethodBlocked) {
         node.__orvCapabilityStatus.value = "INCOMPATIBLE · media kind · links preserved";
         setVisible(node.__orvCapabilityStatus, true);
     }
     if (node.__orvReferenceInvalid) {
-        disclose(node, unverifiedShape
+        disclose(node, node.__orvMediaIntentInvalid ? "UNRESOLVED MEDIA INTENT; saved state preserved; Generate blocked" : unverifiedShape
             ? "METHOD DOCUMENTED · INPUT CONFIGURATIONS REQUIRE VERIFICATION; existing links preserved; Generate blocked"
             : topologyUncertain
             ? "REFERENCES · limit unverified; existing links preserved; Generate blocked"
@@ -1958,12 +2092,18 @@ function bindInferenceMethod(node) {
     const previous = item.callback;
     item.callback = function (...args) {
         const next = item.value;
-        const prior = node.__orvLastMethod;
         if (!node.__orvModelCapability?.supported_inference_methods?.includes(next)) return;
         previous?.apply(this, args);
+        // Invalidate older asynchronous projections and their estimates.
+        node.__orvProjectionVersion = (node.__orvProjectionVersion || 0) + 1;
+        node.__orvEstimateRevision = (node.__orvEstimateRevision || 0) + 1;
+        node.__orvConfigureVersion = (node.__orvConfigureVersion || 0) + 1;
+        node.__orvConfiguringMedia = false;
+        delete node.__orvPendingMediaSelection;
+        clearTimeout(node.__orvEstimateTimer);
         node.__orvMethodExplicit = true;
         node.__orvLastMethod = next;
-        if (node.__orvModelCapability) reprojectNodeSemantics(node, node.__orvModelCapability, next);
+        if (node.__orvModelCapability) reprojectNodeSemantics(node, node.__orvModelCapability, next, { cause: "explicit" });
         fitPresentationWidth(node);
     };
 }
@@ -2148,6 +2288,12 @@ function bindEstimateRefresh(node) {
                 configureGenerationConfiguration(node, node.__orvCapability);
             }
             if (item.name === "model") {
+                node.__orvConfigureVersion = (node.__orvConfigureVersion || 0) + 1;
+                node.__orvConfiguringMedia = false;
+                node.__orvEstimateRevision = (node.__orvEstimateRevision || 0) + 1;
+                node.__orvPendingMediaSelection = { model: canonicalModel(node), method: widget(node, "inference_method")?.value,
+                    revision: (node.__orvMediaSelectionRevision || 0) + 1 };
+                node.__orvMediaSelectionRevision = node.__orvPendingMediaSelection.revision;
                 projectSelectedModel(node);
                 return;
             }
@@ -2186,6 +2332,7 @@ function presentationPhase(detail) {
 }
 
 async function projectSelectedModel(node, force = false, snapshot = null) {
+    if (app.configuringGraph || node.__orvConfiguringMedia) return;
     const version = (node.__orvProjectionVersion || 0) + 1;
     node.__orvProjectionVersion = version;
     orderPresentationWidgets(node);
@@ -2281,7 +2428,10 @@ async function projectSelectedModel(node, force = false, snapshot = null) {
         setVisible(widget(node, "last_frame_url"), false);
         node.__orvModelCapability = capability;
         const method = configureInferenceMethod(node, capability);
-        reprojectNodeSemantics(node, capability, method);
+        const pendingSelection = node.__orvPendingMediaSelection;
+        const explicitSelection = pendingSelection?.model === model && pendingSelection.method === savedMethod;
+        if (explicitSelection) delete node.__orvPendingMediaSelection;
+        reprojectNodeSemantics(node, capability, method, { cause: explicitSelection ? "explicit" : "catalogue" });
         await refreshEstimate(node);
     } catch {
         if (node.__orvProjectionVersion !== version) return;
@@ -2381,9 +2531,42 @@ app.registerExtension({
             return;
         }
         if (nodeData?.name !== GENERATE_NODE) return;
+        const previousNodeConfigure = nodeType.prototype.configure;
+        if (typeof previousNodeConfigure === "function") nodeType.prototype.configure = function (...args) {
+            // LGraphNode.configure emits input callbacks before onConfigure.
+            // Mark reconstruction at entry, including standalone undo/configure.
+            this.__orvConfiguringMedia = true;
+            this.__orvProjectionVersion = (this.__orvProjectionVersion || 0) + 1;
+            try { return previousNodeConfigure.apply(this, args); }
+            catch (error) { this.__orvConfiguringMedia = false; throw error; }
+        };
+        const previousConnectInput = nodeType.prototype.onConnectInput;
+        nodeType.prototype.onConnectInput = function (slot, type, output, origin, originSlot, ...rest) {
+            if (previousConnectInput?.call(this, slot, type, output, origin, originSlot, ...rest) === false) return false;
+            if (app.configuringGraph || this.__orvConfiguringMedia || this.__orvReconcilingMedia) return true;
+            const input = this.inputs?.[slot];
+            if (!input || !isMediaInput(input) || !this.__orvCapability) return;
+            const kind = outputMediaKind(origin, originSlot);
+            const topology = applyTransportInputConstraints(this.__orvCapability.__methodProfile?.topology,
+                inputByName(this, "source_video")?.link != null || input.name === "source_video");
+            if (FIXED_MEDIA_ROLES.includes(input.name)) return topology.fixed?.includes(input.name) &&
+                kind === (input.name === "source_video" ? "video" : "image") &&
+                (input.name !== "source_video" || referencePartialAllowed(topology,
+                    directReferenceInputs(this).filter(item => item.link != null).map(connectedReferenceKind)));
+            if (isDirectReferenceInput(input)) {
+                if (kind === null || (input.orv_reference_kind && input.orv_reference_kind !== kind) || inputByName(this, "input_references")?.link != null) return false;
+                const others = directReferenceInputs(this).filter(item => item !== input && item.link != null).map(connectedReferenceKind);
+                return referencePartialAllowed(topology, [...others, kind]);
+            }
+        };
         const previousConnectionsChange = nodeType.prototype.onConnectionsChange;
         nodeType.prototype.onConnectionsChange = function (...args) {
             const result = previousConnectionsChange?.apply(this, args);
+            if (app.configuringGraph || this.__orvReconcilingMedia || this.__orvConfiguringMedia) return result;
+            // Establish occurrence order at the connection event, before a second
+            // connection can arrive during the debounced catalogue projection.
+            captureMediaIntent(this);
+            this.__orvEstimateRevision = (this.__orvEstimateRevision || 0) + 1;
             const hasReferences = this.inputs?.some(
                 (item) => item.name === "input_references" || isDirectReferenceInput(item),
             );
@@ -2444,6 +2627,10 @@ app.registerExtension({
         };
         const previousConfigure = nodeType.prototype.onConfigure;
         nodeType.prototype.onConfigure = function (...args) {
+            delete this.__orvPendingMediaSelection;
+            this.__orvConfiguringMedia = true;
+            this.__orvProjectionVersion = (this.__orvProjectionVersion || 0) + 1;
+            const configuringVersion = this.__orvConfigureVersion = (this.__orvConfigureVersion || 0) + 1;
             this.__orvIsNewNode = false;
             this.__orvMethodExplicit = true;
             const serializedValues = args[0]?.widgets_values;
@@ -2478,6 +2665,8 @@ app.registerExtension({
                 restorePhase9Values(this, serializedValues);
             migratePhase8Values(this);
             setTimeout(() => {
+                if (this.__orvConfigureVersion !== configuringVersion) return;
+                this.__orvConfiguringMedia = false;
                 if (configuredModel && configuredModel !== SELECT_MODEL) {
                     widget(this, "model").value = configuredModel;
                 }

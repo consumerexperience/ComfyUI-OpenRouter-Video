@@ -38,9 +38,11 @@ def test_frontend_helper_keeps_unresolved_and_auto_semantics_local() -> None:
     assert "ESTIMATE UNAVAILABLE" in text
     assert "migratePhase8Values" in text
     assert "Number(seed.value)" in text
-    assert 'return "image"' in text
-    assert 'return "video"' in text
-    assert 'return "audio"' in text
+    # Native kind identity is shared by all methods, rather than assigned from
+    # the selected method. Behavioral graph tests also reject AUDIO_ENCODER.
+    assert "const type = origin?.outputs?.[slot]?.type" in text
+    assert '["IMAGE", "VIDEO", "AUDIO"].includes(type)' in text
+    assert "return type.toLowerCase()" in text
     assert "switchWouldOrphan" in text
     assert "mixed_image_video_references" not in text
     assert "Core" not in text  # no attempt to reimplement validator semantics

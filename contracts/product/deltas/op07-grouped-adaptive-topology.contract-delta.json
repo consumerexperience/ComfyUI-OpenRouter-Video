@@ -1,0 +1,49 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "op07-grouped-adaptive-topology",
+  "baseline_checkpoint": "op07-protected-b628912",
+  "baseline_sha": "b6289127e7d2e6f735f6497e7e6cf0f26c5adcac",
+  "risk_tier": "C",
+  "intended_delta": [
+    "Owner 5986aeae and superseding ab2458df: explicit model/method selection projects reversible typed media intent into only compatible active sockets; grouped IMAGE/VIDEO/AUDIO autogrow, presentation independent canonical wire order; external drift remains fail-closed. No capability/scalar/lifecycle expansion."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Exact Owner Interaction Contract plus Grouped Adaptive Autogrow Delta. Only shared topology/intent reconciliation, group presentation and lifecycle integration in frontend; negative-space tests protect unrelated functions."
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned/capabilities",
+    "/surfaces/product_owned/AppIdentity",
+    "/surfaces/product_owned/submit_resume",
+    "/surfaces/product_owned/native_media",
+    "/surfaces/product_owned/evidence_registry",
+    "/surfaces/product_owned/storage",
+    "/surfaces/product_owned/database_migrations",
+    "/surfaces/product_owned/pricing",
+    "/surfaces/product_owned/recipes",
+    "/surfaces/product_owned/credentials"
+  ],
+  "expected_components": [
+    "web/openrouter_video.js"
+  ],
+  "required_gates": [
+    "baseline_declaration",
+    "semantic_diff",
+    "negative_space_tests",
+    "python",
+    "frontend",
+    "serializer",
+    "all_model_transitions",
+    "classic_live",
+    "nodes2_live",
+    "independent_review",
+    "explicit_high_risk_approval"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

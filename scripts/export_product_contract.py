@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -21,6 +22,24 @@ if GIT is None:
 
 class ExportError(RuntimeError):
     """Raised when a required product semantic cannot be recovered from source."""
+
+
+def _media_transition_policy(source: str) -> str:
+    """Describe the requested source revision, preserving historical exports.
+
+    Structural detection is disclosure only; transition tests prove behavior.
+    A partially present new projection must not be described as qualified.
+    """
+    declarations = [
+        bool(re.search(r"function\s+projectMediaIntent\s*\(", source)),
+        bool(re.search(r"function\s+reconcileReferenceTopology\s*\(", source)),
+    ]
+    if not any(declarations):
+        return "preserve_state_and_block_generate"
+    explicit_guard = bool(re.search(r"transition\.cause\s*!==\s*['\"]explicit['\"]", source))
+    if not all(declarations) or not explicit_guard:
+        raise ExportError("Incomplete explicit-selection media projection contract")
+    return "explicit_selection_park_restore_external_drift_preserve_and_block"
 
 
 class TreeReader:
@@ -210,7 +229,7 @@ def export_contract(
                 "AUDIO": native_media,
             },
             "source_video_first": "source_video" in request_fields,
-            "incompatible_switch": "preserve_state_and_block_generate",
+            "incompatible_switch": _media_transition_policy(reader.text("web/openrouter_video.js")),
         },
         "controls": {
             "capability_driven": sorted(

@@ -25,6 +25,13 @@ export function reviewedRcText(root, file, text) {
         const candidate = JSON.parse(readFileSync(new URL("tests/fixtures/op07_discovery_candidate.json", root), "utf8"));
         acceptedCandidate ||= candidate.candidate_files?.[file] === digest;
     } catch {}
+    try {
+        // A separate declaration binds only this unaccepted Owner topology delta.
+        // It never rewrites historical reviewed or discovery-candidate pins.
+        const candidate = JSON.parse(readFileSync(new URL("tests/fixtures/op07_grouped_topology_candidate.json", root), "utf8"));
+        acceptedCandidate ||= file === "web/openrouter_video.js" && candidate.status === "UNACCEPTED" &&
+            candidate.baseline_sha === "b6289127e7d2e6f735f6497e7e6cf0f26c5adcac" && candidate.candidate_files?.[file] === digest;
+    } catch {}
     assert(acceptedCandidate || digest === pin.reviewed_files[file], `Undeclared RC change: ${file}`);
     return execFileSync("git", ["show", `${pin.baseline_sha}:${file}`], { cwd: root, encoding: "utf8" }).replace(/\r\n/g, "\n");
 }
