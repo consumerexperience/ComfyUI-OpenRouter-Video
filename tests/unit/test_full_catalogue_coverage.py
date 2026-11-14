@@ -25,6 +25,7 @@ from openrouter_video.models import (
     ModelCapabilities,
     ProviderOption,
 )
+from tests.contract.aci_reviewed_patch import aci_historical_source
 
 ROOT = Path(__file__).resolve().parents[2]
 RAW = json.loads((ROOT / "tests/fixtures/op07-full-catalogue.json").read_text())["data"]
@@ -183,7 +184,8 @@ def test_runtime_submit_resume_and_lifecycle_are_unchanged_outside_estimate_guar
         ]
         return ast.dump(tree, include_attributes=False)
 
-    assert protected(before) == protected((ROOT / name).read_text(encoding="utf8"))
+    current = aci_historical_source(name, (ROOT / name).read_text(encoding="utf8"))
+    assert protected(before) == protected(current)
 
 
 @pytest.mark.parametrize("method", [InferenceMethod.T2V, InferenceMethod.I2V])

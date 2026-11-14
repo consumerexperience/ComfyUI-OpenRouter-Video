@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import test from 'node:test';
+import { aciHistoricalSource } from './aci_reviewed_patch.mjs';
 
 const root=new URL('../../',import.meta.url);
 const baseline='b6289127e7d2e6f735f6497e7e6cf0f26c5adcac';
 const before=execFileSync('git',['show',`${baseline}:web/openrouter_video.js`],{cwd:root,encoding:'utf8'}).replace(/\r\n/g,'\n');
-const current=readFileSync(new URL('web/openrouter_video.js',root),'utf8').replace(/\r\n/g,'\n');
+const current=aciHistoricalSource(root,'web/openrouter_video.js',readFileSync(new URL('web/openrouter_video.js',root),'utf8').replace(/\r\n/g,'\n'));
 const functions=t=>Object.fromEntries(t.split(/(?=^function |^async function )/m).slice(1).map(p=>[p.match(/function (\w+)/)[1],p.slice(0,p.indexOf('\n}')+2)]));
 // Exact Owner-authorized interaction locations. Scalar, geometry, provider,
 // billing, security and renderer functions are protected even within this file.

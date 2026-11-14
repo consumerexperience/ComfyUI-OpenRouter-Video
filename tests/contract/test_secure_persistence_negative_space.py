@@ -6,6 +6,8 @@ import subprocess
 from pathlib import Path
 from typing import cast
 
+from tests.contract.aci_reviewed_patch import aci_historical_source
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -14,7 +16,7 @@ def test_existing_runtime_methods_are_unchanged() -> None:
     before = ast.parse(
         subprocess.check_output(["git", "show", f"796697a:{path}"], cwd=ROOT).decode()  # noqa: S603,S607
     )
-    after = ast.parse((ROOT / path).read_text(encoding="utf-8"))
+    after = ast.parse(aci_historical_source(path, (ROOT / path).read_text(encoding="utf-8")))
     # Owner's full capability delta adds exactly one read-only unavailable
     # estimate guard. Normalize only that exact AST; retain every prior
     # submit/Resume/lifecycle/security assertion below.

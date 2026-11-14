@@ -1,0 +1,6199 @@
+{
+  "version": "ACI-1.0",
+  "profiles": [
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "google/gemini-omni-1.2-flash",
+      "canonical_slug": "google/gemini-omni-1.2-flash-20261105",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V",
+        "IR2V",
+        "MI2V",
+        "VR2V",
+        "V2V_EDIT",
+        "V2V_EXTEND"
+      ],
+      "known_skus": [
+        "duration_seconds_with_audio",
+        "duration_seconds_with_audio_4k",
+        "duration_seconds_with_audio_360p",
+        "duration_seconds_with_audio_720p"
+      ],
+      "rules": [
+        {
+          "id": "google/gemini-omni-1.2-flash:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_720p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/compare/anthropic/claude-opus-5.5/google/gemini-omni-1.2-flash",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.2-flash:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "UNKNOWN",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_720p",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "AUDIO_EFFECTIVE_SEMANTICS_UNRESOLVED",
+          "evidence": "https://openrouter.ai/google/gemini-omni-1.2-flash",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.2-flash:3",
+          "when": {
+            "method": [
+              "V2V_EDIT",
+              "V2V_EXTEND"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_720p",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "s"
+            }
+          ],
+          "reason": "EDIT_EXTEND_BILLED_DURATION_UNRESOLVED",
+          "evidence": "https://openrouter.ai/google/gemini-omni-1.2-flash",
+          "activation": "RECHECK_EFFECTIVE_AUDIO_AND_TIER",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.2-flash:4",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/compare/anthropic/claude-opus-5.5/google/gemini-omni-1.2-flash",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.2-flash:5",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "UNKNOWN",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "AUDIO_EFFECTIVE_SEMANTICS_UNRESOLVED",
+          "evidence": "https://openrouter.ai/google/gemini-omni-1.2-flash",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.2-flash:6",
+          "when": {
+            "method": [
+              "V2V_EDIT",
+              "V2V_EXTEND"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "s"
+            }
+          ],
+          "reason": "EDIT_EXTEND_BILLED_DURATION_UNRESOLVED",
+          "evidence": "https://openrouter.ai/google/gemini-omni-1.2-flash",
+          "activation": "RECHECK_EFFECTIVE_AUDIO_AND_TIER",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.2-flash:7",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V"
+            ],
+            "resolution": [
+              "4K"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_4k",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/compare/anthropic/claude-opus-5.5/google/gemini-omni-1.2-flash",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.2-flash:8",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V"
+            ],
+            "resolution": [
+              "4K"
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "UNKNOWN",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_4k",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "AUDIO_EFFECTIVE_SEMANTICS_UNRESOLVED",
+          "evidence": "https://openrouter.ai/google/gemini-omni-1.2-flash",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.2-flash:9",
+          "when": {
+            "method": [
+              "V2V_EDIT",
+              "V2V_EXTEND"
+            ],
+            "resolution": [
+              "4K"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_4k",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "s"
+            }
+          ],
+          "reason": "EDIT_EXTEND_BILLED_DURATION_UNRESOLVED",
+          "evidence": "https://openrouter.ai/google/gemini-omni-1.2-flash",
+          "activation": "RECHECK_EFFECTIVE_AUDIO_AND_TIER",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.2-flash:10",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V"
+            ],
+            "resolution": [
+              "360p"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_360p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/compare/anthropic/claude-opus-5.5/google/gemini-omni-1.2-flash",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.2-flash:11",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V"
+            ],
+            "resolution": [
+              "360p"
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "UNKNOWN",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_360p",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "AUDIO_EFFECTIVE_SEMANTICS_UNRESOLVED",
+          "evidence": "https://openrouter.ai/google/gemini-omni-1.2-flash",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.2-flash:12",
+          "when": {
+            "method": [
+              "V2V_EDIT",
+              "V2V_EXTEND"
+            ],
+            "resolution": [
+              "360p"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_360p",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "s"
+            }
+          ],
+          "reason": "EDIT_EXTEND_BILLED_DURATION_UNRESOLVED",
+          "evidence": "https://openrouter.ai/google/gemini-omni-1.2-flash",
+          "activation": "RECHECK_EFFECTIVE_AUDIO_AND_TIER",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "duration_seconds_with_audio",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/gemini-omni-1.2-flash:4",
+            "google/gemini-omni-1.2-flash:5",
+            "google/gemini-omni-1.2-flash:6"
+          ]
+        },
+        {
+          "sku": "duration_seconds_with_audio_4k",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/gemini-omni-1.2-flash:7",
+            "google/gemini-omni-1.2-flash:8",
+            "google/gemini-omni-1.2-flash:9"
+          ]
+        },
+        {
+          "sku": "duration_seconds_with_audio_360p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/gemini-omni-1.2-flash:10",
+            "google/gemini-omni-1.2-flash:11",
+            "google/gemini-omni-1.2-flash:12"
+          ]
+        },
+        {
+          "sku": "duration_seconds_with_audio_720p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/gemini-omni-1.2-flash:1",
+            "google/gemini-omni-1.2-flash:2",
+            "google/gemini-omni-1.2-flash:3"
+          ]
+        }
+      ],
+      "gaps": [
+        {
+          "code": "OMNI_AUDIO",
+          "description": "Native audio stated, but Core permits false; verify whether false is ignored, rejected, or billed same before estimate. Do not change execution control just for pricing."
+        },
+        {
+          "code": "OMNI_EDIT_EXTEND",
+          "description": "Source versus requested output versus previous job extension increment; effective audio and 1080p unsuffixed mapping require evidence."
+        }
+      ],
+      "source": "https://openrouter.ai/google/gemini-omni-1.2-flash",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      },
+      "audio_default": true
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "google/gemini-omni-1.1-flash",
+      "canonical_slug": "google/gemini-omni-1.1-flash-20260911",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V",
+        "IR2V",
+        "VR2V",
+        "V2V_EDIT",
+        "V2V_EXTEND"
+      ],
+      "known_skus": [
+        "duration_seconds_with_audio",
+        "duration_seconds_with_audio_4k",
+        "duration_seconds_with_audio_360p",
+        "duration_seconds_with_audio_720p"
+      ],
+      "rules": [
+        {
+          "id": "google/gemini-omni-1.1-flash:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "VR2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_720p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/compare/anthropic/claude-opus-5.5/google/gemini-omni-1.1-flash",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.1-flash:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "VR2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "UNKNOWN",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_720p",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "AUDIO_EFFECTIVE_SEMANTICS_UNRESOLVED",
+          "evidence": "https://openrouter.ai/google/gemini-omni-1.1-flash",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.1-flash:3",
+          "when": {
+            "method": [
+              "V2V_EDIT",
+              "V2V_EXTEND"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_720p",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "s"
+            }
+          ],
+          "reason": "EDIT_EXTEND_BILLED_DURATION_UNRESOLVED",
+          "evidence": "https://openrouter.ai/google/gemini-omni-1.1-flash",
+          "activation": "RECHECK_EFFECTIVE_AUDIO_AND_TIER",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.1-flash:4",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "VR2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/compare/anthropic/claude-opus-5.5/google/gemini-omni-1.1-flash",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.1-flash:5",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "VR2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "UNKNOWN",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "AUDIO_EFFECTIVE_SEMANTICS_UNRESOLVED",
+          "evidence": "https://openrouter.ai/google/gemini-omni-1.1-flash",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.1-flash:6",
+          "when": {
+            "method": [
+              "V2V_EDIT",
+              "V2V_EXTEND"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "s"
+            }
+          ],
+          "reason": "EDIT_EXTEND_BILLED_DURATION_UNRESOLVED",
+          "evidence": "https://openrouter.ai/google/gemini-omni-1.1-flash",
+          "activation": "RECHECK_EFFECTIVE_AUDIO_AND_TIER",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.1-flash:7",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "VR2V"
+            ],
+            "resolution": [
+              "4K"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_4k",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/compare/anthropic/claude-opus-5.5/google/gemini-omni-1.1-flash",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.1-flash:8",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "VR2V"
+            ],
+            "resolution": [
+              "4K"
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "UNKNOWN",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_4k",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "AUDIO_EFFECTIVE_SEMANTICS_UNRESOLVED",
+          "evidence": "https://openrouter.ai/google/gemini-omni-1.1-flash",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.1-flash:9",
+          "when": {
+            "method": [
+              "V2V_EDIT",
+              "V2V_EXTEND"
+            ],
+            "resolution": [
+              "4K"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_4k",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "s"
+            }
+          ],
+          "reason": "EDIT_EXTEND_BILLED_DURATION_UNRESOLVED",
+          "evidence": "https://openrouter.ai/google/gemini-omni-1.1-flash",
+          "activation": "RECHECK_EFFECTIVE_AUDIO_AND_TIER",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.1-flash:10",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "VR2V"
+            ],
+            "resolution": [
+              "360p"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_360p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/compare/anthropic/claude-opus-5.5/google/gemini-omni-1.1-flash",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.1-flash:11",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "VR2V"
+            ],
+            "resolution": [
+              "360p"
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "UNKNOWN",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_360p",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "AUDIO_EFFECTIVE_SEMANTICS_UNRESOLVED",
+          "evidence": "https://openrouter.ai/google/gemini-omni-1.1-flash",
+          "production_active": true
+        },
+        {
+          "id": "google/gemini-omni-1.1-flash:12",
+          "when": {
+            "method": [
+              "V2V_EDIT",
+              "V2V_EXTEND"
+            ],
+            "resolution": [
+              "360p"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_360p",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "s"
+            }
+          ],
+          "reason": "EDIT_EXTEND_BILLED_DURATION_UNRESOLVED",
+          "evidence": "https://openrouter.ai/google/gemini-omni-1.1-flash",
+          "activation": "RECHECK_EFFECTIVE_AUDIO_AND_TIER",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "duration_seconds_with_audio",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/gemini-omni-1.1-flash:4",
+            "google/gemini-omni-1.1-flash:5",
+            "google/gemini-omni-1.1-flash:6"
+          ]
+        },
+        {
+          "sku": "duration_seconds_with_audio_4k",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/gemini-omni-1.1-flash:7",
+            "google/gemini-omni-1.1-flash:8",
+            "google/gemini-omni-1.1-flash:9"
+          ]
+        },
+        {
+          "sku": "duration_seconds_with_audio_360p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/gemini-omni-1.1-flash:10",
+            "google/gemini-omni-1.1-flash:11",
+            "google/gemini-omni-1.1-flash:12"
+          ]
+        },
+        {
+          "sku": "duration_seconds_with_audio_720p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/gemini-omni-1.1-flash:1",
+            "google/gemini-omni-1.1-flash:2",
+            "google/gemini-omni-1.1-flash:3"
+          ]
+        }
+      ],
+      "gaps": [
+        {
+          "code": "OMNI_AUDIO",
+          "description": "Native audio stated, but Core permits false; verify whether false is ignored, rejected, or billed same before estimate. Do not change execution control just for pricing."
+        },
+        {
+          "code": "OMNI_EDIT_EXTEND",
+          "description": "Source versus requested output versus previous job extension increment; effective audio and 1080p unsuffixed mapping require evidence."
+        }
+      ],
+      "source": "https://openrouter.ai/google/gemini-omni-1.1-flash",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      },
+      "audio_default": true
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "tbc/mischief-1",
+      "canonical_slug": "tbc/mischief-1-20261023",
+      "capture_methods": [
+        "I2V"
+      ],
+      "known_skus": [
+        "cents_per_video_output_second_480p",
+        "cents_per_video_output_second_720p"
+      ],
+      "rules": [
+        {
+          "id": "tbc/mischief-1:1",
+          "when": {
+            "method": [
+              "I2V"
+            ],
+            "resolution": [
+              "480p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "cents_per_video_output_second_480p",
+              "unit": "cents",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/tbc/mischief-1",
+          "production_active": true
+        },
+        {
+          "id": "tbc/mischief-1:2",
+          "when": {
+            "method": [
+              "I2V"
+            ],
+            "resolution": [
+              "720p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "cents_per_video_output_second_720p",
+              "unit": "cents",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/tbc/mischief-1",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "cents_per_video_output_second_480p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "tbc/mischief-1:1"
+          ]
+        },
+        {
+          "sku": "cents_per_video_output_second_720p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "tbc/mischief-1:2"
+          ]
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/tbc/mischief-1",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "x-ai/grok-imagine-video-1.5-lite",
+      "canonical_slug": "x-ai/grok-imagine-video-1.5-lite-20261001",
+      "capture_methods": [
+        "T2V",
+        "I2V"
+      ],
+      "known_skus": [
+        "cents_per_image_input",
+        "cents_per_video_output_second_480p",
+        "cents_per_video_output_second_720p",
+        "cents_per_video_output_second_1080p"
+      ],
+      "rules": [
+        {
+          "id": "x-ai/grok-imagine-video-1.5-lite:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V"
+            ],
+            "resolution": [
+              "480p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "cents_per_video_output_second_480p",
+              "unit": "cents",
+              "quantity": "output_seconds"
+            },
+            {
+              "sku": "cents_per_image_input",
+              "unit": "cents",
+              "quantity": "active_image_inputs"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/image-to-video-models-compared/",
+          "notes": "Count actual input image occurrences incl fixed frame when billed as image input; no dedup; exclude parked.",
+          "production_active": true
+        },
+        {
+          "id": "x-ai/grok-imagine-video-1.5-lite:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V"
+            ],
+            "resolution": [
+              "720p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "cents_per_video_output_second_720p",
+              "unit": "cents",
+              "quantity": "output_seconds"
+            },
+            {
+              "sku": "cents_per_image_input",
+              "unit": "cents",
+              "quantity": "active_image_inputs"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/image-to-video-models-compared/",
+          "notes": "Count actual input image occurrences incl fixed frame when billed as image input; no dedup; exclude parked.",
+          "production_active": true
+        },
+        {
+          "id": "x-ai/grok-imagine-video-1.5-lite:3",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V"
+            ],
+            "resolution": [
+              "1080p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "cents_per_video_output_second_1080p",
+              "unit": "cents",
+              "quantity": "output_seconds"
+            },
+            {
+              "sku": "cents_per_image_input",
+              "unit": "cents",
+              "quantity": "active_image_inputs"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/image-to-video-models-compared/",
+          "notes": "Count actual input image occurrences incl fixed frame when billed as image input; no dedup; exclude parked.",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "cents_per_image_input",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "x-ai/grok-imagine-video-1.5-lite:1",
+            "x-ai/grok-imagine-video-1.5-lite:2",
+            "x-ai/grok-imagine-video-1.5-lite:3"
+          ]
+        },
+        {
+          "sku": "cents_per_video_output_second_480p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "x-ai/grok-imagine-video-1.5-lite:1"
+          ]
+        },
+        {
+          "sku": "cents_per_video_output_second_720p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "x-ai/grok-imagine-video-1.5-lite:2"
+          ]
+        },
+        {
+          "sku": "cents_per_video_output_second_1080p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "x-ai/grok-imagine-video-1.5-lite:3"
+          ]
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/x-ai/grok-imagine-video-1.5-lite",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "heygen/heygen-video-1",
+      "canonical_slug": "heygen/heygen-video-1-20260930",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "IR2V",
+        "MI2V",
+        "VR2V",
+        "MMR2V"
+      ],
+      "known_skus": [
+        "duration_seconds_2k",
+        "duration_seconds_480p",
+        "duration_seconds_768p",
+        "duration_seconds_1080p",
+        "reference_input_images",
+        "long_duration_seconds_2k",
+        "long_duration_seconds_480p",
+        "long_duration_seconds_768p",
+        "long_duration_seconds_1080p",
+        "reference_duration_seconds_2k",
+        "reference_duration_seconds_480p",
+        "reference_duration_seconds_768p",
+        "reference_duration_seconds_1080p",
+        "long_reference_duration_seconds_1080p",
+        "long_reference_duration_seconds_2k",
+        "long_reference_duration_seconds_480p",
+        "long_reference_duration_seconds_768p"
+      ],
+      "rules": [
+        {
+          "id": "heygen/heygen-video-1:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "480p"
+            ],
+            "has_references": [
+              false
+            ],
+            "duration": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_480p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1?output_modalities=video",
+          "notes": "Official OR and native model describe 5\u0432\u0402\u201c15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "480p"
+            ],
+            "has_references": [
+              false
+            ],
+            "duration": [
+              null,
+              -1,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ]
+          },
+          "expected_state": "PARTIAL",
+          "charges": [
+            {
+              "sku": "duration_seconds_480p",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1",
+          "notes": "Do not apply 5\u0432\u0402\u201c15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:3",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "480p"
+            ],
+            "has_references": [
+              true
+            ],
+            "duration": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "reference_duration_seconds_480p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            },
+            {
+              "sku": "reference_input_images",
+              "unit": "USD",
+              "quantity": "reference_images",
+              "free_allowance": 2
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1?output_modalities=video",
+          "notes": "Official OR and native model describe 5\u0432\u0402\u201c15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:4",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "480p"
+            ],
+            "has_references": [
+              true
+            ],
+            "duration": [
+              null,
+              -1,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ]
+          },
+          "expected_state": "PARTIAL",
+          "charges": [
+            {
+              "sku": "reference_duration_seconds_480p",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1",
+          "notes": "Do not apply 5\u0432\u0402\u201c15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:5",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "768p"
+            ],
+            "has_references": [
+              false
+            ],
+            "duration": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_768p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1?output_modalities=video",
+          "notes": "Official OR and native model describe 5\u0432\u0402\u201c15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:6",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "768p"
+            ],
+            "has_references": [
+              false
+            ],
+            "duration": [
+              null,
+              -1,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ]
+          },
+          "expected_state": "PARTIAL",
+          "charges": [
+            {
+              "sku": "duration_seconds_768p",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1",
+          "notes": "Do not apply 5\u0432\u0402\u201c15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:7",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "768p"
+            ],
+            "has_references": [
+              true
+            ],
+            "duration": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "reference_duration_seconds_768p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            },
+            {
+              "sku": "reference_input_images",
+              "unit": "USD",
+              "quantity": "reference_images",
+              "free_allowance": 2
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1?output_modalities=video",
+          "notes": "Official OR and native model describe 5\u0432\u0402\u201c15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:8",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "768p"
+            ],
+            "has_references": [
+              true
+            ],
+            "duration": [
+              null,
+              -1,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ]
+          },
+          "expected_state": "PARTIAL",
+          "charges": [
+            {
+              "sku": "reference_duration_seconds_768p",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1",
+          "notes": "Do not apply 5\u0432\u0402\u201c15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:9",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "has_references": [
+              false
+            ],
+            "duration": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_1080p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1?output_modalities=video",
+          "notes": "Official OR and native model describe 5\u0432\u0402\u201c15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
+          "activation": "RECHECK_1080P_SCOPE",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:10",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "has_references": [
+              false
+            ],
+            "duration": [
+              null,
+              -1,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ]
+          },
+          "expected_state": "PARTIAL",
+          "charges": [
+            {
+              "sku": "duration_seconds_1080p",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1",
+          "notes": "Do not apply 5\u0432\u0402\u201c15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:11",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "has_references": [
+              true
+            ],
+            "duration": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "reference_duration_seconds_1080p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            },
+            {
+              "sku": "reference_input_images",
+              "unit": "USD",
+              "quantity": "reference_images",
+              "free_allowance": 2
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1?output_modalities=video",
+          "notes": "Official OR and native model describe 5\u0432\u0402\u201c15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
+          "activation": "RECHECK_1080P_SCOPE",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:12",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "has_references": [
+              true
+            ],
+            "duration": [
+              null,
+              -1,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ]
+          },
+          "expected_state": "PARTIAL",
+          "charges": [
+            {
+              "sku": "reference_duration_seconds_1080p",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1",
+          "notes": "Do not apply 5\u0432\u0402\u201c15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:13",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "2K"
+            ],
+            "has_references": [
+              false
+            ],
+            "duration": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_2k",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1?output_modalities=video",
+          "notes": "Official OR and native model describe 5\u0432\u0402\u201c15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:14",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "2K"
+            ],
+            "has_references": [
+              false
+            ],
+            "duration": [
+              null,
+              -1,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ]
+          },
+          "expected_state": "PARTIAL",
+          "charges": [
+            {
+              "sku": "duration_seconds_2k",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1",
+          "notes": "Do not apply 5\u0432\u0402\u201c15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:15",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "2K"
+            ],
+            "has_references": [
+              true
+            ],
+            "duration": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "reference_duration_seconds_2k",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            },
+            {
+              "sku": "reference_input_images",
+              "unit": "USD",
+              "quantity": "reference_images",
+              "free_allowance": 2
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1?output_modalities=video",
+          "notes": "Official OR and native model describe 5\u0432\u0402\u201c15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:16",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "2K"
+            ],
+            "has_references": [
+              true
+            ],
+            "duration": [
+              null,
+              -1,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ]
+          },
+          "expected_state": "PARTIAL",
+          "charges": [
+            {
+              "sku": "reference_duration_seconds_2k",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1",
+          "notes": "Do not apply 5\u0432\u0402\u201c15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "duration_seconds_2k",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "heygen/heygen-video-1:13",
+            "heygen/heygen-video-1:14"
+          ]
+        },
+        {
+          "sku": "duration_seconds_480p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "heygen/heygen-video-1:1",
+            "heygen/heygen-video-1:2"
+          ]
+        },
+        {
+          "sku": "duration_seconds_768p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "heygen/heygen-video-1:5",
+            "heygen/heygen-video-1:6"
+          ]
+        },
+        {
+          "sku": "duration_seconds_1080p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "heygen/heygen-video-1:9",
+            "heygen/heygen-video-1:10"
+          ]
+        },
+        {
+          "sku": "reference_input_images",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "heygen/heygen-video-1:3",
+            "heygen/heygen-video-1:7",
+            "heygen/heygen-video-1:11",
+            "heygen/heygen-video-1:15"
+          ]
+        },
+        {
+          "sku": "long_duration_seconds_2k",
+          "disposition": "UNRESOLVED_TIER",
+          "rule_ids": []
+        },
+        {
+          "sku": "long_duration_seconds_480p",
+          "disposition": "UNRESOLVED_TIER",
+          "rule_ids": []
+        },
+        {
+          "sku": "long_duration_seconds_768p",
+          "disposition": "UNRESOLVED_TIER",
+          "rule_ids": []
+        },
+        {
+          "sku": "long_duration_seconds_1080p",
+          "disposition": "UNRESOLVED_TIER",
+          "rule_ids": []
+        },
+        {
+          "sku": "reference_duration_seconds_2k",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "heygen/heygen-video-1:15",
+            "heygen/heygen-video-1:16"
+          ]
+        },
+        {
+          "sku": "reference_duration_seconds_480p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "heygen/heygen-video-1:3",
+            "heygen/heygen-video-1:4"
+          ]
+        },
+        {
+          "sku": "reference_duration_seconds_768p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "heygen/heygen-video-1:7",
+            "heygen/heygen-video-1:8"
+          ]
+        },
+        {
+          "sku": "reference_duration_seconds_1080p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "heygen/heygen-video-1:11",
+            "heygen/heygen-video-1:12"
+          ]
+        },
+        {
+          "sku": "long_reference_duration_seconds_1080p",
+          "disposition": "UNRESOLVED_TIER",
+          "rule_ids": []
+        },
+        {
+          "sku": "long_reference_duration_seconds_2k",
+          "disposition": "UNRESOLVED_TIER",
+          "rule_ids": []
+        },
+        {
+          "sku": "long_reference_duration_seconds_480p",
+          "disposition": "UNRESOLVED_TIER",
+          "rule_ids": []
+        },
+        {
+          "sku": "long_reference_duration_seconds_768p",
+          "disposition": "UNRESOLVED_TIER",
+          "rule_ids": []
+        }
+      ],
+      "gaps": [
+        {
+          "code": "HEYGEN_LONG",
+          "description": "Identify long threshold, whole vs marginal, reference+long precedence, 1080p/2K and route applicability. Raw supports 30s; FAQ describes 5\u0432\u0402\u201c15s."
+        }
+      ],
+      "source": "https://openrouter.ai/heygen/heygen-video-1",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "black-forest-labs/flux-video-edit",
+      "canonical_slug": "black-forest-labs/flux-video-edit-20260910",
+      "capture_methods": [
+        "V2V_EDIT"
+      ],
+      "known_skus": [
+        "cents_per_second_output"
+      ],
+      "rules": [
+        {
+          "id": "black-forest-labs/flux-video-edit:1",
+          "when": {
+            "method": [
+              "V2V_EDIT"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "cents_per_second_output",
+              "unit": "cents",
+              "quantity": "source_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/black-forest-labs/flux-video-edit",
+          "notes": "Output preserves source duration; read trusted metadata only. No media upload for estimate.",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "cents_per_second_output",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "black-forest-labs/flux-video-edit:1"
+          ]
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/black-forest-labs/flux-video-edit",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      },
+      "metadata_policy": "SOURCE_DURATION"
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "minimax/hailuo-3-max",
+      "canonical_slug": "minimax/hailuo-3-max-20260901",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "known_skus": [
+        "duration_seconds",
+        "duration_seconds_480p",
+        "duration_seconds_768p"
+      ],
+      "rules": [
+        {
+          "id": "minimax/hailuo-3-max:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "768p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_768p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/minimax/hailuo-3-max",
+          "production_active": true
+        },
+        {
+          "id": "minimax/hailuo-3-max:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "480p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_480p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/minimax/hailuo-3-max",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "duration_seconds",
+          "disposition": "GENERIC_NOT_FALLBACK",
+          "rule_ids": []
+        },
+        {
+          "sku": "duration_seconds_480p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "minimax/hailuo-3-max:2"
+          ]
+        },
+        {
+          "sku": "duration_seconds_768p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "minimax/hailuo-3-max:1"
+          ]
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/minimax/hailuo-3-max",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "alibaba/wan-3.0-prime",
+      "canonical_slug": "alibaba/wan-3.0-prime-20260827",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "known_skus": [
+        "duration_seconds_480p",
+        "duration_seconds_720p",
+        "duration_seconds_1080p"
+      ],
+      "rules": [
+        {
+          "id": "alibaba/wan-3.0-prime:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "480p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_480p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/image-to-video-models-compared/",
+          "production_active": true
+        },
+        {
+          "id": "alibaba/wan-3.0-prime:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "720p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_720p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/image-to-video-models-compared/",
+          "production_active": true
+        },
+        {
+          "id": "alibaba/wan-3.0-prime:3",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "1080p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_1080p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/image-to-video-models-compared/",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "duration_seconds_480p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "alibaba/wan-3.0-prime:1"
+          ]
+        },
+        {
+          "sku": "duration_seconds_720p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "alibaba/wan-3.0-prime:2"
+          ]
+        },
+        {
+          "sku": "duration_seconds_1080p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "alibaba/wan-3.0-prime:3"
+          ]
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/alibaba/wan-3.0-prime",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "alibaba/wan-3.0",
+      "canonical_slug": "alibaba/wan-3.0-20260824",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V",
+        "IR2V",
+        "MI2V",
+        "VR2V",
+        "AR2V",
+        "MMR2V"
+      ],
+      "known_skus": [
+        "duration_seconds_480p",
+        "duration_seconds_720p",
+        "duration_seconds_1080p"
+      ],
+      "rules": [
+        {
+          "id": "alibaba/wan-3.0:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V"
+            ],
+            "resolution": [
+              "480p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_480p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/image-to-video-models-compared/",
+          "production_active": true
+        },
+        {
+          "id": "alibaba/wan-3.0:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V"
+            ],
+            "resolution": [
+              "720p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_720p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/image-to-video-models-compared/",
+          "production_active": true
+        },
+        {
+          "id": "alibaba/wan-3.0:3",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V"
+            ],
+            "resolution": [
+              "1080p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_1080p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/image-to-video-models-compared/",
+          "production_active": true
+        },
+        {
+          "id": "alibaba/wan-3.0:4",
+          "when": {
+            "method": [
+              "VR2V",
+              "AR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "480p"
+            ]
+          },
+          "expected_state": "PARTIAL",
+          "charges": [
+            {
+              "sku": "duration_seconds_480p",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "INPUT_MODALITY_CHARGE_UNRESOLVED",
+          "evidence": "https://openrouter.ai/alibaba/wan-3.0",
+          "production_active": true
+        },
+        {
+          "id": "alibaba/wan-3.0:5",
+          "when": {
+            "method": [
+              "VR2V",
+              "AR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "720p"
+            ]
+          },
+          "expected_state": "PARTIAL",
+          "charges": [
+            {
+              "sku": "duration_seconds_720p",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "INPUT_MODALITY_CHARGE_UNRESOLVED",
+          "evidence": "https://openrouter.ai/alibaba/wan-3.0",
+          "production_active": true
+        },
+        {
+          "id": "alibaba/wan-3.0:6",
+          "when": {
+            "method": [
+              "VR2V",
+              "AR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "1080p"
+            ]
+          },
+          "expected_state": "PARTIAL",
+          "charges": [
+            {
+              "sku": "duration_seconds_1080p",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "INPUT_MODALITY_CHARGE_UNRESOLVED",
+          "evidence": "https://openrouter.ai/alibaba/wan-3.0",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "duration_seconds_480p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "alibaba/wan-3.0:1",
+            "alibaba/wan-3.0:4"
+          ]
+        },
+        {
+          "sku": "duration_seconds_720p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "alibaba/wan-3.0:2",
+            "alibaba/wan-3.0:5"
+          ]
+        },
+        {
+          "sku": "duration_seconds_1080p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "alibaba/wan-3.0:3",
+            "alibaba/wan-3.0:6"
+          ]
+        }
+      ],
+      "gaps": [
+        {
+          "code": "WAN_REFERENCE",
+          "description": "Video/audio reference scope and additive fees not established; image-only MMR invalid per Core. Check modality combination not name alone."
+        }
+      ],
+      "source": "https://openrouter.ai/alibaba/wan-3.0",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "heygen/avatar-iv",
+      "canonical_slug": "heygen/avatar-iv-20260625",
+      "capture_methods": [
+        "IR2V",
+        "AVATAR_AUDIO"
+      ],
+      "known_skus": [
+        "duration_seconds"
+      ],
+      "rules": [
+        {
+          "id": "heygen/avatar-iv:1",
+          "when": {
+            "method": [
+              "IR2V",
+              "AVATAR_AUDIO"
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "duration_seconds",
+              "unit": "USD",
+              "quantity": "effective_output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/heygen/avatar-iv",
+          "notes": "Actual audio/voice/script duration unknown preflight; no characters-per-second guess. RATE_ONLY until effective output duration is evidenced; audio track length is not automatically output duration.",
+          "activation": "RECHECK_DURATION_MAPPING",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "duration_seconds",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "heygen/avatar-iv:1"
+          ]
+        }
+      ],
+      "gaps": [
+        {
+          "code": "AVATAR_DURATION",
+          "description": "Text TTS duration unknown; audio input duration mapping/rounding needs exact OR contract."
+        }
+      ],
+      "source": "https://openrouter.ai/heygen/avatar-iv",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "black-forest-labs/flux-video-upscale",
+      "canonical_slug": "black-forest-labs/flux-video-upscale-20260819",
+      "capture_methods": [
+        "V2V_UPSCALE"
+      ],
+      "known_skus": [
+        "cents_per_megapixel_second_precise",
+        "cents_per_megapixel_second_creative"
+      ],
+      "rules": [
+        {
+          "id": "black-forest-labs/flux-video-upscale:1",
+          "when": {
+            "method": [
+              "V2V_UPSCALE"
+            ],
+            "upscale_mode": [
+              "precise"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "cents_per_megapixel_second_precise",
+              "unit": "cents",
+              "quantity": "megapixel_seconds_binary_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://docs.bfl.ai/flux_tools/flux_video_upscale",
+          "notes": "BFL native exact model documents delivered output pixels / 1048576 \u0413\u2014 output seconds, creativity 0/1; OR page identifies BFL route and same unit. Confirm mapped output geometry/cap/rounding and current route before activation.",
+          "activation": "RECHECK_OUTPUT_GEOMETRY_AND_ROUTE",
+          "production_active": true
+        },
+        {
+          "id": "black-forest-labs/flux-video-upscale:2",
+          "when": {
+            "method": [
+              "V2V_UPSCALE"
+            ],
+            "upscale_mode": [
+              "creative"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "cents_per_megapixel_second_creative",
+              "unit": "cents",
+              "quantity": "megapixel_seconds_binary_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://docs.bfl.ai/flux_tools/flux_video_upscale",
+          "notes": "BFL native exact model documents delivered output pixels / 1048576 \u0413\u2014 output seconds, creativity 0/1; OR page identifies BFL route and same unit. Confirm mapped output geometry/cap/rounding and current route before activation.",
+          "activation": "RECHECK_OUTPUT_GEOMETRY_AND_ROUTE",
+          "production_active": true
+        },
+        {
+          "id": "black-forest-labs/flux-video-upscale:3",
+          "when": {
+            "method": [
+              "V2V_UPSCALE"
+            ],
+            "upscale_mode": [
+              null
+            ]
+          },
+          "expected_state": "UNKNOWN",
+          "charges": [],
+          "reason": "UPSCALE_MODE_UNRESOLVED",
+          "evidence": "https://openrouter.ai/black-forest-labs/flux-video-upscale",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "cents_per_megapixel_second_precise",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "black-forest-labs/flux-video-upscale:1"
+          ]
+        },
+        {
+          "sku": "cents_per_megapixel_second_creative",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "black-forest-labs/flux-video-upscale:2"
+          ]
+        }
+      ],
+      "gaps": [
+        {
+          "code": "UPSCALE_BASIS",
+          "description": "Native provider confirms output pixels / 1048576, 24fps, pro rata, creativity 0/1; remaining exact OR compatibility, projected delivered dimensions/cap and source duration."
+        }
+      ],
+      "source": "https://openrouter.ai/black-forest-labs/flux-video-upscale",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      },
+      "metadata_policy": "UPSCALE_SOURCE_24"
+    },
+    {
+      "geometry_map": {
+        "480p": {
+          "16:9": "854x480",
+          "4:3": "640x480",
+          "1:1": "480x480",
+          "3:4": "480x640",
+          "9:16": "480x854",
+          "21:9": "1120x480"
+        },
+        "720p": {
+          "16:9": "1280x720",
+          "4:3": "960x720",
+          "1:1": "720x720",
+          "3:4": "720x960",
+          "9:16": "720x1280",
+          "21:9": "1680x720",
+          "9:21": "720x1680"
+        }
+      },
+      "geometry_status": "EXPLICIT_CAPTURE_MAP_ESTIMATE_ASSUMPTION",
+      "model_id": "bytedance/seedance-2.0-mini",
+      "canonical_slug": "bytedance/seedance-2.0-mini-20260811",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V",
+        "IR2V",
+        "MI2V",
+        "VR2V",
+        "MMR2V"
+      ],
+      "known_skus": [
+        "video_tokens",
+        "video_tokens_without_audio",
+        "video_tokens_with_video_input"
+      ],
+      "rules": [
+        {
+          "id": "bytedance/seedance-2.0-mini:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "480p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0-mini",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0-mini:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "480p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens_without_audio",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0-mini",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0-mini:3",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "480p"
+            ],
+            "has_video": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "video_tokens_with_video_input",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "token"
+            }
+          ],
+          "reason": "VIDEO_INPUT_AGGREGATION_AND_MINIMUM_NOT_PROVEN_FOR_OR_ROUTE",
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0-mini",
+          "notes": "Input length changes final tokens; $2 authorization is not estimate. Native minimum table not proven OR-route equivalent.",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0-mini:4",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0-mini",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0-mini:5",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens_without_audio",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0-mini",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0-mini:6",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "has_video": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "video_tokens_with_video_input",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "token"
+            }
+          ],
+          "reason": "VIDEO_INPUT_AGGREGATION_AND_MINIMUM_NOT_PROVEN_FOR_OR_ROUTE",
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0-mini",
+          "notes": "Input length changes final tokens; $2 authorization is not estimate. Native minimum table not proven OR-route equivalent.",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "video_tokens",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "bytedance/seedance-2.0-mini:1",
+            "bytedance/seedance-2.0-mini:4"
+          ]
+        },
+        {
+          "sku": "video_tokens_without_audio",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "bytedance/seedance-2.0-mini:2",
+            "bytedance/seedance-2.0-mini:5"
+          ]
+        },
+        {
+          "sku": "video_tokens_with_video_input",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "bytedance/seedance-2.0-mini:3",
+            "bytedance/seedance-2.0-mini:6"
+          ]
+        }
+      ],
+      "gaps": [
+        {
+          "code": "SEED_VIDEO",
+          "description": "Input-duration aggregation, min-token table, exact OR route correspondence, provider reported quantity. Do not use output-only formula for video input."
+        },
+        {
+          "code": "SEED_GEOMETRY",
+          "description": "Explicit size or exact verified mapping required; standard tier dimensions may be offered only as labeled assumption, not actual geometry."
+        }
+      ],
+      "source": "https://openrouter.ai/bytedance/seedance-2.0-mini",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {
+        "480p": {
+          "16:9": "854x480",
+          "4:3": "752x560",
+          "1:1": "640x640",
+          "3:4": "560x752",
+          "9:16": "480x854",
+          "21:9": "992x432"
+        },
+        "720p": {
+          "16:9": "1280x720",
+          "4:3": "1112x834",
+          "1:1": "960x960",
+          "3:4": "834x1112",
+          "9:16": "720x1280",
+          "21:9": "1470x630"
+        }
+      },
+      "geometry_status": "OR_DOCUMENTED_2_5",
+      "model_id": "bytedance/seedance-2.5",
+      "canonical_slug": "bytedance/seedance-2.5-20260807",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V",
+        "IR2V",
+        "MI2V",
+        "VR2V",
+        "AR2V",
+        "MMR2V",
+        "V2V_EDIT",
+        "V2V_EXTEND"
+      ],
+      "known_skus": [
+        "video_tokens",
+        "video_tokens_without_audio",
+        "video_tokens_with_video_input"
+      ],
+      "rules": [
+        {
+          "id": "bytedance/seedance-2.5:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "AR2V",
+              "MMR2V",
+              "V2V_EDIT",
+              "V2V_EXTEND"
+            ],
+            "resolution": [
+              "480p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/seedance-2-5-review/",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.5:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "AR2V",
+              "MMR2V",
+              "V2V_EDIT",
+              "V2V_EXTEND"
+            ],
+            "resolution": [
+              "480p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens_without_audio",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/seedance-2-5-review/",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.5:3",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "AR2V",
+              "MMR2V",
+              "V2V_EDIT",
+              "V2V_EXTEND"
+            ],
+            "resolution": [
+              "480p"
+            ],
+            "has_video": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "video_tokens_with_video_input",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "token"
+            }
+          ],
+          "reason": "VIDEO_INPUT_AGGREGATION_AND_MINIMUM_NOT_PROVEN_FOR_OR_ROUTE",
+          "evidence": "https://openrouter.ai/blog/insights/seedance-2-5-review/",
+          "notes": "Input length changes final tokens; $2 authorization is not estimate. Native minimum table not proven OR-route equivalent.",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.5:4",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "AR2V",
+              "MMR2V",
+              "V2V_EDIT",
+              "V2V_EXTEND"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/seedance-2-5-review/",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.5:5",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "AR2V",
+              "MMR2V",
+              "V2V_EDIT",
+              "V2V_EXTEND"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens_without_audio",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/seedance-2-5-review/",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.5:6",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "AR2V",
+              "MMR2V",
+              "V2V_EDIT",
+              "V2V_EXTEND"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "has_video": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "video_tokens_with_video_input",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "token"
+            }
+          ],
+          "reason": "VIDEO_INPUT_AGGREGATION_AND_MINIMUM_NOT_PROVEN_FOR_OR_ROUTE",
+          "evidence": "https://openrouter.ai/blog/insights/seedance-2-5-review/",
+          "notes": "Input length changes final tokens; $2 authorization is not estimate. Native minimum table not proven OR-route equivalent.",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "video_tokens",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "bytedance/seedance-2.5:1",
+            "bytedance/seedance-2.5:4"
+          ]
+        },
+        {
+          "sku": "video_tokens_without_audio",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "bytedance/seedance-2.5:2",
+            "bytedance/seedance-2.5:5"
+          ]
+        },
+        {
+          "sku": "video_tokens_with_video_input",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "bytedance/seedance-2.5:3",
+            "bytedance/seedance-2.5:6"
+          ]
+        }
+      ],
+      "gaps": [
+        {
+          "code": "SEED_VIDEO",
+          "description": "Input-duration aggregation, min-token table, exact OR route correspondence, provider reported quantity. Do not use output-only formula for video input."
+        },
+        {
+          "code": "SEED_GEOMETRY",
+          "description": "Explicit size or exact verified mapping required; standard tier dimensions may be offered only as labeled assumption, not actual geometry."
+        }
+      ],
+      "source": "https://openrouter.ai/bytedance/seedance-2.5",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "black-forest-labs/flux-3-video",
+      "canonical_slug": "black-forest-labs/flux-3-video-20260804",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "known_skus": [
+        "cents_per_second_output",
+        "cents_per_second_output_2k",
+        "cents_per_second_output_4k",
+        "cents_per_second_output_720p",
+        "cents_per_second_output_1080p",
+        "cents_per_second_video_continuation_2k",
+        "cents_per_second_video_continuation_4k",
+        "cents_per_second_video_continuation_720p",
+        "cents_per_second_video_continuation_1080p"
+      ],
+      "rules": [
+        {
+          "id": "black-forest-labs/flux-3-video:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "720p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "cents_per_second_output_720p",
+              "unit": "cents",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/black-forest-labs/flux-3-video",
+          "production_active": true
+        },
+        {
+          "id": "black-forest-labs/flux-3-video:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "1080p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "cents_per_second_output_1080p",
+              "unit": "cents",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/black-forest-labs/flux-3-video",
+          "production_active": true
+        },
+        {
+          "id": "black-forest-labs/flux-3-video:3",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "2K"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "cents_per_second_output_2k",
+              "unit": "cents",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/black-forest-labs/flux-3-video",
+          "production_active": true
+        },
+        {
+          "id": "black-forest-labs/flux-3-video:4",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "4K"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "cents_per_second_output_4k",
+              "unit": "cents",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/black-forest-labs/flux-3-video",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "cents_per_second_output",
+          "disposition": "GENERIC_NOT_FALLBACK",
+          "rule_ids": []
+        },
+        {
+          "sku": "cents_per_second_output_2k",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "black-forest-labs/flux-3-video:3"
+          ]
+        },
+        {
+          "sku": "cents_per_second_output_4k",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "black-forest-labs/flux-3-video:4"
+          ]
+        },
+        {
+          "sku": "cents_per_second_output_720p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "black-forest-labs/flux-3-video:1"
+          ]
+        },
+        {
+          "sku": "cents_per_second_output_1080p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "black-forest-labs/flux-3-video:2"
+          ]
+        },
+        {
+          "sku": "cents_per_second_video_continuation_2k",
+          "disposition": "INACTIVE_METHOD",
+          "rule_ids": []
+        },
+        {
+          "sku": "cents_per_second_video_continuation_4k",
+          "disposition": "INACTIVE_METHOD",
+          "rule_ids": []
+        },
+        {
+          "sku": "cents_per_second_video_continuation_720p",
+          "disposition": "INACTIVE_METHOD",
+          "rule_ids": []
+        },
+        {
+          "sku": "cents_per_second_video_continuation_1080p",
+          "disposition": "INACTIVE_METHOD",
+          "rule_ids": []
+        }
+      ],
+      "gaps": [
+        {
+          "code": "FLUX_CONT",
+          "description": "Continuation separate rate; not executable in historical Core. If later enabled, prove increment vs total; no capability expansion from pricing."
+        }
+      ],
+      "source": "https://openrouter.ai/black-forest-labs/flux-3-video",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "minimax/hailuo-3",
+      "canonical_slug": "minimax/hailuo-03-20260730",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "known_skus": [
+        "duration_seconds",
+        "reference_images"
+      ],
+      "rules": [
+        {
+          "id": "minimax/hailuo-3:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            },
+            {
+              "sku": "reference_images",
+              "unit": "USD",
+              "quantity": "reference_images",
+              "free_allowance": 5
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/minimax/hailuo-3",
+          "notes": "First 5 reference images free. Fixed frame is not counted as reference unless separately documented. Only historical fixed frame/T2V methods active.",
+          "activation": "RECHECK_FIXED_FRAME_FEE",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "duration_seconds",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "minimax/hailuo-3:1"
+          ]
+        },
+        {
+          "sku": "reference_images",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "minimax/hailuo-3:1"
+          ]
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/minimax/hailuo-3",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "runway/aleph-2",
+      "canonical_slug": "runway/aleph-2-20260729",
+      "capture_methods": [
+        "V2V_EDIT"
+      ],
+      "known_skus": [
+        "cents_per_second_output",
+        "minimum_cents_per_generation"
+      ],
+      "rules": [
+        {
+          "id": "runway/aleph-2:1",
+          "when": {
+            "method": [
+              "V2V_EDIT"
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "cents_per_second_output",
+              "unit": "cents",
+              "quantity": "unknown",
+              "rate_unit": "s"
+            },
+            {
+              "sku": "minimum_cents_per_generation",
+              "unit": "cents",
+              "quantity": "fixed",
+              "relation": "minimum"
+            }
+          ],
+          "reason": "ALEPH_BILLED_OUTPUT_DURATION_UNPROVEN",
+          "evidence": "https://docs.dev.runwayml.com/guides/pricing/",
+          "notes": "The source-duration sentence in the native pricing guide describes Kling 4.0, not Aleph 2. Source duration does not establish billed output duration. Preserve applicable output rate and documented request floor; no total.",
+          "activation": "RECHECK_ALEPH_DURATION_AND_FORMAT",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "cents_per_second_output",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "runway/aleph-2:1"
+          ]
+        },
+        {
+          "sku": "minimum_cents_per_generation",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "runway/aleph-2:1"
+          ]
+        }
+      ],
+      "gaps": [
+        {
+          "code": "ALEPH_LENGTH",
+          "description": "Native per-generation minimum corroborated. Need billed duration and OR format/control compatibility; do not assume input duration without proof."
+        }
+      ],
+      "source": "https://openrouter.ai/runway/aleph-2",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      },
+      "metadata_policy": "NONE"
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "runway/gen-4.5",
+      "canonical_slug": "runway/gen-4.5-20260729",
+      "capture_methods": [
+        "T2V",
+        "I2V"
+      ],
+      "known_skus": [
+        "cents_per_second_output"
+      ],
+      "rules": [
+        {
+          "id": "runway/gen-4.5:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "cents_per_second_output",
+              "unit": "cents",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/runway/gen-4.5",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "cents_per_second_output",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "runway/gen-4.5:1"
+          ]
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/runway/gen-4.5",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "x-ai/grok-imagine-video-1.5",
+      "canonical_slug": "x-ai/grok-imagine-video-1.5-20260719",
+      "capture_methods": [
+        "T2V",
+        "I2V"
+      ],
+      "known_skus": [
+        "cents_per_image_input",
+        "cents_per_video_output_second_480p",
+        "cents_per_video_output_second_720p",
+        "cents_per_video_output_second_1080p"
+      ],
+      "rules": [
+        {
+          "id": "x-ai/grok-imagine-video-1.5:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V"
+            ],
+            "resolution": [
+              "480p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "cents_per_video_output_second_480p",
+              "unit": "cents",
+              "quantity": "output_seconds"
+            },
+            {
+              "sku": "cents_per_image_input",
+              "unit": "cents",
+              "quantity": "active_image_inputs"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/image-to-video-models-compared/",
+          "notes": "Count actual input image occurrences incl fixed frame when billed as image input; no dedup; exclude parked.",
+          "production_active": true
+        },
+        {
+          "id": "x-ai/grok-imagine-video-1.5:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V"
+            ],
+            "resolution": [
+              "720p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "cents_per_video_output_second_720p",
+              "unit": "cents",
+              "quantity": "output_seconds"
+            },
+            {
+              "sku": "cents_per_image_input",
+              "unit": "cents",
+              "quantity": "active_image_inputs"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/image-to-video-models-compared/",
+          "notes": "Count actual input image occurrences incl fixed frame when billed as image input; no dedup; exclude parked.",
+          "production_active": true
+        },
+        {
+          "id": "x-ai/grok-imagine-video-1.5:3",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V"
+            ],
+            "resolution": [
+              "1080p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "cents_per_video_output_second_1080p",
+              "unit": "cents",
+              "quantity": "output_seconds"
+            },
+            {
+              "sku": "cents_per_image_input",
+              "unit": "cents",
+              "quantity": "active_image_inputs"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/image-to-video-models-compared/",
+          "notes": "Count actual input image occurrences incl fixed frame when billed as image input; no dedup; exclude parked.",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "cents_per_image_input",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "x-ai/grok-imagine-video-1.5:1",
+            "x-ai/grok-imagine-video-1.5:2",
+            "x-ai/grok-imagine-video-1.5:3"
+          ]
+        },
+        {
+          "sku": "cents_per_video_output_second_480p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "x-ai/grok-imagine-video-1.5:1"
+          ]
+        },
+        {
+          "sku": "cents_per_video_output_second_720p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "x-ai/grok-imagine-video-1.5:2"
+          ]
+        },
+        {
+          "sku": "cents_per_video_output_second_1080p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "x-ai/grok-imagine-video-1.5:3"
+          ]
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/x-ai/grok-imagine-video-1.5",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "alibaba/happyhorse-1.1",
+      "canonical_slug": "alibaba/happyhorse-1.1-20260624",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "IR2V",
+        "MI2V"
+      ],
+      "known_skus": [
+        "duration_seconds_720p",
+        "duration_seconds_1080p"
+      ],
+      "rules": [
+        {
+          "id": "alibaba/happyhorse-1.1:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V"
+            ],
+            "resolution": [
+              "720p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_720p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/image-to-video-models-compared/",
+          "production_active": true
+        },
+        {
+          "id": "alibaba/happyhorse-1.1:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V"
+            ],
+            "resolution": [
+              "1080p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_1080p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/image-to-video-models-compared/",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "duration_seconds_720p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "alibaba/happyhorse-1.1:1"
+          ]
+        },
+        {
+          "sku": "duration_seconds_1080p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "alibaba/happyhorse-1.1:2"
+          ]
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/alibaba/happyhorse-1.1",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "alibaba/happyhorse-1.0",
+      "canonical_slug": "alibaba/happyhorse-1.0-20260624",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "IR2V",
+        "MI2V"
+      ],
+      "known_skus": [
+        "duration_seconds_720p",
+        "duration_seconds_1080p"
+      ],
+      "rules": [
+        {
+          "id": "alibaba/happyhorse-1.0:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V"
+            ],
+            "resolution": [
+              "720p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_720p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/image-to-video-models-compared/",
+          "production_active": true
+        },
+        {
+          "id": "alibaba/happyhorse-1.0:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V"
+            ],
+            "resolution": [
+              "1080p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_1080p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/image-to-video-models-compared/",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "duration_seconds_720p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "alibaba/happyhorse-1.0:1"
+          ]
+        },
+        {
+          "sku": "duration_seconds_1080p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "alibaba/happyhorse-1.0:2"
+          ]
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/alibaba/happyhorse-1.0",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "x-ai/grok-imagine-video",
+      "canonical_slug": "x-ai/grok-imagine-video-20260512",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "IR2V",
+        "MI2V"
+      ],
+      "known_skus": [
+        "cents_per_image_input",
+        "cents_per_video_output_second_480p",
+        "cents_per_video_output_second_720p"
+      ],
+      "rules": [
+        {
+          "id": "x-ai/grok-imagine-video:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V"
+            ],
+            "resolution": [
+              "480p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "cents_per_video_output_second_480p",
+              "unit": "cents",
+              "quantity": "output_seconds"
+            },
+            {
+              "sku": "cents_per_image_input",
+              "unit": "cents",
+              "quantity": "active_image_inputs"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/image-to-video-models-compared/",
+          "notes": "Count actual input image occurrences incl fixed frame when billed as image input; no dedup; exclude parked.",
+          "production_active": true
+        },
+        {
+          "id": "x-ai/grok-imagine-video:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V"
+            ],
+            "resolution": [
+              "720p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "cents_per_video_output_second_720p",
+              "unit": "cents",
+              "quantity": "output_seconds"
+            },
+            {
+              "sku": "cents_per_image_input",
+              "unit": "cents",
+              "quantity": "active_image_inputs"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/blog/insights/image-to-video-models-compared/",
+          "notes": "Count actual input image occurrences incl fixed frame when billed as image input; no dedup; exclude parked.",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "cents_per_image_input",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "x-ai/grok-imagine-video:1",
+            "x-ai/grok-imagine-video:2"
+          ]
+        },
+        {
+          "sku": "cents_per_video_output_second_480p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "x-ai/grok-imagine-video:1"
+          ]
+        },
+        {
+          "sku": "cents_per_video_output_second_720p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "x-ai/grok-imagine-video:2"
+          ]
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/x-ai/grok-imagine-video",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "kwaivgi/kling-v3.0-pro",
+      "canonical_slug": "kwaivgi/kling-v3.0-pro-20260429",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "known_skus": [
+        "duration_seconds",
+        "duration_seconds_with_audio",
+        "text_to_video_duration_seconds_480p",
+        "text_to_video_duration_seconds_720p",
+        "image_to_video_duration_seconds_720p",
+        "text_to_video_duration_seconds_1080p",
+        "image_to_video_duration_seconds_1080p"
+      ],
+      "rules": [
+        {
+          "id": "kwaivgi/kling-v3.0-pro:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/kwaivgi/kling-v3.0-pro",
+          "notes": "Audio rate is total alternative, not surcharge. Method/resolution keys are aliases only while rates remain equal to silent base.",
+          "require_equal_skus": [
+            "duration_seconds",
+            "text_to_video_duration_seconds_480p",
+            "text_to_video_duration_seconds_720p",
+            "image_to_video_duration_seconds_720p",
+            "text_to_video_duration_seconds_1080p",
+            "image_to_video_duration_seconds_1080p"
+          ],
+          "production_active": true
+        },
+        {
+          "id": "kwaivgi/kling-v3.0-pro:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/kwaivgi/kling-v3.0-pro",
+          "notes": "Audio rate is total alternative, not surcharge. Method/resolution keys are aliases only while rates remain equal to silent base.",
+          "require_equal_skus": [],
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "duration_seconds",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "kwaivgi/kling-v3.0-pro:1"
+          ]
+        },
+        {
+          "sku": "duration_seconds_with_audio",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "kwaivgi/kling-v3.0-pro:2"
+          ]
+        },
+        {
+          "sku": "text_to_video_duration_seconds_480p",
+          "disposition": "ALIAS_REQUIRE_EQUAL",
+          "rule_ids": []
+        },
+        {
+          "sku": "text_to_video_duration_seconds_720p",
+          "disposition": "ALIAS_REQUIRE_EQUAL",
+          "rule_ids": []
+        },
+        {
+          "sku": "image_to_video_duration_seconds_720p",
+          "disposition": "ALIAS_REQUIRE_EQUAL",
+          "rule_ids": []
+        },
+        {
+          "sku": "text_to_video_duration_seconds_1080p",
+          "disposition": "ALIAS_REQUIRE_EQUAL",
+          "rule_ids": []
+        },
+        {
+          "sku": "image_to_video_duration_seconds_1080p",
+          "disposition": "ALIAS_REQUIRE_EQUAL",
+          "rule_ids": []
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/kwaivgi/kling-v3.0-pro",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      },
+      "neutral_controls": [
+        {
+          "provider": "atlas-cloud",
+          "key": "cfg_scale",
+          "type": "number",
+          "methods": [
+            "T2V",
+            "I2V",
+            "FLF2V"
+          ],
+          "evidence": "https://openrouter.ai/kwaivgi/kling-v3.0-pro"
+        },
+        {
+          "provider": "atlas-cloud",
+          "key": "negative_prompt",
+          "type": "string",
+          "methods": [
+            "T2V",
+            "I2V",
+            "FLF2V"
+          ],
+          "evidence": "https://openrouter.ai/kwaivgi/kling-v3.0-pro"
+        }
+      ]
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "kwaivgi/kling-v3.0-std",
+      "canonical_slug": "kwaivgi/kling-v3.0-std-20260429",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "known_skus": [
+        "duration_seconds",
+        "duration_seconds_with_audio",
+        "text_to_video_duration_seconds_480p",
+        "text_to_video_duration_seconds_720p",
+        "image_to_video_duration_seconds_720p",
+        "text_to_video_duration_seconds_1080p",
+        "image_to_video_duration_seconds_1080p"
+      ],
+      "rules": [
+        {
+          "id": "kwaivgi/kling-v3.0-std:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/kwaivgi/kling-v3.0-std",
+          "notes": "Audio rate is total alternative, not surcharge. Method/resolution keys are aliases only while rates remain equal to silent base.",
+          "require_equal_skus": [
+            "duration_seconds",
+            "text_to_video_duration_seconds_480p",
+            "text_to_video_duration_seconds_720p",
+            "image_to_video_duration_seconds_720p",
+            "text_to_video_duration_seconds_1080p",
+            "image_to_video_duration_seconds_1080p"
+          ],
+          "production_active": true
+        },
+        {
+          "id": "kwaivgi/kling-v3.0-std:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/kwaivgi/kling-v3.0-std",
+          "notes": "Audio rate is total alternative, not surcharge. Method/resolution keys are aliases only while rates remain equal to silent base.",
+          "require_equal_skus": [],
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "duration_seconds",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "kwaivgi/kling-v3.0-std:1"
+          ]
+        },
+        {
+          "sku": "duration_seconds_with_audio",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "kwaivgi/kling-v3.0-std:2"
+          ]
+        },
+        {
+          "sku": "text_to_video_duration_seconds_480p",
+          "disposition": "ALIAS_REQUIRE_EQUAL",
+          "rule_ids": []
+        },
+        {
+          "sku": "text_to_video_duration_seconds_720p",
+          "disposition": "ALIAS_REQUIRE_EQUAL",
+          "rule_ids": []
+        },
+        {
+          "sku": "image_to_video_duration_seconds_720p",
+          "disposition": "ALIAS_REQUIRE_EQUAL",
+          "rule_ids": []
+        },
+        {
+          "sku": "text_to_video_duration_seconds_1080p",
+          "disposition": "ALIAS_REQUIRE_EQUAL",
+          "rule_ids": []
+        },
+        {
+          "sku": "image_to_video_duration_seconds_1080p",
+          "disposition": "ALIAS_REQUIRE_EQUAL",
+          "rule_ids": []
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/kwaivgi/kling-v3.0-std",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      },
+      "neutral_controls": [
+        {
+          "provider": "atlas-cloud",
+          "key": "cfg_scale",
+          "type": "number",
+          "methods": [
+            "T2V",
+            "I2V",
+            "FLF2V"
+          ],
+          "evidence": "https://openrouter.ai/kwaivgi/kling-v3.0-std"
+        },
+        {
+          "provider": "atlas-cloud",
+          "key": "negative_prompt",
+          "type": "string",
+          "methods": [
+            "T2V",
+            "I2V",
+            "FLF2V"
+          ],
+          "evidence": "https://openrouter.ai/kwaivgi/kling-v3.0-std"
+        }
+      ]
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "google/veo-3.1-fast",
+      "canonical_slug": "google/veo-3.1-fast-20260320",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "known_skus": [
+        "duration_seconds_with_audio",
+        "duration_seconds_with_audio_4k",
+        "duration_seconds_without_audio",
+        "duration_seconds_with_audio_720p",
+        "duration_seconds_without_audio_4k",
+        "duration_seconds_without_audio_720p"
+      ],
+      "rules": [
+        {
+          "id": "google/veo-3.1-fast:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_720p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/compare/google/veo-3.1-fast/kwaivgi/kling-video-o1",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/veo-3.1-fast:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_without_audio_720p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/compare/google/veo-3.1-fast/kwaivgi/kling-video-o1",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/veo-3.1-fast:3",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/compare/google/veo-3.1-fast/kwaivgi/kling-video-o1",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/veo-3.1-fast:4",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_without_audio",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/compare/google/veo-3.1-fast/kwaivgi/kling-video-o1",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/veo-3.1-fast:5",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "4K"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_4k",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/compare/google/veo-3.1-fast/kwaivgi/kling-video-o1",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/veo-3.1-fast:6",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "4K"
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_without_audio_4k",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/compare/google/veo-3.1-fast/kwaivgi/kling-video-o1",
+          "activation": "CANDIDATE",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "duration_seconds_with_audio",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/veo-3.1-fast:3"
+          ]
+        },
+        {
+          "sku": "duration_seconds_with_audio_4k",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/veo-3.1-fast:5"
+          ]
+        },
+        {
+          "sku": "duration_seconds_without_audio",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/veo-3.1-fast:4"
+          ]
+        },
+        {
+          "sku": "duration_seconds_with_audio_720p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/veo-3.1-fast:1"
+          ]
+        },
+        {
+          "sku": "duration_seconds_without_audio_4k",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/veo-3.1-fast:6"
+          ]
+        },
+        {
+          "sku": "duration_seconds_without_audio_720p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/veo-3.1-fast:2"
+          ]
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/google/veo-3.1-fast",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "google/veo-3.1-lite",
+      "canonical_slug": "google/veo-3.1-lite-20260331",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "known_skus": [
+        "duration_seconds_with_audio",
+        "duration_seconds_without_audio",
+        "duration_seconds_with_audio_720p",
+        "duration_seconds_without_audio_720p"
+      ],
+      "rules": [
+        {
+          "id": "google/veo-3.1-lite:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_720p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/compare/google/veo-3.1-lite/kwaivgi/kling-video-o1",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/veo-3.1-lite:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_without_audio_720p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/compare/google/veo-3.1-lite/kwaivgi/kling-video-o1",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/veo-3.1-lite:3",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/compare/google/veo-3.1-lite/kwaivgi/kling-video-o1",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/veo-3.1-lite:4",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_without_audio",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/compare/google/veo-3.1-lite/kwaivgi/kling-video-o1",
+          "activation": "CANDIDATE",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "duration_seconds_with_audio",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/veo-3.1-lite:3"
+          ]
+        },
+        {
+          "sku": "duration_seconds_without_audio",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/veo-3.1-lite:4"
+          ]
+        },
+        {
+          "sku": "duration_seconds_with_audio_720p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/veo-3.1-lite:1"
+          ]
+        },
+        {
+          "sku": "duration_seconds_without_audio_720p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/veo-3.1-lite:2"
+          ]
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/google/veo-3.1-lite",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "kwaivgi/kling-video-o1",
+      "canonical_slug": "kwaivgi/kling-video-o1-20260420",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "known_skus": [
+        "duration_seconds"
+      ],
+      "rules": [
+        {
+          "id": "kwaivgi/kling-video-o1:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/kwaivgi/kling-video-o1",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "duration_seconds",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "kwaivgi/kling-video-o1:1"
+          ]
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/kwaivgi/kling-video-o1",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "minimax/hailuo-2.3",
+      "canonical_slug": "minimax/hailuo-2.3-20260420",
+      "capture_methods": [
+        "T2V",
+        "I2V"
+      ],
+      "known_skus": [
+        "duration_seconds"
+      ],
+      "rules": [
+        {
+          "id": "minimax/hailuo-2.3:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/minimax/hailuo-2.3",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "duration_seconds",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "minimax/hailuo-2.3:1"
+          ]
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/minimax/hailuo-2.3",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {
+        "480p": {
+          "16:9": "854x480",
+          "4:3": "640x480",
+          "1:1": "480x480",
+          "3:4": "480x640",
+          "9:16": "480x854",
+          "21:9": "1120x480"
+        },
+        "720p": {
+          "16:9": "1280x720",
+          "4:3": "960x720",
+          "1:1": "720x720",
+          "3:4": "720x960",
+          "9:16": "720x1280",
+          "21:9": "1680x720",
+          "9:21": "720x1680"
+        },
+        "1080p": {
+          "16:9": "1920x1080",
+          "4:3": "1440x1080",
+          "1:1": "1080x1080",
+          "3:4": "1080x1440",
+          "9:16": "1080x1920",
+          "21:9": "2520x1080"
+        },
+        "4K": {
+          "16:9": "3840x2160",
+          "4:3": "2880x2160",
+          "1:1": "2160x2160",
+          "3:4": "2160x2880",
+          "9:16": "2160x3840",
+          "21:9": "5040x2160"
+        }
+      },
+      "geometry_status": "EXPLICIT_CAPTURE_MAP_ESTIMATE_ASSUMPTION",
+      "model_id": "bytedance/seedance-2.0",
+      "canonical_slug": "bytedance/seedance-2.0-20260414",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V",
+        "IR2V",
+        "MI2V",
+        "VR2V",
+        "MMR2V"
+      ],
+      "known_skus": [
+        "video_tokens",
+        "video_tokens_4k",
+        "video_tokens_1080p",
+        "video_tokens_without_audio",
+        "video_tokens_with_video_input",
+        "video_tokens_4k_with_video_input",
+        "video_tokens_1080p_with_video_input"
+      ],
+      "rules": [
+        {
+          "id": "bytedance/seedance-2.0:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "480p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "480p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens_without_audio",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0:3",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "480p"
+            ],
+            "has_video": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "video_tokens_with_video_input",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "token"
+            }
+          ],
+          "reason": "VIDEO_INPUT_AGGREGATION_AND_MINIMUM_NOT_PROVEN_FOR_OR_ROUTE",
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0",
+          "notes": "Input length changes final tokens; $2 authorization is not estimate. Native minimum table not proven OR-route equivalent.",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0:4",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0:5",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens_without_audio",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0:6",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "has_video": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "video_tokens_with_video_input",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "token"
+            }
+          ],
+          "reason": "VIDEO_INPUT_AGGREGATION_AND_MINIMUM_NOT_PROVEN_FOR_OR_ROUTE",
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0",
+          "notes": "Input length changes final tokens; $2 authorization is not estimate. Native minimum table not proven OR-route equivalent.",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0:7",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens_1080p",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0:8",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens_1080p",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0:9",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "has_video": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "video_tokens_1080p_with_video_input",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "token"
+            }
+          ],
+          "reason": "VIDEO_INPUT_AGGREGATION_AND_MINIMUM_NOT_PROVEN_FOR_OR_ROUTE",
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0",
+          "notes": "Input length changes final tokens; $2 authorization is not estimate. Native minimum table not proven OR-route equivalent.",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0:10",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "4K"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens_4k",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0:11",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "4K"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens_4k",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0:12",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "4K"
+            ],
+            "has_video": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "video_tokens_4k_with_video_input",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "token"
+            }
+          ],
+          "reason": "VIDEO_INPUT_AGGREGATION_AND_MINIMUM_NOT_PROVEN_FOR_OR_ROUTE",
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0",
+          "notes": "Input length changes final tokens; $2 authorization is not estimate. Native minimum table not proven OR-route equivalent.",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "video_tokens",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "bytedance/seedance-2.0:1",
+            "bytedance/seedance-2.0:4"
+          ]
+        },
+        {
+          "sku": "video_tokens_4k",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "bytedance/seedance-2.0:10",
+            "bytedance/seedance-2.0:11"
+          ]
+        },
+        {
+          "sku": "video_tokens_1080p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "bytedance/seedance-2.0:7",
+            "bytedance/seedance-2.0:8"
+          ]
+        },
+        {
+          "sku": "video_tokens_without_audio",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "bytedance/seedance-2.0:2",
+            "bytedance/seedance-2.0:5"
+          ]
+        },
+        {
+          "sku": "video_tokens_with_video_input",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "bytedance/seedance-2.0:3",
+            "bytedance/seedance-2.0:6"
+          ]
+        },
+        {
+          "sku": "video_tokens_4k_with_video_input",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "bytedance/seedance-2.0:12"
+          ]
+        },
+        {
+          "sku": "video_tokens_1080p_with_video_input",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "bytedance/seedance-2.0:9"
+          ]
+        }
+      ],
+      "gaps": [
+        {
+          "code": "SEED_VIDEO",
+          "description": "Input-duration aggregation, min-token table, exact OR route correspondence, provider reported quantity. Do not use output-only formula for video input."
+        },
+        {
+          "code": "SEED_GEOMETRY",
+          "description": "Explicit size or exact verified mapping required; standard tier dimensions may be offered only as labeled assumption, not actual geometry."
+        }
+      ],
+      "source": "https://openrouter.ai/bytedance/seedance-2.0",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "alibaba/wan-2.7",
+      "canonical_slug": "alibaba/wan-2.7-20260414",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V",
+        "IR2V",
+        "MI2V"
+      ],
+      "known_skus": [
+        "duration_seconds"
+      ],
+      "rules": [
+        {
+          "id": "alibaba/wan-2.7:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/alibaba/wan-2.7",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "duration_seconds",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "alibaba/wan-2.7:1"
+          ]
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/alibaba/wan-2.7",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {
+        "480p": {
+          "16:9": "854x480",
+          "4:3": "640x480",
+          "1:1": "480x480",
+          "3:4": "480x640",
+          "9:16": "480x854",
+          "21:9": "1120x480"
+        },
+        "720p": {
+          "16:9": "1280x720",
+          "4:3": "960x720",
+          "1:1": "720x720",
+          "3:4": "720x960",
+          "9:16": "720x1280",
+          "21:9": "1680x720",
+          "9:21": "720x1680"
+        }
+      },
+      "geometry_status": "EXPLICIT_CAPTURE_MAP_ESTIMATE_ASSUMPTION",
+      "model_id": "bytedance/seedance-2.0-fast",
+      "canonical_slug": "bytedance/seedance-2.0-fast-20260414",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V",
+        "IR2V",
+        "MI2V",
+        "VR2V",
+        "MMR2V"
+      ],
+      "known_skus": [
+        "video_tokens",
+        "video_tokens_without_audio",
+        "video_tokens_with_video_input"
+      ],
+      "rules": [
+        {
+          "id": "bytedance/seedance-2.0-fast:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "480p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0-fast",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0-fast:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "480p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens_without_audio",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0-fast",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0-fast:3",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "480p"
+            ],
+            "has_video": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "video_tokens_with_video_input",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "token"
+            }
+          ],
+          "reason": "VIDEO_INPUT_AGGREGATION_AND_MINIMUM_NOT_PROVEN_FOR_OR_ROUTE",
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0-fast",
+          "notes": "Input length changes final tokens; $2 authorization is not estimate. Native minimum table not proven OR-route equivalent.",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0-fast:4",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0-fast",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0-fast:5",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "video_tokens_without_audio",
+              "unit": "USD",
+              "quantity": "video_tokens_output_24"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0-fast",
+          "notes": "Documented 24 fps output formula. Specialized resolution tier takes precedence; OR comparison documents identical audio/silent rates at each resolution for 2.0.",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.0-fast:6",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "has_video": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "video_tokens_with_video_input",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "token"
+            }
+          ],
+          "reason": "VIDEO_INPUT_AGGREGATION_AND_MINIMUM_NOT_PROVEN_FOR_OR_ROUTE",
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.0-fast",
+          "notes": "Input length changes final tokens; $2 authorization is not estimate. Native minimum table not proven OR-route equivalent.",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "video_tokens",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "bytedance/seedance-2.0-fast:1",
+            "bytedance/seedance-2.0-fast:4"
+          ]
+        },
+        {
+          "sku": "video_tokens_without_audio",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "bytedance/seedance-2.0-fast:2",
+            "bytedance/seedance-2.0-fast:5"
+          ]
+        },
+        {
+          "sku": "video_tokens_with_video_input",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "bytedance/seedance-2.0-fast:3",
+            "bytedance/seedance-2.0-fast:6"
+          ]
+        }
+      ],
+      "gaps": [
+        {
+          "code": "SEED_VIDEO",
+          "description": "Input-duration aggregation, min-token table, exact OR route correspondence, provider reported quantity. Do not use output-only formula for video input."
+        },
+        {
+          "code": "SEED_GEOMETRY",
+          "description": "Explicit size or exact verified mapping required; standard tier dimensions may be offered only as labeled assumption, not actual geometry."
+        }
+      ],
+      "source": "https://openrouter.ai/bytedance/seedance-2.0-fast",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "alibaba/wan-2.6",
+      "canonical_slug": "alibaba/wan-2.6-20260327",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "VR2V"
+      ],
+      "known_skus": [
+        "text_to_video_duration_seconds_480p",
+        "text_to_video_duration_seconds_720p",
+        "image_to_video_duration_seconds_720p",
+        "text_to_video_duration_seconds_1080p",
+        "image_to_video_duration_seconds_1080p"
+      ],
+      "rules": [
+        {
+          "id": "alibaba/wan-2.6:1",
+          "when": {
+            "method": [
+              "T2V"
+            ],
+            "resolution": [
+              "720p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "text_to_video_duration_seconds_720p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/alibaba/wan-2.6",
+          "production_active": true
+        },
+        {
+          "id": "alibaba/wan-2.6:2",
+          "when": {
+            "method": [
+              "T2V"
+            ],
+            "resolution": [
+              "1080p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "text_to_video_duration_seconds_1080p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/alibaba/wan-2.6",
+          "production_active": true
+        },
+        {
+          "id": "alibaba/wan-2.6:3",
+          "when": {
+            "method": [
+              "I2V"
+            ],
+            "resolution": [
+              "720p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "image_to_video_duration_seconds_720p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/alibaba/wan-2.6",
+          "production_active": true
+        },
+        {
+          "id": "alibaba/wan-2.6:4",
+          "when": {
+            "method": [
+              "I2V"
+            ],
+            "resolution": [
+              "1080p"
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "image_to_video_duration_seconds_1080p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/alibaba/wan-2.6",
+          "production_active": true
+        },
+        {
+          "id": "alibaba/wan-2.6:5",
+          "when": {
+            "method": [
+              "VR2V"
+            ]
+          },
+          "expected_state": "UNKNOWN",
+          "charges": [],
+          "reason": "VIDEO_REFERENCE_TARIFF_UNRESOLVED",
+          "evidence": "https://openrouter.ai/alibaba/wan-2.6",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "text_to_video_duration_seconds_480p",
+          "disposition": "UNRESOLVED_NOT_USED",
+          "rule_ids": []
+        },
+        {
+          "sku": "text_to_video_duration_seconds_720p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "alibaba/wan-2.6:1"
+          ]
+        },
+        {
+          "sku": "image_to_video_duration_seconds_720p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "alibaba/wan-2.6:3"
+          ]
+        },
+        {
+          "sku": "text_to_video_duration_seconds_1080p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "alibaba/wan-2.6:2"
+          ]
+        },
+        {
+          "sku": "image_to_video_duration_seconds_1080p",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "alibaba/wan-2.6:4"
+          ]
+        }
+      ],
+      "gaps": [
+        {
+          "code": "WAN26_VR",
+          "description": "Do not borrow I2V rate for VR2V without documented equivalence."
+        }
+      ],
+      "source": "https://openrouter.ai/alibaba/wan-2.6",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
+      "model_id": "google/veo-3.1",
+      "canonical_slug": "google/veo-3.1-20260320",
+      "capture_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "known_skus": [
+        "duration_seconds_with_audio",
+        "duration_seconds_with_audio_4k",
+        "duration_seconds_without_audio",
+        "duration_seconds_without_audio_4k"
+      ],
+      "rules": [
+        {
+          "id": "google/veo-3.1:1",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "UNKNOWN",
+          "charges": [],
+          "reason": "RESOLUTION_SKU_MAPPING_UNRESOLVED",
+          "evidence": "https://openrouter.ai/google/veo-3.1",
+          "production_active": true
+        },
+        {
+          "id": "google/veo-3.1:2",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "720p"
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "UNKNOWN",
+          "charges": [],
+          "reason": "RESOLUTION_SKU_MAPPING_UNRESOLVED",
+          "evidence": "https://openrouter.ai/google/veo-3.1",
+          "production_active": true
+        },
+        {
+          "id": "google/veo-3.1:3",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/google/veo-3.1",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/veo-3.1:4",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_without_audio",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/google/veo-3.1",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/veo-3.1:5",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "4K"
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio_4k",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/google/veo-3.1",
+          "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "google/veo-3.1:6",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "4K"
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_without_audio_4k",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://openrouter.ai/google/veo-3.1",
+          "activation": "CANDIDATE",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "duration_seconds_with_audio",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/veo-3.1:3"
+          ]
+        },
+        {
+          "sku": "duration_seconds_with_audio_4k",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/veo-3.1:5"
+          ]
+        },
+        {
+          "sku": "duration_seconds_without_audio",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/veo-3.1:4"
+          ]
+        },
+        {
+          "sku": "duration_seconds_without_audio_4k",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "google/veo-3.1:6"
+          ]
+        }
+      ],
+      "gaps": [],
+      "source": "https://openrouter.ai/google/veo-3.1",
+      "activation": "CANDIDATE_REQUIRES_FRESH_CAPTURE_AND_EVIDENCE_REVIEW",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    }
+  ]
+}

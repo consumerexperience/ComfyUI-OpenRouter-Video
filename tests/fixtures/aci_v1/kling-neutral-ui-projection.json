@@ -1,0 +1,1152 @@
+{
+  "source": "Current catalogue raw through existing Core project_selectable, not a capability registry or tariff activation",
+  "catalogue_sha256": "bf1fca47bae64affda204db60698244f22fceaf3623b92917d914958c7d4ec12",
+  "model": {
+    "model_id": "kwaivgi/kling-v3.0-pro",
+    "display_name": "Kling: Video v3.0 Pro",
+    "supported_durations": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "supported_resolutions": [
+      "720p"
+    ],
+    "supported_aspect_ratios": [
+      "9:16",
+      "1:1",
+      "16:9"
+    ],
+    "supported_sizes": [
+      "720x720",
+      "720x1280",
+      "1280x720"
+    ],
+    "supported_frame_types": [
+      "first_frame",
+      "last_frame"
+    ],
+    "supports_seed": false,
+    "generate_audio": true,
+    "supported_reference_kinds": null,
+    "max_reference_count": null,
+    "mixed_reference_kinds": null,
+    "supports_edit": null,
+    "supports_extend": null,
+    "supported_inference_methods": [
+      "T2V",
+      "I2V",
+      "FLF2V"
+    ],
+    "inference_method_statuses": [
+      {
+        "method": "T2V",
+        "status": "READY"
+      },
+      {
+        "method": "I2V",
+        "status": "READY"
+      },
+      {
+        "method": "FLF2V",
+        "status": "READY"
+      },
+      {
+        "method": "IR2V",
+        "status": "UNKNOWN"
+      },
+      {
+        "method": "MI2V",
+        "status": "UNKNOWN"
+      },
+      {
+        "method": "VR2V",
+        "status": "UNKNOWN"
+      },
+      {
+        "method": "AR2V",
+        "status": "UNKNOWN"
+      },
+      {
+        "method": "MMR2V",
+        "status": "UNKNOWN"
+      },
+      {
+        "method": "V2V_EDIT",
+        "status": "UNKNOWN"
+      },
+      {
+        "method": "V2V_EXTEND",
+        "status": "UNKNOWN"
+      },
+      {
+        "method": "V2V_UPSCALE",
+        "status": "UNKNOWN"
+      },
+      {
+        "method": "AVATAR_AUDIO",
+        "status": "UNKNOWN"
+      }
+    ],
+    "preferred_inference_method": "T2V",
+    "observed_at": "2026-11-13T00:00:00+00:00",
+    "capability_evidence": [
+      {
+        "key": "supported_resolutions",
+        "value": [
+          "720p"
+        ],
+        "state": "SUPPORTED",
+        "authority": "LIVE_STRUCTURED_API",
+        "source_reference": "https://openrouter.ai/api/v1/videos/models",
+        "observed_at": "2026-11-13T21:51:17.194936+00:00",
+        "scope": "exact model catalogue metadata",
+        "artifact_version": "live",
+        "conflicting_evidence": []
+      },
+      {
+        "key": "supported_aspect_ratios",
+        "value": [
+          "16:9",
+          "9:16",
+          "1:1"
+        ],
+        "state": "SUPPORTED",
+        "authority": "LIVE_STRUCTURED_API",
+        "source_reference": "https://openrouter.ai/api/v1/videos/models",
+        "observed_at": "2026-11-13T21:51:17.194936+00:00",
+        "scope": "exact model catalogue metadata",
+        "artifact_version": "live",
+        "conflicting_evidence": []
+      },
+      {
+        "key": "supported_sizes",
+        "value": [
+          "1280x720",
+          "720x1280",
+          "720x720"
+        ],
+        "state": "SUPPORTED",
+        "authority": "LIVE_STRUCTURED_API",
+        "source_reference": "https://openrouter.ai/api/v1/videos/models",
+        "observed_at": "2026-11-13T21:51:17.194936+00:00",
+        "scope": "exact model catalogue metadata",
+        "artifact_version": "live",
+        "conflicting_evidence": []
+      },
+      {
+        "key": "supported_durations",
+        "value": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "state": "SUPPORTED",
+        "authority": "LIVE_STRUCTURED_API",
+        "source_reference": "https://openrouter.ai/api/v1/videos/models",
+        "observed_at": "2026-11-13T21:51:17.194936+00:00",
+        "scope": "exact model catalogue metadata",
+        "artifact_version": "live",
+        "conflicting_evidence": []
+      },
+      {
+        "key": "supported_frame_images",
+        "value": [
+          "first_frame",
+          "last_frame"
+        ],
+        "state": "SUPPORTED",
+        "authority": "LIVE_STRUCTURED_API",
+        "source_reference": "https://openrouter.ai/api/v1/videos/models",
+        "observed_at": "2026-11-13T21:51:17.194936+00:00",
+        "scope": "exact model catalogue metadata",
+        "artifact_version": "live",
+        "conflicting_evidence": []
+      },
+      {
+        "key": "upscale_factor",
+        "value": null,
+        "state": "UNKNOWN",
+        "authority": "LIVE_STRUCTURED_API",
+        "source_reference": "https://openrouter.ai/api/v1/videos/models",
+        "observed_at": "2026-11-13T21:51:17.194936+00:00",
+        "scope": "CAPABILITY_ONLY_CONFIRMED; wire unresolved",
+        "artifact_version": "live",
+        "conflicting_evidence": []
+      },
+      {
+        "key": "creativity",
+        "value": null,
+        "state": "UNKNOWN",
+        "authority": "LIVE_STRUCTURED_API",
+        "source_reference": "https://openrouter.ai/api/v1/videos/models",
+        "observed_at": "2026-11-13T21:51:17.194936+00:00",
+        "scope": "CAPABILITY_ONLY_CONFIRMED; wire unresolved",
+        "artifact_version": "live",
+        "conflicting_evidence": []
+      },
+      {
+        "key": "generate_audio",
+        "value": true,
+        "state": "SUPPORTED",
+        "authority": "LIVE_STRUCTURED_API",
+        "source_reference": "https://openrouter.ai/api/v1/videos/models",
+        "observed_at": "2026-11-13T21:51:17.194936+00:00",
+        "scope": "exact model catalogue metadata",
+        "artifact_version": "live",
+        "conflicting_evidence": []
+      },
+      {
+        "key": "seed",
+        "value": false,
+        "state": "UNSUPPORTED",
+        "authority": "LIVE_STRUCTURED_API",
+        "source_reference": "https://openrouter.ai/api/v1/videos/models",
+        "observed_at": "2026-11-13T21:51:17.194936+00:00",
+        "scope": "exact model catalogue metadata",
+        "artifact_version": "live",
+        "conflicting_evidence": []
+      },
+      {
+        "key": "allowed_passthrough_parameters",
+        "value": [
+          "negative_prompt",
+          "cfg_scale"
+        ],
+        "state": "SUPPORTED",
+        "authority": "LIVE_STRUCTURED_API",
+        "source_reference": "https://openrouter.ai/api/v1/videos/models",
+        "observed_at": "2026-11-13T21:51:17.194936+00:00",
+        "scope": "CAPABILITY_ONLY_CONFIRMED; wire unresolved",
+        "artifact_version": "live",
+        "conflicting_evidence": []
+      },
+      {
+        "key": "__catalogue_observation__",
+        "value": {
+          "id": "kwaivgi/kling-v3.0-pro",
+          "canonical_slug": "kwaivgi/kling-v3.0-pro-20260429",
+          "hugging_face_id": null,
+          "name": "Kling: Video v3.0 Pro",
+          "created": 1777496206,
+          "description": "Kling v3.0 Pro is Kuaishou's premium video generation model, offering higher visual quality than the Standard tier. It supports text-to-video and image-to-video workflows, with first-frame and last-frame control for precise...",
+          "supported_resolutions": [
+            "720p"
+          ],
+          "supported_aspect_ratios": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ],
+          "supported_sizes": [
+            "1280x720",
+            "720x1280",
+            "720x720"
+          ],
+          "supported_durations": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "supported_frame_images": [
+            "first_frame",
+            "last_frame"
+          ],
+          "upscale_factor": null,
+          "creativity": null,
+          "generate_audio": true,
+          "seed": false,
+          "pricing_skus": {
+            "duration_seconds": "0.112",
+            "duration_seconds_with_audio": "0.168",
+            "text_to_video_duration_seconds_480p": "0.112",
+            "text_to_video_duration_seconds_720p": "0.112",
+            "image_to_video_duration_seconds_720p": "0.112",
+            "text_to_video_duration_seconds_1080p": "0.112",
+            "image_to_video_duration_seconds_1080p": "0.112"
+          },
+          "allowed_passthrough_parameters": [
+            "negative_prompt",
+            "cfg_scale"
+          ]
+        },
+        "state": "UNKNOWN",
+        "authority": "LIVE_CATALOGUE_EVIDENCE",
+        "source_reference": "https://openrouter.ai/api/v1/videos/models",
+        "observed_at": "2026-11-13T21:51:17.194936+00:00",
+        "scope": "Bounded discovery evidence only; never request passthrough",
+        "artifact_version": "live",
+        "conflicting_evidence": []
+      },
+      {
+        "key": "supports_text_only",
+        "value": true,
+        "state": "SUPPORTED",
+        "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+        "source_reference": "https://openrouter.ai/kwaivgi/kling-v3.0-pro",
+        "observed_at": "2026-11-09T16:00:00+00:00",
+        "scope": "Exact model page affirms text-to-video",
+        "artifact_version": "capability-projection-reconciliation-v1+op07-bounded-google-20261108+full-parity-in-progress-20261109+gap-closure-20261110",
+        "conflicting_evidence": []
+      },
+      {
+        "key": "source_required",
+        "value": false,
+        "state": "UNSUPPORTED",
+        "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+        "source_reference": "https://openrouter.ai/kwaivgi/kling-v3.0-pro",
+        "observed_at": "2026-11-09T16:00:00+00:00",
+        "scope": "Text-to-video does not require a source",
+        "artifact_version": "capability-projection-reconciliation-v1+op07-bounded-google-20261108+full-parity-in-progress-20261109+gap-closure-20261110",
+        "conflicting_evidence": []
+      },
+      {
+        "key": "request_shape_profiles",
+        "value": {
+          "schema_version": 1,
+          "methods": {
+            "T2V": {
+              "state": "SUPPORTED",
+              "controls": {
+                "prompt": {
+                  "state": "SUPPORTED",
+                  "required": true,
+                  "max_length": 2500
+                },
+                "duration": {
+                  "state": "SUPPORTED"
+                },
+                "resolution": {
+                  "state": "CONFLICT",
+                  "notes": "Historical OpenRouter/native output geometry mismatch remains unresolved. Omit this control; native T2V default output is not relabelled or certified."
+                },
+                "aspect_ratio": {
+                  "state": "SUPPORTED"
+                },
+                "size": {
+                  "state": "CONFLICT",
+                  "notes": "Historical OpenRouter/native output geometry mismatch remains unresolved. Omit this control; native T2V default output is not relabelled or certified."
+                },
+                "seed": {
+                  "state": "UNKNOWN"
+                },
+                "generate_audio": {
+                  "state": "SUPPORTED"
+                },
+                "provider_options": {
+                  "state": "SUPPORTED",
+                  "providers": {
+                    "atlas-cloud": {
+                      "cfg_scale": {
+                        "type": "number",
+                        "min": 0,
+                        "max": 1,
+                        "omitted_default": 0.5
+                      },
+                      "negative_prompt": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "notes": "OpenRouter exact model lists AtlasCloud cfg_scale and negative_prompt; exact AtlasCloud text/image endpoints document both. No invented negative prompt length. Current OpenRouter allowlist remains authoritative."
+                }
+              },
+              "topology": {
+                "fixed": [],
+                "reference_kinds": [],
+                "kind_sets": [
+                  []
+                ],
+                "min": 0,
+                "max": 0,
+                "per_kind_max": {}
+              },
+              "notes": "Current exact Atlas T2V schema confirms prompt, durations 3\u0432\u0402\u201c15, aspect ratios and sound without a resolution input. Restore this method with geometry omitted; retain historical geometry conflict explicitly.",
+              "historical_findings": [
+                {
+                  "state": "CONFLICT",
+                  "notes": "Existing KLING_PROVIDER_SIZE_CONFLICT remains unresolved for T2V; historical finding not erased or promoted.",
+                  "review_sources": [],
+                  "resolution": "Preserved as unresolved geometry conflict; no round-tier mapping asserted."
+                }
+              ],
+              "review_sources": [
+                "https://www.atlascloud.ai/docs/ru/more-models/kwaivgi/kling-v3.0-pro-text-to-video/generateVideo",
+                "https://openrouter.ai/kwaivgi/kling-v3.0-pro",
+                "https://www.atlascloud.ai/docs/zh/more-models/kwaivgi/kling-v3.0-pro-text-to-video/generateVideo"
+              ]
+            },
+            "I2V": {
+              "state": "SUPPORTED",
+              "controls": {
+                "prompt": {
+                  "state": "SUPPORTED",
+                  "required": false,
+                  "max_length": 2500
+                },
+                "duration": {
+                  "state": "SUPPORTED"
+                },
+                "resolution": {
+                  "state": "SUPPORTED"
+                },
+                "aspect_ratio": {
+                  "state": "SUPPORTED"
+                },
+                "size": {
+                  "state": "SUPPORTED"
+                },
+                "seed": {
+                  "state": "UNKNOWN"
+                },
+                "generate_audio": {
+                  "state": "SUPPORTED"
+                },
+                "provider_options": {
+                  "state": "SUPPORTED",
+                  "providers": {
+                    "atlas-cloud": {
+                      "cfg_scale": {
+                        "type": "number",
+                        "min": 0,
+                        "max": 1,
+                        "omitted_default": 0.5
+                      },
+                      "negative_prompt": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "notes": "OpenRouter exact model lists AtlasCloud cfg_scale and negative_prompt; exact AtlasCloud text/image endpoints document both. No invented negative prompt length. Current OpenRouter allowlist remains authoritative."
+                }
+              },
+              "topology": {
+                "fixed": [
+                  "first_frame"
+                ],
+                "reference_kinds": [],
+                "kind_sets": [
+                  []
+                ],
+                "min": 0,
+                "max": 0,
+                "per_kind_max": {}
+              },
+              "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim.",
+              "review_sources": [
+                "https://www.atlascloud.ai/docs/ja/more-models/kwaivgi/kling-v3.0-pro-image-to-video/generateVideo",
+                "https://openrouter.ai/kwaivgi/kling-v3.0-pro",
+                "https://www.atlascloud.ai/docs/de/more-models/kwaivgi/kling-v3.0-pro-image-to-video/generateVideo"
+              ]
+            },
+            "FLF2V": {
+              "state": "SUPPORTED",
+              "controls": {
+                "prompt": {
+                  "state": "SUPPORTED",
+                  "required": false,
+                  "max_length": 2500
+                },
+                "duration": {
+                  "state": "SUPPORTED"
+                },
+                "resolution": {
+                  "state": "SUPPORTED"
+                },
+                "aspect_ratio": {
+                  "state": "SUPPORTED"
+                },
+                "size": {
+                  "state": "SUPPORTED"
+                },
+                "seed": {
+                  "state": "UNKNOWN"
+                },
+                "generate_audio": {
+                  "state": "SUPPORTED"
+                },
+                "provider_options": {
+                  "state": "SUPPORTED",
+                  "providers": {
+                    "atlas-cloud": {
+                      "cfg_scale": {
+                        "type": "number",
+                        "min": 0,
+                        "max": 1,
+                        "omitted_default": 0.5
+                      },
+                      "negative_prompt": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "notes": "OpenRouter exact model lists AtlasCloud cfg_scale and negative_prompt; exact AtlasCloud text/image endpoints document both. No invented negative prompt length. Current OpenRouter allowlist remains authoritative."
+                }
+              },
+              "topology": {
+                "fixed": [
+                  "first_frame",
+                  "last_frame"
+                ],
+                "reference_kinds": [],
+                "kind_sets": [
+                  []
+                ],
+                "min": 0,
+                "max": 0,
+                "per_kind_max": {}
+              },
+              "notes": "Reviewed exact-model method plus standardized OpenRouter Video request mapping; live catalogue scalar domains remain authoritative. No paid-provider execution claim.",
+              "review_sources": [
+                "https://www.atlascloud.ai/docs/ja/more-models/kwaivgi/kling-v3.0-pro-image-to-video/generateVideo",
+                "https://openrouter.ai/kwaivgi/kling-v3.0-pro",
+                "https://www.atlascloud.ai/docs/de/more-models/kwaivgi/kling-v3.0-pro-image-to-video/generateVideo"
+              ]
+            },
+            "IR2V": {
+              "state": "UNKNOWN",
+              "controls": {},
+              "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+              "audit_scope": "CURRENT_MODEL_METHOD",
+              "evidence_class": "ABSENCE_ONLY"
+            },
+            "MI2V": {
+              "state": "UNKNOWN",
+              "controls": {},
+              "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+              "audit_scope": "CURRENT_MODEL_METHOD",
+              "evidence_class": "ABSENCE_ONLY"
+            },
+            "VR2V": {
+              "state": "UNKNOWN",
+              "controls": {},
+              "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+              "audit_scope": "CURRENT_MODEL_METHOD",
+              "evidence_class": "ABSENCE_ONLY"
+            },
+            "AR2V": {
+              "state": "UNKNOWN",
+              "controls": {},
+              "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+              "audit_scope": "CURRENT_MODEL_METHOD",
+              "evidence_class": "ABSENCE_ONLY"
+            },
+            "MMR2V": {
+              "state": "UNKNOWN",
+              "controls": {},
+              "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+              "audit_scope": "CURRENT_MODEL_METHOD",
+              "evidence_class": "ABSENCE_ONLY"
+            },
+            "V2V_EDIT": {
+              "state": "UNKNOWN",
+              "controls": {},
+              "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+              "audit_scope": "CURRENT_MODEL_METHOD",
+              "evidence_class": "ABSENCE_ONLY"
+            },
+            "V2V_EXTEND": {
+              "state": "UNKNOWN",
+              "controls": {},
+              "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+              "audit_scope": "CURRENT_MODEL_METHOD",
+              "evidence_class": "ABSENCE_ONLY"
+            }
+          }
+        },
+        "state": "SUPPORTED",
+        "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+        "source_reference": "https://openrouter.ai/kwaivgi/kling-v3.0-pro",
+        "observed_at": "2026-11-09T16:00:00+00:00",
+        "scope": "Exact model documented operations using canonical OpenRouter fields; independent catalogue domains; explicit method constraints retained",
+        "artifact_version": "capability-projection-reconciliation-v1+op07-bounded-google-20261108+full-parity-in-progress-20261109+gap-closure-20261110",
+        "conflicting_evidence": []
+      }
+    ],
+    "unmapped_upstream_capabilities": [
+      "allowed_passthrough_parameters",
+      "creativity",
+      "upscale_factor"
+    ],
+    "configuration_relations": [],
+    "method_profiles": {
+      "T2V": {
+        "state": "SUPPORTED",
+        "method_support": "SUPPORTED",
+        "controls": {
+          "prompt": {
+            "state": "SUPPORTED",
+            "required": true,
+            "max_length": 2500
+          },
+          "duration": {
+            "state": "SUPPORTED",
+            "values": [
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "resolution": {
+            "state": "CONFLICT",
+            "notes": "Historical OpenRouter/native output geometry mismatch remains unresolved. Omit this control; native T2V default output is not relabelled or certified."
+          },
+          "aspect_ratio": {
+            "state": "SUPPORTED",
+            "values": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ]
+          },
+          "size": {
+            "state": "CONFLICT",
+            "notes": "Historical OpenRouter/native output geometry mismatch remains unresolved. Omit this control; native T2V default output is not relabelled or certified."
+          },
+          "seed": {
+            "state": "UNKNOWN"
+          },
+          "generate_audio": {
+            "state": "SUPPORTED"
+          },
+          "provider_options": {
+            "state": "SUPPORTED",
+            "providers": {
+              "atlas-cloud": {
+                "cfg_scale": {
+                  "type": "number",
+                  "min": 0,
+                  "max": 1,
+                  "omitted_default": 0.5
+                },
+                "negative_prompt": {
+                  "type": "string"
+                }
+              }
+            },
+            "notes": "OpenRouter exact model lists AtlasCloud cfg_scale and negative_prompt; exact AtlasCloud text/image endpoints document both. No invented negative prompt length. Current OpenRouter allowlist remains authoritative."
+          }
+        },
+        "topology": {
+          "fixed": [],
+          "reference_kinds": [],
+          "kind_sets": [
+            []
+          ],
+          "min": 0,
+          "max": 0,
+          "per_kind_max": {},
+          "execution_domain": "CONFIRMED_BOUNDS",
+          "limit_completeness": "COMPLETE"
+        },
+        "configuration_relations": []
+      },
+      "I2V": {
+        "state": "SUPPORTED",
+        "method_support": "SUPPORTED",
+        "controls": {
+          "prompt": {
+            "state": "SUPPORTED",
+            "required": false,
+            "max_length": 2500
+          },
+          "duration": {
+            "state": "SUPPORTED",
+            "values": [
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "resolution": {
+            "state": "SUPPORTED",
+            "values": [
+              "720p"
+            ]
+          },
+          "aspect_ratio": {
+            "state": "SUPPORTED",
+            "values": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ]
+          },
+          "size": {
+            "state": "SUPPORTED",
+            "values": [
+              "1280x720",
+              "720x1280",
+              "720x720"
+            ]
+          },
+          "seed": {
+            "state": "UNKNOWN"
+          },
+          "generate_audio": {
+            "state": "SUPPORTED"
+          },
+          "provider_options": {
+            "state": "SUPPORTED",
+            "providers": {
+              "atlas-cloud": {
+                "cfg_scale": {
+                  "type": "number",
+                  "min": 0,
+                  "max": 1,
+                  "omitted_default": 0.5
+                },
+                "negative_prompt": {
+                  "type": "string"
+                }
+              }
+            },
+            "notes": "OpenRouter exact model lists AtlasCloud cfg_scale and negative_prompt; exact AtlasCloud text/image endpoints document both. No invented negative prompt length. Current OpenRouter allowlist remains authoritative."
+          }
+        },
+        "topology": {
+          "fixed": [
+            "first_frame"
+          ],
+          "reference_kinds": [],
+          "kind_sets": [
+            []
+          ],
+          "min": 0,
+          "max": 0,
+          "per_kind_max": {},
+          "execution_domain": "CONFIRMED_BOUNDS",
+          "limit_completeness": "COMPLETE"
+        },
+        "configuration_relations": []
+      },
+      "FLF2V": {
+        "state": "SUPPORTED",
+        "method_support": "SUPPORTED",
+        "controls": {
+          "prompt": {
+            "state": "SUPPORTED",
+            "required": false,
+            "max_length": 2500
+          },
+          "duration": {
+            "state": "SUPPORTED",
+            "values": [
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "resolution": {
+            "state": "SUPPORTED",
+            "values": [
+              "720p"
+            ]
+          },
+          "aspect_ratio": {
+            "state": "SUPPORTED",
+            "values": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ]
+          },
+          "size": {
+            "state": "SUPPORTED",
+            "values": [
+              "1280x720",
+              "720x1280",
+              "720x720"
+            ]
+          },
+          "seed": {
+            "state": "UNKNOWN"
+          },
+          "generate_audio": {
+            "state": "SUPPORTED"
+          },
+          "provider_options": {
+            "state": "SUPPORTED",
+            "providers": {
+              "atlas-cloud": {
+                "cfg_scale": {
+                  "type": "number",
+                  "min": 0,
+                  "max": 1,
+                  "omitted_default": 0.5
+                },
+                "negative_prompt": {
+                  "type": "string"
+                }
+              }
+            },
+            "notes": "OpenRouter exact model lists AtlasCloud cfg_scale and negative_prompt; exact AtlasCloud text/image endpoints document both. No invented negative prompt length. Current OpenRouter allowlist remains authoritative."
+          }
+        },
+        "topology": {
+          "fixed": [
+            "first_frame",
+            "last_frame"
+          ],
+          "reference_kinds": [],
+          "kind_sets": [
+            []
+          ],
+          "min": 0,
+          "max": 0,
+          "per_kind_max": {},
+          "execution_domain": "CONFIRMED_BOUNDS",
+          "limit_completeness": "COMPLETE"
+        },
+        "configuration_relations": []
+      },
+      "IR2V": {
+        "state": "UNKNOWN",
+        "method_support": "UNKNOWN",
+        "controls": {
+          "prompt": {
+            "state": "UNKNOWN"
+          },
+          "duration": {
+            "state": "UNKNOWN"
+          },
+          "resolution": {
+            "state": "UNKNOWN"
+          },
+          "aspect_ratio": {
+            "state": "UNKNOWN"
+          },
+          "size": {
+            "state": "UNKNOWN"
+          },
+          "seed": {
+            "state": "UNKNOWN"
+          },
+          "generate_audio": {
+            "state": "UNKNOWN"
+          }
+        },
+        "topology": {},
+        "configuration_relations": []
+      },
+      "MI2V": {
+        "state": "UNKNOWN",
+        "method_support": "UNKNOWN",
+        "controls": {
+          "prompt": {
+            "state": "UNKNOWN"
+          },
+          "duration": {
+            "state": "UNKNOWN"
+          },
+          "resolution": {
+            "state": "UNKNOWN"
+          },
+          "aspect_ratio": {
+            "state": "UNKNOWN"
+          },
+          "size": {
+            "state": "UNKNOWN"
+          },
+          "seed": {
+            "state": "UNKNOWN"
+          },
+          "generate_audio": {
+            "state": "UNKNOWN"
+          }
+        },
+        "topology": {},
+        "configuration_relations": []
+      },
+      "VR2V": {
+        "state": "UNKNOWN",
+        "method_support": "UNKNOWN",
+        "controls": {
+          "prompt": {
+            "state": "UNKNOWN"
+          },
+          "duration": {
+            "state": "UNKNOWN"
+          },
+          "resolution": {
+            "state": "UNKNOWN"
+          },
+          "aspect_ratio": {
+            "state": "UNKNOWN"
+          },
+          "size": {
+            "state": "UNKNOWN"
+          },
+          "seed": {
+            "state": "UNKNOWN"
+          },
+          "generate_audio": {
+            "state": "UNKNOWN"
+          }
+        },
+        "topology": {},
+        "configuration_relations": []
+      },
+      "AR2V": {
+        "state": "UNKNOWN",
+        "method_support": "UNKNOWN",
+        "controls": {
+          "prompt": {
+            "state": "UNKNOWN"
+          },
+          "duration": {
+            "state": "UNKNOWN"
+          },
+          "resolution": {
+            "state": "UNKNOWN"
+          },
+          "aspect_ratio": {
+            "state": "UNKNOWN"
+          },
+          "size": {
+            "state": "UNKNOWN"
+          },
+          "seed": {
+            "state": "UNKNOWN"
+          },
+          "generate_audio": {
+            "state": "UNKNOWN"
+          }
+        },
+        "topology": {},
+        "configuration_relations": []
+      },
+      "MMR2V": {
+        "state": "UNKNOWN",
+        "method_support": "UNKNOWN",
+        "controls": {
+          "prompt": {
+            "state": "UNKNOWN"
+          },
+          "duration": {
+            "state": "UNKNOWN"
+          },
+          "resolution": {
+            "state": "UNKNOWN"
+          },
+          "aspect_ratio": {
+            "state": "UNKNOWN"
+          },
+          "size": {
+            "state": "UNKNOWN"
+          },
+          "seed": {
+            "state": "UNKNOWN"
+          },
+          "generate_audio": {
+            "state": "UNKNOWN"
+          }
+        },
+        "topology": {},
+        "configuration_relations": []
+      },
+      "V2V_EDIT": {
+        "state": "UNKNOWN",
+        "method_support": "UNKNOWN",
+        "controls": {
+          "prompt": {
+            "state": "UNKNOWN"
+          },
+          "duration": {
+            "state": "UNKNOWN"
+          },
+          "resolution": {
+            "state": "UNKNOWN"
+          },
+          "aspect_ratio": {
+            "state": "UNKNOWN"
+          },
+          "size": {
+            "state": "UNKNOWN"
+          },
+          "seed": {
+            "state": "UNKNOWN"
+          },
+          "generate_audio": {
+            "state": "UNKNOWN"
+          }
+        },
+        "topology": {},
+        "configuration_relations": []
+      },
+      "V2V_EXTEND": {
+        "state": "UNKNOWN",
+        "method_support": "UNKNOWN",
+        "controls": {
+          "prompt": {
+            "state": "UNKNOWN"
+          },
+          "duration": {
+            "state": "UNKNOWN"
+          },
+          "resolution": {
+            "state": "UNKNOWN"
+          },
+          "aspect_ratio": {
+            "state": "UNKNOWN"
+          },
+          "size": {
+            "state": "UNKNOWN"
+          },
+          "seed": {
+            "state": "UNKNOWN"
+          },
+          "generate_audio": {
+            "state": "UNKNOWN"
+          }
+        },
+        "topology": {},
+        "configuration_relations": []
+      },
+      "V2V_UPSCALE": {
+        "state": "UNKNOWN",
+        "method_support": "UNKNOWN",
+        "controls": {
+          "prompt": {
+            "state": "UNKNOWN"
+          },
+          "duration": {
+            "state": "UNKNOWN"
+          },
+          "resolution": {
+            "state": "UNKNOWN"
+          },
+          "aspect_ratio": {
+            "state": "UNKNOWN"
+          },
+          "size": {
+            "state": "UNKNOWN"
+          },
+          "seed": {
+            "state": "UNKNOWN"
+          },
+          "generate_audio": {
+            "state": "UNKNOWN"
+          }
+        },
+        "topology": {},
+        "configuration_relations": []
+      },
+      "AVATAR_AUDIO": {
+        "state": "UNKNOWN",
+        "method_support": "UNKNOWN",
+        "controls": {
+          "prompt": {
+            "state": "UNKNOWN"
+          },
+          "duration": {
+            "state": "UNKNOWN"
+          },
+          "resolution": {
+            "state": "UNKNOWN"
+          },
+          "aspect_ratio": {
+            "state": "UNKNOWN"
+          },
+          "size": {
+            "state": "UNKNOWN"
+          },
+          "seed": {
+            "state": "UNKNOWN"
+          },
+          "generate_audio": {
+            "state": "UNKNOWN"
+          }
+        },
+        "topology": {},
+        "configuration_relations": []
+      }
+    },
+    "geometry_profile": {
+      "version": 1,
+      "tuples": [
+        {
+          "resolution": null,
+          "aspect_ratio": "1:1",
+          "size": "720x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "9:16",
+          "size": "720x1280",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        },
+        {
+          "resolution": null,
+          "aspect_ratio": "16:9",
+          "size": "1280x720",
+          "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+          "confidence": "SAFE_DERIVED"
+        }
+      ]
+    }
+  }
+}

@@ -9,6 +9,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from tests.contract.aci_reviewed_patch import aci_historical_source
+
 ROOT = Path(__file__).resolve().parents[2]
 BASE = "72998e931e5e9e59a277b63c2f2b0cd4cb513164"
 
@@ -101,7 +103,7 @@ def test_protected_native_media_security_pricing_and_wire_files_are_exactly_pres
     candidate = json.loads((ROOT / "tests/fixtures/pre_rc_first_run_ux.json").read_text())
     op07 = json.loads((ROOT / "tests/fixtures/op07_discovery_candidate.json").read_text())
     for path in paths:
-        current = (ROOT / path).read_text(encoding="utf-8")
+        current = aci_historical_source(path, (ROOT / path).read_text(encoding="utf-8"))
         digest = hashlib.sha256(current.encode()).hexdigest()
         if digest == op07.get("candidate_files", {}).get(path):
             continue

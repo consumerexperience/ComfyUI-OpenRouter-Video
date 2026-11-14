@@ -10,7 +10,7 @@ from typing import Any
 import httpx
 import pytest
 
-from openrouter_video.capabilities import CapabilityObservation
+from openrouter_video.capabilities import CapabilityObservation, request_witness
 from openrouter_video.client import _parse_capability
 from openrouter_video.comfy import nodes, runtime
 from openrouter_video.evidence_registry import enrich_capabilities
@@ -24,7 +24,11 @@ from openrouter_video.models import (
     PricingSku,
     VideoArtifact,
 )
-from openrouter_video.pricing import CostEstimateInputs, EstimateAvailability
+from openrouter_video.pricing import (
+    CostEstimateInputs,
+    EstimateAvailability,
+    PreflightCostEstimator,
+)
 
 ROOT = Path(__file__).parents[2]
 CATALOGUE = json.loads(
@@ -36,6 +40,62 @@ def model(slug: str) -> Any:
     return enrich_capabilities(
         _parse_capability(next(raw for raw in CATALOGUE["models"] if raw["id"] == slug))
     )
+
+
+def test_known_model_legacy_bridge_never_omits_active_image_charges() -> None:
+    capability = replace(
+        model("x-ai/grok-imagine-video"),
+        pricing_evidence=PricingEvidence((PricingSku("per-video-second-720p", Decimal("0.03")),)),
+    )
+    assert request_witness(capability, InferenceMethod.IR2V) is not None
+    result = PreflightCostEstimator().estimate(
+        capability,
+        CostEstimateInputs(
+            capability.model_id,
+            duration=1,
+            resolution="720p",
+            aspect_ratio="16:9",
+            inference_method=InferenceMethod.IR2V,
+            reference_kinds=(InputReferenceKind.IMAGE,),
+            reference_count=1,
+        ),
+        observed_at=datetime.now(timezone.utc),
+    )
+    assert result.state.value == "UNKNOWN"
+    assert result.estimated_cost_usd is result.amount_usd is None
+    assert result.reason == "legacy_pricing_scope_unverified"
+
+
+def test_known_model_legacy_bridge_preserves_unresolved_long_duration_relations() -> None:
+    # This retained discovery capture has the actual 5..30 second domain; the
+    # older general UI-audit fixture above predates the long-duration capability.
+    captured = json.loads(
+        (ROOT / "tests/fixtures/op07-topology-catalogue-b628912.json").read_text(encoding="utf8")
+    )
+    capability = enrich_capabilities(
+        _parse_capability(
+            next(raw for raw in captured["data"] if raw["id"] == "heygen/heygen-video-1")
+        )
+    )
+    assert 20 in capability.supported_durations
+    inputs = CostEstimateInputs(
+        capability.model_id,
+        duration=20,
+        resolution="480p",
+        aspect_ratio="16:9",
+    )
+    estimator = PreflightCostEstimator()
+    observed = datetime.now(timezone.utc)
+    current = estimator.estimate(capability, inputs, observed_at=observed)
+    assert current.state.value == "PARTIAL" and current.estimated_cost_usd is None
+    legacy = replace(
+        capability,
+        pricing_evidence=PricingEvidence((PricingSku("per-video-second-480p", Decimal("0.03")),)),
+    )
+    result = estimator.estimate(legacy, inputs, observed_at=observed)
+    assert result.state.value == "UNKNOWN"
+    assert result.estimated_cost_usd is result.amount_usd is None
+    assert result.reason == "legacy_pricing_scope_unverified"
 
 
 def test_hidden_raw_seed_and_media_are_omitted_before_any_encoder_or_parser(

@@ -376,9 +376,12 @@ function applyPresentation(node) {
             fitPresentationWidth(this);
         }
         previousDraw?.call(this, ctx, ...args);
-        if (this.flags?.collapsed) return;
+        if (this.flags?.collapsed) {
+            drawCollapsedCostBadge(this, ctx);
+            return;
+        }
         const width = this.size?.[0] || 460;
-        const badge = String(this.__orvEstimate?.value || "ESTIMATE UNAVAILABLE");
+        const badge = String(this.__orvEstimate?.value || "PRICE UNKNOWN");
         const available = badge.startsWith("≈ $");
         ctx.save();
         ctx.beginPath();
@@ -388,7 +391,7 @@ function applyPresentation(node) {
         ctx.lineWidth = 1.5;
         ctx.stroke();
         ctx.font = "12px sans-serif";
-        const badgeWidth = Math.min(230, ctx.measureText(badge).width + 24);
+        const badgeWidth = Math.min(width * 0.5, ctx.measureText(badge).width + 24);
         ctx.beginPath();
         if (ctx.roundRect) ctx.roundRect(width - badgeWidth - 10, -27, badgeWidth, 21, 9);
         else ctx.rect(width - badgeWidth - 10, -27, badgeWidth, 21);
@@ -400,6 +403,7 @@ function applyPresentation(node) {
         ctx.fillStyle = available ? "#73e9b8" : "#aeb8b6";
         ctx.fillText(badge, width - 22, -12, badgeWidth - 18);
         ctx.restore();
+        syncClassicCostBadge(this, ctx, { x: width - badgeWidth - 10, y: -27, width: badgeWidth, height: 21 });
     };
 }
 
@@ -458,10 +462,17 @@ function fitPresentationWidth(node) {
 }
 
 function createEstimateState() {
-    let value = "ESTIMATE UNAVAILABLE — SELECT MODEL";
-    return Object.defineProperty({}, "value", {
+    let value = "CHECK INPUTS";
+    const state = { result: { state: "INVALID", reason_codes: ["select_model"] } };
+    return Object.defineProperty(state, "value", {
         get: () => value,
-        set: (next) => { value = next; scheduleBetaPresentation(); },
+        set: (next) => {
+            if (String(next).startsWith("ESTIMATE UNAVAILABLE")) {
+                value = "PRICE UNKNOWN";
+                state.result = { state: "UNKNOWN", reason_codes: ["current_configuration_unresolved"] };
+            } else value = next;
+            scheduleBetaPresentation();
+        },
     });
 }
 
@@ -484,8 +495,10 @@ function installBetaPresentation(node) {
         const style = document.createElement("style");
         style.textContent = `
             .orv-nodes2 .orv-estimate { flex:0 1 auto; max-width:50%; overflow:hidden;
-                text-overflow:ellipsis; white-space:nowrap; border:1px solid #328761;
-                border-radius:9px; padding:2px 6px; color:#73e9b8; font-size:12px; }
+                text-overflow:ellipsis; white-space:nowrap; border:1px solid var(--border-color, #666);
+                border-radius:9px; padding:2px 6px; color:var(--input-text, #ddd); font-size:12px;
+                cursor:pointer; font-variant-numeric:tabular-nums; }
+            .orv-nodes2 .orv-estimate:focus-visible { outline:2px solid var(--input-text, #ddd); }
             .orv-nodes2 .orv-prompt-row { min-height:42px; }
             .orv-nodes2 .orv-prompt-row textarea { min-height:42px; height:100%;
                 padding:20px 6px 4px; font-size:12px; overflow:auto; }
@@ -518,10 +531,13 @@ function syncBetaPresentation(node) {
             badge = document.createElement("span");
             badge.className = "orv-estimate";
             header.append(badge);
+            bindCostBadge(node, badge);
         }
         const text = String(node.__orvEstimate?.value || "ESTIMATE UNAVAILABLE");
         if (badge.textContent !== text) badge.textContent = text;
-        if (badge.title !== text) badge.title = text;
+        const details = costDetailsText(node);
+        if (badge.title !== details) badge.title = details;
+        badge.setAttribute("aria-label", `${text}. Cost details`);
     }
     const grid = root.querySelector('[data-testid="node-widgets"]');
     if (!grid) return;
@@ -751,7 +767,11 @@ function refreshCatalogue() {
     if (!catalogueActive()) return Promise.resolve();
     const task = (async () => {
         const connection = await loadConnection(true);
-        if (connection.state !== "CONNECTED") return;
+        if (connection.state !== "CONNECTED") {
+            for (const node of connectionNodes()) if (node?.type === GENERATE_NODE)
+                discardCurrentCost(node, "openrouter_connection_unavailable");
+            return;
+        }
         const projection = await loadCapabilities(true);
         // Include profiles, not just model IDs or observation timestamps.
         const signature = projection.catalogue_revision ? JSON.stringify({
@@ -764,8 +784,15 @@ function refreshCatalogue() {
         const nodes = connectionNodes().filter(node => node?.type === GENERATE_NODE);
         await Promise.all(nodes.filter(node => changed || node.__orvCatalogueFailed)
             .map(node => projectSelectedModel(node, false, projection)));
+        // Price-only cache refreshes need not change the capability projection.
+        // Reuse this existing refresh event; never add an upstream call per widget.
+        if (!changed) await Promise.all(nodes.filter(node => !node.__orvCatalogueFailed).map(node => {
+            node.__orvCostAcceptedSignature = null;
+            return refreshEstimate(node);
+        }));
     })().catch(() => {
         for (const node of connectionNodes()) {
+            if (node?.type === GENERATE_NODE) discardCurrentCost(node, "catalogue_refresh_unavailable");
             if (node?.type !== GENERATE_NODE || !node.__orvCapabilityStatus) continue;
             node.__orvCatalogueFailed = true;
             node.__orvCapabilityStatus.value = "CATALOGUE UNAVAILABLE — retrying; saved settings preserved";
@@ -2210,68 +2237,358 @@ function selectedReferenceKinds(node) {
     return kinds.some((kind) => kind === null) ? null : kinds;
 }
 
-async function refreshEstimate(node) {
-    const revision=node.__orvEstimateRevision=(node.__orvEstimateRevision || 0)+1;
-    let providerControls;
-    try { providerControls=JSON.parse(widget(node,"provider_options")?.value || "[]"); }
-    catch { providerControls=null; }
-    const providerSchema=node.__orvCapability?.__methodProfile?.controls?.provider_options?.providers || {};
-    if(!Array.isArray(providerControls)||providerControls.length||Object.values(providerSchema).some(options=>Object.values(options).some(spec=>spec.required))){
-        node.__orvEstimate.value="ESTIMATE UNAVAILABLE";
-        node.setDirtyCanvas?.(true,true);
+function costMoney(value) {
+    const number = Number(value);
+    return value != null && Number.isFinite(number) && number >= 0 ? number.toFixed(2) : null;
+}
+
+function drawCollapsedCostBadge(node, ctx) {
+    const width = node._collapsed_width || node.size?.[0] || 400;
+    const text = String(node.__orvEstimate?.value || "PRICE UNKNOWN");
+    const badgeWidth = Math.min(width * 0.5, 160);
+    ctx.save();
+    ctx.font = "11px sans-serif";
+    ctx.fillStyle = "#27302f";
+    ctx.fillRect(width - badgeWidth, -24, badgeWidth - 4, 18);
+    ctx.fillStyle = "#c8cecc";
+    ctx.textAlign = "right";
+    ctx.fillText(text, width - 8, -11, badgeWidth - 12);
+    ctx.restore();
+    syncClassicCostBadge(node, ctx, { x: width - badgeWidth, y: -24, width: badgeWidth - 4, height: 18 });
+}
+
+function costBadgeText(result) {
+    const state = result.state || (result.availability === "AVAILABLE" ? "FORMULA" : "UNKNOWN");
+    if (state === "FORMULA") {
+        const amount = costMoney(result.amount_usd ?? result.estimated_cost_usd);
+        if (amount !== null) return `≈ $${amount} EST.`;
+    }
+    if (state === "RANGE") {
+        const lower = costMoney(result.lower_usd), upper = costMoney(result.upper_usd);
+        if (lower !== null && upper !== null) return `$${lower}–${upper} EST.`;
+    }
+    if (state === "RATE_ONLY" && result.rate_usd != null) {
+        const rate = Number(result.rate_usd);
+        if (Number.isFinite(rate) && rate >= 0) {
+            if (["token", "tokens", "OUTPUT_TOKEN"].includes(result.rate_unit))
+                return `$${(rate * 1000000).toFixed(2)}/M tok RATE`;
+            const unit = ["s", "output_seconds", "source_seconds", "OUTPUT_SECOND"].includes(result.rate_unit) ? "s" : result.rate_unit;
+            return `$${rate.toLocaleString("en-US", { maximumSignificantDigits: 8 })}/${unit || "unit"} RATE`;
+        }
+    }
+    return ({ PARTIAL: "COST PARTIAL", STALE: "PRICE STALE", INVALID: "CHECK INPUTS",
+        CALCULATING: "CALCULATING…" })[state] || "PRICE UNKNOWN";
+}
+
+function costDetailsText(node) {
+    const result = node.__orvEstimate?.result;
+    const lines = [String(node.__orvEstimate?.value || "PRICE UNKNOWN")];
+    if (result) {
+        lines.push(`${canonicalModel(node) || ""} · ${widget(node, "inference_method")?.value || ""}`);
+        if (result.observed_at) lines.push(`Catalogue observed ${result.observed_at}`);
+        for (const row of result.breakdown || []) {
+            const amount = row.amount_usd == null ? "quantity unknown" : `$${row.amount_usd}`;
+            lines.push(`${row.sku}: ${row.quantity ?? "?"} × $${row.rate_usd} = ${amount}${row.relation === "minimum" ? " (request floor)" : ""}`);
+        }
+        if (result.state === "PARTIAL") lines.push("Known components are not a total or a lower bound.");
+        if (result.state === "RANGE") lines.push("Documented alternatives; this range is not a spending cap.");
+        lines.push(...(result.assumptions || []));
+        lines.push(...(result.reason_codes || (result.reason ? [result.reason] : [])).map(costReasonText));
+    }
+    lines.push("Advisory model cost; final provider usage may differ.", "Last job ACTUAL unavailable.");
+    return lines.filter(Boolean).join("\n");
+}
+
+function costReasonText(code) {
+    const messages = {
+        billing_quantity_unavailable: "Connect media with known duration or choose a fixed output length.",
+        automatic_duration_unknown: "Output length is automatic; no complete bound is documented.",
+        INPUT_VIDEO_TOKEN_QUANTITY_UNRESOLVED: "Video-input token quantity is not documented for this route.",
+        VIDEO_INPUT_TOKEN_QUANTITY_UNRESOLVED: "Video-input token quantity is not documented for this route.",
+        delivered_output_geometry_or_fps_unproven: "Delivered output geometry, cap rounding or frame rate is not established.",
+        unclassified_pricing_sku: "A new catalogue charge needs a verified pricing rule.",
+        canonical_revision_unverified: "This model revision needs verified pricing rules.",
+        pricing_evidence_stale: "Catalogue pricing is stale; use the existing refresh flow.",
+        AUDIO_EFFECTIVE_SEMANTICS_UNRESOLVED: "Pricing for explicit silent output is not documented.",
+        LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED: "The long-duration tariff schedule is not documented.",
+    };
+    return messages[code] || String(code).replaceAll("_", " ").toLowerCase();
+}
+
+function setCostPresentation(node, result) {
+    node.__orvEstimate.result = result;
+    node.__orvEstimate.value = costBadgeText(result);
+    if (node.__orvCostPopover) {
+        const text = costDetailsText(node);
+        if (node.__orvCostPopover.textContent !== text) node.__orvCostPopover.textContent = text;
+    }
+    node.setDirtyCanvas?.(true, true);
+}
+
+function invalidateCostPresentation(node) {
+    node.__orvEstimateRevision = (node.__orvEstimateRevision || 0) + 1;
+    if (node.__orvEstimate) setCostPresentation(node, { state: "CALCULATING" });
+}
+
+function discardCurrentCost(node, reason) {
+    node.__orvEstimateRevision = (node.__orvEstimateRevision || 0) + 1;
+    delete node.__orvCostAcceptedSignature;
+    delete node.__orvCostAcceptedResult;
+    if (node.__orvEstimate) setCostPresentation(node, { state: "UNKNOWN", reason_codes: [reason] });
+}
+
+function bindCostBadge(node, badge) {
+    if (badge.__orvCostBound) return;
+    badge.__orvCostBound = true;
+    badge.tabIndex = 0;
+    badge.setAttribute("role", "button");
+    badge.setAttribute("aria-haspopup", "dialog");
+    const close = () => {
+        node.__orvCostPopover?.remove();
+        node.__orvCostPopover = null;
+        badge.setAttribute("aria-expanded", "false");
+    };
+    const open = (pinned) => {
+        node.__orvCostPinned = pinned;
+        if (!node.__orvCostPopover) {
+            const detail = document.createElement("div");
+            detail.className = "orv-cost-detail";
+            detail.setAttribute("role", "dialog");
+            detail.setAttribute("aria-label", "Cost details");
+            detail.tabIndex = -1;
+            Object.assign(detail.style, { position: "fixed", zIndex: "10000", whiteSpace: "pre-wrap",
+                maxWidth: "min(430px, calc(100vw - 24px))", maxHeight: "60vh", overflow: "auto",
+                padding: "12px", borderRadius: "8px", border: "1px solid var(--border-color, #666)",
+                background: "var(--comfy-menu-bg, #222)", color: "var(--input-text, #ddd)",
+                font: "12px sans-serif", fontVariantNumeric: "tabular-nums", boxShadow: "0 4px 16px #0006" });
+            detail.textContent = costDetailsText(node);
+            detail.addEventListener("keydown", event => { if (event.key === "Escape") { close(); badge.focus(); } });
+            document.body.append(detail);
+            node.__orvCostPopover = detail;
+        }
+        const rect = badge.getBoundingClientRect();
+        Object.assign(node.__orvCostPopover.style, { left: `${Math.max(8, Math.min(rect.left, window.innerWidth - 440))}px`,
+            top: `${Math.max(8, Math.min(rect.bottom + 4, window.innerHeight - 240))}px` });
+        badge.setAttribute("aria-expanded", "true");
+        if (pinned) node.__orvCostPopover.focus();
+    };
+    badge.addEventListener("click", event => { event.stopPropagation(); if (node.__orvCostPopover && node.__orvCostPinned) close(); else open(true); });
+    badge.addEventListener("keydown", event => {
+        if (["Enter", " "].includes(event.key)) { event.preventDefault(); open(true); }
+        if (event.key === "Escape") close();
+    });
+    badge.addEventListener("mouseenter", () => { if (!node.__orvCostPopover) open(false); });
+    badge.addEventListener("mouseleave", () => { if (!node.__orvCostPinned) close(); });
+}
+
+function syncClassicCostBadge(node, ctx, rect) {
+    if (typeof document === "undefined") return;
+    if (!ctx?.canvas || !rect) {
+        if (node.__orvClassicCostBadge) node.__orvClassicCostBadge.hidden = true;
         return;
+    }
+    let badge = node.__orvClassicCostBadge;
+    if (!badge) {
+        badge = document.createElement("button");
+        badge.type = "button";
+        badge.className = "orv-classic-cost-badge";
+        Object.assign(badge.style, { position: "fixed", zIndex: "4", opacity: "0", margin: "0",
+            padding: "0", border: "0", cursor: "pointer", background: "transparent" });
+        badge.addEventListener("focus", () => { badge.style.opacity = "1"; badge.textContent = node.__orvEstimate?.value || "PRICE UNKNOWN"; });
+        badge.addEventListener("blur", () => { badge.style.opacity = "0"; badge.textContent = ""; });
+        bindCostBadge(node, badge);
+        document.body.append(badge);
+        node.__orvClassicCostBadge = badge;
+        const removed = node.onRemoved;
+        node.onRemoved = function (...args) { badge.remove(); this.__orvCostPopover?.remove(); return removed?.apply(this, args); };
+    }
+    const transform = ctx.getTransform(), canvas = ctx.canvas.getBoundingClientRect();
+    const sx = canvas.width / ctx.canvas.width, sy = canvas.height / ctx.canvas.height;
+    Object.assign(badge.style, { left: `${canvas.left + (transform.a * rect.x + transform.c * rect.y + transform.e) * sx}px`,
+        top: `${canvas.top + (transform.b * rect.x + transform.d * rect.y + transform.f) * sy}px`,
+        width: `${Math.abs(transform.a * rect.width * sx)}px`, height: `${Math.abs(transform.d * rect.height * sy)}px` });
+    badge.hidden = false;
+    badge.setAttribute("aria-label", `${node.__orvEstimate?.value || "PRICE UNKNOWN"}. Cost details`);
+    badge.title = costDetailsText(node);
+}
+
+function costMediaOccurrences(node, topology) {
+    const graph = mediaGraph(node);
+    const legacy = inputByName(node, "input_references");
+    let references = directReferenceInputs(node).filter(input => input.link != null);
+    if (legacy?.link != null) {
+        const link = mediaLink(graph, legacy.link);
+        const collection = link ? graph?.getNodeById?.(link.origin_id) : null;
+        if ((collection?.type || collection?.comfyClass) !== "OpenRouterVideoReferenceCollection") return null;
+        references = (collection.inputs || []).filter(input => input.link != null && /(^|\.)reference_\d+$/.test(input.name))
+            .sort((a, b) => referenceInputSuffix(a) - referenceInputSuffix(b));
+    }
+    const result = references.map(input => ({ input, kind: connectedReferenceKind(input), role: "reference" }));
+    for (const role of topology.fixed || []) {
+        const input = inputByName(node, role);
+        if (input?.link != null) result.push({ input, kind: role === "source_video" ? "video" : "image", role });
+    }
+    return result;
+}
+
+function readNativeCostMetadata(node, occurrence) {
+    const { input, kind, role } = occurrence;
+    const unknown = { kind, role, status: "UNKNOWN" };
+    const graph = mediaGraph(node), link = mediaLink(graph, input.link);
+    const origin = link ? graph?.getNodeById?.(link.origin_id) : null;
+    if (!origin || !kind || (origin.outputs || []).filter(output => String(output.type).toLowerCase() === kind).length !== 1) return unknown;
+    const elements = new Set();
+    const isMedia = element => (typeof HTMLMediaElement !== "undefined" && element instanceof HTMLMediaElement) ||
+        (typeof HTMLImageElement !== "undefined" && element instanceof HTMLImageElement);
+    for (const element of origin.imgs || []) if (isMedia(element)) elements.add(element);
+    for (const item of origin.widgets || []) {
+        const element = item.element;
+        if (isMedia(element)) elements.add(element);
+        for (const child of element?.querySelectorAll?.("video, audio, img") || []) if (isMedia(child)) elements.add(child);
+    }
+    const matching = [...elements].filter(element => {
+        const tag = element.tagName?.toLowerCase();
+        return tag === (kind === "image" ? "img" : kind);
+    });
+    if (matching.length !== 1) return unknown;
+    const element = matching[0];
+    node.__orvCostMetadataWatches ||= new Map();
+    if (!node.__orvCostMetadataCleanup) {
+        node.__orvCostMetadataCleanup = true;
+        const previousRemoved = node.onRemoved;
+        node.onRemoved = function (...args) {
+            for (const [watched, record] of this.__orvCostMetadataWatches || [])
+                for (const event of ["loadedmetadata", "durationchange", "emptied", "load"])
+                    watched.removeEventListener(event, record.changed);
+            this.__orvCostMetadataWatches?.clear();
+            return previousRemoved?.apply(this, args);
+        };
+    }
+    let record = node.__orvCostMetadataWatches.get(element);
+    if (!record) {
+        const watches = new Set();
+        const changed = () => {
+            const current = costMediaOccurrences(node, node.__orvCapability?.__methodProfile?.topology || {});
+            if (!current?.some(item => watches.has(item.input))) return;
+            invalidateCostPresentation(node);
+            clearTimeout(node.__orvEstimateTimer);
+            node.__orvEstimateTimer = setTimeout(() => refreshEstimate(node), 120);
+        };
+        record = { watches, changed };
+        node.__orvCostMetadataWatches.set(element, record);
+        for (const event of ["loadedmetadata", "durationchange", "emptied", "load"]) element.addEventListener(event, changed);
+    }
+    record.watches.add(input);
+    if (kind === "image") {
+        const width = element.naturalWidth, height = element.naturalHeight;
+        return Number.isSafeInteger(width) && width > 0 && Number.isSafeInteger(height) && height > 0
+            ? { kind, role, status: "HINT", width, height } : unknown;
+    }
+    const duration = element.duration;
+    if (!Number.isFinite(duration) || duration <= 0 || element.readyState < 1) return unknown;
+    const result = { kind, role, status: "HINT", duration_seconds: String(duration) };
+    if (kind === "video" && Number.isSafeInteger(element.videoWidth) && element.videoWidth > 0 &&
+        Number.isSafeInteger(element.videoHeight) && element.videoHeight > 0) {
+        result.width = element.videoWidth; result.height = element.videoHeight;
+    }
+    return result;
+}
+
+function projectProviderCostControls(node, options) {
+    if (!Array.isArray(options) || options.length > 8) return { state: "UNKNOWN" };
+    const providers = node.__orvCapability?.__methodProfile?.controls?.provider_options?.providers || {};
+    const seen = new Set(), controls = [];
+    for (const option of options) {
+        if (!option || typeof option !== "object" || Array.isArray(option) ||
+            Object.keys(option).some(key => !["provider", "key", "value", "container", "path"].includes(key)) ||
+            option.container != null || (option.path != null && (!Array.isArray(option.path) || option.path.length)))
+            return { state: "UNKNOWN" };
+        const spec = providers[option.provider]?.[option.key];
+        const identity = `${option.provider}/${option.key}`;
+        if (!spec || seen.has(identity) || ["format", "fields", "items", "values", "omits_controls", "container"].some(key => key in spec))
+            return { state: "UNKNOWN" };
+        seen.add(identity);
+        const descriptor = { provider: option.provider, key: option.key };
+        if (spec.type === "number") {
+            const value = option.value;
+            if (typeof value !== "number" || !Number.isFinite(value) ||
+                (spec.min != null && value < spec.min) || (spec.max != null && value > spec.max) ||
+                (spec.exclusive_min != null && value <= spec.exclusive_min)) return { state: "INVALID" };
+            descriptor.number_value = String(value);
+        } else if (spec.type === "string") {
+            if (typeof option.value !== "string") return { state: "INVALID" };
+            const length = [...option.value].length;
+            if (length > 65536) return { state: "UNKNOWN" };
+            if ((spec.min_length != null && length < spec.min_length) ||
+                (spec.max_length != null && length > spec.max_length)) return { state: "INVALID" };
+            descriptor.text_length = length;
+        } else return { state: "UNKNOWN" };
+        controls.push(descriptor);
+    }
+    return { state: "READY", controls };
+}
+
+async function refreshEstimate(node) {
+    const revision = node.__orvEstimateRevision = (node.__orvEstimateRevision || 0) + 1;
+    setCostPresentation(node, { state: "CALCULATING" });
+    const unavailable = (reason, state = "UNKNOWN") => setCostPresentation(node, { state, reason_codes: [reason] });
+    let providerControls;
+    try { providerControls = JSON.parse(widget(node, "provider_options")?.value || "[]"); }
+    catch { providerControls = null; }
+    const costControls = projectProviderCostControls(node, providerControls);
+    if (costControls.state !== "READY") {
+        unavailable(costControls.state === "INVALID" ? "provider_control_invalid" :
+            "provider_configuration_pricing_unverified", costControls.state); return;
     }
     if (node.__orvReferenceInvalid || geometryAuthority(node) === "AMBIGUOUS") {
-        node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
-        return;
+        unavailable("configuration_not_authorized", "INVALID"); return;
     }
     const model = canonicalModel(node);
-    if (!model) {
-        node.__orvEstimate.value = "ESTIMATE UNAVAILABLE — SELECT MODEL";
-        return;
-    }
+    if (!model) { unavailable("select_model", "INVALID"); return; }
     const referenceKinds = selectedReferenceKinds(node);
-    if (referenceKinds === null) {
-        node.__orvEstimate.value = "ESTIMATE UNAVAILABLE — REFERENCE SHAPE RESOLVES AT EXECUTION";
-        return;
-    }
+    if (referenceKinds === null) { unavailable("active_reference_shape_not_known"); return; }
     const profile = node.__orvCapability?.__methodProfile;
-    const topology = applyTransportInputConstraints(profile?.topology,
-        inputByName(node, "source_video")?.link != null);
+    const topology = applyTransportInputConstraints(profile?.topology, inputByName(node, "source_video")?.link != null);
     if (profile?.state !== "SUPPORTED" || !topology || !referenceShapeValid(topology, referenceKinds)) {
-        node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
-        return;
+        unavailable("configuration_not_authorized", "INVALID"); return;
     }
+    const sourcePresent = inputByName(node, "source_video")?.link != null;
+    const occurrences = costMediaOccurrences(node, topology);
+    const media = occurrences ? occurrences.map(occurrence => readNativeCostMetadata(node, occurrence)) :
+        referenceKinds.map(kind => ({ kind, role: "reference", status: "UNKNOWN" }));
+    const factor = projectedWidgetValue(node, "upscale_factor");
     const payload = {
-        model_id: model,
-        duration: projectedWidgetValue(node, "duration"),
+        schema_version: 2, context_revision: revision,
+        model_id: model, duration: projectedWidgetValue(node, "duration"),
         resolution: geometryAuthority(node) === "EXACT" ? null : projectedWidgetValue(node, "resolution"),
         aspect_ratio: geometryAuthority(node) === "EXACT" ? null : projectedWidgetValue(node, "aspect_ratio"),
         size: geometryAuthority(node) === "NORMALIZED" ? null : projectedWidgetValue(node, "size"),
-        generate_audio: projectedWidgetValue(node, "generate_audio") === true,
+        generate_audio: projectedWidgetValue(node, "generate_audio"),
         inference_method: widget(node, "inference_method")?.value,
-        reference_kinds: referenceKinds,
-        reference_count: referenceKinds.length,
-        source_video_present: inputByName(node, "source_video")?.link != null,
+        reference_kinds: referenceKinds, reference_count: referenceKinds.length,
+        source_video_present: sourcePresent, media,
+        upscale_factor: factor == null ? null : String(factor),
+        creativity: projectedWidgetValue(node, "creativity"),
+        provider_policy_version: "ACI-1.0", provider_controls: costControls.controls,
     };
+    const signature = JSON.stringify({ ...payload, context_revision: 0, catalogue: catalogueSignature });
+    if (node.__orvCostAcceptedSignature === signature && node.__orvCostAcceptedResult) {
+        setCostPresentation(node, node.__orvCostAcceptedResult); return;
+    }
     try {
         const response = await api.fetchApi("/openrouter-video/v1/cost-estimate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
         });
         if (!response.ok) throw new Error("estimate unavailable");
         const result = await response.json();
-        if(revision!==node.__orvEstimateRevision)return;
-        node.__orvEstimate.value =
-            result.availability === "AVAILABLE"
-                ? `≈ $${result.estimated_cost_usd} EST.`
-                : "ESTIMATE UNAVAILABLE";
+        if (revision !== node.__orvEstimateRevision || result.context_revision !== revision) return;
+        node.__orvCostAcceptedSignature = signature;
+        node.__orvCostAcceptedResult = result;
+        setCostPresentation(node, result);
     } catch {
-        if(revision!==node.__orvEstimateRevision)return;
-        node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
+        if (revision !== node.__orvEstimateRevision) return;
+        unavailable("pricing_request_unavailable");
     }
-    node.setDirtyCanvas?.(true, true);
 }
 
 function bindEstimateRefresh(node) {
@@ -2280,6 +2597,9 @@ function bindEstimateRefresh(node) {
         const previous = item.callback;
         item.callback = function (...args) {
             previous?.apply(this, args);
+            if (["model", "inference_method", "resolution", "aspect_ratio", "size", "duration", "generate_audio", "upscale_factor", "creativity", "provider_options"].includes(item.name)) {
+                invalidateCostPresentation(node);
+            }
             if (["resolution", "aspect_ratio", "size"].includes(item.name)) {
                 node.__orvGeometryEdited = item.name;
                 setGeometryAuthority(node, item.name === "size" && normalizedValue(item) ? "EXACT" : "NORMALIZED");
@@ -2333,6 +2653,7 @@ function presentationPhase(detail) {
 
 async function projectSelectedModel(node, force = false, snapshot = null) {
     if (app.configuringGraph || node.__orvConfiguringMedia) return;
+    invalidateCostPresentation(node);
     const version = (node.__orvProjectionVersion || 0) + 1;
     node.__orvProjectionVersion = version;
     orderPresentationWidgets(node);
@@ -2356,7 +2677,7 @@ async function projectSelectedModel(node, force = false, snapshot = null) {
             node.__orvSelectionBlocked = true;
             node.__orvCapabilityStatus.value = "CATALOGUE STALE — refresh failed; saved settings and links preserved";
             setVisible(node.__orvCapabilityStatus, true);
-            node.__orvEstimate.value = "ESTIMATE UNAVAILABLE";
+            setCostPresentation(node, { state: "STALE", reason_codes: ["pricing_evidence_stale"] });
             return;
         }
         node.__orvCatalogueFailed = false;
@@ -2567,6 +2888,7 @@ app.registerExtension({
             // connection can arrive during the debounced catalogue projection.
             captureMediaIntent(this);
             this.__orvEstimateRevision = (this.__orvEstimateRevision || 0) + 1;
+            if (this.__orvEstimate) setCostPresentation(this, { state: "CALCULATING" });
             const hasReferences = this.inputs?.some(
                 (item) => item.name === "input_references" || isDirectReferenceInput(item),
             );

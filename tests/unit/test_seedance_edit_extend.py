@@ -221,4 +221,8 @@ def test_estimator_reuses_existing_video_reference_price(method: InferenceMethod
         observed_at=now,
     )
     assert actual == reference
-    assert actual.reason == "video_input_pricing_semantics_ambiguous"
+    # This sanitized public projection fixture intentionally has no price evidence.
+    # Equal source/reference treatment must not manufacture a price from metadata.
+    assert actual.reason == "pricing_evidence_unavailable"
+    assert actual.availability.value == "UNAVAILABLE"
+    assert actual.estimated_cost_usd is actual.amount_usd is None

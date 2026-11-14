@@ -1024,13 +1024,20 @@ def test_cost_estimate_route_returns_prepared_result_only(
     assert status == 200
     assert captured[0].model_id == "vendor/model"
     assert captured[0].inference_method.value == "I2V"
-    assert payload == {
+    legacy_fields = {
         "availability": "AVAILABLE",
         "observed_at": observed.isoformat(),
         "applied_skus": ("per-video-second-480p",),
         "estimated_cost_usd": "0.140",
         "provenance": "catalogue pricing_skus.per-video-second-480p × duration",
     }
+    assert {key: payload[key] for key in legacy_fields} == legacy_fields
+    assert payload["state"] == "FORMULA"
+    assert payload["amount_usd"] == "0.140"
+    assert payload["lower_usd"] is payload["upper_usd"] is None
+    assert payload["context_revision"] == 0
+    assert payload["rules_version"] == "ACI-1.0"
+    assert "pricing_skus" not in payload and "pricing_evidence" not in payload
 
 
 def test_model_validation_accepts_reconstructed_native_autogrow() -> None:

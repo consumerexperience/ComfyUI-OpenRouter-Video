@@ -14,6 +14,7 @@ from openrouter_video.pricing import (
 def test_explicit_automatic_duration_is_not_priced_as_a_numeric_duration() -> None:
     model = ModelCapabilities(
         "vendor/model",
+        supports_text_only=True,
         supported_durations=(-1, 4, 8),
         pricing_evidence=PricingEvidence((PricingSku("per-video-second", Decimal("0.02")),)),
     )

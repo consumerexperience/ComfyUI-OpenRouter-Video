@@ -28,7 +28,13 @@ from openrouter_video.execution_hooks import ExecutionControl, ExecutionPhase
 from openrouter_video.media import DownloadService
 from openrouter_video.models import GenerationRequest, GenerationResult
 from openrouter_video.persistence import JobStore
-from openrouter_video.pricing import CostEstimateInputs, EstimateResult, PreflightCostEstimator
+from openrouter_video.pricing import (
+    CostEstimateInputs,
+    EstimateResult,
+    EstimateState,
+    PreflightCostEstimator,
+    project_cost_provider_controls,
+)
 from openrouter_video.request_policy import OpenRouterRequestPolicy
 from openrouter_video.s3_upload import S3MediaUploader
 from openrouter_video.secrets import EnvironmentSecretProvider
@@ -211,7 +217,12 @@ class ProcessRuntime:
             capabilities = self._require_resources().capabilities
             observation = await capabilities.effective_catalog()
             if not capabilities.is_fresh(observation):
-                return EstimateResult.unavailable(observation.observed_at, "pricing_evidence_stale")
+                return EstimateResult.unavailable(
+                    observation.observed_at,
+                    "pricing_evidence_stale",
+                    state=EstimateState.STALE,
+                    context_revision=inputs.context_revision,
+                )
             for model in observation.models:
                 if inputs.model_id in {model.model_id, model.canonical_slug}:
                     profile = project_method(model, inputs.inference_method.value)
@@ -219,7 +230,7 @@ class ProcessRuntime:
                         return EstimateResult.unavailable(
                             observation.observed_at, "method_not_projected"
                         )
-                    if any(
+                    if not inputs.provider_controls and any(
                         spec.get("required") is True
                         for options in profile["controls"]
                         .get("provider_options", {})
@@ -230,6 +241,19 @@ class ProcessRuntime:
                         return EstimateResult.unavailable(
                             observation.observed_at, "provider_configuration_pricing_unverified"
                         )
+                    try:
+                        cost_provider_options = project_cost_provider_controls(model, inputs)
+                    except ValueError:
+                        return EstimateResult.unavailable(
+                            observation.observed_at,
+                            "provider_control_invalid",
+                            state=EstimateState.INVALID,
+                        )
+                    if cost_provider_options is None:
+                        return EstimateResult.unavailable(
+                            observation.observed_at,
+                            "provider_configuration_pricing_unverified",
+                        )
                     raw = {
                         k: getattr(inputs, k)
                         for k in (
@@ -238,10 +262,25 @@ class ProcessRuntime:
                             "aspect_ratio",
                             "size",
                             "generate_audio",
+                            "upscale_factor",
+                            "creativity",
                         )
                     }
+                    if inputs.upscale_factor is not None:
+                        # Core's existing numeric control validator uses host scalars;
+                        # this conversion never enters monetary arithmetic.
+                        raw["upscale_factor"] = float(inputs.upscale_factor)
                     raw["geometry_authority"] = "EXACT" if inputs.size else "NORMALIZED"
-                    values = project_semantic_values(model, inputs.inference_method.value, raw)
+                    raw["provider_options"] = cost_provider_options
+                    try:
+                        values = project_semantic_values(model, inputs.inference_method.value, raw)
+                    except ValueError:
+                        return EstimateResult.unavailable(
+                            observation.observed_at,
+                            "configuration_not_authorized",
+                            state=EstimateState.INVALID,
+                            context_revision=inputs.context_revision,
+                        )
                     size = profile["controls"]["size"]
                     if (
                         size["state"] == "SUPPORTED"
@@ -250,17 +289,6 @@ class ProcessRuntime:
                     ):
                         return EstimateResult.unavailable(
                             observation.observed_at, "geometry_intent_conflict"
-                        )
-                    if (
-                        values["generate_audio"] is None
-                        and model.pricing_evidence
-                        and any(
-                            "with_audio" in sku.key or "without_audio" in sku.key
-                            for sku in model.pricing_evidence.skus
-                        )
-                    ):
-                        return EstimateResult.unavailable(
-                            observation.observed_at, "omitted_audio_pricing_ambiguous"
                         )
                     kinds = inputs.reference_kinds if profile["topology"]["reference_kinds"] else ()
                     if not projected_shape_valid(
@@ -292,7 +320,13 @@ class ProcessRuntime:
                         **{
                             k: values[k] for k in ("duration", "resolution", "aspect_ratio", "size")
                         },
-                        generate_audio=values["generate_audio"] is True,
+                        generate_audio=values["generate_audio"],
+                        upscale_factor=(
+                            inputs.upscale_factor
+                            if values.get("upscale_factor") is not None
+                            else None
+                        ),
+                        creativity=values.get("creativity"),
                         reference_kinds=kinds,
                         reference_count=len(kinds),
                         source_video_present=bool(context["source_video_present"]),
@@ -304,7 +338,8 @@ class ProcessRuntime:
                     )
             return EstimateResult.unavailable(observation.observed_at, "model_unavailable")
 
-        return await self._dispatch(run)
+        result = await self._dispatch(run)
+        return replace(result, context_revision=inputs.context_revision)
 
     async def generate(self, request: GenerationRequest, node_id: str | None) -> GenerationResult:
         async def run(control: ExecutionControl) -> GenerationResult:
