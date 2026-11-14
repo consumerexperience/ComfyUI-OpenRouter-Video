@@ -434,7 +434,17 @@
         "state": "UNKNOWN",
         "reason": "NO_PROVEN_APPLICABLE_RULE"
       },
-      "audio_default": true
+      "audio_default": true,
+      "planning_policy": {
+        "kind": "AUDIO_OUTPUT_COMPARISON",
+        "note": "Published with-audio output rate; selected audio and input charges may differ.",
+        "tier_skus": {
+          "360p": "duration_seconds_with_audio_360p",
+          "720p": "duration_seconds_with_audio_720p",
+          "1080p": "duration_seconds_with_audio",
+          "4K": "duration_seconds_with_audio_4k"
+        }
+      }
     },
     {
       "geometry_map": {},
@@ -860,7 +870,17 @@
         "state": "UNKNOWN",
         "reason": "NO_PROVEN_APPLICABLE_RULE"
       },
-      "audio_default": true
+      "audio_default": true,
+      "planning_policy": {
+        "kind": "AUDIO_OUTPUT_COMPARISON",
+        "note": "Published with-audio output rate; selected audio and input charges may differ.",
+        "tier_skus": {
+          "360p": "duration_seconds_with_audio_360p",
+          "720p": "duration_seconds_with_audio_720p",
+          "1080p": "duration_seconds_with_audio",
+          "4K": "duration_seconds_with_audio_4k"
+        }
+      }
     },
     {
       "geometry_map": {},
@@ -1162,8 +1182,43 @@
           ],
           "reason": null,
           "evidence": "https://openrouter.ai/heygen/heygen-video-1?output_modalities=video",
-          "notes": "Official OR and native model describe 5\u0432\u0402\u201c15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
+          "notes": "Official OR and native model describe 5вЂ“15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
           "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:2-auto",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "480p"
+            ],
+            "has_references": [
+              false
+            ],
+            "duration": [
+              null,
+              -1
+            ]
+          },
+          "expected_state": "PARTIAL",
+          "charges": [
+            {
+              "sku": "duration_seconds_480p",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1",
+          "notes": "Do not apply 5вЂ“15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
           "production_active": true
         },
         {
@@ -1184,8 +1239,6 @@
               false
             ],
             "duration": [
-              null,
-              -1,
               16,
               17,
               18,
@@ -1203,17 +1256,71 @@
               30
             ]
           },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "long_duration_seconds_480p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://help.heygen.com/en/articles/10060327-heygen-api-pricing-credits-explained",
+          "notes": "TRIANGULATED: native >15s whole-duration rate and matching exact OR long SKU keys/rates; no reference input; advisory only.",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:3-video",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "480p"
+            ],
+            "has_references": [
+              true
+            ],
+            "duration": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "has_video": [
+              true
+            ]
+          },
           "expected_state": "PARTIAL",
           "charges": [
             {
-              "sku": "duration_seconds_480p",
+              "sku": "reference_duration_seconds_480p",
               "unit": "USD",
-              "quantity": "unknown"
+              "quantity": "output_seconds"
+            },
+            {
+              "sku": "reference_input_images",
+              "unit": "USD",
+              "quantity": "reference_images",
+              "free_allowance": 2
             }
           ],
-          "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
-          "evidence": "https://openrouter.ai/heygen/heygen-video-1",
-          "notes": "Do not apply 5\u0432\u0402\u201c15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
+          "reason": "HEYGEN_VIDEO_INPUT_BILLING_CONFLICT",
+          "evidence": "https://help.heygen.com/en/articles/17272995-introducing-heygen-video-generate-cinematic-clips-from-a-prompt",
+          "notes": "Native input+output billing; OR table describes output rate, input inclusion unresolved. Breakdown is documented output/image component only, not total or lower bound.",
+          "activation": "CANDIDATE",
           "production_active": true
         },
         {
@@ -1245,6 +1352,9 @@
               13,
               14,
               15
+            ],
+            "has_video": [
+              false
             ]
           },
           "expected_state": "FORMULA",
@@ -1263,7 +1373,7 @@
           ],
           "reason": null,
           "evidence": "https://openrouter.ai/heygen/heygen-video-1?output_modalities=video",
-          "notes": "Official OR and native model describe 5\u0432\u0402\u201c15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
+          "notes": "Official OR and native model describe 5вЂ“15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
           "activation": "CANDIDATE",
           "production_active": true
         },
@@ -1314,7 +1424,7 @@
           ],
           "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
           "evidence": "https://openrouter.ai/heygen/heygen-video-1",
-          "notes": "Do not apply 5\u0432\u0402\u201c15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
+          "notes": "Do not apply 5вЂ“15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
           "production_active": true
         },
         {
@@ -1358,8 +1468,43 @@
           ],
           "reason": null,
           "evidence": "https://openrouter.ai/heygen/heygen-video-1?output_modalities=video",
-          "notes": "Official OR and native model describe 5\u0432\u0402\u201c15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
+          "notes": "Official OR and native model describe 5вЂ“15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
           "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:6-auto",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "768p"
+            ],
+            "has_references": [
+              false
+            ],
+            "duration": [
+              null,
+              -1
+            ]
+          },
+          "expected_state": "PARTIAL",
+          "charges": [
+            {
+              "sku": "duration_seconds_768p",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1",
+          "notes": "Do not apply 5вЂ“15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
           "production_active": true
         },
         {
@@ -1380,8 +1525,6 @@
               false
             ],
             "duration": [
-              null,
-              -1,
               16,
               17,
               18,
@@ -1399,17 +1542,71 @@
               30
             ]
           },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "long_duration_seconds_768p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://help.heygen.com/en/articles/10060327-heygen-api-pricing-credits-explained",
+          "notes": "TRIANGULATED: native >15s whole-duration rate and matching exact OR long SKU keys/rates; no reference input; advisory only.",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:7-video",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "768p"
+            ],
+            "has_references": [
+              true
+            ],
+            "duration": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "has_video": [
+              true
+            ]
+          },
           "expected_state": "PARTIAL",
           "charges": [
             {
-              "sku": "duration_seconds_768p",
+              "sku": "reference_duration_seconds_768p",
               "unit": "USD",
-              "quantity": "unknown"
+              "quantity": "output_seconds"
+            },
+            {
+              "sku": "reference_input_images",
+              "unit": "USD",
+              "quantity": "reference_images",
+              "free_allowance": 2
             }
           ],
-          "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
-          "evidence": "https://openrouter.ai/heygen/heygen-video-1",
-          "notes": "Do not apply 5\u0432\u0402\u201c15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
+          "reason": "HEYGEN_VIDEO_INPUT_BILLING_CONFLICT",
+          "evidence": "https://help.heygen.com/en/articles/17272995-introducing-heygen-video-generate-cinematic-clips-from-a-prompt",
+          "notes": "Native input+output billing; OR table describes output rate, input inclusion unresolved. Breakdown is documented output/image component only, not total or lower bound.",
+          "activation": "CANDIDATE",
           "production_active": true
         },
         {
@@ -1441,6 +1638,9 @@
               13,
               14,
               15
+            ],
+            "has_video": [
+              false
             ]
           },
           "expected_state": "FORMULA",
@@ -1459,7 +1659,7 @@
           ],
           "reason": null,
           "evidence": "https://openrouter.ai/heygen/heygen-video-1?output_modalities=video",
-          "notes": "Official OR and native model describe 5\u0432\u0402\u201c15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
+          "notes": "Official OR and native model describe 5вЂ“15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
           "activation": "CANDIDATE",
           "production_active": true
         },
@@ -1510,7 +1710,7 @@
           ],
           "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
           "evidence": "https://openrouter.ai/heygen/heygen-video-1",
-          "notes": "Do not apply 5\u0432\u0402\u201c15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
+          "notes": "Do not apply 5вЂ“15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
           "production_active": true
         },
         {
@@ -1554,8 +1754,43 @@
           ],
           "reason": null,
           "evidence": "https://openrouter.ai/heygen/heygen-video-1?output_modalities=video",
-          "notes": "Official OR and native model describe 5\u0432\u0402\u201c15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
+          "notes": "Official OR and native model describe 5вЂ“15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
           "activation": "RECHECK_1080P_SCOPE",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:10-auto",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "has_references": [
+              false
+            ],
+            "duration": [
+              null,
+              -1
+            ]
+          },
+          "expected_state": "PARTIAL",
+          "charges": [
+            {
+              "sku": "duration_seconds_1080p",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1",
+          "notes": "Do not apply 5вЂ“15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
           "production_active": true
         },
         {
@@ -1576,8 +1811,6 @@
               false
             ],
             "duration": [
-              null,
-              -1,
               16,
               17,
               18,
@@ -1595,17 +1828,71 @@
               30
             ]
           },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "long_duration_seconds_1080p",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://help.heygen.com/en/articles/10060327-heygen-api-pricing-credits-explained",
+          "notes": "TRIANGULATED: native >15s whole-duration rate and matching exact OR long SKU keys/rates; no reference input; advisory only.",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:11-video",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "1080p"
+            ],
+            "has_references": [
+              true
+            ],
+            "duration": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "has_video": [
+              true
+            ]
+          },
           "expected_state": "PARTIAL",
           "charges": [
             {
-              "sku": "duration_seconds_1080p",
+              "sku": "reference_duration_seconds_1080p",
               "unit": "USD",
-              "quantity": "unknown"
+              "quantity": "output_seconds"
+            },
+            {
+              "sku": "reference_input_images",
+              "unit": "USD",
+              "quantity": "reference_images",
+              "free_allowance": 2
             }
           ],
-          "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
-          "evidence": "https://openrouter.ai/heygen/heygen-video-1",
-          "notes": "Do not apply 5\u0432\u0402\u201c15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
+          "reason": "HEYGEN_VIDEO_INPUT_BILLING_CONFLICT",
+          "evidence": "https://help.heygen.com/en/articles/17272995-introducing-heygen-video-generate-cinematic-clips-from-a-prompt",
+          "notes": "Native input+output billing; OR table describes output rate, input inclusion unresolved. Breakdown is documented output/image component only, not total or lower bound.",
+          "activation": "RECHECK_1080P_SCOPE",
           "production_active": true
         },
         {
@@ -1637,6 +1924,9 @@
               13,
               14,
               15
+            ],
+            "has_video": [
+              false
             ]
           },
           "expected_state": "FORMULA",
@@ -1655,7 +1945,7 @@
           ],
           "reason": null,
           "evidence": "https://openrouter.ai/heygen/heygen-video-1?output_modalities=video",
-          "notes": "Official OR and native model describe 5\u0432\u0402\u201c15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
+          "notes": "Official OR and native model describe 5вЂ“15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
           "activation": "RECHECK_1080P_SCOPE",
           "production_active": true
         },
@@ -1706,7 +1996,7 @@
           ],
           "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
           "evidence": "https://openrouter.ai/heygen/heygen-video-1",
-          "notes": "Do not apply 5\u0432\u0402\u201c15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
+          "notes": "Do not apply 5вЂ“15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
           "production_active": true
         },
         {
@@ -1750,8 +2040,43 @@
           ],
           "reason": null,
           "evidence": "https://openrouter.ai/heygen/heygen-video-1?output_modalities=video",
-          "notes": "Official OR and native model describe 5\u0432\u0402\u201c15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
+          "notes": "Official OR and native model describe 5вЂ“15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
           "activation": "CANDIDATE",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:14-auto",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "2K"
+            ],
+            "has_references": [
+              false
+            ],
+            "duration": [
+              null,
+              -1
+            ]
+          },
+          "expected_state": "PARTIAL",
+          "charges": [
+            {
+              "sku": "duration_seconds_2k",
+              "unit": "USD",
+              "quantity": "unknown"
+            }
+          ],
+          "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
+          "evidence": "https://openrouter.ai/heygen/heygen-video-1",
+          "notes": "Do not apply 5вЂ“15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
           "production_active": true
         },
         {
@@ -1772,8 +2097,6 @@
               false
             ],
             "duration": [
-              null,
-              -1,
               16,
               17,
               18,
@@ -1791,17 +2114,71 @@
               30
             ]
           },
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "long_duration_seconds_2k",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://help.heygen.com/en/articles/10060327-heygen-api-pricing-credits-explained",
+          "notes": "TRIANGULATED: native >15s whole-duration rate and matching exact OR long SKU keys/rates; no reference input; advisory only.",
+          "production_active": true
+        },
+        {
+          "id": "heygen/heygen-video-1:15-video",
+          "when": {
+            "method": [
+              "T2V",
+              "I2V",
+              "IR2V",
+              "MI2V",
+              "VR2V",
+              "MMR2V"
+            ],
+            "resolution": [
+              "2K"
+            ],
+            "has_references": [
+              true
+            ],
+            "duration": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "has_video": [
+              true
+            ]
+          },
           "expected_state": "PARTIAL",
           "charges": [
             {
-              "sku": "duration_seconds_2k",
+              "sku": "reference_duration_seconds_2k",
               "unit": "USD",
-              "quantity": "unknown"
+              "quantity": "output_seconds"
+            },
+            {
+              "sku": "reference_input_images",
+              "unit": "USD",
+              "quantity": "reference_images",
+              "free_allowance": 2
             }
           ],
-          "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
-          "evidence": "https://openrouter.ai/heygen/heygen-video-1",
-          "notes": "Do not apply 5\u0432\u0402\u201c15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
+          "reason": "HEYGEN_VIDEO_INPUT_BILLING_CONFLICT",
+          "evidence": "https://help.heygen.com/en/articles/17272995-introducing-heygen-video-generate-cinematic-clips-from-a-prompt",
+          "notes": "Native input+output billing; OR table describes output rate, input inclusion unresolved. Breakdown is documented output/image component only, not total or lower bound.",
+          "activation": "CANDIDATE",
           "production_active": true
         },
         {
@@ -1833,6 +2210,9 @@
               13,
               14,
               15
+            ],
+            "has_video": [
+              false
             ]
           },
           "expected_state": "FORMULA",
@@ -1851,7 +2231,7 @@
           ],
           "reason": null,
           "evidence": "https://openrouter.ai/heygen/heygen-video-1?output_modalities=video",
-          "notes": "Official OR and native model describe 5\u0432\u0402\u201c15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
+          "notes": "Official OR and native model describe 5вЂ“15s standard vs reference modes. Native confirms first frame is I2V, not reference mode; first two reference images free. Use current rates; 1080p tier recheck.",
           "activation": "CANDIDATE",
           "production_active": true
         },
@@ -1902,7 +2282,7 @@
           ],
           "reason": "LONG_TARIFF_WHOLE_VS_MARGINAL_AND_LONG_REFERENCE_PRECEDENCE_UNRESOLVED",
           "evidence": "https://openrouter.ai/heygen/heygen-video-1",
-          "notes": "Do not apply 5\u0432\u0402\u201c15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
+          "notes": "Do not apply 5вЂ“15 second documented tariff to longer duration; no assumed threshold billing beyond documented range.",
           "production_active": true
         }
       ],
@@ -1912,7 +2292,7 @@
           "disposition": "RULE_REFERENCE",
           "rule_ids": [
             "heygen/heygen-video-1:13",
-            "heygen/heygen-video-1:14"
+            "heygen/heygen-video-1:14-auto"
           ]
         },
         {
@@ -1920,7 +2300,7 @@
           "disposition": "RULE_REFERENCE",
           "rule_ids": [
             "heygen/heygen-video-1:1",
-            "heygen/heygen-video-1:2"
+            "heygen/heygen-video-1:2-auto"
           ]
         },
         {
@@ -1928,7 +2308,7 @@
           "disposition": "RULE_REFERENCE",
           "rule_ids": [
             "heygen/heygen-video-1:5",
-            "heygen/heygen-video-1:6"
+            "heygen/heygen-video-1:6-auto"
           ]
         },
         {
@@ -1936,43 +2316,56 @@
           "disposition": "RULE_REFERENCE",
           "rule_ids": [
             "heygen/heygen-video-1:9",
-            "heygen/heygen-video-1:10"
+            "heygen/heygen-video-1:10-auto"
           ]
         },
         {
           "sku": "reference_input_images",
           "disposition": "RULE_REFERENCE",
           "rule_ids": [
+            "heygen/heygen-video-1:3-video",
             "heygen/heygen-video-1:3",
+            "heygen/heygen-video-1:7-video",
             "heygen/heygen-video-1:7",
+            "heygen/heygen-video-1:11-video",
             "heygen/heygen-video-1:11",
+            "heygen/heygen-video-1:15-video",
             "heygen/heygen-video-1:15"
           ]
         },
         {
           "sku": "long_duration_seconds_2k",
-          "disposition": "UNRESOLVED_TIER",
-          "rule_ids": []
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "heygen/heygen-video-1:14"
+          ]
         },
         {
           "sku": "long_duration_seconds_480p",
-          "disposition": "UNRESOLVED_TIER",
-          "rule_ids": []
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "heygen/heygen-video-1:2"
+          ]
         },
         {
           "sku": "long_duration_seconds_768p",
-          "disposition": "UNRESOLVED_TIER",
-          "rule_ids": []
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "heygen/heygen-video-1:6"
+          ]
         },
         {
           "sku": "long_duration_seconds_1080p",
-          "disposition": "UNRESOLVED_TIER",
-          "rule_ids": []
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "heygen/heygen-video-1:10"
+          ]
         },
         {
           "sku": "reference_duration_seconds_2k",
           "disposition": "RULE_REFERENCE",
           "rule_ids": [
+            "heygen/heygen-video-1:15-video",
             "heygen/heygen-video-1:15",
             "heygen/heygen-video-1:16"
           ]
@@ -1981,6 +2374,7 @@
           "sku": "reference_duration_seconds_480p",
           "disposition": "RULE_REFERENCE",
           "rule_ids": [
+            "heygen/heygen-video-1:3-video",
             "heygen/heygen-video-1:3",
             "heygen/heygen-video-1:4"
           ]
@@ -1989,6 +2383,7 @@
           "sku": "reference_duration_seconds_768p",
           "disposition": "RULE_REFERENCE",
           "rule_ids": [
+            "heygen/heygen-video-1:7-video",
             "heygen/heygen-video-1:7",
             "heygen/heygen-video-1:8"
           ]
@@ -1997,6 +2392,7 @@
           "sku": "reference_duration_seconds_1080p",
           "disposition": "RULE_REFERENCE",
           "rule_ids": [
+            "heygen/heygen-video-1:11-video",
             "heygen/heygen-video-1:11",
             "heygen/heygen-video-1:12"
           ]
@@ -2025,7 +2421,7 @@
       "gaps": [
         {
           "code": "HEYGEN_LONG",
-          "description": "Identify long threshold, whole vs marginal, reference+long precedence, 1080p/2K and route applicability. Raw supports 30s; FAQ describes 5\u0432\u0402\u201c15s."
+          "description": "Identify long threshold, whole vs marginal, reference+long precedence, 1080p/2K and route applicability. Raw supports 30s; FAQ describes 5вЂ“15s."
         }
       ],
       "source": "https://openrouter.ai/heygen/heygen-video-1",
@@ -2033,6 +2429,23 @@
       "default": {
         "state": "UNKNOWN",
         "reason": "NO_PROVEN_APPLICABLE_RULE"
+      },
+      "planning_policy": {
+        "kind": "REFERENCE_INPUT_COMPARISON",
+        "note": "Output and image components; input VIDEO fees and tariff precedence unconfirmed.",
+        "tier_skus": {
+          "480p": "reference_duration_seconds_480p",
+          "768p": "reference_duration_seconds_768p",
+          "1080p": "reference_duration_seconds_1080p",
+          "2K": "reference_duration_seconds_2k"
+        },
+        "long_tier_skus": {
+          "480p": "long_reference_duration_seconds_480p",
+          "768p": "long_reference_duration_seconds_768p",
+          "1080p": "long_reference_duration_seconds_1080p",
+          "2K": "long_reference_duration_seconds_2k"
+        },
+        "image_sku": "reference_input_images"
       }
     },
     {
@@ -2509,6 +2922,10 @@
       "default": {
         "state": "UNKNOWN",
         "reason": "NO_PROVEN_APPLICABLE_RULE"
+      },
+      "planning_policy": {
+        "kind": "INPUT_OUTPUT_SECONDS",
+        "note": "Native input+output seconds; OpenRouter equivalence and audio/reference charges unconfirmed."
       }
     },
     {
@@ -2567,6 +2984,10 @@
       "default": {
         "state": "UNKNOWN",
         "reason": "NO_PROVEN_APPLICABLE_RULE"
+      },
+      "planning_policy": {
+        "kind": "AUDIO_DURATION",
+        "note": "Assumes delivered length equals audio preview duration; no TTS prediction."
       }
     },
     {
@@ -2602,7 +3023,7 @@
           ],
           "reason": null,
           "evidence": "https://docs.bfl.ai/flux_tools/flux_video_upscale",
-          "notes": "BFL native exact model documents delivered output pixels / 1048576 \u0413\u2014 output seconds, creativity 0/1; OR page identifies BFL route and same unit. Confirm mapped output geometry/cap/rounding and current route before activation.",
+          "notes": "BFL native exact model documents delivered output pixels / 1048576 Г— output seconds, creativity 0/1; OR page identifies BFL route and same unit. Confirm mapped output geometry/cap/rounding and current route before activation.",
           "activation": "RECHECK_OUTPUT_GEOMETRY_AND_ROUTE",
           "production_active": true
         },
@@ -2626,7 +3047,7 @@
           ],
           "reason": null,
           "evidence": "https://docs.bfl.ai/flux_tools/flux_video_upscale",
-          "notes": "BFL native exact model documents delivered output pixels / 1048576 \u0413\u2014 output seconds, creativity 0/1; OR page identifies BFL route and same unit. Confirm mapped output geometry/cap/rounding and current route before activation.",
+          "notes": "BFL native exact model documents delivered output pixels / 1048576 Г— output seconds, creativity 0/1; OR page identifies BFL route and same unit. Confirm mapped output geometry/cap/rounding and current route before activation.",
           "activation": "RECHECK_OUTPUT_GEOMETRY_AND_ROUTE",
           "production_active": true
         },
@@ -2675,7 +3096,11 @@
         "state": "UNKNOWN",
         "reason": "NO_PROVEN_APPLICABLE_RULE"
       },
-      "metadata_policy": "UPSCALE_SOURCE_24"
+      "metadata_policy": "UPSCALE_SOURCE_24",
+      "planning_policy": {
+        "kind": "NOMINAL_UPSCALE",
+        "note": "Assumes nominal integer output dimensions and preserved source duration; delivered geometry unconfirmed."
+      }
     },
     {
       "geometry_map": {
@@ -2967,6 +3392,29 @@
       "default": {
         "state": "UNKNOWN",
         "reason": "NO_PROVEN_APPLICABLE_RULE"
+      },
+      "normalized_geometry_map": {
+        "480p": {
+          "16:9": "864x496",
+          "4:3": "752x560",
+          "1:1": "640x640",
+          "3:4": "560x752",
+          "9:16": "496x864",
+          "21:9": "992x432"
+        },
+        "720p": {
+          "16:9": "1280x720",
+          "4:3": "1112x834",
+          "1:1": "960x960",
+          "3:4": "834x1112",
+          "9:16": "720x1280",
+          "21:9": "1470x630"
+        }
+      },
+      "planning_policy": {
+        "kind": "TOKEN_GEOMETRY",
+        "note": "Native geometry / inferred video-token floor; route equivalence and rounding not established.",
+        "floor_evidence": "EXTRAPOLATED_OTHER_REVISION"
       }
     },
     {
@@ -3279,6 +3727,11 @@
       "default": {
         "state": "UNKNOWN",
         "reason": "NO_PROVEN_APPLICABLE_RULE"
+      },
+      "planning_policy": {
+        "kind": "TOKEN_GEOMETRY",
+        "note": "Native geometry / inferred video-token floor; route equivalence and rounding not established.",
+        "floor_evidence": "OBSERVED_OTHER_ROUTE"
       }
     },
     {
@@ -3557,12 +4010,12 @@
               "V2V_EDIT"
             ]
           },
-          "expected_state": "RATE_ONLY",
+          "expected_state": "FORMULA",
           "charges": [
             {
               "sku": "cents_per_second_output",
               "unit": "cents",
-              "quantity": "unknown",
+              "quantity": "source_seconds",
               "rate_unit": "s"
             },
             {
@@ -3572,10 +4025,10 @@
               "relation": "minimum"
             }
           ],
-          "reason": "ALEPH_BILLED_OUTPUT_DURATION_UNPROVEN",
-          "evidence": "https://docs.dev.runwayml.com/guides/pricing/",
-          "notes": "The source-duration sentence in the native pricing guide describes Kling 4.0, not Aleph 2. Source duration does not establish billed output duration. Preserve applicable output rate and documented request floor; no total.",
-          "activation": "RECHECK_ALEPH_DURATION_AND_FORMAT",
+          "reason": null,
+          "evidence": "https://dev.runway.com/learn/ai-video-api-pricing",
+          "notes": "Runway explicitly documents same source length for Aleph 2.0; exact OR rate and minimum match native standard output. No format surcharge assumed for standard OR route. HINT remains advisory.",
+          "activation": "CANDIDATE",
           "production_active": true
         }
       ],
@@ -3607,7 +4060,7 @@
         "state": "UNKNOWN",
         "reason": "NO_PROVEN_APPLICABLE_RULE"
       },
-      "metadata_policy": "NONE"
+      "metadata_policy": "SOURCE_DURATION"
     },
     {
       "geometry_map": {},
@@ -5466,6 +5919,45 @@
       "default": {
         "state": "UNKNOWN",
         "reason": "NO_PROVEN_APPLICABLE_RULE"
+      },
+      "normalized_geometry_map": {
+        "480p": {
+          "16:9": "864x496",
+          "4:3": "752x560",
+          "1:1": "640x640",
+          "3:4": "560x752",
+          "9:16": "496x864",
+          "21:9": "992x432"
+        },
+        "720p": {
+          "16:9": "1280x720",
+          "4:3": "1112x834",
+          "1:1": "960x960",
+          "3:4": "834x1112",
+          "9:16": "720x1280",
+          "21:9": "1470x630"
+        },
+        "1080p": {
+          "16:9": "1920x1080",
+          "4:3": "1664x1248",
+          "1:1": "1440x1440",
+          "3:4": "1248x1664",
+          "9:16": "1080x1920",
+          "21:9": "2206x946"
+        },
+        "4K": {
+          "16:9": "3840x2160",
+          "4:3": "3326x2494",
+          "1:1": "2880x2880",
+          "3:4": "2494x3326",
+          "9:16": "2160x3840",
+          "21:9": "4398x1886"
+        }
+      },
+      "planning_policy": {
+        "kind": "TOKEN_GEOMETRY",
+        "note": "Native geometry / inferred video-token floor; route equivalence and rounding not established.",
+        "floor_evidence": "EXTRAPOLATED_OTHER_REVISION"
       }
     },
     {
@@ -5815,6 +6307,29 @@
       "default": {
         "state": "UNKNOWN",
         "reason": "NO_PROVEN_APPLICABLE_RULE"
+      },
+      "normalized_geometry_map": {
+        "480p": {
+          "16:9": "864x496",
+          "4:3": "752x560",
+          "1:1": "640x640",
+          "3:4": "560x752",
+          "9:16": "496x864",
+          "21:9": "992x432"
+        },
+        "720p": {
+          "16:9": "1280x720",
+          "4:3": "1112x834",
+          "1:1": "960x960",
+          "3:4": "834x1112",
+          "9:16": "720x1280",
+          "21:9": "1470x630"
+        }
+      },
+      "planning_policy": {
+        "kind": "TOKEN_GEOMETRY",
+        "note": "Native geometry / inferred video-token floor; route equivalence and rounding not established.",
+        "floor_evidence": "EXTRAPOLATED_OTHER_REVISION"
       }
     },
     {
@@ -5983,6 +6498,14 @@
       "default": {
         "state": "UNKNOWN",
         "reason": "NO_PROVEN_APPLICABLE_RULE"
+      },
+      "planning_policy": {
+        "kind": "CAPPED_REFERENCE_ALIAS",
+        "note": "Only one video reference; I2V rate alias and native five-second cap unconfirmed on OpenRouter.",
+        "tier_skus": {
+          "720p": "image_to_video_duration_seconds_720p",
+          "1080p": "image_to_video_duration_seconds_1080p"
+        }
       }
     },
     {
@@ -6017,11 +6540,18 @@
               true
             ]
           },
-          "expected_state": "UNKNOWN",
-          "charges": [],
-          "reason": "RESOLUTION_SKU_MAPPING_UNRESOLVED",
-          "evidence": "https://openrouter.ai/google/veo-3.1",
-          "production_active": true
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_with_audio",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://cloud.google.com/model-garden/pricing",
+          "production_active": true,
+          "notes": "TRIANGULATED: native 720p/1080p rate parity and exact OR unsuffixed versus 4K SKU structure; advisory estimate, not invoice proof. No route alteration."
         },
         {
           "id": "google/veo-3.1:2",
@@ -6038,11 +6568,18 @@
               false
             ]
           },
-          "expected_state": "UNKNOWN",
-          "charges": [],
-          "reason": "RESOLUTION_SKU_MAPPING_UNRESOLVED",
-          "evidence": "https://openrouter.ai/google/veo-3.1",
-          "production_active": true
+          "expected_state": "FORMULA",
+          "charges": [
+            {
+              "sku": "duration_seconds_without_audio",
+              "unit": "USD",
+              "quantity": "output_seconds"
+            }
+          ],
+          "reason": null,
+          "evidence": "https://cloud.google.com/model-garden/pricing",
+          "production_active": true,
+          "notes": "TRIANGULATED: native 720p/1080p rate parity and exact OR unsuffixed versus 4K SKU structure; advisory estimate, not invoice proof. No route alteration."
         },
         {
           "id": "google/veo-3.1:3",
@@ -6162,6 +6699,7 @@
           "sku": "duration_seconds_with_audio",
           "disposition": "RULE_REFERENCE",
           "rule_ids": [
+            "google/veo-3.1:1",
             "google/veo-3.1:3"
           ]
         },
@@ -6176,6 +6714,7 @@
           "sku": "duration_seconds_without_audio",
           "disposition": "RULE_REFERENCE",
           "rule_ids": [
+            "google/veo-3.1:2",
             "google/veo-3.1:4"
           ]
         },

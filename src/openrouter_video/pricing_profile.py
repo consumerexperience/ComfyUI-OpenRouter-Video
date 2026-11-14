@@ -12,7 +12,10 @@ from functools import lru_cache
 from importlib.resources import files
 from itertools import combinations
 from types import MappingProxyType
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from openrouter_video.pricing_planning import PlanningPolicy
 
 from openrouter_video.models import InferenceMethod, PricingEvidence
 
@@ -70,6 +73,8 @@ _SCALAR_QUANTITIES = frozenset(
         "reference_images",
         "output_count",
         "tokens",
+        "billable_seconds",
+        "billable_mp_seconds",
     }
 )
 _QUANTITIES = _SCALAR_QUANTITIES | {
@@ -276,6 +281,8 @@ class TariffProfile:
     audio_default: bool | None = None
     metadata_policy: str = "NONE"
     neutral_controls: tuple[NeutralControlPolicy, ...] = ()
+    normalized_geometry_map: Mapping[str, Mapping[str, str]] | None = None
+    planning_policy: PlanningPolicy | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -346,6 +353,8 @@ def compile_profile(raw: Mapping[str, object]) -> TariffProfile:
         "audio_default",
         "metadata_policy",
         "neutral_controls",
+        "normalized_geometry_map",
+        "planning_policy",
     }:
         raise ValueError("invalid_profile_fields")
     audio_default = raw.get("audio_default")
@@ -514,6 +523,20 @@ def compile_profile(raw: Mapping[str, object]) -> TariffProfile:
                 or not all(part.isdigit() and 0 < int(part) <= 100000 for part in size.split("x"))
             ):
                 raise ValueError("invalid_geometry_size")
+    normalized = raw.get("normalized_geometry_map")
+    if normalized is not None:
+        if not isinstance(normalized, dict) or not set(normalized) <= set(geometry):
+            raise ValueError("invalid_normalized_geometry_map")
+        for mapping in normalized.values():
+            if not isinstance(mapping, dict) or len(mapping) > 64:
+                raise ValueError("invalid_normalized_geometry_map")
+            for ratio, size in mapping.items():
+                if (
+                    not isinstance(ratio, str)
+                    or not isinstance(size, str)
+                    or not re.fullmatch(r"[1-9][0-9]{0,4}x[1-9][0-9]{0,4}", size)
+                ):
+                    raise ValueError("invalid_normalized_geometry_size")
     default = raw["default"]
     if (
         not isinstance(default, dict)
@@ -559,6 +582,9 @@ def compile_profile(raw: Mapping[str, object]) -> TariffProfile:
             raise ValueError("invalid_gap")
         _text(gap["code"])
         _text(gap["description"])
+    from openrouter_video.pricing_planning import compile_planning_policy
+
+    planning = compile_planning_policy(raw.get("planning_policy"), known)
     return TariffProfile(
         model_id,
         canonical,
@@ -571,6 +597,12 @@ def compile_profile(raw: Mapping[str, object]) -> TariffProfile:
         audio_default,
         str(metadata_policy),
         tuple(neutral),
+        None
+        if normalized is None
+        else MappingProxyType(
+            {key: MappingProxyType(dict(value)) for key, value in normalized.items()}
+        ),
+        planning,
     )
 
 

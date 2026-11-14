@@ -1,0 +1,15 @@
+{
+  "status": "UNACCEPTED",
+  "baseline_sha": "15cc5aea7570fe43d2154b4e3b6f1efba8f4ac2d",
+  "authority": "Owner ACI-04 R3.1 engineering scope; exact source declaration, not runtime/Beta/Owner acceptance",
+  "candidate_files": {
+    "src/openrouter_video/pricing.py": "1a24162d943fab1af1c35cb641bef8f8b4b0ea373a6fe6e992139f999ef8c353",
+    "src/openrouter_video/pricing_profile.py": "95f3ae6198f5cd4b8bc13bef0a8a1b2190bec0aed721b610eb773c1f65b1a8ff",
+    "src/openrouter_video/pricing_planning.py": "3143525547787d41e880963cac13c3d9e9207d6a7c51145af6e1eb866ef48a1e",
+    "src/openrouter_video/comfy/routes.py": "c38bd776527793eced7832848799760bf6c180b59ecdd51c7c2adc2a06c0fc39",
+    "src/openrouter_video/comfy/runtime.py": "48312339ce7cbc02bd68baf4baa13eeade120fc785cebc1a64fe954315f42daf",
+    "src/openrouter_video/data/video-tariff-rules.json": "82a87ef9ae31bac0bf7cf359fcdf6af904042e110832276265cf0236db55a8f8",
+    "web/openrouter_video.js": "8ed654df5ce09215a693276c923712fd07a3f7249d300043ab2c654569cfa533",
+    "src/openrouter_video/comfy/nodes.py": "58e82e51fdead6444829207485090ad6f9b59dbc857c389b9d97cfb173fb5c26"
+  }
+}

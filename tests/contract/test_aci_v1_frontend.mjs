@@ -16,7 +16,7 @@ function harness(selectedModel = model) {
         api: { fetchApi(url, init) {
             return new Promise(resolve => requests.push({ url, body: JSON.parse(init.body), resolve }));
         } },
-        clearTimeout() {}, setTimeout() { return 0; },
+        performance: { now: () => 0 }, clearTimeout() {}, setTimeout() { return 0; },
     };
     vm.runInNewContext(source, c);
     const values = { model: selectedModel.model_id, inference_method: "T2V", prompt: "never sent to estimator",
@@ -34,7 +34,7 @@ function harness(selectedModel = model) {
     return { c, n, requests };
 }
 function respond(request, result) {
-    request.resolve({ ok: true, async json() { return { ...result, context_revision: request.body.context_revision }; } });
+    request.resolve({ ok: true, async json() { return { valid_for_ms: 900000, ...result, context_revision: request.body.context_revision }; } });
 }
 
 for (const [state, fields, label] of [

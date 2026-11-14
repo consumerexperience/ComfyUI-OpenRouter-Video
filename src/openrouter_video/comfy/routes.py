@@ -4,11 +4,16 @@ from __future__ import annotations
 
 import asyncio
 import threading
+from datetime import datetime, timezone
 from decimal import Decimal
 from importlib.metadata import PackageNotFoundError, version
 from typing import Any, Final
 
-from openrouter_video.capabilities import capability_completeness_report, semantic_fingerprint
+from openrouter_video.capabilities import (
+    FRESH_TTL,
+    capability_completeness_report,
+    semantic_fingerprint,
+)
 from openrouter_video.errors import OpenRouterHTTPError, ProductFailureError, RequestPolicyError
 from openrouter_video.models import InferenceMethod, InputReferenceKind
 from openrouter_video.oauth import exchange as exchange_pkce
@@ -313,6 +318,17 @@ async def _cost_estimate_handler(request: Any) -> Any:
         "lower_usd": _cost_decimal(result.lower_usd),
         "upper_usd": _cost_decimal(result.upper_usd),
         "range_kind": result.range_kind,
+        "planning": result.planning,
+        "valid_for_ms": max(
+            0,
+            min(
+                int(FRESH_TTL.total_seconds() * 1000),
+                int(
+                    (result.observed_at + FRESH_TTL - datetime.now(timezone.utc)).total_seconds()
+                    * 1000
+                ),
+            ),
+        ),
         "rate_usd": _cost_decimal(result.rate_usd),
         "rate_unit": result.rate_unit,
         "breakdown": [
@@ -471,6 +487,8 @@ def _parse_cost_media(value: object) -> MediaCostMetadata:
         "height",
         "fps",
         "status",
+        "occurrence_index",
+        "context_revision",
     }:
         raise ValueError("unsupported media metadata")
     return MediaCostMetadata(
@@ -480,7 +498,11 @@ def _parse_cost_media(value: object) -> MediaCostMetadata:
         width=value.get("width"),
         height=value.get("height"),
         fps=_parse_cost_decimal(value.get("fps")),
-        status=value.get("status", "UNKNOWN"),
+        # A public caller cannot assert the internal native adapter's KNOWN
+        # authority. Loaded previews remain advisory revision-bound HINTs.
+        status="HINT" if value.get("status") == "KNOWN" else value.get("status", "UNKNOWN"),
+        occurrence_index=value.get("occurrence_index"),
+        context_revision=value.get("context_revision"),
     )
 
 

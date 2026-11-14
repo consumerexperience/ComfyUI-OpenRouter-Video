@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
+from decimal import Decimal
 
 from openrouter_video.application import OperationInterrupted
 from openrouter_video.capabilities import infer_legacy_inference_method
@@ -20,6 +21,7 @@ from openrouter_video.models import (
     InputReference,
     InputReferenceCollection,
     InputReferenceKind,
+    LocalLifecycleState,
     ProductErrorCode,
     ProviderOption,
 )
@@ -128,7 +130,49 @@ def _raise_product_error(result: GenerationResult) -> None:
     raise AdapterExecutionError(message)
 
 
-async def _node_output(result: GenerationResult, node_id: str | None) -> object:
+def _actual_ui_metadata(
+    result: GenerationResult,
+    *,
+    operation_kind: str,
+    expected_job_id: str | None = None,
+) -> dict[str, object] | None:
+    """Execution-local receipt only; no current estimate or mutable node context."""
+    if result.state is not LocalLifecycleState.DONE or operation_kind not in {"GENERATE", "RESUME"}:
+        return None
+    if (
+        not isinstance(result.job_id, str)
+        or not result.job_id
+        or _safe_job_id(result.job_id) is None
+    ):
+        return None
+    if not isinstance(result.model, str) or not result.model or _safe_job_id(result.model) is None:
+        return None
+    if operation_kind == "RESUME" and (not expected_job_id or result.job_id != expected_job_id):
+        return None
+    if result.actual_cost_usd is not None and not isinstance(result.actual_cost_usd, Decimal):
+        return None
+    row: dict[str, object] = {
+        "schema_version": 1,
+        "job_id": result.job_id,
+        "model": result.model,
+        "amount_usd": None
+        if result.actual_cost_usd is None
+        else format(result.actual_cost_usd, "f"),
+        "state": "DONE",
+        "operation_kind": operation_kind,
+    }
+    if operation_kind == "RESUME":
+        row["expected_job_id"] = expected_job_id
+    return {"orv_actual_v1": [row]}
+
+
+async def _node_output(
+    result: GenerationResult,
+    node_id: str | None,
+    *,
+    operation_kind: str = "GENERATE",
+    expected_job_id: str | None = None,
+) -> object:
     _raise_product_error(result)
     if result.artifact is None:
         raise AdapterExecutionError(
@@ -149,6 +193,9 @@ async def _node_output(result: GenerationResult, node_id: str | None) -> object:
         cost,
         result.state.value,
         last_frame,
+        ui=_actual_ui_metadata(
+            result, operation_kind=operation_kind, expected_job_id=expected_job_id
+        ),
     )
     await compat.report_phase(ExecutionPhase.DONE, node_id)
     return output
@@ -600,7 +647,7 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
             result = await runtime.generate(request, node_id)
         except OperationInterrupted:
             compat.raise_host_interrupt()
-        return await _node_output(result, node_id)
+        return await _node_output(result, node_id, operation_kind="GENERATE")
 
 
 class OpenRouterVideoResume(compat.IO.ComfyNode):
@@ -634,7 +681,9 @@ class OpenRouterVideoResume(compat.IO.ComfyNode):
             result = await get_runtime().resume(normalized, node_id)
         except OperationInterrupted:
             compat.raise_host_interrupt()
-        return await _node_output(result, node_id)
+        return await _node_output(
+            result, node_id, operation_kind="RESUME", expected_job_id=normalized
+        )
 
 
 __all__ = (

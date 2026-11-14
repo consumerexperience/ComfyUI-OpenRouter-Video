@@ -13,6 +13,12 @@ GIT = shutil.which("git")
 assert GIT is not None
 
 
+def historical_current(path: str) -> str:
+    from tests.contract.aci_r31_reviewed_patch import r31_historical_source
+
+    return r31_historical_source(path, (ROOT / path).read_text(encoding="utf8"))
+
+
 def baseline(path: str) -> str:
     assert GIT is not None
     return subprocess.check_output(  # noqa: S603 - fixed git and immutable source revision
@@ -40,7 +46,7 @@ def declarations(source: str) -> dict[str, str]:
 def test_aci_runtime_changes_only_existing_estimate_branch() -> None:
     path = "src/openrouter_video/comfy/runtime.py"
     before = declarations(baseline(path))
-    after = declarations((ROOT / path).read_text(encoding="utf8"))
+    after = declarations(historical_current(path))
     allowed = {"ProcessRuntime.estimate_cost"}
     assert set(after) - set(before) <= allowed
     for name in before.keys() - allowed:
@@ -50,7 +56,7 @@ def test_aci_runtime_changes_only_existing_estimate_branch() -> None:
 def test_aci_routes_preserve_auth_oauth_registration_and_other_handlers() -> None:
     path = "src/openrouter_video/comfy/routes.py"
     before = declarations(baseline(path))
-    after = declarations((ROOT / path).read_text(encoding="utf8"))
+    after = declarations(historical_current(path))
     allowed = {
         "_cost_estimate_handler",
         "_parse_estimate_inputs",

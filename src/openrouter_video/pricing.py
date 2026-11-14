@@ -58,6 +58,8 @@ class MediaCostMetadata:
     height: int | None = None
     fps: Decimal | None = None
     status: str = "UNKNOWN"
+    occurrence_index: int | None = None
+    context_revision: int | None = None
 
     def __post_init__(self) -> None:
         roles = {"reference", "source_video", "first_frame", "last_frame", "audio"}
@@ -69,6 +71,12 @@ class MediaCostMetadata:
             raise ValueError("invalid_media_role")
         if self.role == "audio" and self.kind is not InputReferenceKind.AUDIO:
             raise ValueError("invalid_media_role")
+        for counter, maximum in (
+            (self.occurrence_index, 63),
+            (self.context_revision, 9007199254740991),
+        ):
+            if counter is not None and (type(counter) is not int or not 0 <= counter <= maximum):
+                raise ValueError("invalid_media_occurrence_revision")
         for value in (self.duration_seconds, self.fps):
             if value is not None and not 0 < decimal_value(value) <= 1000000:
                 raise ValueError("invalid_media_quantity")
@@ -278,6 +286,7 @@ class EstimateResult:
     rates_hash: str | None = None
     rules_version: str = RULES_VERSION
     context_revision: int = 0
+    planning: Mapping[str, object] | None = None
 
     def __post_init__(self) -> None:
         # Old positional constructors retain their behavior and gain the new contract.
@@ -321,6 +330,7 @@ class PreflightCostEstimator:
         *,
         observed_at: datetime,
     ) -> EstimateResult:
+        inputs = canonicalize_cost_metadata(inputs)
         try:
             neutral = project_cost_provider_controls(capabilities, inputs)
         except ValueError:
@@ -342,6 +352,16 @@ class PreflightCostEstimator:
                 observed_at,
                 reason,
                 state=EstimateState.INVALID,
+                context_revision=inputs.context_revision,
+            )
+        inventory = media_inventory_status(inputs)
+        if inventory is not None:
+            return EstimateResult.unavailable(
+                observed_at,
+                inventory,
+                state=EstimateState.INVALID
+                if inventory == "active_occurrence_metadata_invalid"
+                else EstimateState.UNKNOWN,
                 context_revision=inputs.context_revision,
             )
         evidence = capabilities.pricing_evidence
@@ -419,6 +439,21 @@ class PreflightCostEstimator:
             )
         else:
             result = self._profile(profile, capabilities, inputs, observed_at, rates)
+        if (
+            profile is not None
+            and profile.planning_policy is not None
+            and not legacy_units
+            and capabilities.canonical_slug == profile.canonical_slug
+            and set(rates) == set(profile.known_skus)
+            and result.state
+            in {EstimateState.PARTIAL, EstimateState.RATE_ONLY, EstimateState.UNKNOWN}
+            and result.reason
+            not in {"exclusive_rule_conflict", "alias_rates_diverged", "alias_evidence_unavailable"}
+            and inputs.schema_version == 2
+        ):
+            from openrouter_video.pricing_planning import plan_scenarios
+
+            result = replace(result, planning=plan_scenarios(profile, inputs, rates))
         if any(control.text_length is not None for control in inputs.provider_controls):
             result = replace(
                 result,
@@ -484,7 +519,7 @@ class PreflightCostEstimator:
                 if inputs.inference_method is InferenceMethod.FLF2V
                 else 0
             ),
-            "effective_output_seconds": inputs.effective_output_seconds,
+            "effective_output_seconds": None,  # client scalar is not authoritative billing duration
         }
         sources = [
             item
@@ -528,7 +563,7 @@ class PreflightCostEstimator:
             if charge.get("relation", "base" if index == 0 else "add") == "base"
         ]
         single_rate_with_floor = (
-            rule.expected_state == "RATE_ONLY"
+            rule.expected_state in {"RATE_ONLY", "FORMULA"}
             and len(bases) == 1
             and all(
                 charge is bases[0] or charge.get("relation") == "minimum" for charge in rule.charges
@@ -741,6 +776,24 @@ def _legacy_profile_is_complete(profile: TariffProfile, inputs: CostEstimateInpu
     rule = matches[0]
     if not rule.active or rule.expected_state != "FORMULA" or rule.require_equal_skus:
         return False
+    # A generic legacy per-second key does not identify a duration-conditioned
+    # tariff. Charge-plan completeness is not proof of an alias to either tier.
+    # Compare only otherwise applicable formula cases; do not infer aliases from
+    # coincident current prices or expand this into model-name policy.
+    if any(
+        alternative.active
+        and alternative.expected_state == "FORMULA"
+        and alternative.charges != rule.charges
+        and _matches(
+            replace(
+                alternative,
+                when=tuple(item for item in alternative.when if item[0] != "duration"),
+            ),
+            context,
+        )
+        for alternative in profile.rules
+    ):
+        return False
     base_count = 0
     for index, charge in enumerate(rule.charges):
         relation = charge.get("relation", "base" if index == 0 else "add")
@@ -793,6 +846,21 @@ def _geometry(
             resolution = next(iter(tiers))
     elif inputs.resolution and inputs.aspect_ratio:
         size = profile.geometry_map.get(inputs.resolution, {}).get(inputs.aspect_ratio)
+        if profile.normalized_geometry_map is not None:
+            native = profile.normalized_geometry_map.get(inputs.resolution, {}).get(
+                inputs.aspect_ratio
+            )
+            if not native or native != size:
+                return (
+                    resolution,
+                    None,
+                    None,
+                    (
+                        "Normalized geometry unresolved: "
+                        "catalogue and native size evidence differ; "
+                        "explicit requested size remains unchanged.",
+                    ),
+                )
         if size and profile.geometry_status == "EXPLICIT_CAPTURE_MAP_ESTIMATE_ASSUMPTION":
             assumptions = (
                 "Geometry uses the explicit catalogue size mapping; "
@@ -839,6 +907,9 @@ def _invalid_reason(capabilities: ModelCapabilities, inputs: CostEstimateInputs)
         return "context_revision_invalid"
     if inputs.generate_audio is not None and type(inputs.generate_audio) is not bool:
         return "audio_intent_invalid"
+    explicit_reason = explicit_v2_cost_input_reason(capabilities, inputs)
+    if explicit_reason:
+        return explicit_reason
     if inputs.size is not None and (
         inputs.resolution is not None or inputs.aspect_ratio is not None
     ):
@@ -879,15 +950,126 @@ def _invalid_reason(capabilities: ModelCapabilities, inputs: CostEstimateInputs)
             return "metadata_frame_topology_invalid"
     if len(inputs.media) > 64:
         return "media_metadata_unbounded"
-    if inputs.schema_version == 2:
-        for role, methods in (
-            ("first_frame", {InferenceMethod.I2V, InferenceMethod.FLF2V}),
-            ("last_frame", {InferenceMethod.FLF2V}),
+    return None
+
+
+def canonicalize_cost_metadata(inputs: CostEstimateInputs) -> CostEstimateInputs:
+    """A stale or unstamped preview supplies no quantity for the current occurrence."""
+    if inputs.schema_version != 2:
+        return inputs
+    media = tuple(
+        replace(item, status="UNKNOWN", duration_seconds=None, width=None, height=None, fps=None)
+        if item.status == "HINT"
+        and (item.occurrence_index != index or item.context_revision != inputs.context_revision)
+        else item
+        for index, item in enumerate(inputs.media)
+    )
+    return replace(inputs, media=media, effective_output_seconds=None)
+
+
+def media_inventory_status(inputs: CostEstimateInputs) -> str | None:
+    """Validate the full v2 ordered active inventory; metadata absence is not zero."""
+    if inputs.schema_version != 2:
+        return None
+    expected = [(kind, "reference") for kind in inputs.reference_kinds]
+    if inputs.inference_method in {InferenceMethod.I2V, InferenceMethod.FLF2V}:
+        expected.append((InputReferenceKind.IMAGE, "first_frame"))
+    if inputs.inference_method is InferenceMethod.FLF2V:
+        expected.append((InputReferenceKind.IMAGE, "last_frame"))
+    if inputs.source_video_present:
+        expected.append((InputReferenceKind.VIDEO, "source_video"))
+    actual = [(item.kind, item.role) for item in inputs.media]
+    if actual == expected:
+        return None
+    # A proper ordered subset has missing records. Contradictory/excess/reordered
+    # records are malformed pricing context, never permission to omit a charge.
+    remaining = iter(expected)
+    if len(actual) < len(expected) and all(
+        any(item == candidate for candidate in remaining) for item in actual
+    ):
+        return "active_occurrence_metadata_missing"
+    return "active_occurrence_metadata_invalid"
+
+
+def explicit_v2_cost_input_reason(
+    capabilities: ModelCapabilities, inputs: CostEstimateInputs
+) -> str | None:
+    """Never project an explicit v2 choice into a different priced configuration."""
+    if inputs.schema_version != 2:
+        return None
+    from openrouter_video.configuration import (
+        project_method,
+        project_semantic_values,
+        projected_shape_valid,
+    )
+
+    profile = project_method(capabilities, inputs.inference_method.value)
+    if profile["state"] != "SUPPORTED":
+        return "inference_method_not_authorized"
+    names = (
+        "duration",
+        "resolution",
+        "aspect_ratio",
+        "size",
+        "generate_audio",
+        "upscale_factor",
+        "creativity",
+    )
+    raw = {name: getattr(inputs, name) for name in names}
+    raw["geometry_authority"] = "EXACT" if inputs.size else "NORMALIZED"
+    raw["provider_options"] = project_cost_provider_controls(capabilities, inputs)
+    if inputs.upscale_factor is not None:
+        raw["upscale_factor"] = float(inputs.upscale_factor)
+    try:
+        projected = project_semantic_values(capabilities, inputs.inference_method.value, raw)
+    except ValueError:
+        return "configuration_not_authorized"
+    for name in names:
+        selected = getattr(inputs, name)
+        if selected is None:
+            continue
+        effective = projected.get(name)
+        if (
+            name == "upscale_factor"
+            and effective is not None
+            and decimal_value(str(effective)) == decimal_value(selected)
         ):
-            if inputs.inference_method in methods and not any(
-                item.role == role for item in inputs.media
-            ):
-                return "required_frame_not_connected"
+            continue
+        if type(selected) is not type(effective) or selected != effective:
+            return "configuration_not_authorized"
+    if inputs.source_video_present and "source_video" not in profile["topology"]["fixed"]:
+        return "reference_shape_not_projected"
+    if inputs.reference_kinds and not profile["topology"]["reference_kinds"]:
+        return "reference_shape_not_projected"
+    if not projected_shape_valid(
+        profile,
+        tuple(kind.value for kind in inputs.reference_kinds),
+        inputs.source_video_present,
+    ):
+        return "reference_shape_not_projected"
+    limits = profile.get("media_limits", {})
+    for item in canonicalize_cost_metadata(inputs).media:
+        if item.status not in {"KNOWN", "HINT"}:
+            continue
+        rule = {**limits.get(item.kind.value, {}), **limits.get(item.role, {})}
+        quantities: dict[str, Decimal | int | None] = {
+            "duration_seconds": item.duration_seconds,
+            "width": item.width,
+            "height": item.height,
+            "pixels": item.width * item.height
+            if item.width is not None and item.height is not None
+            else None,
+        }
+        for name, quantity in quantities.items():
+            if quantity is None:
+                continue
+            for prefix in ("min", "max"):
+                bound = rule.get(f"{prefix}_{name}")
+                if bound is not None and (
+                    (prefix == "min" and quantity < Decimal(str(bound)))
+                    or (prefix == "max" and quantity > Decimal(str(bound)))
+                ):
+                    return "media_metadata_outside_projected_limits"
     return None
 
 
@@ -900,5 +1082,8 @@ __all__ = (
     "MediaCostMetadata",
     "PreflightCostEstimator",
     "metadata_from_local_media",
+    "canonicalize_cost_metadata",
+    "media_inventory_status",
+    "explicit_v2_cost_input_reason",
     "project_cost_provider_controls",
 )

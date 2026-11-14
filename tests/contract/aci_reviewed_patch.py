@@ -14,6 +14,9 @@ ACI_BASELINE = "f8ba174347bd4bfed155dc64aec1d7168c39c1fa"
 
 def aci_historical_source(path: str, current: str) -> str:
     """Only a pinned candidate can substitute its unchanged historical baseline."""
+    from tests.contract.aci_r31_reviewed_patch import r31_historical_source
+
+    current = r31_historical_source(path, current)
     pin = json.loads(
         (ROOT / "tests/fixtures/aci_v1_source_candidate.json").read_text(encoding="utf8")
     )

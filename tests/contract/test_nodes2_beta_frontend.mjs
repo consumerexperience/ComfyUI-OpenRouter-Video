@@ -21,7 +21,7 @@ function domFixture(){
  const grid={style:{},querySelectorAll(){return [plain,plain,prompt,plain,plain,plain,plain,plain,plain];}};
  const header={children:[],querySelector(){return this.children[0];},append(x){this.children.push(x);}};
  const element={dataset:{nodeId:'22'},classList:{add(s){marks.push(s);}},querySelector(s){return s.startsWith('.lg-node-header')?header:grid;}};
- const document={querySelectorAll(){return [element];},createElement(){return {textContent:'',title:'',setAttribute(name,value){this[name]=value;},addEventListener(){}};}};
+ const document={querySelectorAll(){return [element];},createElement(){return {style:{},textContent:'',title:'',setAttribute(name,value){this[name]=value;},addEventListener(){}};}};
  const c=context({document});const n={id:22,__orvEstimate:{value:'≈ $1.60 EST.'}};return {c,n,header,grid,textarea,marks};
 }
 test('Beta estimate is one header child, updates unavailable, never body overlay',()=>{

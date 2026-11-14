@@ -390,7 +390,7 @@ def test_profile_rejects_broad_and_specific_exclusive_overlap() -> None:
         compile_profile(raw)
 
 
-def test_aleph_known_source_length_is_not_proven_billed_output_length() -> None:
+def test_r31_owner_approved_aleph_source_formula_is_advisory_with_floor() -> None:
     from openrouter_video.capabilities import request_witness
     from openrouter_video.models import InputReferenceKind
     from openrouter_video.pricing import MediaCostMetadata
@@ -418,10 +418,18 @@ def test_aleph_known_source_length_is_not_proven_billed_output_length() -> None:
         ),
     )
     result = PreflightCostEstimator().estimate(cap, selected, observed_at=OBSERVED)
-    assert result.state == "RATE_ONLY"
-    assert result.amount_usd is None and result.estimated_cost_usd is None
-    assert result.rate_usd == Decimal("0.28")
-    assert result.rate_unit == "s"
+    # Owner-approved R3.1 source-duration policy supersedes the earlier guard.
+    # This is the supplied formula contract, not newly verified invoice evidence.
+    assert result.state == "FORMULA"
+    assert result.amount_usd == result.estimated_cost_usd == Decimal("2.10")
+    assert result.planning is None
+    assert result.provenance == "evidence-scoped catalogue tariff"
+    assert any("Advisory continuous formula" in note for note in result.assumptions)
+    assert any(
+        row.quantity == Decimal("7.5") and row.rate_usd == Decimal("0.28") and row.evidence
+        for row in result.breakdown
+        if row.relation == "base"
+    )
     assert result.lower_usd is None and result.upper_usd is None
     assert any(
         row.relation == "minimum" and row.amount_usd == Decimal("0.56") for row in result.breakdown
@@ -485,3 +493,69 @@ def test_single_second_template_never_borrows_a_different_resolution() -> None:
     )
     assert result.amount_usd is None
     assert result.availability.value == "UNAVAILABLE"
+
+
+def test_generic_legacy_bridge_requires_duration_invariant_charge_plan() -> None:
+    from openrouter_video.pricing import _legacy_profile_is_complete
+    from openrouter_video.pricing_profile import TariffCase, TariffProfile
+
+    def case(sku: str, durations: tuple[object, ...], resolution: str = "720p") -> TariffCase:
+        return TariffCase(
+            id=sku,
+            when=(("method", ("T2V",)), ("resolution", (resolution,)), ("duration", durations)),
+            expected_state="FORMULA",
+            charges=({"sku": sku, "unit": "USD", "quantity": "output_seconds"},),
+            reason=None,
+            evidence="https://example.invalid/test-only-tariff-contract",
+            active=True,
+        )
+
+    short = case("short_seconds", (5, 15))
+    long = case("long_seconds", (16, 20))
+    profile = TariffProfile(
+        model_id="synthetic/conditional",
+        canonical_slug="synthetic/conditional-v1",
+        known_skus=("short_seconds", "long_seconds"),
+        rules=(short, long),
+        geometry_map={},
+        geometry_status="NOT_APPLICABLE",
+        default_reason="unknown",
+        source="test",
+    )
+    inputs = CostEstimateInputs(profile.model_id, duration=20, resolution="720p")
+    assert not _legacy_profile_is_complete(profile, inputs)
+    assert not _legacy_profile_is_complete(profile, replace(inputs, duration=15))
+    # Splitting a domain without changing its charge plan does not lose legacy support.
+    same_plan = replace(profile, rules=(short, replace(long, charges=short.charges)))
+    assert _legacy_profile_is_complete(same_plan, inputs)
+    # An unrelated explicit resolution is not a duration-conditioned alias conflict.
+    other_tier = replace(profile, rules=(long, case("other_seconds", (20,), "1080p")))
+    assert _legacy_profile_is_complete(other_tier, inputs)
+
+
+def test_documented_grok_legacy_t2v_bridge_remains_available() -> None:
+    import json
+    from pathlib import Path
+
+    from openrouter_video.client import _parse_capability
+    from openrouter_video.evidence_registry import enrich_capabilities
+
+    raw = json.loads(
+        (Path(__file__).parents[1] / "fixtures/op07-topology-catalogue-b628912.json").read_text(
+            encoding="utf8"
+        )
+    )
+    cap = enrich_capabilities(
+        _parse_capability(
+            next(row for row in raw["data"] if row["id"] == "x-ai/grok-imagine-video")
+        )
+    )
+    cap = replace(
+        cap,
+        pricing_evidence=PricingEvidence((PricingSku("per-video-second-720p", Decimal("0.03")),)),
+    )
+    result = PreflightCostEstimator().estimate(
+        cap, CostEstimateInputs(cap.model_id, duration=4, resolution="720p"), observed_at=OBSERVED
+    )
+    assert result.state == "FORMULA"
+    assert result.amount_usd == Decimal("0.12")

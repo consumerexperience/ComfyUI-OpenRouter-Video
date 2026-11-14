@@ -125,7 +125,7 @@ def _neutral_runtime_model() -> ModelCapabilities:
 
 
 def _neutral_runtime_result(
-    *, version: str = "ACI-1.0", canonical_mismatch: bool = False
+    *, version: str = "ACI-1.0", canonical_mismatch: bool = False, resolution: str | None = None
 ) -> EstimateResult:
     import asyncio
     from dataclasses import replace
@@ -159,7 +159,7 @@ def _neutral_runtime_result(
             "schema_version": 2,
             "context_revision": 1,
             "duration": 3,
-            "resolution": "720p",
+            "resolution": resolution,
             "aspect_ratio": "16:9",
             "generate_audio": False,
             "inference_method": "T2V",
@@ -207,3 +207,10 @@ def test_neutral_cost_payload_rejects_raw_text_paths_and_malformed_number(
         _parse_estimate_inputs(
             payload(provider_policy_version="ACI-1.0", provider_controls=[control])
         )
+
+
+def test_neutral_cost_controls_do_not_authorize_conflicting_geometry() -> None:
+    result = _neutral_runtime_result(resolution="720p")
+    assert result.state == "INVALID"
+    assert result.reason == "configuration_not_authorized"
+    assert result.amount_usd is None

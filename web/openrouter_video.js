@@ -38,6 +38,21 @@ let catalogueSignature;
 const CATALOGUE_REFRESH_MS = 5 * 60 * 1000;
 let connectionPromise;
 const connectionListeners = new Set();
+// Cost presentation only. Object identity never leaves this process or a workflow.
+const costPresentationNodes = new Set();
+const actualGraphEpochs = new WeakMap();
+const actualDispatches = new Map();
+const actualQueueTickets = new Map();
+const actualQueueObservers = new Set();
+const actualEarlyEvents = new Map();
+const actualPreparedNodes = new WeakMap();
+const costPreviewSelections = new WeakMap();
+const ACTUAL_BINDING_TTL_MS = 60 * 60 * 1000;
+const ACTUAL_EARLY_TTL_MS = 30000;
+let actualGraphEpoch = 0;
+let actualDispatchSequence = 0;
+let actualPruneTimer;
+let costLifecycleInstalled = false;
 
 function connectionNodes() {
     return app.graph?._nodes || Object.values(app.graph?.nodes || {});
@@ -381,8 +396,10 @@ function applyPresentation(node) {
             return;
         }
         const width = this.size?.[0] || 460;
-        const badge = String(this.__orvEstimate?.value || "PRICE UNKNOWN");
-        const available = badge.startsWith("≈ $");
+        checkNativeCostMetadata(this);
+        expireCostPresentation(this);
+        const badge = costBadgeLabel(this, width * 0.5 - 24);
+        const colors = costBadgeColors(this, badge);
         ctx.save();
         ctx.beginPath();
         if (ctx.roundRect) ctx.roundRect(0.75, -29, width - 1.5, (this.size?.[1] || 0) + 28, 10);
@@ -395,13 +412,13 @@ function applyPresentation(node) {
         ctx.beginPath();
         if (ctx.roundRect) ctx.roundRect(width - badgeWidth - 10, -27, badgeWidth, 21, 9);
         else ctx.rect(width - badgeWidth - 10, -27, badgeWidth, 21);
-        ctx.fillStyle = available ? "#133c30" : "#27302f";
-        ctx.strokeStyle = available ? "#45dca5" : "#60706c";
+        ctx.fillStyle = colors.background || "#27302f";
+        ctx.strokeStyle = colors.accent || "#60706c";
         ctx.fill();
         ctx.stroke();
         ctx.textAlign = "right";
-        ctx.fillStyle = available ? "#73e9b8" : "#aeb8b6";
-        ctx.fillText(badge, width - 22, -12, badgeWidth - 18);
+        ctx.fillStyle = colors.accent || "#aeb8b6";
+        drawCostBadgeLabel(this, ctx, badge, width - 22, -12, badgeWidth - 18);
         ctx.restore();
         syncClassicCostBadge(this, ctx, { x: width - badgeWidth - 10, y: -27, width: badgeWidth, height: 21 });
     };
@@ -525,7 +542,8 @@ function syncBetaPresentation(node) {
     if (!root) return; // Classic has no Vue node DOM; never touch its canvas.
     root.classList.add("orv-nodes2");
     const header = root.querySelector(".lg-node-header > div");
-    if (header) {
+    if (header && (!node.graph || (app.canvas?.graph || app.graph)?.getNodeById?.(node.id) === node)) {
+        checkNativeCostMetadata(node);
         let badge = header.querySelector(".orv-estimate");
         if (!badge) {
             badge = document.createElement("span");
@@ -533,12 +551,18 @@ function syncBetaPresentation(node) {
             header.append(badge);
             bindCostBadge(node, badge);
         }
-        const text = String(node.__orvEstimate?.value || "ESTIMATE UNAVAILABLE");
-        if (badge.textContent !== text) badge.textContent = text;
+        expireCostPresentation(node);
+        const text = costBadgeLabel(node, (node.size?.[0] || 400) * 0.5 - 20);
+        setCostBadgeLabel(node, badge, text);
+        const colors = costBadgeColors(node, text);
+        badge.style.color = colors.accent;
+        badge.style.borderColor = colors.accent;
+        badge.style.backgroundColor = colors.background;
         const details = costDetailsText(node);
         if (badge.title !== details) badge.title = details;
-        badge.setAttribute("aria-label", `${text}. Cost details`);
+        badge.setAttribute("aria-label", `Next estimate: ${node.__orvEstimate?.value || "PRICE UNKNOWN"}. ${actualCostText(node, true)} Cost details`);
     }
+    if (node.__orvResumeActualInstalled) return; // Resume adds cost disclosure only, no Generate widget/layout treatment.
     const grid = root.querySelector('[data-testid="node-widgets"]');
     if (!grid) return;
     const rows = [...grid.querySelectorAll(':scope > [data-testid="node-widget"]')];
@@ -2238,21 +2262,451 @@ function selectedReferenceKinds(node) {
 }
 
 function costMoney(value) {
-    const number = Number(value);
-    return value != null && Number.isFinite(number) && number >= 0 ? number.toFixed(2) : null;
+    // Money strings from Core are exact decimals; do not round via binary float.
+    if (typeof value !== "string" || !/^\d{1,32}(\.\d{1,60})?$/.test(value)) return null;
+    const [whole, fraction = ""] = value.split(".");
+    const digits = (fraction + "000").slice(0, 3);
+    let cents = BigInt(whole) * 100n + BigInt(digits.slice(0, 2));
+    if (digits[2] >= "5") cents += 1n;
+    // A positive sub-cent estimate must not look like a free generation.
+    if (cents === 0n && /[1-9]/.test(value)) return "<0.01";
+    return `${cents / 100n}.${String(cents % 100n).padStart(2, "0")}`;
+}
+
+function costDecimalShift(value, places) {
+    if (typeof value !== "string" || !/^\d{1,32}(\.\d{1,60})?$/.test(value) || !Number.isSafeInteger(places) || places < 0 || places > 6) return null;
+    const [whole, fraction = ""] = value.split(".");
+    const digits = whole + fraction.padEnd(places, "0"), point = whole.length + places;
+    return `${digits.slice(0, point).replace(/^0+/, "") || "0"}${digits.length > point ? `.${digits.slice(point)}` : ""}`;
+}
+
+function actualText(value) {
+    return typeof value === "string" && value.length > 0 && value.length <= 512 && !/[\x00-\x1f\x7f]/.test(value);
+}
+
+function actualMoney(value) {
+    if (value === null) return true;
+    if (typeof value !== "string" || !/^\d{1,32}(\.\d{1,30})?$/.test(value)) return false;
+    const [whole, fraction = ""] = value.split(".");
+    return whole.replace(/^0+/, "").length <= 31 && (whole + fraction).replace(/^0+/, "").length <= 60;
+}
+
+function sameActualAmount(left, right) {
+    if (left === right) return true;
+    if (left === null || right === null || !actualMoney(left) || !actualMoney(right)) return false;
+    const canonical = value => {
+        const [whole, fraction = ""] = value.split(".");
+        return `${whole.replace(/^0+/, "") || "0"}.${fraction.replace(/0+$/, "")}`;
+    };
+    return canonical(left) === canonical(right);
+}
+
+function emptyActualState() { return Object.freeze({ watermark: -1, status: "NO_JOB", receipt: null }); }
+
+function reduceActualCompletion(state, event, dispatch) {
+    if (!dispatch || event.epoch !== dispatch.epoch || event.node !== dispatch.node ||
+        event.prompt !== dispatch.prompt || event.seq !== dispatch.seq || event.kind !== dispatch.kind ||
+        !actualText(event.prompt) || !Number.isSafeInteger(event.seq) || event.seq < 0 ||
+        !["GENERATE", "RESUME"].includes(event.kind) || !actualText(event.job) || !actualText(event.model)) return state;
+    if (event.kind === "RESUME" && (!actualText(dispatch.expected_job) || event.job !== dispatch.expected_job)) return state;
+    if (event.seq < state.watermark) return state;
+    if (event.seq === state.watermark) {
+        if (state.status === "CONFLICT") return state;
+        const prior = state.receipt;
+        if (prior && ["epoch", "node", "prompt", "seq", "kind", "job", "model"].every(key => prior[key] === event[key]) &&
+            sameActualAmount(prior.amount, event.amount)) return state;
+        return Object.freeze({ watermark: event.seq, status: "CONFLICT", receipt: null });
+    }
+    if (!actualMoney(event.amount)) return Object.freeze({ watermark: event.seq, status: "INVALID_ACTUAL", receipt: null });
+    return Object.freeze({ watermark: event.seq, status: event.amount === null ? "MISSING" : "KNOWN", receipt: Object.freeze({ ...event }) });
+}
+
+function currentActualEpoch(graph) {
+    if (!graph || typeof graph !== "object") return null;
+    if (!actualGraphEpochs.has(graph)) actualGraphEpochs.set(graph, ++actualGraphEpoch);
+    return actualGraphEpochs.get(graph);
+}
+
+function resetActualBinding(node) {
+    actualPreparedNodes.delete(node);
+    for (const [prompt, owners] of actualDispatches) {
+        const retained = owners.filter(owner => owner.instance !== node);
+        if (retained.length) actualDispatches.set(prompt, retained); else actualDispatches.delete(prompt);
+    }
+    for (const [id, ticket] of actualQueueTickets) {
+        if (ticket.owners.some(owner => owner.instance === node)) actualQueueTickets.delete(id);
+    }
+    node.__orvActualState = emptyActualState();
+    node.__orvActualBindingUnavailable = false;
+    node.__orvActualInstanceEpoch = (node.__orvActualInstanceEpoch || 0) + 1;
+}
+
+function resetActualGraph(graph) {
+    if (!graph) return;
+    actualGraphEpochs.delete(graph);
+    for (const node of costPresentationNodes) if (node.graph === graph) {
+        resetActualBinding(node);
+        clearCostMetadataWatches(node);
+        refreshCostDetails(node);
+    }
+    // An unassociated early event cannot be attributed safely after graph reset.
+    actualEarlyEvents.clear();
+    pruneActualBindings();
+}
+
+function pruneActualBindings(now = costClock()) {
+    for (const observing of actualQueueObservers) if (observing.expires <= now) actualQueueObservers.delete(observing);
+    for (const [id, ticket] of actualQueueTickets) if (ticket.expires <= now) actualQueueTickets.delete(id);
+    for (const [prompt, owners] of actualDispatches) {
+        const alive = owners.filter(owner => owner.expires > now && owner.instance.graph === owner.graph &&
+            owner.instance.__orvActualInstanceEpoch === owner.instance_epoch && owner.graph.getNodeById?.(owner.instance.id) === owner.instance);
+        if (alive.length) actualDispatches.set(prompt, alive); else actualDispatches.delete(prompt);
+    }
+    for (const [prompt, pending] of actualEarlyEvents) if (pending.expires <= now) actualEarlyEvents.delete(prompt);
+    clearTimeout(actualPruneTimer);
+    const expiries = [...actualQueueTickets.values()].map(ticket => ticket.expires)
+        .concat([...actualDispatches.values()].flatMap(owners => owners.map(owner => owner.expires)),
+            [...actualEarlyEvents.values()].map(pending => pending.expires));
+    expiries.push(...[...actualQueueObservers].map(observing => observing.expires));
+    if (expiries.length) actualPruneTimer = setTimeout(() => pruneActualBindings(), Math.max(1, Math.min(...expiries) - now));
+}
+
+function captureActualQueueTicket(detail) {
+    pruneActualBindings();
+    const graph = app.rootGraph || app.graph;
+    if (!graph || !actualText(graph.id) || !Number.isSafeInteger(detail?.requestId) ||
+        !Number.isSafeInteger(detail.batchCount) || detail.batchCount < 1 || detail.batchCount > 100) return;
+    const owners = [];
+    for (const node of graph._nodes || Object.values(graph.nodes || {})) {
+        const type = node.comfyClass || node.type;
+        if (![GENERATE_NODE, "OpenRouterVideoResume"].includes(type) || node.graph !== graph || graph.getNodeById?.(node.id) !== node) continue;
+        const model = type === GENERATE_NODE ? canonicalModel(node) : null;
+        if (!actualText(String(node.id)) || (type === GENERATE_NODE && !actualText(model))) continue;
+        const expected = widget(node, "job_id")?.value;
+        owners.push(Object.freeze({ instance: node, graph, epoch: currentActualEpoch(graph),
+            instance_epoch: node.__orvActualInstanceEpoch || 0, node: String(node.id), type,
+            model,
+            kind: type === GENERATE_NODE ? "GENERATE" : "RESUME",
+            expected_job: actualText(expected) ? expected : null,
+            linked_resume: inputByName(node, "job_id")?.link != null }));
+    }
+    if (!owners.length || owners.length > 128 || actualQueueTickets.size >= 128) return;
+    actualQueueTickets.set(detail.requestId, { graph, graph_id: graph.id, owners: Object.freeze(owners),
+        remaining: detail.batchCount, expires: costClock() + ACTUAL_EARLY_TTL_MS });
+    pruneActualBindings();
+}
+
+function actualOwnersForQueuedPrompt(prompt) {
+    pruneActualBindings();
+    // Inspect only bounded ownership fields; never copy or retain native payloads.
+    const graphId = prompt?.workflow?.id, output = prompt?.output;
+    if (!actualText(graphId) || !output || typeof output !== "object") return [];
+    const candidates = [...actualQueueTickets.values()].filter(ticket => ticket.graph_id === graphId &&
+        ticket.graph === (app.rootGraph || app.graph) && ticket.remaining > 0 &&
+        ticket.owners.some(owner => output[owner.node]?.class_type === owner.type));
+    if (candidates.length !== 1) return [];
+    const ticket = candidates[0];
+    ticket.remaining -= 1;
+    const seq = ++actualDispatchSequence, expires = costClock() + ACTUAL_BINDING_TTL_MS;
+    return ticket.owners.filter(owner => {
+        const queued = output[owner.node];
+        const prepared = actualPreparedNodes.get(owner.instance);
+        actualPreparedNodes.delete(owner.instance);
+        if (queued?.class_type !== owner.type || owner.instance.graph !== owner.graph ||
+            owner.graph.getNodeById?.(owner.instance.id) !== owner.instance ||
+            owner.instance.__orvActualInstanceEpoch !== owner.instance_epoch ||
+            prepared?.graph !== owner.graph || prepared.instance_epoch !== owner.instance_epoch) return false;
+        if (owner.kind === "GENERATE" && queued.inputs?.model !== owner.model) return false;
+        if (owner.kind === "RESUME" && !owner.linked_resume && queued.inputs?.job_id !== owner.expected_job) return false;
+        return true;
+    }).map(owner => Object.freeze({ ...owner, seq, expires }));
+}
+
+function installActualQueueObserver() {
+    if (installActualQueueObserver.installed || typeof api.queuePrompt !== "function") return;
+    installActualQueueObserver.installed = true;
+    const original = api.queuePrompt;
+    api.queuePrompt = function (...args) {
+        let owners = [];
+        try { owners = actualOwnersForQueuedPrompt(args[1]); } catch { /* Observer must not affect queue semantics. */ }
+        const observing = { expires: costClock() + ACTUAL_EARLY_TTL_MS, nodes: new Set(owners.map(owner => owner.node)) };
+        const canObserve = owners.length > 0 && actualQueueObservers.size < 128;
+        if (canObserve) actualQueueObservers.add(observing);
+        let result;
+        try { result = original.apply(this, args); }
+        catch (error) { actualQueueObservers.delete(observing); throw error; }
+        if (!canObserve) return result;
+        pruneActualBindings();
+        try { if (result && typeof result.then === "function") {
+            // Return the ORIGINAL promise, including its original rejection behavior.
+            void result.then(value => {
+                const active = actualQueueObservers.has(observing);
+                actualQueueObservers.delete(observing);
+                try {
+                    const prompt = value?.prompt_id;
+                    if (!active || !actualText(prompt) || !owners.length || actualDispatches.has(prompt)) return;
+                    const bound = owners.map(owner => Object.freeze({ ...owner, prompt }));
+                    if (actualDispatches.size >= 256) actualDispatches.delete(actualDispatches.keys().next().value);
+                    actualDispatches.set(prompt, Object.freeze(bound));
+                    const pending = actualEarlyEvents.get(prompt);
+                    actualEarlyEvents.delete(prompt);
+                    if (pending?.expires > costClock()) for (const detail of pending.events) handleActualExecuted(detail);
+                    pruneActualBindings();
+                } catch { /* Cost observation is isolated from successful native submission. */ }
+            }, () => { actualQueueObservers.delete(observing); pruneActualBindings(); }).catch(() => {});
+        } else actualQueueObservers.delete(observing);
+        } catch { actualQueueObservers.delete(observing); }
+        return result;
+    };
+}
+
+function actualCostText(node, detail = false) {
+    const state = node.__orvActualState || emptyActualState(), receipt = state.receipt;
+    if (state.status === "KNOWN" && receipt) {
+        const amount = costMoney(receipt.amount);
+        if (amount !== null) return detail ? `Last completed job · $${receipt.amount} USD ACTUAL\n${receipt.model} · ${receipt.job}` : `$${amount} ACTUAL`;
+    }
+    if (state.status === "NO_JOB" && !node.__orvActualBindingUnavailable) return detail ? "No completed job." : "";
+    const reason = ({ CONFLICT: "conflicting completion", INVALID_ACTUAL: "invalid reported cost", MISSING: "cost not reported" })[state.status] || "execution ownership unavailable";
+    return detail ? `Last completed job ACTUAL unavailable (${reason}).${receipt ? `\n${receipt.model} · ${receipt.job}` : ""}` : "";
+}
+
+function costBadgeLabel(node, width = 0) {
+    expireCostPresentation(node);
+    const primary = String(node.__orvEstimate?.value || "PRICE UNKNOWN"), actual = actualCostText(node);
+    // Preserve the semantic EST/MODEL suffix on narrow and collapsed nodes.
+    if (actual && (primary.length + actual.length + 3) * 7 <= width) return `${primary} · ${actual}`;
+    const suffix = primary.match(/ (EST\.|MODEL|RATE)$/)?.[1], budget = Math.floor(width / 7);
+    if (width > 0 && suffix && primary.length > budget) {
+        if (budget <= suffix.length + 3) return suffix;
+        return `${primary.slice(0, budget - suffix.length - 2)}… ${suffix}`;
+    }
+    return primary;
+}
+
+function setCostBadgeLabel(node, badge, text) {
+    if (badge.textContent === text) return;
+    const actual = actualCostText(node), marker = text.lastIndexOf(" · ");
+    badge.textContent = text;
+    if (actual && marker >= 0 && text.slice(marker + 3) === actual && typeof document !== "undefined") {
+        badge.textContent = text.slice(0, marker + 3);
+        const span = document.createElement("span");
+        span.textContent = actual;
+        span.style.color = ACI_INDICATOR_COLORS.green;
+        badge.append(span);
+    }
+}
+
+function drawCostBadgeLabel(node, ctx, text, x, y, width) {
+    const actual = actualCostText(node), marker = text.lastIndexOf(" · ");
+    if (!actual || marker < 0 || text.slice(marker + 3) !== actual) { ctx.fillText(text, x, y, width); return; }
+    const actualWidth = ctx.measureText?.(actual).width || actual.length * 7, color = ctx.fillStyle;
+    ctx.fillStyle = ACI_INDICATOR_COLORS.green;
+    ctx.fillText(actual, x, y, actualWidth);
+    ctx.fillStyle = color;
+    ctx.fillText(text.slice(0, marker + 3), x - actualWidth, y, Math.max(0, width - actualWidth));
+}
+
+function renderCostDetails(node, detail) {
+    const text = costDetailsText(node);
+    detail.textContent = text;
+    const actual = actualCostText(node, true);
+    if (node.__orvActualState?.status === "KNOWN" && typeof document !== "undefined" && text.endsWith(actual)) {
+        detail.textContent = text.slice(0, -actual.length);
+        const span = document.createElement("span");
+        span.textContent = actual;
+        span.style.color = ACI_INDICATOR_COLORS.green;
+        detail.append(span);
+    }
+}
+
+function refreshCostDetails(node) {
+    if (node.__orvCostPopover) renderCostDetails(node, node.__orvCostPopover);
+    scheduleBetaPresentation();
+    node.setDirtyCanvas?.(true, true);
+}
+
+function suppressActualCompletion(node, owner) {
+    const previous = node.__orvActualState || emptyActualState();
+    if (owner.seq < previous.watermark || (owner.seq === previous.watermark && previous.status === "CONFLICT")) return;
+    node.__orvActualState = Object.freeze({ watermark: owner.seq,
+        status: owner.seq === previous.watermark ? "CONFLICT" : "INVALID_ACTUAL", receipt: null });
+    refreshCostDetails(node);
+}
+
+function handleActualExecuted(detail) {
+    pruneActualBindings();
+    if (!actualText(detail?.prompt_id)) return;
+    const owners = actualDispatches.get(detail.prompt_id);
+    if (!owners) {
+        // Websocket completion can beat HTTP acknowledgement. Buffer only the
+        // allowlisted, bounded cost row, never arbitrary native UI output.
+        const rows = detail.output?.orv_actual_v1, row = rows?.[0];
+        const nodeId = String(detail.node ?? "");
+        const potentiallyOwned = actualText(nodeId) && [...actualQueueObservers].some(observer => observer.nodes.has(nodeId));
+        if (potentiallyOwned && actualEarlyEvents.size < 128) {
+            const safeRow = Array.isArray(rows) && rows.length === 1 && row &&
+            row.schema_version === 1 && row.state === "DONE" && actualText(row.job_id) && actualText(row.model) &&
+            ["GENERATE", "RESUME"].includes(row.operation_kind) &&
+            (row.amount_usd === null || row.amount_usd === undefined || (typeof row.amount_usd === "string" && row.amount_usd.length <= 100)) &&
+            (row.expected_job_id === undefined || actualText(row.expected_job_id)) &&
+            JSON.stringify(row).length <= 2048 && Object.keys(row).every(key =>
+                ["schema_version", "job_id", "model", "amount_usd", "state", "operation_kind", "expected_job_id"].includes(key));
+            const pending = actualEarlyEvents.get(detail.prompt_id) || { expires: costClock() + ACTUAL_EARLY_TTL_MS, events: [] };
+            const safeEvent = { prompt_id: detail.prompt_id, node: nodeId,
+                output: safeRow ? { orv_actual_v1: [{ ...row }] } : {} };
+            if (pending.events.length < 4) pending.events.push(safeEvent);
+            else pending.events = [{ prompt_id: detail.prompt_id, node: nodeId, output: {} }];
+            actualEarlyEvents.set(detail.prompt_id, pending);
+            pruneActualBindings();
+        }
+        return;
+    }
+    const nodeId = String(detail.node ?? ""), rows = detail.output?.orv_actual_v1;
+    for (const owner of owners) {
+        const node = owner.instance;
+        if (owner.node !== nodeId || node.graph !== owner.graph || currentActualEpoch(owner.graph) !== owner.epoch ||
+            owner.graph.getNodeById?.(node.id) !== node || node.__orvActualInstanceEpoch !== owner.instance_epoch ||
+            !costPresentationNodes.has(node)) continue;
+        if (!Array.isArray(rows) || rows.length !== 1) { suppressActualCompletion(node, owner); continue; }
+        const row = rows[0];
+        if (!row || typeof row !== "object" || Array.isArray(row) || row.schema_version !== 1 || row.state !== "DONE" ||
+            !actualText(row.job_id) || !actualText(row.model) || !["GENERATE", "RESUME"].includes(row.operation_kind) ||
+            Object.keys(row).some(key => !["schema_version", "job_id", "model", "amount_usd", "state", "operation_kind", "expected_job_id"].includes(key))) {
+            suppressActualCompletion(node, owner); continue;
+        }
+        const event = { epoch: owner.epoch, node: owner.node, prompt: owner.prompt, seq: owner.seq,
+            kind: row.operation_kind, job: row.job_id, model: row.model, amount: row.amount_usd };
+        if (event.kind !== owner.kind || (owner.kind === "GENERATE" && event.model !== owner.model)) {
+            suppressActualCompletion(node, owner); continue;
+        }
+        // Linked Resume input is verified execution-locally by the backend row;
+        // the owned prompt/node association remains mandatory independently.
+        if (owner.kind === "RESUME" && owner.linked_resume && !actualText(row.expected_job_id)) {
+            suppressActualCompletion(node, owner); continue;
+        }
+        const dispatch = owner.kind === "RESUME" && owner.linked_resume && actualText(row.expected_job_id) ?
+            Object.freeze({ ...owner, expected_job: row.expected_job_id }) : owner;
+        if (owner.kind === "RESUME" && (!actualText(dispatch.expected_job) || event.job !== dispatch.expected_job)) {
+            suppressActualCompletion(node, owner); continue;
+        }
+        node.__orvActualState = reduceActualCompletion(node.__orvActualState || emptyActualState(), event, dispatch);
+        refreshCostDetails(node);
+    }
+}
+
+function installResumeActualPresentation(node) {
+    if (node.__orvResumeActualInstalled) return;
+    node.__orvResumeActualInstalled = true;
+    node.__orvEstimate = { value: "RESUME", result: { state: "UNKNOWN" } };
+    installCostLifecycle(node);
+    // Reuse the existing native cost surface, without Generate's sizing/chrome.
+    installBetaPresentation(node);
+    const draw = node.onDrawForeground;
+    node.onDrawForeground = function (ctx, ...args) {
+        draw?.call(this, ctx, ...args);
+        drawCollapsedCostBadge(this, ctx);
+    };
+    const configure = node.onConfigure;
+    node.onConfigure = function (...args) {
+        resetActualBinding(this);
+        return configure?.apply(this, args);
+    };
+}
+
+function expireCostPresentation(node) {
+    if (!node.__orvCostExpiresAt || costClock() < node.__orvCostExpiresAt) return false;
+    node.__orvCostExpiresAt = null;
+    discardCurrentCost(node, "pricing_evidence_stale");
+    setCostPresentation(node, { state: "STALE", reason_codes: ["pricing_evidence_stale"] });
+    return true;
+}
+
+function costClock() {
+    return typeof performance !== "undefined" && typeof performance.now === "function" ? performance.now() : Date.now();
+}
+
+function installCostLifecycle(node) {
+    if (!costPresentationNodes.has(node)) {
+        costPresentationNodes.add(node);
+        resetActualBinding(node);
+        const queueWidget = widget(node, node.type === "OpenRouterVideoResume" || node.comfyClass === "OpenRouterVideoResume" ? "job_id" : "model");
+        if (queueWidget && !queueWidget.__orvActualQueuePrepared) {
+            queueWidget.__orvActualQueuePrepared = true;
+            const beforeQueued = queueWidget.beforeQueued;
+            queueWidget.beforeQueued = function (...args) {
+                const result = beforeQueued?.apply(this, args);
+                actualPreparedNodes.set(node, Object.freeze({ graph: node.graph, instance_epoch: node.__orvActualInstanceEpoch }));
+                return result;
+            };
+        }
+        const removed = node.onRemoved;
+        node.onRemoved = function (...args) {
+            costPresentationNodes.delete(this);
+            resetActualBinding(this);
+            clearTimeout(this.__orvCostExpiryTimer);
+            clearTimeout(this.__orvEstimateTimer);
+            this.__orvEstimateRevision = (this.__orvEstimateRevision || 0) + 1;
+            clearCostMetadataWatches(this);
+            this.__orvClassicCostBadge?.remove();
+            this.__orvCostPopover?.remove();
+            return removed?.apply(this, args);
+        };
+    }
+    if (costLifecycleInstalled) return;
+    costLifecycleInstalled = true;
+    const resume = () => {
+        pruneActualBindings();
+        for (const current of costPresentationNodes) {
+            if (expireCostPresentation(current)) refreshCostDetails(current);
+        }
+    };
+    if (typeof document !== "undefined") document.addEventListener?.("visibilitychange", resume);
+    if (typeof window !== "undefined") window.addEventListener?.("focus", resume);
+}
+
+// ARENAS®lab approved auxiliary palette. Presentation only; not a pricing state resolver.
+const ACI_INDICATOR_COLORS = Object.freeze({ green: "#0ACF83", violet: "#9E6BFF", yellow: "#FFBB00", black: "#1A1A1A" });
+
+function costBadgeColors(node, text) {
+    const state = node.__orvEstimate?.result?.state;
+    const primary = text.split(" · ")[0];
+    const modelled = primary.endsWith(" MODEL");
+    const estimated = !modelled && (state === "FORMULA" || state === "RANGE") && primary.endsWith(" EST.");
+    const actual = !modelled && !estimated && node.__orvActualState?.status === "KNOWN" && text.endsWith(" ACTUAL");
+    const accent = modelled ? ACI_INDICATOR_COLORS.yellow : estimated || actual ? ACI_INDICATOR_COLORS.green : "";
+    return { accent, background: accent ? ACI_INDICATOR_COLORS.black : "" };
+}
+
+function costDetailAccent(node) {
+    const result = node.__orvEstimate?.result;
+    const planning = result?.planning;
+    // Violet marks informational comparisons/components only, never the primary price.
+    if (["RATE_ONLY", "PARTIAL", "UNKNOWN"].includes(result?.state) &&
+        planning?.version === "ACI-PLANNING-1" && planning.display === "DETAIL_ONLY" &&
+        planning.scenarios?.some(row => ["COMPARISON", "COMPONENT"].includes(row.scope) && costMoney(row.amount_usd) !== null)) {
+        return ACI_INDICATOR_COLORS.violet;
+    }
+    return costBadgeColors(node, String(node.__orvEstimate?.value || "PRICE UNKNOWN")).accent;
+}
+
+function syncCostDetailAccent(node) {
+    if (node.__orvCostPopover) node.__orvCostPopover.style.borderColor = costDetailAccent(node);
 }
 
 function drawCollapsedCostBadge(node, ctx) {
+    checkNativeCostMetadata(node);
     const width = node._collapsed_width || node.size?.[0] || 400;
-    const text = String(node.__orvEstimate?.value || "PRICE UNKNOWN");
     const badgeWidth = Math.min(width * 0.5, 160);
+    const text = costBadgeLabel(node, badgeWidth - 12);
     ctx.save();
     ctx.font = "11px sans-serif";
-    ctx.fillStyle = "#27302f";
+    const colors = costBadgeColors(node, text);
+    ctx.fillStyle = colors.background || "#27302f";
     ctx.fillRect(width - badgeWidth, -24, badgeWidth - 4, 18);
-    ctx.fillStyle = "#c8cecc";
+    ctx.fillStyle = colors.accent || "#c8cecc";
     ctx.textAlign = "right";
-    ctx.fillText(text, width - 8, -11, badgeWidth - 12);
+    drawCostBadgeLabel(node, ctx, text, width - 8, -11, badgeWidth - 12);
     ctx.restore();
     syncClassicCostBadge(node, ctx, { x: width - badgeWidth, y: -24, width: badgeWidth - 4, height: 18 });
 }
@@ -2267,13 +2721,26 @@ function costBadgeText(result) {
         const lower = costMoney(result.lower_usd), upper = costMoney(result.upper_usd);
         if (lower !== null && upper !== null) return `$${lower}–${upper} EST.`;
     }
+    const planning = result.planning;
+    if (["UNKNOWN", "RATE_ONLY", "PARTIAL"].includes(state) && planning?.version === "ACI-PLANNING-1") {
+        if (planning.display === "MODELLED") {
+            const amount = costMoney(planning.modelled_usd);
+            if (amount !== null) return `≈ $${amount} MODEL`;
+        }
+        if (planning.display === "SCENARIO_RANGE") {
+            const lower = costMoney(planning.scenario_min_usd), upper = costMoney(planning.scenario_max_usd);
+            if (lower !== null && upper !== null) return `≈ $${lower}–${upper} MODEL`;
+        }
+    }
     if (state === "RATE_ONLY" && result.rate_usd != null) {
-        const rate = Number(result.rate_usd);
-        if (Number.isFinite(rate) && rate >= 0) {
-            if (["token", "tokens", "OUTPUT_TOKEN"].includes(result.rate_unit))
-                return `$${(rate * 1000000).toFixed(2)}/M tok RATE`;
+        const rate = costDecimalShift(result.rate_usd, 0);
+        if (rate !== null) {
+            if (["token", "tokens", "OUTPUT_TOKEN"].includes(result.rate_unit)) {
+                const million = costMoney(costDecimalShift(rate, 6));
+                if (million !== null) return `$${million}/M tok RATE`;
+            }
             const unit = ["s", "output_seconds", "source_seconds", "OUTPUT_SECOND"].includes(result.rate_unit) ? "s" : result.rate_unit;
-            return `$${rate.toLocaleString("en-US", { maximumSignificantDigits: 8 })}/${unit || "unit"} RATE`;
+            return `$${rate}/${unit || "unit"} RATE`;
         }
     }
     return ({ PARTIAL: "COST PARTIAL", STALE: "PRICE STALE", INVALID: "CHECK INPUTS",
@@ -2281,6 +2748,7 @@ function costBadgeText(result) {
 }
 
 function costDetailsText(node) {
+    expireCostPresentation(node);
     const result = node.__orvEstimate?.result;
     const lines = [String(node.__orvEstimate?.value || "PRICE UNKNOWN")];
     if (result) {
@@ -2292,10 +2760,18 @@ function costDetailsText(node) {
         }
         if (result.state === "PARTIAL") lines.push("Known components are not a total or a lower bound.");
         if (result.state === "RANGE") lines.push("Documented alternatives; this range is not a spending cap.");
+        if (result.planning?.version === "ACI-PLANNING-1") {
+            lines.push("Limited billing transparency. OpenRouter does not fully disclose the billing mechanism for this configuration.", "Modelled scenarios are not a quote, a bound, or spending authorization.");
+            for (const scenario of result.planning.scenarios || []) {
+                lines.push(`${scenario.scope}: ${scenario.label} · $${scenario.amount_usd}`, scenario.assumption);
+                for (const charge of scenario.charges || []) lines.push(`${charge.sku}: ${charge.quantity ?? "?"} ${charge.quantity_unit || ""} × $${charge.rate_usd}/${charge.quantity_unit || "unit"} = $${charge.amount_usd}`);
+            }
+            if (result.planning.missing?.length) lines.push(`Missing: ${result.planning.missing.join(", ")}`);
+        }
         lines.push(...(result.assumptions || []));
         lines.push(...(result.reason_codes || (result.reason ? [result.reason] : [])).map(costReasonText));
     }
-    lines.push("Advisory model cost; final provider usage may differ.", "Last job ACTUAL unavailable.");
+    lines.push("Advisory model cost; final provider usage may differ.", actualCostText(node, true));
     return lines.filter(Boolean).join("\n");
 }
 
@@ -2316,11 +2792,30 @@ function costReasonText(code) {
 }
 
 function setCostPresentation(node, result) {
+    clearTimeout(node.__orvCostExpiryTimer);
     node.__orvEstimate.result = result;
     node.__orvEstimate.value = costBadgeText(result);
+    node.__orvCostExpiresAt = null;
+    if (Number.isFinite(result.valid_for_ms) && result.valid_for_ms > 0 && result.state !== "STALE") {
+        node.__orvCostExpiresAt = costClock() + result.valid_for_ms;
+        node.__orvCostExpiryTimer = setTimeout(() => {
+            if (node.__orvEstimate?.result !== result) return;
+            expireCostPresentation(node);
+        }, result.valid_for_ms);
+    }
+    if (!node.__orvCostExpiryCleanup) {
+        node.__orvCostExpiryCleanup = true;
+        const removed = node.onRemoved;
+        node.onRemoved = function (...args) {
+            clearTimeout(this.__orvCostExpiryTimer);
+            this.__orvEstimateRevision = (this.__orvEstimateRevision || 0) + 1;
+            return removed?.apply(this, args);
+        };
+    }
     if (node.__orvCostPopover) {
         const text = costDetailsText(node);
-        if (node.__orvCostPopover.textContent !== text) node.__orvCostPopover.textContent = text;
+        if (node.__orvCostPopover.textContent !== text) renderCostDetails(node, node.__orvCostPopover);
+        syncCostDetailAccent(node);
     }
     node.setDirtyCanvas?.(true, true);
 }
@@ -2349,6 +2844,7 @@ function bindCostBadge(node, badge) {
         badge.setAttribute("aria-expanded", "false");
     };
     const open = (pinned) => {
+        expireCostPresentation(node);
         node.__orvCostPinned = pinned;
         if (!node.__orvCostPopover) {
             const detail = document.createElement("div");
@@ -2361,11 +2857,12 @@ function bindCostBadge(node, badge) {
                 padding: "12px", borderRadius: "8px", border: "1px solid var(--border-color, #666)",
                 background: "var(--comfy-menu-bg, #222)", color: "var(--input-text, #ddd)",
                 font: "12px sans-serif", fontVariantNumeric: "tabular-nums", boxShadow: "0 4px 16px #0006" });
-            detail.textContent = costDetailsText(node);
+            renderCostDetails(node, detail);
             detail.addEventListener("keydown", event => { if (event.key === "Escape") { close(); badge.focus(); } });
             document.body.append(detail);
             node.__orvCostPopover = detail;
         }
+        syncCostDetailAccent(node);
         const rect = badge.getBoundingClientRect();
         Object.assign(node.__orvCostPopover.style, { left: `${Math.max(8, Math.min(rect.left, window.innerWidth - 440))}px`,
             top: `${Math.max(8, Math.min(rect.bottom + 4, window.innerHeight - 240))}px` });
@@ -2394,7 +2891,7 @@ function syncClassicCostBadge(node, ctx, rect) {
         badge.className = "orv-classic-cost-badge";
         Object.assign(badge.style, { position: "fixed", zIndex: "4", opacity: "0", margin: "0",
             padding: "0", border: "0", cursor: "pointer", background: "transparent" });
-        badge.addEventListener("focus", () => { badge.style.opacity = "1"; badge.textContent = node.__orvEstimate?.value || "PRICE UNKNOWN"; });
+        badge.addEventListener("focus", () => { badge.style.opacity = "1"; setCostBadgeLabel(node, badge, costBadgeLabel(node, node.__orvClassicCostWidth || 0)); });
         badge.addEventListener("blur", () => { badge.style.opacity = "0"; badge.textContent = ""; });
         bindCostBadge(node, badge);
         document.body.append(badge);
@@ -2408,7 +2905,11 @@ function syncClassicCostBadge(node, ctx, rect) {
         top: `${canvas.top + (transform.b * rect.x + transform.d * rect.y + transform.f) * sy}px`,
         width: `${Math.abs(transform.a * rect.width * sx)}px`, height: `${Math.abs(transform.d * rect.height * sy)}px` });
     badge.hidden = false;
-    badge.setAttribute("aria-label", `${node.__orvEstimate?.value || "PRICE UNKNOWN"}. Cost details`);
+    node.__orvClassicCostWidth = rect.width;
+    const colors = costBadgeColors(node, String(node.__orvEstimate?.value || "PRICE UNKNOWN"));
+    badge.style.color = colors.accent;
+    badge.style.backgroundColor = colors.background || "transparent";
+    badge.setAttribute("aria-label", `Next estimate: ${node.__orvEstimate?.value || "PRICE UNKNOWN"}. ${actualCostText(node, true)} Cost details`);
     badge.title = costDetailsText(node);
 }
 
@@ -2431,6 +2932,88 @@ function costMediaOccurrences(node, topology) {
     return result;
 }
 
+const COST_METADATA_EVENTS = ["loadedmetadata", "durationchange", "emptied", "load", "loadstart"];
+
+function clearCostMetadataWatches(node) {
+    for (const [element, record] of node.__orvCostMetadataWatches || []) {
+        for (const event of COST_METADATA_EVENTS) element.removeEventListener?.(event, record.changed);
+        record.unobserveSelection?.();
+    }
+    node.__orvCostMetadataWatches?.clear();
+    delete node.__orvCostMetadataSignature;
+}
+
+function nativeCostSelection(origin, element) {
+    // Selection identity is scalar native UI revision only. Never read preview
+    // URLs, filenames, selection values, prompt, or media content for pricing.
+    return JSON.stringify([origin.imageIndex ?? null, costPreviewSelections.get(origin)?.revision || 0]);
+}
+
+function observeNativeCostSelection(origin, changed) {
+    let selection = costPreviewSelections.get(origin);
+    if (!selection) {
+        selection = { revision: 0, listeners: new Set(), hooks: [] };
+        costPreviewSelections.set(origin, selection);
+        for (const item of origin.widgets || []) {
+            if (!/^(image|video|audio|file|filename|upload)$/.test(item.name || "")) continue;
+            const previous = item.callback;
+            const wrapper = function (...args) {
+                const result = previous?.apply(this, args);
+                selection.revision += 1;
+                for (const listener of selection.listeners) { try { listener(); } catch { /* Cost hint observation cannot change native selection. */ } }
+                return result;
+            };
+            item.callback = wrapper;
+            selection.hooks.push({ item, previous, wrapper });
+        }
+    }
+    selection.listeners.add(changed);
+    return () => {
+        selection.listeners.delete(changed);
+        if (selection.listeners.size) return;
+        for (const { item, previous, wrapper } of selection.hooks) if (item.callback === wrapper) item.callback = previous;
+        costPreviewSelections.delete(origin);
+    };
+}
+
+function currentCostMetadataOccurrence(node, watch) {
+    if (node.graph && node.graph !== watch.graph) return false;
+    const link = mediaLink(watch.graph, watch.input.link);
+    if (watch.input.link !== watch.link_id || link !== watch.link || watch.graph?.getNodeById?.(link?.origin_id) !== watch.origin) return false;
+    const selected = Number.isSafeInteger(watch.origin.imageIndex) ? watch.origin.imgs?.[watch.origin.imageIndex] : null;
+    if (!(selected ? selected === watch.element : watch.origin.imgs?.includes(watch.element)) &&
+        !(watch.origin.widgets || []).some(item => item.element === watch.element || item.element?.contains?.(watch.element))) return false;
+    const current = costMediaOccurrences(node, node.__orvCapability?.__methodProfile?.topology || {});
+    return Boolean(current?.some(item => item.input === watch.input && item.kind === watch.kind && item.role === watch.role));
+}
+
+function checkNativeCostMetadata(node) {
+    if (!node.__orvEstimate || node.__orvResumeActualInstalled || node.__orvConfiguringMedia) return;
+    const occurrences = costMediaOccurrences(node, node.__orvCapability?.__methodProfile?.topology || {});
+    if (!occurrences) return;
+    pruneCostMetadataWatches(node);
+    const metadata = occurrences.map(occurrence => readNativeCostMetadata(node, occurrence));
+    const signature = JSON.stringify([node.__orvCostMetadataGeneration || 0, occurrences.map(item => item.input.link), metadata]);
+    const changed = node.__orvCostMetadataSignature !== undefined && node.__orvCostMetadataSignature !== signature;
+    node.__orvCostMetadataSignature = signature;
+    if (changed) {
+        invalidateCostPresentation(node);
+        clearTimeout(node.__orvEstimateTimer);
+        node.__orvEstimateTimer = setTimeout(() => refreshEstimate(node), 120);
+    }
+}
+
+function pruneCostMetadataWatches(node) {
+    for (const [element, record] of node.__orvCostMetadataWatches || []) {
+        for (const watch of record.watches) if (!currentCostMetadataOccurrence(node, watch)) record.watches.delete(watch);
+        if (!record.watches.size) {
+            for (const event of COST_METADATA_EVENTS) element.removeEventListener?.(event, record.changed);
+            record.unobserveSelection?.();
+            node.__orvCostMetadataWatches.delete(element);
+        }
+    }
+}
+
 function readNativeCostMetadata(node, occurrence) {
     const { input, kind, role } = occurrence;
     const unknown = { kind, role, status: "UNKNOWN" };
@@ -2440,7 +3023,8 @@ function readNativeCostMetadata(node, occurrence) {
     const elements = new Set();
     const isMedia = element => (typeof HTMLMediaElement !== "undefined" && element instanceof HTMLMediaElement) ||
         (typeof HTMLImageElement !== "undefined" && element instanceof HTMLImageElement);
-    for (const element of origin.imgs || []) if (isMedia(element)) elements.add(element);
+    const selectedImage = Number.isSafeInteger(origin.imageIndex) ? origin.imgs?.[origin.imageIndex] : null;
+    for (const element of selectedImage ? [selectedImage] : origin.imgs || []) if (isMedia(element)) elements.add(element);
     for (const item of origin.widgets || []) {
         const element = item.element;
         if (isMedia(element)) elements.add(element);
@@ -2453,32 +3037,41 @@ function readNativeCostMetadata(node, occurrence) {
     if (matching.length !== 1) return unknown;
     const element = matching[0];
     node.__orvCostMetadataWatches ||= new Map();
-    if (!node.__orvCostMetadataCleanup) {
-        node.__orvCostMetadataCleanup = true;
-        const previousRemoved = node.onRemoved;
-        node.onRemoved = function (...args) {
-            for (const [watched, record] of this.__orvCostMetadataWatches || [])
-                for (const event of ["loadedmetadata", "durationchange", "emptied", "load"])
-                    watched.removeEventListener(event, record.changed);
-            this.__orvCostMetadataWatches?.clear();
-            return previousRemoved?.apply(this, args);
-        };
-    }
     let record = node.__orvCostMetadataWatches.get(element);
     if (!record) {
+        node.__orvCostMetadataGeneration = (node.__orvCostMetadataGeneration || 0) + 1;
         const watches = new Set();
-        const changed = () => {
-            const current = costMediaOccurrences(node, node.__orvCapability?.__methodProfile?.topology || {});
-            if (!current?.some(item => watches.has(item.input))) return;
+        const changed = event => {
+            pruneCostMetadataWatches(node);
+            if (!node.__orvCostMetadataWatches?.has(element) || ![...watches].some(watch => currentCostMetadataOccurrence(node, watch))) return;
+            const selection = nativeCostSelection(origin, element);
+            const sameSelection = record.selection === selection;
+            record.selection = selection;
+            record.ready = sameSelection && ["loadedmetadata", "durationchange", "load"].includes(event?.type);
             invalidateCostPresentation(node);
             clearTimeout(node.__orvEstimateTimer);
             node.__orvEstimateTimer = setTimeout(() => refreshEstimate(node), 120);
         };
-        record = { watches, changed };
+        record = { watches, changed, selection: nativeCostSelection(origin, element), ready: true };
+        record.unobserveSelection = observeNativeCostSelection(origin, () => {
+            record.selection = nativeCostSelection(origin, element);
+            record.ready = false;
+            node.__orvCostMetadataGeneration = (node.__orvCostMetadataGeneration || 0) + 1;
+            invalidateCostPresentation(node);
+            clearTimeout(node.__orvEstimateTimer);
+            node.__orvEstimateTimer = setTimeout(() => refreshEstimate(node), 120);
+        });
         node.__orvCostMetadataWatches.set(element, record);
-        for (const event of ["loadedmetadata", "durationchange", "emptied", "load"]) element.addEventListener(event, changed);
+        for (const event of COST_METADATA_EVENTS) element.addEventListener(event, changed);
     }
-    record.watches.add(input);
+    if (![...record.watches].some(watch => watch.input === input && watch.link === link)) record.watches.add({
+        input, kind, role, graph, origin, element, link, link_id: input.link });
+    const selection = nativeCostSelection(origin, element);
+    if (record.selection !== selection) {
+        record.selection = selection; record.ready = false;
+        node.__orvCostMetadataGeneration = (node.__orvCostMetadataGeneration || 0) + 1;
+    }
+    if (!record.ready) return unknown;
     if (kind === "image") {
         const width = element.naturalWidth, height = element.naturalHeight;
         return Number.isSafeInteger(width) && width > 0 && Number.isSafeInteger(height) && height > 0
@@ -2554,8 +3147,10 @@ async function refreshEstimate(node) {
     }
     const sourcePresent = inputByName(node, "source_video")?.link != null;
     const occurrences = costMediaOccurrences(node, topology);
+    pruneCostMetadataWatches(node);
     const media = occurrences ? occurrences.map(occurrence => readNativeCostMetadata(node, occurrence)) :
         referenceKinds.map(kind => ({ kind, role: "reference", status: "UNKNOWN" }));
+    media.forEach((item, occurrence_index) => { item.occurrence_index = occurrence_index; item.context_revision = revision; });
     const factor = projectedWidgetValue(node, "upscale_factor");
     const payload = {
         schema_version: 2, context_revision: revision,
@@ -2572,9 +3167,8 @@ async function refreshEstimate(node) {
         provider_policy_version: "ACI-1.0", provider_controls: costControls.controls,
     };
     const signature = JSON.stringify({ ...payload, context_revision: 0, catalogue: catalogueSignature });
-    if (node.__orvCostAcceptedSignature === signature && node.__orvCostAcceptedResult) {
-        setCostPresentation(node, node.__orvCostAcceptedResult); return;
-    }
+    // No indefinitely reusable estimate. Existing catalogue service owns freshness.
+    const started = costClock();
     try {
         const response = await api.fetchApi("/openrouter-video/v1/cost-estimate", {
             method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
@@ -2582,6 +3176,11 @@ async function refreshEstimate(node) {
         if (!response.ok) throw new Error("estimate unavailable");
         const result = await response.json();
         if (revision !== node.__orvEstimateRevision || result.context_revision !== revision) return;
+        if (!Number.isFinite(result.valid_for_ms) || result.valid_for_ms <= 0) {
+            setCostPresentation(node, { state: "STALE", reason_codes: ["pricing_evidence_stale"] }); return;
+        }
+        result.valid_for_ms = Math.max(0, Math.min(900000, result.valid_for_ms) - (costClock() - started));
+        if (!result.valid_for_ms) { setCostPresentation(node, { state: "STALE", reason_codes: ["pricing_evidence_stale"] }); return; }
         node.__orvCostAcceptedSignature = signature;
         node.__orvCostAcceptedResult = result;
         setCostPresentation(node, result);
@@ -2831,6 +3430,17 @@ app.registerExtension({
     setup() {
         loadConnection();
         startCatalogueLifecycle();
+        installActualQueueObserver();
+        api.addEventListener("promptQueueing", event => captureActualQueueTicket(event.detail));
+        api.addEventListener("promptQueued", event => actualQueueTickets.delete(event.detail?.requestId));
+        api.addEventListener("executed", event => handleActualExecuted(event.detail));
+        api.addEventListener("graphCleared", () => resetActualGraph(app.rootGraph || app.graph));
+        for (const name of ["execution_error", "execution_interrupted"]) api.addEventListener(name, event => {
+            if (actualText(event.detail?.prompt_id)) {
+                actualDispatches.delete(event.detail.prompt_id);
+                actualEarlyEvents.delete(event.detail.prompt_id);
+            }
+        });
         api.addEventListener("progress", (event) => {
             const detail = event.detail || {};
             const phase = presentationPhase(detail);
@@ -2841,7 +3451,19 @@ app.registerExtension({
             setLifecycleState(detail.node_id ?? detail.node, "ERROR");
         });
     },
+    beforeConfigureGraph() {
+        resetActualGraph(app.rootGraph || app.graph);
+    },
     async beforeRegisterNodeDef(nodeType, nodeData) {
+        if (nodeData?.name === "OpenRouterVideoResume") {
+            const created = nodeType.prototype.onNodeCreated;
+            nodeType.prototype.onNodeCreated = function (...args) {
+                const result = created?.apply(this, args);
+                installResumeActualPresentation(this);
+                return result;
+            };
+            return;
+        }
         if (nodeData?.name === "OpenRouterVideoReferenceCollection") {
             const previous = nodeType.prototype.onConnectionsChange;
             nodeType.prototype.onConnectionsChange = function (...args) {
@@ -2937,6 +3559,7 @@ app.registerExtension({
             setVisible(this.__orvConnectionCta, false);
             // Estimate is presentation state, never a workflow/body widget.
             this.__orvEstimate = createEstimateState();
+            installCostLifecycle(this);
             orderPresentationWidgets(this);
             applyPresentation(this);
             migratePhase8Values(this);
@@ -2949,6 +3572,8 @@ app.registerExtension({
         };
         const previousConfigure = nodeType.prototype.onConfigure;
         nodeType.prototype.onConfigure = function (...args) {
+            resetActualBinding(this);
+            clearCostMetadataWatches(this);
             delete this.__orvPendingMediaSelection;
             this.__orvConfiguringMedia = true;
             this.__orvProjectionVersion = (this.__orvProjectionVersion || 0) + 1;

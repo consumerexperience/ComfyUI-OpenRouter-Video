@@ -21,7 +21,10 @@ def test_frontend_helper_is_projection_only_and_model_agnostic() -> None:
     assert "bytedance/" not in lowered
     assert "seedance" not in lowered
     assert "google/" not in lowered
-    assert "authorization" not in lowered.replace("authorization_url", "")
+    # Owner-approved financial disclosure is prose, not an auth header or route.
+    assert "authorization" not in lowered.replace("authorization_url", "").replace(
+        "spending authorization.", ""
+    )
     assert lowered.count("api_key") == 1
     # The UI must name the prompt field, but must not log its contents.
     assert "console." not in lowered
@@ -45,4 +48,7 @@ def test_frontend_helper_keeps_unresolved_and_auto_semantics_local() -> None:
     assert "return type.toLowerCase()" in text
     assert "switchWouldOrphan" in text
     assert "mixed_image_video_references" not in text
-    assert "Core" not in text  # no attempt to reimplement validator semantics
+    # Exact-decimal display comment does not implement validation semantics.
+    assert "Core" not in text.replace(
+        "// Money strings from Core are exact decimals; do not round via binary float.", ""
+    )

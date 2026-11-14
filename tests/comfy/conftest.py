@@ -30,8 +30,9 @@ class _Schema:
 
 
 class _NodeOutput:
-    def __init__(self, *values: object) -> None:
+    def __init__(self, *values: object, ui: object = None) -> None:
         self.values = values
+        self.ui = ui
 
 
 class _InputImpl:

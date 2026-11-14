@@ -33,6 +33,7 @@ from openrouter_video.pricing import (
     EstimateResult,
     EstimateState,
     PreflightCostEstimator,
+    explicit_v2_cost_input_reason,
     project_cost_provider_controls,
 )
 from openrouter_video.request_policy import OpenRouterRequestPolicy
@@ -253,6 +254,29 @@ class ProcessRuntime:
                         return EstimateResult.unavailable(
                             observation.observed_at,
                             "provider_configuration_pricing_unverified",
+                        )
+                    explicit_reason = explicit_v2_cost_input_reason(model, inputs)
+                    if explicit_reason:
+                        return EstimateResult.unavailable(
+                            observation.observed_at,
+                            explicit_reason,
+                            state=EstimateState.INVALID,
+                        )
+                    # Cost-only v2: do not silently price a different explicit user choice.
+                    if inputs.schema_version == 2 and any(
+                        selected is not None and (supported is None or selected not in supported)
+                        for selected, supported in (
+                            (inputs.duration, model.supported_durations),
+                            (inputs.resolution, model.supported_resolutions),
+                            (inputs.aspect_ratio, model.supported_aspect_ratios),
+                            (inputs.size, model.supported_sizes),
+                        )
+                    ):
+                        return EstimateResult.unavailable(
+                            observation.observed_at,
+                            "configuration_not_authorized",
+                            state=EstimateState.INVALID,
+                            context_revision=inputs.context_revision,
                         )
                     raw = {
                         k: getattr(inputs, k)

@@ -66,7 +66,13 @@ def test_known_model_legacy_bridge_never_omits_active_image_charges() -> None:
     assert result.reason == "legacy_pricing_scope_unverified"
 
 
-def test_known_model_legacy_bridge_preserves_unresolved_long_duration_relations() -> None:
+@pytest.mark.parametrize(
+    "duration,amount,sku",
+    [(15, "0.300", "duration_seconds_480p"), (20, "0.900", "long_duration_seconds_480p")],
+)
+def test_known_model_legacy_bridge_uses_documented_long_duration_sku(
+    duration: int, amount: str, sku: str
+) -> None:
     # This retained discovery capture has the actual 5..30 second domain; the
     # older general UI-audit fixture above predates the long-duration capability.
     captured = json.loads(
@@ -77,17 +83,21 @@ def test_known_model_legacy_bridge_preserves_unresolved_long_duration_relations(
             next(raw for raw in captured["data"] if raw["id"] == "heygen/heygen-video-1")
         )
     )
+    assert capability.supported_durations is not None
     assert 20 in capability.supported_durations
     inputs = CostEstimateInputs(
         capability.model_id,
-        duration=20,
+        duration=duration,
         resolution="480p",
         aspect_ratio="16:9",
     )
     estimator = PreflightCostEstimator()
     observed = datetime.now(timezone.utc)
     current = estimator.estimate(capability, inputs, observed_at=observed)
-    assert current.state.value == "PARTIAL" and current.estimated_cost_usd is None
+    # R3.1 supersedes the prior unresolved relation with documented long SKU semantics.
+    assert current.state.value == "FORMULA"
+    assert current.estimated_cost_usd == Decimal(amount)
+    assert current.applied_skus == (sku,)
     legacy = replace(
         capability,
         pricing_evidence=PricingEvidence((PricingSku("per-video-second-480p", Decimal("0.03")),)),
