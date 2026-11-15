@@ -7,14 +7,16 @@
   "risk_tier": "C",
   "intended_delta": [
     "Owner-authorized frontend import/restore remediation: normalize raw reference_N input names in place after native onConfigure, preserving socket objects, slots, links and all occurrences.",
-    "Reject ambiguous alias collisions before any rename; preserve saved state and block Generate through existing reference-invalid handling.",
+    "Preserve coexisting canonical and raw-alias occurrences using distinct free canonical wire names; reject duplicate raw aliases atomically without changing saved state.",
     "Restore four missing named fields: previous_job_id, upscale_factor, creativity, provider_options.",
     "Exact raw-source guard protects every byte outside the declared helper, two collision guards, configure call and named-field additions; Python source and pricing arithmetic, queue and transport remain unchanged."
   ],
   "allowed_semantic_changes": [
     {
       "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
-      "operations": ["replace"],
+      "operations": [
+        "replace"
+      ],
       "reason": "Owner-authorized ACI Runtime Remediation, exact a392043 baseline and five declared frontend edits; no pricing or submission expansion."
     }
   ],
@@ -30,10 +32,18 @@
     "/surfaces/product_owned/recipes",
     "/surfaces/product_owned/credentials"
   ],
-  "expected_components": ["web/openrouter_video.js"],
+  "expected_components": [
+    "web/openrouter_video.js"
+  ],
   "required_gates": [
-    "baseline_declaration", "semantic_diff", "negative_space_tests", "frontend",
-    "serializer", "classic_live", "nodes2_live", "explicit_high_risk_approval"
+    "baseline_declaration",
+    "semantic_diff",
+    "negative_space_tests",
+    "frontend",
+    "serializer",
+    "classic_live",
+    "nodes2_live",
+    "explicit_high_risk_approval"
   ],
   "unexpected_scope_policy": "STOP_AND_REPORT"
 }

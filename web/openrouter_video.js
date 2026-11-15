@@ -1204,15 +1204,25 @@ function normalizeImportedReferenceInputs(node) {
     const inputs = node.inputs || [];
     const aliases = inputs.filter(input => /^reference_\d+$/.test(input.name))
         .map(input => ({ input, name: `direct_references.${input.name}` }));
-    const names = new Set(inputs.map(input => input.name)), targets = new Set();
+    const names = new Set(inputs.map(input => input.name)), targets = new Set(), aliasesSeen = new Set();
     node.__orvReferenceAliasConflict = false;
-    for (const { name } of aliases) {
-        if (names.has(name) || targets.has(name)) {
+    for (const alias of aliases) {
+        if (aliasesSeen.has(alias.input.name)) {
             node.__orvReferenceAliasConflict = true;
             node.__orvReferenceInvalid = true;
             return;
         }
-        targets.add(name);
+        aliasesSeen.add(alias.input.name);
+        // A native socket and an imported alias may coexist. Keep both
+        // occurrences: choose a free wire name rather than merge their links.
+        if (names.has(alias.name) || targets.has(alias.name)) {
+            let index = Math.max(-1, ...inputs.filter(isDirectReferenceInput).map(referenceInputSuffix),
+                ...aliases.map(item => referenceInputSuffix({ name: item.name }))) + 1;
+            while (names.has(`direct_references.reference_${index}`) ||
+                targets.has(`direct_references.reference_${index}`)) index++;
+            alias.name = `direct_references.reference_${index}`;
+        }
+        targets.add(alias.name);
     }
     // Native inputs are hydrated at onConfigure. Rename only after validating
     // every alias, without replacing sockets or touching their slots/links.

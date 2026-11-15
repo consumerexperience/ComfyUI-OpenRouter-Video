@@ -3,6 +3,6 @@
   "baseline_sha": "a39204322349b5d13270c7df3f3e6cc24d12180a",
   "authority": "Owner-authorized ACI Runtime Remediation; source/test binding only, not runtime/Beta/Owner acceptance",
   "candidate_files": {
-    "web/openrouter_video.js": "122ba4053c8fa7968a85bfa8a76bb1f572611e40882a8b6ba7624a8c89de731c"
+    "web/openrouter_video.js": "cb20a5f9e40f681dc66085c4fe14ffedb5ea63c12d80bcb2071a50bed6b2addd"
   }
 }

@@ -483,22 +483,35 @@ record('Import-alias canonical and unrelated names remain unchanged across repea
     h.flush();h.apply(n,m,'MI2V','configure');h.checkGraph(n);
 });
 
-for(const linked of [false,true])record(`Import-alias canonical collision fails closed atomically without material or link drops [linked=${linked}]`,()=>{
+for(const linked of [false,true])record(`Import-alias canonical collision allocates a distinct wire without material or link drops [linked=${linked}]`,()=>{
     const h=harness(),m=model('bytedance/seedance-2.5'),n=h.register(h.node(m,'MI2V'));
     const source=h.add(n,'image'),canonical=h.refs(n).find(i=>i.link!=null);
     n.addInput(canonical.name.replace('direct_references.',''),canonical.type);
     const alias=n.inputs.at(-1);if(linked)h.origin('image').connect(0,n,n.inputs.indexOf(alias));
     n.addInput('reference_99','IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE');
-    const inputs=[...n.inputs],beforeInputs=plain(n.inputs),beforeLinks=plain(h.graph.links),beforeMedia=plain(n.properties.orv_capability_intent.media);
+    const inputs=[...n.inputs],beforeLinks=plain(h.graph.links),canonicalName=canonical.name;
     n.onConfigure({widgets_values_named:Object.fromEntries(n.widgets.map(w=>[w.name,w.value]))});
-    assert.equal(n.__orvReferenceAliasConflict,true);assert.equal(n.__orvReferenceInvalid,true);
-    assert.equal(n.inputs.at(-1).name,'reference_99','no partial normalization on collision');
-    h.flush();n.onConnectionsChange(1,n.inputs.indexOf(alias),linked,null,alias);h.flush();
-    for(const method of ['MI2V','I2V','FLF2V'])h.apply(n,m,method);
-    assert.equal(n.__orvReferenceInvalid,true);assert.match(n.__orvCapabilityStatus.value,/CONFLICTING REFERENCE INPUT NAMES/);
-    assert.deepEqual(plain(n.inputs),beforeInputs);inputs.forEach((input,index)=>assert.equal(n.inputs[index],input));
-    assert.deepEqual(plain(h.graph.links),beforeLinks);assert.deepEqual(plain(n.properties.orv_capability_intent.media),beforeMedia);
-    assert.equal(h.graph.links[canonical.link].origin_id,source.id);h.checkGraph(n);
+    assert.equal(n.__orvReferenceAliasConflict,false);
+    assert.equal(canonical.name,canonicalName);assert.notEqual(alias.name,canonicalName);
+    assert.match(alias.name,/^direct_references\.reference_\d+$/);
+    assert.equal(n.inputs.at(-1).name,'direct_references.reference_99');
+    inputs.forEach((input,index)=>assert.equal(n.inputs[index],input));
+    assert.deepEqual(plain(h.graph.links),beforeLinks);
+    h.flush();h.apply(n,m,'MI2V','configure');
+    const expected=Object.values(beforeLinks).map(l=>l.origin_id);
+    assert.deepEqual(canonicalDependencies(h,n).map(e=>e.origin),expected);
+    for(const method of ['I2V','FLF2V','MI2V'])h.apply(n,m,method);
+    assert.deepEqual(canonicalDependencies(h,n).map(e=>e.origin),expected);
+    assert(canonicalDependencies(h,n).some(e=>e.origin===source.id));h.checkGraph(n);
+});
+
+record('Import-alias duplicate raw names remain blocked atomically',()=>{
+    const h=harness(),m=model('bytedance/seedance-2.5'),n=h.register(h.node(m,'MI2V'));
+    n.addInput('reference_0','IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE');
+    n.addInput('reference_0','IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE');
+    const before=plain(n.inputs);
+    n.onConfigure({widgets_values_named:Object.fromEntries(n.widgets.map(w=>[w.name,w.value]))});
+    assert.equal(n.__orvReferenceAliasConflict,true);assert.deepEqual(plain(n.inputs),before);
 });
 
 for(const globalGraphConfigure of [true,false])record(`Native-order reconstruction target-first before source tokens [app.configuringGraph=${globalGraphConfigure}] retains parked5 and restores Wan20`,()=>{
