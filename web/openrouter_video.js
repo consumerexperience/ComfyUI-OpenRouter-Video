@@ -704,11 +704,15 @@ function restorePhase10Values(node, serializedValues) {
         ["resolution", 3], ["aspect_ratio", 4], ["duration", 5],
         ["size", 6], ["seed", 7], ["generate_audio", 9],
         ["first_frame_url", 10], ["last_frame_url", 11],
+        ["geometry_authority", 12], ["previous_job_id", 13],
+        ["upscale_factor", 14], ["creativity", 15], ["provider_options", 16],
     ] : [
         ["model", 1], ["inference_method", 2], ["prompt", 3],
         ["resolution", 4], ["aspect_ratio", 5], ["duration", 6],
         ["seed", 7], ["generate_audio", 8], ["size", 10],
         ["first_frame_url", 12], ["last_frame_url", 13],
+        ["geometry_authority", 14], ["previous_job_id", 15],
+        ["upscale_factor", 16], ["creativity", 17], ["provider_options", 18],
     ];
     for (const [name, index] of fields) {
         const item = widget(node, name);

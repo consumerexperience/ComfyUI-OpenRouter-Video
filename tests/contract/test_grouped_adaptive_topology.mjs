@@ -655,3 +655,41 @@ record('PP10 stale model selection cannot accept a connection or apply old model
     assert.equal(n.__orvPendingMediaSelection.model,g.model_id);assert.equal(n.__orvPendingMediaSelection.method,'I2V');
     assert.deepEqual(h.active(n).map(i=>i.origin),[retained]);
 });
+
+record('PI01 native sparse positional Restore cannot move geometry into provider controls over two cycles',()=>{
+    const h=harness(),m=model('bytedance/seedance-2.5');
+    const provider=JSON.stringify([{provider:'test-only',key:'preserved',value:'owner value'}]);
+    const names=['REFERENCES','model','inference_method','prompt','resolution','aspect_ratio','duration','seed','generate_audio','Advanced','size','randomize','first_frame_url','last_frame_url','geometry_authority','previous_job_id','upscale_factor','creativity','provider_options'];
+    let saved=[null,m.model_id,'MMR2V','','720p','16:9',23,-1,false,null,'','fixed','','','NORMALIZED','saved-job','',-1,provider];
+    for(let cycle=0;cycle<2;cycle++){
+        const n=h.register(h.node(m,'MMR2V'));
+        n.widgets=[];
+        names.forEach((name,index)=>{const w=n.addWidget('text',name,index===14?'NORMALIZED':'');if(index===0||index===9)w.serialize=false;});
+        n.__orvSummary=widget(n,'REFERENCES');n.__orvAdvanced=widget(n,'Advanced');
+        widget(n,'randomize').label='control after generate';
+        // Exact pinned native fallback: skips nonserialized widgets, consumes
+        // values consecutively although native serialize writes original indices.
+        let index=0;for(const w of n.widgets)if(w.serialize!==false)w.value=saved[index++];
+        n.onConfigure({widgets_values:plain(saved)});h.flush();
+        assert.equal(widget(n,'geometry_authority').value,'NORMALIZED');
+        assert.equal(widget(n,'provider_options').value,provider);
+        assert.equal(widget(n,'upscale_factor').value,'');
+        assert.equal(widget(n,'previous_job_id').value,'saved-job');
+        assert.equal(widget(n,'creativity').value,-1);
+        h.apply(n,m,'MI2V');h.apply(n,m,'MMR2V');
+        assert.equal(widget(n,'provider_options').value,provider,'per-method intent retains exact owner data');
+        saved=n.widgets.map(w=>w.serialize===false?null:w.value);
+    }
+});
+
+record('PI02 named values win over positional tails and old short positional payload leaves absent tail untouched',()=>{
+    const h=harness(),m=model('bytedance/seedance-2.5'),n=h.register(h.node(m,'MMR2V'));
+    const provider='[{"provider":"test-only","key":"preserved","value":"explicit"}]';
+    const saved=[m.model_id,'MMR2V','','720p','16:9',23,'',42,'fixed',false,'','','NORMALIZED','job',2,0.5,'[]'];
+    n.onConfigure({widgets_values:saved,widgets_values_named:{model:m.model_id,inference_method:'MMR2V',provider_options:provider,upscale_factor:3}});h.flush();
+    assert.equal(widget(n,'provider_options').value,provider);assert.equal(widget(n,'upscale_factor').value,3);
+    h.c.restorePhase10Values(n,saved.slice(0,12));
+    assert.equal(widget(n,'provider_options').value,provider,'absent legacy tail must not erase intent');
+    h.c.restorePhase10Values(n,saved);
+    assert.equal(widget(n,'provider_options').value,'[]');assert.equal(widget(n,'upscale_factor').value,2);
+});
