@@ -100,7 +100,7 @@ test("native executed event binds exact immutable prompt, graph and node, indepe
     assert.equal(h.n.__orvActualState.receipt.model, MODEL);
     h.c.invalidateCostPresentation(h.n);
     assert.equal(h.n.__orvActualState.receipt.amount, "2.28");
-    assert.match(h.c.costDetailsText(h.n), /Last completed job.*2\.28 USD ACTUAL/);
+    assert.match(h.c.costDetailsText(h.n), /Last completed job\nActual cost: \$2\.28/);
 });
 
 test("completion before HTTP prompt acknowledgement is buffered and then bound", async () => {
@@ -248,7 +248,7 @@ test("draw/details and visibility/focus check monotonic freshness even if timers
 test("compact display retains primary semantic suffix and distinct LAST ACTUAL details", async () => {
     const h = harness(); await bound(h); h.c.handleActualExecuted(h.completion());
     assert.equal(h.c.costBadgeLabel(h.n, 140), "≈ $1.00 EST.");
-    assert.match(h.c.costBadgeLabel(h.n, 1000), /EST\. · \$2\.28 ACTUAL$/);
+    assert.equal(h.c.costBadgeLabel(h.n, 1000), "≈ $1.00 EST.");
     h.n.__orvEstimate = { value: "≈ $1.50 MODEL", result: { state: "PARTIAL" } };
     assert.equal(h.c.costBadgeLabel(h.n, 140), "≈ $1.50 MODEL");
     assert.match(h.c.costDetailsText(h.n), /Last completed job/);
@@ -257,38 +257,39 @@ test("compact display retains primary semantic suffix and distinct LAST ACTUAL d
     assert.equal(h.c.costBadgeLabel(h.n, 35), "MODEL");
 });
 
-test("mixed MODEL/ACTUAL uses Yellow and Green separately on Canvas and DOM", async () => {
+test("R2 keeps next MODEL in the badge and prior owned ACTUAL in a separate Green section", async () => {
     const h = harness(); await bound(h); h.c.handleActualExecuted(h.completion());
     h.n.__orvEstimate = { value: "≈ $1.50 MODEL", result: { state: "PARTIAL" } };
     const label = h.c.costBadgeLabel(h.n, 1000), drawn = [];
     const ctx = { fillStyle: "#FFBB00", measureText: text => ({ width: text.length * 7 }),
         fillText(text) { drawn.push({ text, color: this.fillStyle }); } };
     h.c.drawCostBadgeLabel(h.n, ctx, label, 500, 0, 400);
-    assert(drawn.some(row => row.text.endsWith(" ACTUAL") && row.color === "#0ACF83"));
+    assert(!drawn.some(row => row.text.endsWith(" ACTUAL")));
     assert(drawn.some(row => row.text.includes("MODEL") && row.color === "#FFBB00"));
     class Element {
         constructor() { this.style = {}; this.children = []; this.ownText = ""; }
         get textContent() { return this.ownText + this.children.map(child => child.textContent).join(""); }
         set textContent(value) { this.ownText = value; this.children = []; }
-        append(child) { this.children.push(child); }
+        append(...children) { this.children.push(...children); }
     }
     h.c.document = { createElement: () => new Element() };
     const badge = new Element(); h.c.setCostBadgeLabel(h.n, badge, label);
-    assert.equal(badge.textContent, label); assert.equal(badge.children[0].style.color, "#0ACF83");
+    assert.equal(badge.textContent, label); assert.equal(badge.children.length, 0);
     const detail = new Element(); h.c.renderCostDetails(h.n, detail);
-    assert.equal(detail.children[0].style.color, "#0ACF83");
+    const all=item=>[item,...item.children.flatMap(all)];
+    assert(all(detail).some(item=>item.textContent==="$2.28" && item.style.color==="#0ACF83"));
     h.n.__orvActualState = { status: "MISSING", receipt: null, watermark: 2 };
     h.c.renderCostDetails(h.n, detail);
-    assert(!detail.children.some(child=>child.style.color==="#0ACF83"));
-    assert(!detail.textContent.includes("2.28 USD ACTUAL"));
+    assert(!all(detail).some(child=>child.className==="orv-cost-actual"));
+    assert(!detail.textContent.includes("2.28"));
 });
 
 test("RATE_ONLY uses exact decimal scaling and never displays positive token rate as free", () => {
     const h = harness();
     assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.000001005", rate_unit: "token" }), "$1.01/M tok RATE");
-    assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.000000000000000001", rate_unit: "token" }), "$<0.01/M tok RATE");
+    assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.000000000000000001", rate_unit: "token" }), "<$0.01/M tok RATE");
     assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.0000064", rate_unit: "token" }), "$6.40/M tok RATE");
-    assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.1234567890123456789", rate_unit: "s" }), "$0.12/s RATE");
+    assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.1234567890123456789", rate_unit: "s" }), "$0.1235/s RATE");
 });
 
 function mediaFixture(h) {

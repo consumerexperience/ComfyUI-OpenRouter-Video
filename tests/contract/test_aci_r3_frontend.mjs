@@ -37,6 +37,22 @@ function respond(request, result) {
     request.resolve({ ok: true, async json() { return { valid_for_ms: 900000, ...result, context_revision: request.body.context_revision }; } });
 }
 
+function tooltipDOM(c) {
+    class Element {
+        constructor(tag){this.tag=tag;this.style={};this.children=[];this.attributes={};this.handlers={};this.ownText="";}
+        get textContent(){return this.ownText+this.children.map(child=>child.textContent).join("");}
+        set textContent(value){this.ownText=value;this.children=[];}
+        setAttribute(k,v){this.attributes[k]=v;} removeAttribute(k){delete this.attributes[k];}
+        append(...items){for(const item of items){item.parent=this;this.children.push(item);}}
+        remove(){if(this.parent)this.parent.children=this.parent.children.filter(item=>item!==this);}
+        addEventListener(name,fn){this.handlers[name]=fn;} focus(){}
+        getBoundingClientRect(){return {left:100,top:80,right:530,bottom:100,width:430,height:200};}
+    }
+    c.document={documentElement:{dir:"ltr"},createElement:tag=>new Element(tag),body:new Element("body")};
+    c.window={innerWidth:1000,innerHeight:700};
+    return tag=>new Element(tag);
+}
+
 for (const [state, fields, label] of [
     ["FORMULA", { amount_usd: "2.3112", estimated_cost_usd: "2.3112", availability: "AVAILABLE" }, /2\.31.*EST/],
     ["RANGE", { lower_usd: "0.8", upper_usd: "1.2" }, /0\.80.*1\.20.*EST/],
@@ -261,14 +277,14 @@ test("R3 distinguishes modelled money from EST and uses exact decimal rendering"
 test("R3 limited transparency disclosure and comparison details",()=>{
     const {c,n}=harness();
     c.setCostPresentation(n,{state:"UNKNOWN",planning:{...modelPlan,display:"DETAIL_ONLY",scenarios:[{scope:"COMPARISON",label:"with audio",amount_usd:"0.20",assumption:"not selected silent mode"}]}});
-    assert.match(c.costDetailsText(n),/Advisory comparison, not a quote or total/);
-    assert.match(c.costDetailsText(n),/with audio: ≈ \$0.20/);
+    assert.match(c.costDetailsText(n),/Reference only; not a total/);
+    assert.match(c.costDetailsText(n),/\$0.20/);
     assert(!c.costDetailsText(n).includes(" × "));
     assert.match(c.costTechnicalDetailsText(n),/COMPARISON/);
-    assert.equal(n.__orvEstimate.value,"≈ $0.20 MODEL");
+    assert.equal(n.__orvEstimate.value,"≈ $0.20 REF.");
 });
 
-test("Owner UX: the existing Gemini comparison becomes an honest yellow advisory without changing Core",()=>{
+test("R2: the existing Gemini comparison is a Violet reference without changing Core",()=>{
     const {c,n}=harness();
     const result={state:"UNKNOWN",planning:{version:"ACI-PLANNING-1",display:"DETAIL_ONLY",scenarios:[{
         scope:"COMPARISON",label:"with-audio output component (comparison)",amount_usd:"0.208512",
@@ -276,10 +292,10 @@ test("Owner UX: the existing Gemini comparison becomes an honest yellow advisory
         charges:[{sku:"output_seconds",quantity:"3.00000000",rate_usd:"0.069504000000",amount_usd:"0.208512",quantity_unit:"s"}]
     }]}};
     const before=JSON.stringify(result);c.setCostPresentation(n,result);
-    assert.equal(n.__orvEstimate.value,"≈ $0.21 MODEL");
-    assert.equal(c.costBadgeColors(n,n.__orvEstimate.value).accent,"#FFBB00");
-    assert.match(c.costDetailsText(n),/not a quote or total/);
-    assert.match(c.costDetailsText(n),/input charges may differ/);
+    assert.equal(n.__orvEstimate.value,"≈ $0.21 REF.");
+    assert.equal(c.costBadgeColors(n,n.__orvEstimate.value).accent,"#9E6BFF");
+    assert.match(c.costDetailsText(n),/not a total/);
+    assert.match(c.costDetailsText(n),/input charges may differ/i);
     assert(!c.costDetailsText(n).includes("0.208512"));
     assert(!c.costDetailsText(n).includes("output_seconds"));
     assert.equal(JSON.stringify(result),before,"No tariff, amount, scope or Core state mutation");
@@ -288,9 +304,8 @@ test("Owner UX: the existing Gemini comparison becomes an honest yellow advisory
 test("Owner UX: no advisory total is fabricated from components, malformed comparisons or expired states",()=>{
     const {c}=harness();
     for(const row of [
-        {scope:"COMPONENT",label:"input only",assumption:"not total",amount_usd:"0.2"},
         {scope:"COMPARISON",label:"invalid",assumption:"invalid",amount_usd:"NaN"},
-        {scope:"COMPARISON",label:"unqualified",amount_usd:"1"},
+        {scope:"CONDITIONAL_TOTAL",label:"not designated",amount_usd:"1"},
     ])assert.equal(c.costBadgeText({state:"UNKNOWN",planning:{version:"ACI-PLANNING-1",display:"DETAIL_ONLY",scenarios:[row]}}),"PRICE UNKNOWN");
     const planning={version:"ACI-PLANNING-1",display:"DETAIL_ONLY",scenarios:[{scope:"COMPARISON",label:"published scenario",assumption:"not a quote",amount_usd:"0.2"}]};
     assert.equal(c.costBadgeText({state:"INVALID",planning}),"CHECK INPUTS");
@@ -302,24 +317,22 @@ test("Owner UX: compact decimal precision is bounded without turning tiny positi
     const {c}=harness();
     for(const [input,expected] of [["0.3267354000000","0.3267"],["4.8535200","4.8535"],["0.20000000000","0.2"],
         ["1.9999999","2"],["0.0000001","<0.0001"],["0","0"],["NaN","?"]])assert.equal(c.costCompactDecimal(input),expected);
-    assert.equal(c.costBadgeText({state:"RATE_ONLY",rate_usd:"0.3267354000000",rate_unit:"s"}),"$0.33/s RATE");
+    assert.equal(c.costBadgeText({state:"RATE_ONLY",rate_usd:"0.3267354000000",rate_unit:"s"}),"$0.3267/s RATE");
 });
 
-test("Owner UX: one custom tooltip owner, no native title, and technical arithmetic collapsed by default",()=>{
+test("R2: one read-only tooltip owner, no native title, disclosure, pinning or click handler",()=>{
     const {c,n}=harness();
-    function element(tag){return {tag,style:{},children:[],attributes:{title:"legacy tooltip"},handlers:{},textContent:"",
-        setAttribute(k,v){this.attributes[k]=v;},removeAttribute(k){delete this.attributes[k];},
-        addEventListener(k,fn){this.handlers[k]=fn;},append(...items){for(const item of items){item.parent=this;this.children.push(item);}},
-        remove(){if(this.parent)this.parent.children=this.parent.children.filter(item=>item!==this);},
-        querySelector(name){return this.children.find(item=>item.tag===name);},focus(){},
-        getBoundingClientRect(){return {left:100,bottom:100};}};}
-    c.document={createElement:element,body:element("body")};c.window={innerWidth:1000,innerHeight:700};
+    const element=tooltipDOM(c);
     const badge=element("button");c.setCostPresentation(n,{state:"FORMULA",amount_usd:"4.8535200",breakdown:[{sku:"duration",quantity:"3",rate_usd:"1.61784",amount_usd:"4.85352"}]});
     c.bindCostBadge(n,badge);assert(!("title" in badge.attributes));
     badge.handlers.mouseenter();badge.handlers.mouseenter();
     assert.equal(c.document.body.children.length,1);
-    const section=n.__orvCostPopover.querySelector("details");assert.equal(section.open,false);
-    assert.equal(section.children[0].textContent,"Technical details");
+    assert.equal(n.__orvCostPopover.attributes.role,"tooltip");
+    assert.equal(n.__orvCostPopover.style.pointerEvents,"none");
+    const all=item=>[item,...item.children.flatMap(all)];
+    assert(!all(n.__orvCostPopover).some(item=>["button","a","details","summary"].includes(item.tag)));
+    assert(!n.__orvCostPopover.textContent.includes("Technical details"));
+    assert(!badge.handlers.click);assert(!("aria-haspopup" in badge.attributes));
     assert(!c.costDetailsText(n).includes(" × "));
     badge.handlers.mouseleave();assert.equal(c.document.body.children.length,0);
 });
@@ -368,21 +381,21 @@ test("R3.1 exact brand palette and unchanged state labels", () => {
         c.setCostPresentation(n,result);
         assert.equal(n.__orvEstimate.value,label);
         const colors=c.costBadgeColors(n,label);
-        assert.equal(colors.accent,expected);
-        assert.equal(colors.background,expected?"#1A1A1A":"");
+        assert.equal(colors.accent,expected||"#C4C4C4");
+        assert.equal(colors.background,"#1A1A1A");
     }
 });
-test("R3.1 violet is informational detail only and resets on stale",()=>{
-    const {c,n}=harness(); n.__orvCostPopover={style:{},textContent:""};
+test("R2 references and components stay Violet and reset to neutral on stale",()=>{
+    const {c,n}=harness(); const element=tooltipDOM(c);n.__orvCostPopover=element("div");
     for(const scope of ["COMPARISON","COMPONENT"]){
         c.setCostPresentation(n,{state:"UNKNOWN",planning:{...modelPlan,display:"DETAIL_ONLY",scenarios:[{scope,label:"illustration",amount_usd:"1.20",assumption:"not total"}]}});
         const comparison=scope==="COMPARISON";
-        assert.equal(n.__orvEstimate.value,comparison?"≈ $1.20 MODEL":"PRICE UNKNOWN");
-        assert.equal(c.costBadgeColors(n,n.__orvEstimate.value).accent,comparison?"#FFBB00":"");
-        assert.equal(n.__orvCostPopover.style.borderColor,comparison?"#FFBB00":"#9E6BFF");
+        assert.equal(n.__orvEstimate.value,comparison?"≈ $1.20 REF.":"$1.20 REF.");
+        assert.equal(c.costBadgeColors(n,n.__orvEstimate.value).accent,"#9E6BFF");
+        assert.equal(n.__orvCostPopover.style.borderColor,"#9E6BFF");
     }
     c.setCostPresentation(n,{state:"STALE",planning:modelPlan});
-    assert.equal(n.__orvCostPopover.style.borderColor,"");
+    assert.equal(n.__orvCostPopover.style.borderColor,"#C4C4C4");
 });
 test("R3.1 collapsed canvas paints brand accent without changing geometry",()=>{
     const {c,n}=harness();n._collapsed_width=300;
@@ -402,7 +415,89 @@ test("R3.1 Nodes 2.0 applies and resets the same badge tokens",()=>{
     c.document={querySelectorAll(){return [root]}};
     for(const [result,expected] of [[{state:"FORMULA",amount_usd:"2.31"},"#0ACF83"],[{state:"UNKNOWN",planning:modelPlan},"#FFBB00"],[{state:"STALE"},""]]){
         c.setCostPresentation(n,result);c.syncBetaPresentation(n);
-        assert.equal(badge.style.color,expected);assert.equal(badge.style.borderColor,expected);
-        assert.equal(badge.style.backgroundColor,expected?"#1A1A1A":"");
+        assert.equal(badge.style.color,expected||"#C4C4C4");assert.equal(badge.style.borderColor,expected||"#C4C4C4");
+        assert.equal(badge.style.backgroundColor,"#1A1A1A");
     }
+});
+
+const r2Reference = {state:"UNKNOWN",reason_codes:["AUDIO_EFFECTIVE_SEMANTICS_UNRESOLVED"],planning:{version:"ACI-PLANNING-1",display:"DETAIL_ONLY",scenarios:[{
+    scope:"COMPARISON",label:"with-audio output component (comparison)",sku:"duration_seconds_with_audio_720p",quantity:"4",quantity_unit:"s",amount_usd:"0.278016",
+    assumption:"Published with-audio output rate; selected audio and input charges may differ.",charges:[{sku:"duration_seconds_with_audio_720p",quantity:"4",rate_usd:"0.069504",amount_usd:"0.278016"}]
+}]}};
+
+test("R2 exact Gemini witness has readable identity, reference geometry/scope and no debug dump",()=>{
+    // Presentation witness only; no synthetic catalogue/capability claim.
+    const selected={...model,model_id:"test/gemini-presentation-witness",display_name:"Google: Gemini Omni 1.2 Flash"};
+    const {c,n}=harness(selected);c.widget(n,"inference_method").value="I2V";c.widget(n,"duration").value=4;
+    const before=JSON.stringify(r2Reference);c.setCostPresentation(n,r2Reference);
+    const view=c.costTooltipView(n);
+    assert.equal(view.kind,"reference");assert.equal(view.amount,"$0.28");assert.equal(view.accent,"#9E6BFF");
+    assert.equal(view.identity,"Gemini Omni 1.2 Flash · I2V");assert.equal(view.context,"720p · 4s");
+    assert.equal(view.sub,"With audio · Output only");assert.match(view.note,/Input charges may differ/);
+    assert.equal(view.sections[0].rows[0][1],"Off");assert.equal(view.sections[0].rows[1][1],"Not established");
+    const text=c.costDetailsText(n);
+    for(const hidden of ["duration_seconds","0.278016","0.069504","Catalogue observed","Technical details","No completed job","google/"])assert(!text.includes(hidden),hidden);
+    assert.equal(JSON.stringify(r2Reference),before);
+});
+
+test("R2 locale follows only Comfy.Locale; RU inherits commas and other untranslated host locales fall back to EN",()=>{
+    const {c,n}=harness();let locale="ru";
+    c.app.ui={settings:{getSettingValue(key){assert.equal(key,"Comfy.Locale");return locale;}}};
+    c.navigator={get language(){throw Error("Do not use browser language");}};
+    c.setCostPresentation(n,r2Reference);
+    assert.equal(n.__orvEstimate.value,"≈ $0,28 REF.");assert.equal(c.costTooltipView(n).title,"Справочная стоимость");
+    assert.equal(c.costUsd("0.0001"),"<$0,01");assert.equal(c.costUsd("0"),"$0,00");assert.equal(c.costMoney("0.278016"),"0.28");
+    assert.equal(c.costBadgeText({state:"INVALID"}),"ПРОВЕРЬТЕ ВХОДЫ");
+    locale="fr";assert.equal(c.costBadgeText({state:"FORMULA",amount_usd:"2.31"}),"≈ $2.31 EST.");
+    assert.equal(c.costTooltipView(n).title,"Reference cost");
+});
+
+test("R2 locale change refreshes presentation without resetting expiry, changing Core or issuing a request",()=>{
+    const {c,n,requests}=harness();let locale="en",handler;
+    c.app.ui={settings:{getSettingValue(){return locale;},addEventListener(name,fn){assert.equal(name,"Comfy.Locale.change");handler=fn;}}};
+    c.installCostLifecycle(n);c.setCostPresentation(n,{...r2Reference,valid_for_ms:1000});
+    const result=n.__orvEstimate.result,expiry=n.__orvCostExpiresAt;assert(handler);
+    locale="ru";handler();assert.equal(n.__orvEstimate.value,"≈ $0,28 REF.");
+    assert.equal(n.__orvEstimate.result,result);assert.equal(n.__orvCostExpiresAt,expiry);assert.equal(requests.length,0);
+    c.performance.now=()=>1001;c.expireCostPresentation(n);assert.equal(n.__orvEstimate.value,"ЦЕНА УСТАРЕЛА");
+});
+
+test("R2 does not choose a comparison arbitrarily or replace a primary formula/rate",()=>{
+    const {c,n}=harness();const first=r2Reference.planning.scenarios[0];
+    const result={...r2Reference,planning:{...r2Reference.planning,scenarios:[first,{...first,amount_usd:"0.4"}]}};
+    c.setCostPresentation(n,result);const view=c.costTooltipView(n);
+    assert.equal(n.__orvEstimate.value,"COST DETAILS");assert.equal(view.amount,null);assert.equal(view.sections[0].rows.length,2);
+    assert.equal(c.costBadgeText({...r2Reference,state:"FORMULA",amount_usd:"1"}),"≈ $1.00 EST.");
+    c.setCostPresentation(n,{...r2Reference,state:"RATE_ONLY",rate_usd:"0.28",rate_unit:"s"});
+    assert.equal(n.__orvEstimate.value,"$0.28/s RATE");assert.equal(c.costTooltipView(n).sections.at(-1).rows.length,1);
+    assert.equal(c.costBadgeText({...result,state:"STALE"}),"PRICE STALE");
+});
+
+test("R2 keeps exact bounds while outward display rounding avoids false equality",()=>{
+    const {c}=harness();
+    assert.equal(c.costBadgeText({state:"RANGE",lower_usd:"0.208512",upper_usd:"0.208513"}),"$0.20–0.21 EST.");
+    assert.equal(c.costUsd("0.0000001"),"<$0.01");assert.equal(c.costUsd("0"),"$0.00");
+    assert.equal(c.costBadgeText({state:"UNKNOWN",planning:{...modelPlan,display:"SCENARIO_RANGE",scenario_min_usd:"1.8",scenario_max_usd:"2.6"}}),"≈ $1.80–2.60 MODEL");
+});
+
+test("R2 normative metrics use common screen-space DOM with no focusable or scrollable descendants",()=>{
+    const {c,n}=harness();const element=tooltipDOM(c);c.setCostPresentation(n,r2Reference);const detail=element("div");c.renderCostDetails(n,detail);
+    const all=item=>[item,...item.children.flatMap(all)],items=all(detail),find=name=>items.find(item=>item.className===`orv-cost-${name}`);
+    assert.equal(detail.style.width,"430px");assert.equal(detail.style.boxSizing,"border-box");assert.equal(detail.style.padding,"12px");assert.equal(detail.style.pointerEvents,"none");
+    assert.equal(find("heading").style.fontSize,"13px");assert.equal(find("heading").style.lineHeight,"18px");assert.equal(find("heading").style.fontWeight,"600");
+    assert.equal(find("context").style.lineHeight,"18px");assert.equal(find("identity").style.lineHeight,"18px");
+    assert.equal(find("amount").style.fontSize,"20px");assert.equal(find("amount").style.lineHeight,"24px");assert.equal(find("amount").style.letterSpacing,"-0.35px");
+    assert.equal(find("note").style.fontSize,"11px");assert.equal(find("note").style.lineHeight,"16px");
+    assert(!items.some(item=>["details","summary","a","button","input"].includes(item.tag)||item.tabIndex>=0));
+    assert(!detail.style.maxHeight);assert(!detail.style.overflow);
+    c.setCostPresentation(n,{state:"RANGE",lower_usd:"1.8",upper_usd:"2.6"});c.renderCostDetails(n,detail);
+    assert.equal(all(detail).find(item=>item.className==="orv-cost-amount").style.fontSize,"17px");
+});
+
+test("R2 tooltip placement uses measured bounds and closes when its anchor disappears",()=>{
+    const {c,n}=harness(),element=tooltipDOM(c);const badge=element("span");c.setCostPresentation(n,r2Reference);c.bindCostBadge(n,badge);
+    badge.getBoundingClientRect=()=>({left:900,top:650,right:990,bottom:670,width:90,height:20});
+    badge.handlers.mouseenter();assert.equal(n.__orvCostPopover.style.top,"446px");assert.equal(n.__orvCostPopover.style.left,"562px");
+    badge.isConnected=false;c.positionCostTooltip(n,badge);assert.equal(n.__orvCostPopover,null);
+    badge.isConnected=true;badge.handlers.focus();assert(n.__orvCostPopover);badge.handlers.blur();assert.equal(n.__orvCostPopover,null);
 });

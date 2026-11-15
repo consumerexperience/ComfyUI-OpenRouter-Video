@@ -407,10 +407,10 @@ function applyPresentation(node) {
         ctx.strokeStyle = "#328761";
         ctx.lineWidth = 1.5;
         ctx.stroke();
-        ctx.font = "12px sans-serif";
+        ctx.font = "600 11px Arial, Helvetica, sans-serif";
         const badgeWidth = Math.min(width * 0.5, ctx.measureText(badge).width + 24);
         ctx.beginPath();
-        if (ctx.roundRect) ctx.roundRect(width - badgeWidth - 10, -27, badgeWidth, 21, 9);
+        if (ctx.roundRect) ctx.roundRect(width - badgeWidth - 10, -27, badgeWidth, 21, 6);
         else ctx.rect(width - badgeWidth - 10, -27, badgeWidth, 21);
         ctx.fillStyle = colors.background || "#27302f";
         ctx.strokeStyle = colors.accent || "#60706c";
@@ -479,13 +479,13 @@ function fitPresentationWidth(node) {
 }
 
 function createEstimateState() {
-    let value = "CHECK INPUTS";
+    let value = costText("invalidBadge");
     const state = { result: { state: "INVALID", reason_codes: ["select_model"] } };
     return Object.defineProperty(state, "value", {
         get: () => value,
         set: (next) => {
             if (String(next).startsWith("ESTIMATE UNAVAILABLE")) {
-                value = "PRICE UNKNOWN";
+                value = costText("unknownBadge");
                 state.result = { state: "UNKNOWN", reason_codes: ["current_configuration_unresolved"] };
             } else value = next;
             scheduleBetaPresentation();
@@ -513,7 +513,7 @@ function installBetaPresentation(node) {
         style.textContent = `
             .orv-nodes2 .orv-estimate { flex:0 1 auto; max-width:50%; overflow:hidden;
                 text-overflow:ellipsis; white-space:nowrap; border:1px solid var(--border-color, #666);
-                border-radius:9px; padding:2px 6px; color:var(--input-text, #ddd); font-size:12px;
+                border-radius:6px; padding:1px 7px; color:var(--input-text, #ddd); font:600 11px/16px Arial, Helvetica, sans-serif;
                 cursor:pointer; font-variant-numeric:tabular-nums; }
             .orv-nodes2 .orv-estimate:focus-visible { outline:2px solid var(--input-text, #ddd); }
             .orv-nodes2 .orv-prompt-row { min-height:42px; }
@@ -574,7 +574,7 @@ function syncBetaPresentation(node) {
         badge.style.borderColor = colors.accent;
         badge.style.backgroundColor = colors.background;
         badge.removeAttribute?.("title");
-        badge.setAttribute("aria-label", `Next estimate: ${node.__orvEstimate?.value || "PRICE UNKNOWN"}. ${actualCostText(node, true)} Cost details`);
+        badge.setAttribute("aria-label", costDetailsText(node));
     }
     if (node.__orvResumeActualInstalled) return; // Resume adds cost disclosure only, no Generate widget/layout treatment.
     const grid = root.querySelector('[data-testid="node-widgets"]');
@@ -2348,12 +2348,158 @@ function costCompactDecimal(value) {
 function costAdvisoryComparison(result) {
     if (!["UNKNOWN", "RATE_ONLY", "PARTIAL"].includes(result?.state) ||
         result.planning?.version !== "ACI-PLANNING-1" || result.planning.display !== "DETAIL_ONLY") return null;
-    // Owner-approved advisory presentation. The Core result remains unchanged:
-    // this is a labelled comparison, never an exact total or a spending bound.
-    return result.planning.scenarios?.find(row => row.scope === "COMPARISON" &&
-        typeof row.label === "string" && row.label.length > 0 &&
-        typeof row.assumption === "string" && row.assumption.length > 0 &&
-        costMoney(row.amount_usd) !== null) || null;
+    if (result.state === "RATE_ONLY" && costMoney(result.rate_usd) !== null) return null;
+    const rows = (result.planning.scenarios || []).filter(row =>
+        ["COMPARISON", "COMPONENT"].includes(row.scope) && costMoney(row.amount_usd) !== null);
+    const known = (result.breakdown || []).filter(row => costMoney(row.amount_usd) !== null);
+    // A reference is not a modelled total. Never choose arbitrarily between
+    // alternatives, aggregate components, or replace an available primary rate.
+    return rows.length === 1 && result.planning.scenarios.length === 1 && known.length <= 1 ? rows[0] : null;
+}
+
+function costLocale() {
+    const value = app.ui?.settings?.getSettingValue?.("Comfy.Locale");
+    return typeof value === "string" && /^ru(?:-|$)/i.test(value) ? "ru" : "en";
+}
+
+function costText(key) {
+    const messages = costText.messages ||= {
+        en: { formula:"Estimated cost", range:"Estimated range", model:"Modelled cost", scenarios:"Modelled scenarios",
+            reference:"Reference cost", component:"Known cost component", details:"Cost details", rate:"Published rate",
+            partial:"Partial cost", unknown:"Price unknown", invalid:"Check inputs", stale:"Price stale", calculating:"Calculating cost",
+            partialBadge:"COST PARTIAL", unknownBadge:"PRICE UNKNOWN", invalidBadge:"CHECK INPUTS", staleBadge:"PRICE STALE", calculatingBadge:"CALCULATING…", detailsBadge:"COST DETAILS",
+            formulaNote:"Based on documented pricing. Final provider charge may differ.", rangeNote:"Documented price bounds; not a spending cap.",
+            modelNote:"Based on a billing assumption. Not a quote or spending limit.", scenariosNote:"Scenario values, not a guaranteed range or spending cap.",
+            referenceNote:"Reference only; not a total. Input charges may differ.", silentNote:"Silent-output pricing is not disclosed. Input charges may differ. Reference only; not a total.",
+            componentNote:"Other charges are not established. Not a total or lower bound.", detailsNote:"Separate known values; no combined total is established.",
+            rateNote:"Billable quantity is needed to calculate a total.", partialNote:"A total cannot be calculated from the available data.",
+            unknownNote:"Pricing for this configuration is not established.", invalidNote:"Check the required inputs and selected settings.",
+            staleNote:"Refresh pricing before relying on an estimate.", calculatingNote:"No current estimate yet.",
+            output:"Output video", withAudioOutput:"With audio · Output only", knownComponent:"Known component only",
+            conditional:"Conditional total", alternative:"Alternative conditional totals", referenceScope:"Reference scenario",
+            selected:"Selected configuration", audio:"Generate audio", on:"On", off:"Off", inputCharges:"Input charges", notEstablished:"Not established",
+            lastJob:"Last completed job", actual:"Actual cost", job:"Job", modelLabel:"Model", actualUnavailable:"Unavailable",
+            referenceRow:"Reference", componentRow:"Component", seconds:"s", automatic:"Automatic", perSecond:"s", millionTokens:"M tok", modelUnavailable:"Model not selected" },
+        ru: { formula:"Расчётная стоимость", range:"Расчётный диапазон", model:"Модельная оценка", scenarios:"Сценарии стоимости",
+            reference:"Справочная стоимость", component:"Компонент стоимости", details:"Сведения о стоимости", rate:"Опубликованный тариф",
+            partial:"Частичная стоимость", unknown:"Цена неизвестна", invalid:"Проверьте входы", stale:"Цена устарела", calculating:"Расчёт стоимости",
+            partialBadge:"НЕПОЛНАЯ ЦЕНА", unknownBadge:"ЦЕНА НЕИЗВЕСТНА", invalidBadge:"ПРОВЕРЬТЕ ВХОДЫ", staleBadge:"ЦЕНА УСТАРЕЛА", calculatingBadge:"РАСЧЁТ…", detailsBadge:"СВЕДЕНИЯ О ЦЕНЕ",
+            formulaNote:"По опубликованным тарифам. Итоговое списание может отличаться.", rangeNote:"Границы по опубликованным правилам; не лимит расходов.",
+            modelNote:"Расчёт по допущению о тарификации. Не оферта и не лимит расходов.", scenariosNote:"Сценарные значения, не гарантированный диапазон и не лимит расходов.",
+            referenceNote:"Это ориентир, не итоговая стоимость. Начисления за вход могут отличаться.", silentNote:"Тариф без звука не раскрыт. Начисления за вход могут отличаться. Это ориентир, не итоговая стоимость.",
+            componentNote:"Другие начисления неизвестны. Не итог и не нижняя граница.", detailsNote:"Отдельные известные суммы; общий итог не установлен.",
+            rateNote:"Для расчёта суммы нужен оплачиваемый объём.", partialNote:"Доступных данных недостаточно для расчёта итога.",
+            unknownNote:"Тарификация этой конфигурации не установлена.", invalidNote:"Проверьте обязательные входы и выбранные настройки.",
+            staleNote:"Обновите тарифы перед использованием оценки.", calculatingNote:"Актуальной оценки пока нет.",
+            output:"Выходное видео", withAudioOutput:"Со звуком · Только выход", knownComponent:"Только известный компонент",
+            conditional:"Условная сумма", alternative:"Условные суммы по сценариям", referenceScope:"Справочный сценарий",
+            selected:"Выбранная конфигурация", audio:"Генерация звука", on:"Вкл.", off:"Выкл.", inputCharges:"Стоимость входа", notEstablished:"Не установлена",
+            lastJob:"Последняя завершённая операция", actual:"Фактическая стоимость", job:"Задание", modelLabel:"Модель", actualUnavailable:"Недоступна",
+            referenceRow:"Ориентир", componentRow:"Компонент", seconds:" с", automatic:"Автоматически", perSecond:"с", millionTokens:"млн ток.", modelUnavailable:"Модель не выбрана" }
+    };
+    return messages[costLocale()][key] || messages.en[key] || "";
+}
+
+function costUsd(value) {
+    const formatted = costMoney(value);
+    if (formatted === null) return null;
+    const number = costLocale() === "ru" ? formatted.replace(".", ",") : formatted;
+    return number.startsWith("<") ? `<$${number.slice(1)}` : `$${number}`;
+}
+
+function costRangeUsd(lower, upper) {
+    if (costMoney(lower) === null || costMoney(upper) === null) return null;
+    let lo = costMoney(lower), hi = costMoney(upper);
+    if (lo === hi && lower !== upper) {
+        const cents = (value, up) => {
+            const [whole, fraction = ""] = value.split(".");
+            let n = BigInt(whole) * 100n + BigInt((fraction + "00").slice(0, 2));
+            if (up && /[1-9]/.test(fraction.slice(2))) n++;
+            return `${n / 100n}.${String(n % 100n).padStart(2, "0")}`;
+        };
+        lo = cents(lower, false); hi = cents(upper, true);
+    }
+    const local = value => costLocale() === "ru" ? value.replace(".", ",") : value;
+    if (lo.startsWith("<") || hi.startsWith("<")) return `${costUsd(lower)}–${costUsd(upper)}`;
+    return `$${local(lo)}–${local(hi)}`;
+}
+
+function costReferenceRows(result) {
+    if (!["UNKNOWN", "PARTIAL", "RATE_ONLY"].includes(result?.state) ||
+        result.planning?.version !== "ACI-PLANNING-1" || result.planning.display !== "DETAIL_ONLY") return [];
+    return (result.planning.scenarios || []).filter(row => ["COMPARISON", "COMPONENT"].includes(row.scope) && costMoney(row.amount_usd) !== null);
+}
+
+function costRateLabel(result) {
+    const rate = costDecimalShift(result?.rate_usd, 0);
+    if (rate === null) return null;
+    if (["token", "tokens", "OUTPUT_TOKEN"].includes(result.rate_unit)) return `${costUsd(costDecimalShift(rate, 6))}/${costText("millionTokens")}`;
+    const decimal = costCompactDecimal(rate);
+    const number = costLocale() === "ru" ? decimal.replace(".", ",") : decimal;
+    const money = number.startsWith("<") ? `<$${number.slice(1)}` : `$${number}`;
+    const unit = ["s", "output_seconds", "source_seconds", "OUTPUT_SECOND"].includes(result.rate_unit) ? costText("perSecond") : result.rate_unit || "unit";
+    return `${money}/${unit}`;
+}
+
+function costTooltipView(node) {
+    expireCostPresentation(node);
+    const result = node.__orvEstimate?.result || { state: "UNKNOWN" };
+    const reference = costAdvisoryComparison(result), rows = costReferenceRows(result);
+    const { kind, amount, accent } = costPriceView(result);
+    const id = canonicalModel(node), model = widget(node, "model")?.__orvIdToLabel?.get(id) || node.__orvModelCapability?.display_name || costText("modelUnavailable");
+    const chosenMethod = widget(node, "inference_method")?.value;
+    const method = METHODS.includes(chosenMethod) ? chosenMethod : "";
+    const selectedDuration = widget(node, "duration")?.value;
+    const duration = reference ? (reference.quantity_unit === "s" ? reference.quantity : null) : selectedDuration;
+    const resolution = widget(node, "resolution")?.value;
+    const referenceTier = reference && reference.sku?.endsWith(`_${resolution}`);
+    const geometry = reference ? (referenceTier ? resolution : null) :
+        geometryAuthority(node) === "EXACT" ? widget(node, "size")?.value : [resolution, widget(node, "aspect_ratio")?.value].filter(Boolean).join(" · ");
+    const context = [geometry, duration === -1 ? costText("automatic") : duration != null && /^\d+(\.\d+)?$/.test(String(duration)) ? `${String(duration).replace(".", costLocale() === "ru" ? "," : ".")}${costText("seconds")}` : null].filter(Boolean).join(" · ");
+    const silent = (result.reason_codes || [result.reason]).includes("AUDIO_EFFECTIVE_SEMANTICS_UNRESOLVED");
+    const withAudio = reference && /^duration_seconds_with_audio_/.test(reference.sku || "");
+    const sub = reference ? withAudio ? costText("withAudioOutput") : costText(reference.scope === "COMPONENT" ? "knownComponent" : "referenceScope") :
+        ["formula", "range", "rate", "model", "scenarios"].includes(kind) ? costText(kind === "model" ? "conditional" : kind === "scenarios" ? "alternative" : "output") : "";
+    const notes = { formula:"formulaNote", range:"rangeNote", model:"modelNote", scenarios:"scenariosNote", component:"componentNote", reference:silent?"silentNote":"referenceNote",
+        details:"detailsNote", rate:"rateNote", partial:"partialNote", unknown:"unknownNote", invalid:"invalidNote", stale:"staleNote", calculating:"calculatingNote" };
+    const sections = [];
+    if (reference && silent) {
+        const audio = widget(node,"generate_audio")?.value;
+        sections.push({ title:costText("selected"), rows:[
+            [costText("audio"), costText(audio === true ? "on" : audio === false ? "off" : "notEstablished")], [costText("inputCharges"), costText("notEstablished")] ] });
+    }
+    if (rows.length && !reference) sections.push({ title:costText("details"), rows:rows.map((row,index)=>[`${costText(row.scope === "COMPONENT" ? "componentRow" : "referenceRow")} ${index+1}`, costUsd(row.amount_usd)]) });
+    const components = (result.breakdown || []).filter(row => costMoney(row.amount_usd) !== null);
+    if (result.state === "PARTIAL" && components.length > 1) sections.push({ title:costText("partial"), rows:components.map((row,index)=>[`${costText("componentRow")} ${index+1}`,costUsd(row.amount_usd)]) });
+    const actual = node.__orvActualState, receipt = actual?.receipt;
+    if (actual?.status === "KNOWN" && receipt && costUsd(receipt.amount)) {
+        const actualRows = [[costText("actual"), costUsd(receipt.amount), true]];
+        if (actualText(receipt.job)) actualRows.push([costText("job"), `…${receipt.job.slice(-4)}`]);
+        if (actualText(receipt.model) && receipt.model !== id) actualRows.push([costText("modelLabel"), widget(node, "model")?.__orvIdToLabel?.get(receipt.model) || costText("modelUnavailable")]);
+        sections.push({ title:costText("lastJob"), rows:actualRows });
+    } else if (["MISSING", "CONFLICT", "INVALID_ACTUAL"].includes(actual?.status) || node.__orvActualBindingUnavailable) sections.push({ title:costText("lastJob"), rows:[[costText("actual"), costText("actualUnavailable")]] });
+    return { kind, title:costText(kind), identity:`${String(model).replace(/^[^:]+:\s*/, "")}${method ? ` · ${method}` : ""}`, context, sub, amount, note:costText(notes[kind]), sections, accent };
+}
+
+function costPriceView(result = {}) {
+    const state = result.state || (result.availability === "AVAILABLE" ? "FORMULA" : "UNKNOWN");
+    const plan = result.planning, planning = ["UNKNOWN", "PARTIAL", "RATE_ONLY"].includes(state) && plan?.version === "ACI-PLANNING-1";
+    const reference = costAdvisoryComparison(result), rows = costReferenceRows(result);
+    let kind = ({ FORMULA:"formula", RANGE:"range", RATE_ONLY:"rate", PARTIAL:"partial", INVALID:"invalid", STALE:"stale", CALCULATING:"calculating" })[state] || "unknown";
+    let amount = null, badge = null;
+    if (state === "FORMULA") { amount = costUsd(result.amount_usd ?? result.estimated_cost_usd); if (amount) badge = `≈ ${amount} EST.`; }
+    else if (state === "RANGE") { amount = costRangeUsd(result.lower_usd, result.upper_usd); if (amount) badge = `${amount} EST.`; }
+    else if (planning && plan.display === "MODELLED" && costUsd(plan.modelled_usd)) { kind = "model"; amount = costUsd(plan.modelled_usd); badge = `≈ ${amount} MODEL`; }
+    else if (planning && plan.display === "SCENARIO_RANGE" && costRangeUsd(plan.scenario_min_usd, plan.scenario_max_usd)) { kind = "scenarios"; amount = costRangeUsd(plan.scenario_min_usd, plan.scenario_max_usd); badge = `≈ ${amount} MODEL`; }
+    else if (state === "RATE_ONLY" && costRateLabel(result)) { amount = costRateLabel(result); badge = `${amount} RATE`; }
+    else if (reference) { kind = reference.scope === "COMPONENT" ? "component" : "reference"; amount = costUsd(reference.amount_usd); badge = `${reference.scope === "COMPARISON" ? "≈ " : ""}${amount} REF.`; }
+    else if (rows.length > 1) { kind = "details"; badge = costText("detailsBadge"); }
+    if (!badge) {
+        if (["formula", "range", "rate"].includes(kind)) kind = "unknown";
+        badge = costText(`${kind}Badge`) || costText("unknownBadge");
+    }
+    const accent = ["formula", "range"].includes(kind) ? ACI_INDICATOR_COLORS.green : ["model", "scenarios"].includes(kind) ? ACI_INDICATOR_COLORS.yellow : ["reference", "component", "details"].includes(kind) ? ACI_INDICATOR_COLORS.violet : "#C4C4C4";
+    return { kind, amount, badge, accent };
 }
 
 function actualText(value) {
@@ -2549,10 +2695,9 @@ function actualCostText(node, detail = false) {
 
 function costBadgeLabel(node, width = 0) {
     expireCostPresentation(node);
-    const primary = String(node.__orvEstimate?.value || "PRICE UNKNOWN"), actual = actualCostText(node);
-    // Preserve the semantic EST/MODEL suffix on narrow and collapsed nodes.
-    if (actual && (primary.length + actual.length + 3) * 7 <= width) return `${primary} · ${actual}`;
-    const suffix = primary.match(/ (EST\.|MODEL|RATE)$/)?.[1], budget = Math.floor(width / 7);
+    const primary = String(node.__orvEstimate?.value || costText("unknownBadge"));
+    // The prior job belongs in its own section, never in the next-price badge.
+    const suffix = primary.match(/ (EST\.|MODEL|RATE|REF\.)$/)?.[1], budget = Math.floor(width / 7);
     if (width > 0 && suffix && primary.length > budget) {
         if (budget <= suffix.length + 3) return suffix;
         return `${primary.slice(0, budget - suffix.length - 2)}… ${suffix}`;
@@ -2584,27 +2729,37 @@ function drawCostBadgeLabel(node, ctx, text, x, y, width) {
 }
 
 function renderCostDetails(node, detail) {
-    const expanded = detail.querySelector?.("details")?.open || false;
-    const text = costDetailsText(node);
-    detail.textContent = text;
-    const actual = actualCostText(node, true);
-    if (node.__orvActualState?.status === "KNOWN" && typeof document !== "undefined" && text.endsWith(actual)) {
-        detail.textContent = text.slice(0, -actual.length);
-        const span = document.createElement("span");
-        span.textContent = actual;
-        span.style.color = ACI_INDICATOR_COLORS.green;
-        detail.append(span);
-    }
-    const technical = costTechnicalDetailsText(node);
-    if (technical && typeof document !== "undefined") {
-        const section = document.createElement("details");
-        section.open = expanded;
-        const summary = document.createElement("summary");
-        summary.textContent = "Technical details";
-        const body = document.createElement("div");
-        body.textContent = technical;
-        section.append(summary, body);
-        detail.append(section);
+    const view = costTooltipView(node);
+    detail.textContent = "";
+    detail.dir = document.documentElement?.dir || "ltr";
+    Object.assign(detail.style, { boxSizing:"border-box", width:"430px", maxWidth:"calc(100vw - 16px)",
+        padding:"12px", borderRadius:"8px", border:`1px solid ${view.accent}`, background:"#1A1A1A",
+        color:"#C4C4C4", font:"400 12px/18px Arial, Helvetica, sans-serif", fontVariantNumeric:"tabular-nums",
+        whiteSpace:"normal", overflowWrap:"anywhere", pointerEvents:"none", boxShadow:"0 4px 16px rgba(0,0,0,0.33)" });
+    const element = (tag, cls, text, style = {}) => {
+        const item = document.createElement(tag); item.className = `orv-cost-${cls}`;
+        if (text != null) item.textContent = text;
+        Object.assign(item.style, style); return item;
+    };
+    const heading = element("h3","heading",view.title,{margin:"0",fontSize:"13px",fontWeight:"600",lineHeight:"18px",color:"#F9F9F9"});
+    const identity = element("div","identity",view.identity,{margin:"5px 0 10px",fontSize:"12px",fontWeight:"400",lineHeight:"18px",unicodeBidi:"isolate",direction:"ltr"});
+    const price = element("div","price",null,{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:"10px 0",
+        borderTop:"1px solid rgba(196,196,196,0.15)",borderBottom:"1px solid rgba(196,196,196,0.15)"});
+    const context = element("div","context",view.context,{minWidth:"0",fontSize:"12px",fontWeight:"400",lineHeight:"18px"});
+    if (view.sub) context.append(element("small","scope",view.sub,{display:"block",marginTop:"2px",fontSize:"11px",fontWeight:"400",lineHeight:"16px"}));
+    price.append(context);
+    if (view.amount) price.append(element("span","amount",view.amount,{flex:"none",marginInlineStart:"auto",fontSize:["range","scenarios"].includes(view.kind)?"17px":"20px",
+        fontWeight:"600",lineHeight:"24px",letterSpacing:["range","scenarios"].includes(view.kind)?"-0.3px":"-0.35px",color:view.accent,whiteSpace:"nowrap",direction:"ltr",unicodeBidi:"isolate"}));
+    detail.append(heading, identity, price, element("p","note",view.note,{fontSize:"11px",fontWeight:"400",lineHeight:"16px",margin:"9px 0 0"}));
+    for (const section of view.sections) {
+        const group = element("section","section",null,{borderTop:"1px solid rgba(196,196,196,0.15)",marginTop:"10px",paddingTop:"8px"});
+        group.append(element("h3","section-heading",section.title,{fontSize:"11px",fontWeight:"600",lineHeight:"18px",color:"#F9F9F9",margin:"0 0 5px"}));
+        for (const [label,value,actual] of section.rows) {
+            const row = element("div","line",null,{display:"flex",justifyContent:"space-between",gap:"12px",padding:"3px 0",alignItems:"baseline"});
+            row.append(element("span","label",label,{minWidth:"0"}),element("span",actual?"actual":"value",value,{textAlign:"end",color:actual?ACI_INDICATOR_COLORS.green:"#F9F9F9",fontWeight:actual?"600":"400",unicodeBidi:"isolate"}));
+            group.append(row);
+        }
+        detail.append(group);
     }
 }
 
@@ -2749,6 +2904,12 @@ function installCostLifecycle(node) {
             if (expireCostPresentation(current)) refreshCostDetails(current);
         }
     };
+    app.ui?.settings?.addEventListener?.("Comfy.Locale.change", () => {
+        for (const current of costPresentationNodes) {
+            if (current.__orvEstimate?.result) current.__orvEstimate.value = costBadgeText(current.__orvEstimate.result);
+            refreshCostDetails(current);
+        }
+    });
     if (typeof document !== "undefined") document.addEventListener?.("visibilitychange", resume);
     if (typeof window !== "undefined") window.addEventListener?.("focus", resume);
 }
@@ -2757,25 +2918,15 @@ function installCostLifecycle(node) {
 const ACI_INDICATOR_COLORS = Object.freeze({ green: "#0ACF83", violet: "#9E6BFF", yellow: "#FFBB00", black: "#1A1A1A" });
 
 function costBadgeColors(node, text) {
-    const state = node.__orvEstimate?.result?.state;
     const primary = text.split(" · ")[0];
-    const modelled = primary.endsWith(" MODEL");
-    const estimated = !modelled && (state === "FORMULA" || state === "RANGE") && primary.endsWith(" EST.");
-    const actual = !modelled && !estimated && node.__orvActualState?.status === "KNOWN" && text.endsWith(" ACTUAL");
-    const accent = modelled ? ACI_INDICATOR_COLORS.yellow : estimated || actual ? ACI_INDICATOR_COLORS.green : "";
-    return { accent, background: accent ? ACI_INDICATOR_COLORS.black : "" };
+    const accent = primary.endsWith(" MODEL") ? ACI_INDICATOR_COLORS.yellow : primary.endsWith(" REF.") ? ACI_INDICATOR_COLORS.violet :
+        primary.endsWith(" ACTUAL") && node.__orvActualState?.status === "KNOWN" ? ACI_INDICATOR_COLORS.green :
+        costPriceView(node.__orvEstimate?.result).accent;
+    return { accent, background: ACI_INDICATOR_COLORS.black };
 }
 
 function costDetailAccent(node) {
-    const result = node.__orvEstimate?.result;
-    const planning = result?.planning;
-    // Violet marks informational comparisons/components only, never the primary price.
-    if (!costAdvisoryComparison(result) && ["RATE_ONLY", "PARTIAL", "UNKNOWN"].includes(result?.state) &&
-        planning?.version === "ACI-PLANNING-1" && planning.display === "DETAIL_ONLY" &&
-        planning.scenarios?.some(row => ["COMPARISON", "COMPONENT"].includes(row.scope) && costMoney(row.amount_usd) !== null)) {
-        return ACI_INDICATOR_COLORS.violet;
-    }
-    return costBadgeColors(node, String(node.__orvEstimate?.value || "PRICE UNKNOWN")).accent;
+    return costPriceView(node.__orvEstimate?.result).accent;
 }
 
 function syncCostDetailAccent(node) {
@@ -2788,7 +2939,7 @@ function drawCollapsedCostBadge(node, ctx) {
     const badgeWidth = Math.min(width * 0.5, 160);
     const text = costBadgeLabel(node, badgeWidth - 12);
     ctx.save();
-    ctx.font = "11px sans-serif";
+    ctx.font = "600 11px Arial, Helvetica, sans-serif";
     const colors = costBadgeColors(node, text);
     ctx.fillStyle = colors.background || "#27302f";
     ctx.fillRect(width - badgeWidth, -24, badgeWidth - 4, 18);
@@ -2800,70 +2951,13 @@ function drawCollapsedCostBadge(node, ctx) {
 }
 
 function costBadgeText(result) {
-    const state = result.state || (result.availability === "AVAILABLE" ? "FORMULA" : "UNKNOWN");
-    if (state === "FORMULA") {
-        const amount = costMoney(result.amount_usd ?? result.estimated_cost_usd);
-        if (amount !== null) return `≈ $${amount} EST.`;
-    }
-    if (state === "RANGE") {
-        const lower = costMoney(result.lower_usd), upper = costMoney(result.upper_usd);
-        if (lower !== null && upper !== null) return `$${lower}–${upper} EST.`;
-    }
-    const planning = result.planning;
-    if (["UNKNOWN", "RATE_ONLY", "PARTIAL"].includes(state) && planning?.version === "ACI-PLANNING-1") {
-        if (planning.display === "MODELLED") {
-            const amount = costMoney(planning.modelled_usd);
-            if (amount !== null) return `≈ $${amount} MODEL`;
-        }
-        if (planning.display === "SCENARIO_RANGE") {
-            const lower = costMoney(planning.scenario_min_usd), upper = costMoney(planning.scenario_max_usd);
-            if (lower !== null && upper !== null) return `≈ $${lower}–${upper} MODEL`;
-        }
-        const comparison = costAdvisoryComparison(result);
-        if (comparison) return `≈ $${costMoney(comparison.amount_usd)} MODEL`;
-    }
-    if (state === "RATE_ONLY" && result.rate_usd != null) {
-        const rate = costDecimalShift(result.rate_usd, 0);
-        if (rate !== null) {
-            if (["token", "tokens", "OUTPUT_TOKEN"].includes(result.rate_unit)) {
-                const million = costMoney(costDecimalShift(rate, 6));
-                if (million !== null) return `$${million}/M tok RATE`;
-            }
-            const unit = ["s", "output_seconds", "source_seconds", "OUTPUT_SECOND"].includes(result.rate_unit) ? "s" : result.rate_unit;
-            return `$${costMoney(rate)}/${unit || "unit"} RATE`;
-        }
-    }
-    return ({ PARTIAL: "COST PARTIAL", STALE: "PRICE STALE", INVALID: "CHECK INPUTS",
-        CALCULATING: "CALCULATING…" })[state] || "PRICE UNKNOWN";
+    return costPriceView(result).badge;
 }
 
 function costDetailsText(node) {
-    expireCostPresentation(node);
-    const result = node.__orvEstimate?.result;
-    const lines = [String(node.__orvEstimate?.value || "PRICE UNKNOWN"),
-        `${canonicalModel(node) || ""} · ${widget(node, "inference_method")?.value || ""}`];
-    const comparison = costAdvisoryComparison(result);
-    if (comparison) {
-        lines.push("Advisory comparison, not a quote or total. Selected billing is not fully disclosed.",
-            `${comparison.label}: ≈ $${costMoney(comparison.amount_usd)}`,
-            comparison.assumption);
-    } else if (["UNKNOWN", "RATE_ONLY", "PARTIAL"].includes(result?.state) &&
-        ["MODELLED", "SCENARIO_RANGE"].includes(result.planning?.display)) {
-        lines.push("Advisory pricing scenario, not a quote or spending cap.");
-        if (result.planning.scenarios?.[0]?.assumption) lines.push(result.planning.scenarios[0].assumption);
-    } else {
-        const description = { FORMULA: "Estimate from published pricing; final cost may differ.",
-            RANGE: "Documented price alternatives; not a spending cap.",
-            RATE_ONLY: "Published rate; billable quantity is not yet known.",
-            PARTIAL: "Known components only; the total is not determined.",
-            INVALID: "Check the required inputs and selected settings.",
-            STALE: "Pricing has expired. Refresh the catalogue.", CALCULATING: "Updating the estimate…" };
-        lines.push(description[result?.state] || "No useful numerical pricing scenario is available.");
-        const reason = result?.reason_codes?.[0] || result?.reason;
-        if (reason) lines.push(costReasonText(reason));
-    }
-    lines.push(actualCostText(node, true));
-    return lines.filter(Boolean).join("\n");
+    const view = costTooltipView(node);
+    return [view.title, view.identity, view.context, view.sub, view.amount, view.note,
+        ...view.sections.flatMap(section => [section.title, ...section.rows.map(row => `${row[0]}: ${row[1]}`)])].filter(Boolean).join("\n");
 }
 
 function costTechnicalDetailsText(node) {
@@ -2957,53 +3051,64 @@ function bindCostBadge(node, badge) {
     badge.__orvCostBound = true;
     badge.tabIndex = 0;
     badge.setAttribute("role", "button");
-    badge.setAttribute("aria-haspopup", "dialog");
+    badge.removeAttribute?.("aria-haspopup");
+    badge.removeAttribute?.("aria-expanded");
     const close = () => {
-        node.__orvCostPopover?.remove();
-        node.__orvCostPopover = null;
+        node.__orvCostPopover?.remove(); node.__orvCostPopover = null;
+        node.__orvCostPopoverOwner?.removeAttribute?.("aria-describedby");
         node.__orvCostPopoverOwner = null;
-        badge.setAttribute("aria-expanded", "false");
+        if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(node.__orvCostAnchorFrame);
+        node.__orvCostAnchorFrame = null;
     };
-    const open = (pinned) => {
+    node.__orvCloseCostTooltip = close;
+    const open = () => {
         expireCostPresentation(node);
         for (const other of costPresentationNodes) if (other !== node && other.__orvCostPopover) {
-            other.__orvCostPopover.remove();
-            other.__orvCostPopover = null;
-            other.__orvCostPopoverOwner?.setAttribute("aria-expanded", "false");
-            other.__orvCostPopoverOwner = null;
+            other.__orvCloseCostTooltip?.();
+            if (other.__orvCostPopover) { other.__orvCostPopover.remove(); other.__orvCostPopover = null; }
         }
-        node.__orvCostPinned = pinned;
+        if (node.__orvCostPopoverOwner && node.__orvCostPopoverOwner !== badge) close();
         node.__orvCostPopoverOwner = badge;
         if (!node.__orvCostPopover) {
-            const detail = document.createElement("div");
-            detail.className = "orv-cost-detail";
-            detail.setAttribute("role", "dialog");
-            detail.setAttribute("aria-label", "Cost details");
-            detail.tabIndex = -1;
-            Object.assign(detail.style, { position: "fixed", zIndex: "10000", whiteSpace: "pre-wrap",
-                maxWidth: "min(430px, calc(100vw - 24px))", maxHeight: "60vh", overflow: "auto",
-                padding: "12px", borderRadius: "8px", border: "1px solid var(--border-color, #666)",
-                background: "var(--comfy-menu-bg, #222)", color: "var(--input-text, #ddd)",
-                font: "12px sans-serif", fontVariantNumeric: "tabular-nums", boxShadow: "0 4px 16px #0006" });
-            renderCostDetails(node, detail);
-            detail.addEventListener("keydown", event => { if (event.key === "Escape") { close(); badge.focus(); } });
-            document.body.append(detail);
-            node.__orvCostPopover = detail;
+            const detail = document.createElement("div"); detail.className = "orv-cost-detail";
+            bindCostBadge.sequence = (bindCostBadge.sequence || 0) + 1;
+            detail.id = `orv-cost-tooltip-${bindCostBadge.sequence}`;
+            detail.setAttribute("role", "tooltip");
+            Object.assign(detail.style,{position:"fixed",zIndex:"10000"});
+            renderCostDetails(node, detail); document.body.append(detail); node.__orvCostPopover = detail;
         }
-        syncCostDetailAccent(node);
-        const rect = badge.getBoundingClientRect();
-        Object.assign(node.__orvCostPopover.style, { left: `${Math.max(8, Math.min(rect.left, window.innerWidth - 440))}px`,
-            top: `${Math.max(8, Math.min(rect.bottom + 4, window.innerHeight - 240))}px` });
-        badge.setAttribute("aria-expanded", "true");
-        if (pinned) node.__orvCostPopover.focus();
+        badge.setAttribute("aria-describedby", node.__orvCostPopover.id);
+        positionCostTooltip(node, badge);
+        const watch = () => {
+            node.__orvCostAnchorFrame = null;
+            if (!node.__orvCostPopover) return;
+            positionCostTooltip(node, badge);
+            if (node.__orvCostPopover) node.__orvCostAnchorFrame = requestAnimationFrame(watch);
+        };
+        if (typeof requestAnimationFrame === "function" && !node.__orvCostAnchorFrame) node.__orvCostAnchorFrame = requestAnimationFrame(watch);
     };
-    badge.addEventListener("click", event => { event.stopPropagation(); if (node.__orvCostPopover && node.__orvCostPinned) close(); else open(true); });
-    badge.addEventListener("keydown", event => {
-        if (["Enter", " "].includes(event.key)) { event.preventDefault(); open(true); }
-        if (event.key === "Escape") close();
-    });
-    badge.addEventListener("mouseenter", () => { if (!node.__orvCostPopover) open(false); });
-    badge.addEventListener("mouseleave", () => { if (!node.__orvCostPinned) close(); });
+    badge.addEventListener("mouseenter", open);
+    badge.addEventListener("mouseleave", close);
+    badge.addEventListener("focus", open);
+    badge.addEventListener("blur", close);
+    badge.addEventListener("keydown", event => { if (event.key === "Escape") close(); });
+}
+
+function positionCostTooltip(node, badge) {
+    const detail = node.__orvCostPopover;
+    if (!detail) return;
+    const rect = badge.getBoundingClientRect();
+    const inactive = node.graph && (app.canvas?.graph || app.graph)?.getNodeById?.(node.id) !== node;
+    if (badge.isConnected === false || badge.hidden || rect.width === 0 || inactive ||
+        rect.bottom < 0 || rect.top > window.innerHeight || rect.right < 0 || rect.left > window.innerWidth) {
+        node.__orvCloseCostTooltip?.(); return;
+    }
+    const bounds = detail.getBoundingClientRect?.() || {};
+    const width = bounds.width || 430, height = bounds.height || 250;
+    const below = rect.bottom + 4;
+    const top = below + height <= window.innerHeight - 8 ? below : Math.max(8, rect.top - height - 4);
+    Object.assign(detail.style,{left:`${Math.max(8, Math.min(rect.left, window.innerWidth - width - 8))}px`,
+        top:`${Math.max(8, Math.min(top, window.innerHeight - height - 8))}px`});
 }
 
 function syncClassicCostBadge(node, ctx, rect) {
@@ -3018,7 +3123,7 @@ function syncClassicCostBadge(node, ctx, rect) {
             node.__orvCostPopover?.remove();
             node.__orvCostPopover = null;
             node.__orvCostPopoverOwner = null;
-            badge.setAttribute("aria-expanded", "false");
+            badge.removeAttribute?.("aria-describedby");
         }
         return;
     }
@@ -3032,7 +3137,7 @@ function syncClassicCostBadge(node, ctx, rect) {
         badge.type = "button";
         badge.className = "orv-classic-cost-badge";
         Object.assign(badge.style, { position: "fixed", zIndex: "4", opacity: "0", margin: "0",
-            padding: "0", border: "0", cursor: "pointer", background: "transparent" });
+            padding: "0", border: "0", borderRadius:"6px", font:"600 11px/16px Arial, Helvetica, sans-serif", cursor: "pointer", background: "transparent" });
         badge.addEventListener("focus", () => { badge.style.opacity = "1"; setCostBadgeLabel(node, badge, costBadgeLabel(node, node.__orvClassicCostWidth || 0)); });
         badge.addEventListener("blur", () => { badge.style.opacity = "0"; badge.textContent = ""; });
         bindCostBadge(node, badge);
@@ -3051,7 +3156,7 @@ function syncClassicCostBadge(node, ctx, rect) {
     const colors = costBadgeColors(node, String(node.__orvEstimate?.value || "PRICE UNKNOWN"));
     badge.style.color = colors.accent;
     badge.style.backgroundColor = colors.background || "transparent";
-    badge.setAttribute("aria-label", `Next estimate: ${node.__orvEstimate?.value || "PRICE UNKNOWN"}. ${actualCostText(node, true)} Cost details`);
+    badge.setAttribute("aria-label", costDetailsText(node));
     badge.removeAttribute?.("title");
 }
 

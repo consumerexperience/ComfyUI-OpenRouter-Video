@@ -71,10 +71,24 @@ export function assertRuntimeRemediationScope(root, current) {
     }
     const pin = JSON.parse(readFileSync(new URL('tests/fixtures/aci_r31_runtime_remediation_candidate.json', root), 'utf8'));
     if (pin.presentation_functions) {
+        for (const [before, after] of [
+            ['border-radius:9px; padding:2px 6px; color:var(--input-text, #ddd); font-size:12px;',
+             'border-radius:6px; padding:1px 7px; color:var(--input-text, #ddd); font:600 11px/16px Arial, Helvetica, sans-serif;'],
+            ['        ctx.font = "12px sans-serif";\n        const badgeWidth =',
+             '        ctx.font = "600 11px Arial, Helvetica, sans-serif";\n        const badgeWidth ='],
+            ['        if (ctx.roundRect) ctx.roundRect(width - badgeWidth - 10, -27, badgeWidth, 21, 9);',
+             '        if (ctx.roundRect) ctx.roundRect(width - badgeWidth - 10, -27, badgeWidth, 21, 6);'],
+        ]) {
+            assert.equal(expected.split(before).length - 1, 1);
+            expected = expected.replace(before, after);
+        }
         const allowed = ['syncBetaPresentation', 'actualCostText', 'renderCostDetails', 'costDetailAccent',
-            'costBadgeText', 'costDetailsText', 'bindCostBadge', 'syncClassicCostBadge'];
+            'costBadgeText', 'costDetailsText', 'bindCostBadge', 'syncClassicCostBadge',
+            'costBadgeLabel', 'costBadgeColors', 'createEstimateState', 'installCostLifecycle', 'drawCollapsedCostBadge'];
         const added = { costCompactDecimal: 'actualText', costAdvisoryComparison: 'actualText',
-            costTechnicalDetailsText: 'costReasonText' };
+            costLocale:'actualText', costText:'actualText', costUsd:'actualText', costRangeUsd:'actualText',
+            costReferenceRows:'actualText', costRateLabel:'actualText', costTooltipView:'actualText', costPriceView:'actualText',
+            costTechnicalDetailsText: 'costReasonText', positionCostTooltip:'syncClassicCostBadge' };
         const find = (text, name) => {
             const matches = [...text.matchAll(new RegExp(`^function ${name}\\([^\\n]*\\) \\{[\\s\\S]*?^\\}\\n`, 'gm'))];
             assert.equal(matches.length, 1, `Unique presentation function ${name}`);
