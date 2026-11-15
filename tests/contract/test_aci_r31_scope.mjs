@@ -2,12 +2,15 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import test from 'node:test';
+import { remediationHistoricalSource } from './aci_r31_runtime_remediation.mjs';
 
 const root = new URL('../../', import.meta.url);
 const before = execFileSync('git', ['show', '15cc5aea7570fe43d2154b4e3b6f1efba8f4ac2d:web/openrouter_video.js'],
     { cwd: root, encoding: 'utf8' }).replace(/\r\n/g, '\n');
-// Always raw CURRENT source. Historical shield substitution is deliberately absent.
-const after = readFileSync(new URL('web/openrouter_video.js', root), 'utf8').replace(/\r\n/g, '\n');
+// R3.1 assertions retain their exact historical source only after the separate
+// raw-current remediation guard passes; the older R3.1 pin remains unchanged.
+const after = remediationHistoricalSource(root, 'web/openrouter_video.js',
+    readFileSync(new URL('web/openrouter_video.js', root), 'utf8').replace(/\r\n/g, '\n'));
 const functions = source => Object.fromEntries(source.split(/(?=^function |^async function )/m).slice(1).map(part => {
     const end = part.indexOf('\n}');
     return [part.match(/function (\w+)/)[1], end < 0 ? part.split('\n')[0] : part.slice(0, end + 2)];

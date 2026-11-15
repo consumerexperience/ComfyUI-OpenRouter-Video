@@ -409,6 +409,98 @@ record('Registered onConfigure defers link-intent capture until all saved links 
     assert.deepEqual(canonicalDependencies(h,n).map(i=>i.origin),origins.map(o=>o.id));h.checkGraph(n);
 });
 
+record('Import-alias linked reference normalizes in place before capture and preserves output and named intent',()=>{
+    const h=harness(),m=model('bytedance/seedance-2.5'),n=h.register(h.node(m,'MI2V'));
+    const origins=[h.add(n,'image'),h.add(n,'image')],inputs=h.refs(n).filter(i=>i.link!=null);
+    h.c.captureMediaIntent(n);
+    const links=inputs.map(i=>i.link),slots=inputs.map(i=>n.inputs.indexOf(i)),types=inputs.map(i=>i.type);
+    const savedIntent=plain(n.properties.orv_capability_intent.media);
+    for(const input of inputs)input.name=input.name.replace('direct_references.','');
+    const outputs=n.outputs=[{name:'job_id',type:'STRING',links:[999]}];
+    const named=Object.fromEntries(n.widgets.map(w=>[w.name,w.value]));named.generate_audio=false;named.seed=123;
+    n.onConfigure({widgets_values_named:named});
+    for(let i=0;i<inputs.length;i++){
+        assert.equal(n.inputs[slots[i]],inputs[i],'same hydrated input and slot');
+        assert.equal(inputs[i].name,savedIntent[i].reference_name);
+        assert.equal(inputs[i].link,links[i]);assert.equal(inputs[i].type,types[i]);
+    }
+    assert.deepEqual(plain(n.properties.orv_capability_intent.media),savedIntent,'normalization does not rewrite stored intent');
+    h.flush();h.apply(n,m,'MI2V','configure');
+    assert.deepEqual(canonicalDependencies(h,n).map(i=>i.origin),origins.map(o=>o.id));
+    assert.deepEqual(plain(n.properties.orv_capability_intent.media),savedIntent,'capture retains occurrence identity and order');
+    assert.equal(n.outputs,outputs);assert.equal(widget(n,'generate_audio').value,false);assert.equal(widget(n,'seed').value,123);
+    h.groups(n,m.method_profiles.MI2V.topology);
+});
+
+record('Import-alias linked raw reference_0 without saved intent enters canonical capture and labels',()=>{
+    const h=harness(),m=model('bytedance/seedance-2.5'),n=h.register(h.node(m,'MI2V'));
+    const sources=[h.add(n,'image'),h.add(n,'image')],inputs=h.refs(n).filter(i=>i.link!=null);
+    inputs.forEach((input,index)=>{input.name=`reference_${index}`;delete input.orv_occurrence_id;});
+    n.properties.orv_capability_intent.media=[];
+    n.onConfigure({widgets_values_named:Object.fromEntries(n.widgets.map(w=>[w.name,w.value]))});
+    assert.deepEqual(inputs.map(i=>i.name),['direct_references.reference_0','direct_references.reference_1']);
+    h.flush();h.apply(n,m,'MI2V','configure');
+    assert.deepEqual(canonicalDependencies(h,n).map(i=>[i.wire,i.origin]),sources.map((o,index)=>[`direct_references.reference_${index}`,o.id]));
+    assert.deepEqual(plain(n.properties.orv_capability_intent.media).map(e=>[e.active_name,e.origin_id]),sources.map((o,index)=>[`direct_references.reference_${index}`,o.id]));
+    assert.deepEqual(inputs.map(i=>i.label),['image_1','image_2']);h.groups(n,m.method_profiles.MI2V.topology);
+});
+
+for(const method of ['I2V','FLF2V'])record(`Import-alias unlinked reference is removed by existing ${method} reconciliation with frame links intact`,()=>{
+    const h=harness(),m=model('bytedance/seedance-2.5'),n=h.register(h.node(m,method));
+    const frames=(m.method_profiles[method].topology.fixed||[]).map(name=>h.add(n,'image',h.origin('image'),name));
+    const frameInputs=n.inputs.filter(i=>i.link!=null),frameLinks=frameInputs.map(i=>i.link);
+    n.addInput('reference_0','IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE');
+    const alias=n.inputs.at(-1),slot=n.inputs.indexOf(alias),type=alias.type;
+    n.onConfigure({widgets_values_named:Object.fromEntries(n.widgets.map(w=>[w.name,w.value]))});
+    assert.equal(n.inputs[slot],alias);assert.equal(alias.name,'direct_references.reference_0');assert.equal(alias.type,type);assert.equal(alias.link,null);
+    h.flush();h.apply(n,m,method,'configure');
+    assert(!n.inputs.includes(alias),'existing non-reference topology removes empty socket');
+    assert.deepEqual(h.active(n).map(i=>i.origin),frames.map(o=>o.id));
+    frameInputs.forEach((input,index)=>{assert(n.inputs.includes(input));assert.equal(input.link,frameLinks[index]);});h.checkGraph(n);
+});
+
+record('Import-alias linked occurrences round trip through I2V and FLF2V without lost material',()=>{
+    const h=harness(),m=model('bytedance/seedance-2.5'),n=h.register(h.node(m,'MI2V'));
+    const sources=Array.from({length:3},()=>h.add(n,'image'));
+    for(const input of h.refs(n).filter(i=>i.link!=null))input.name=input.name.replace('direct_references.','');
+    n.onConfigure({widgets_values_named:Object.fromEntries(n.widgets.map(w=>[w.name,w.value]))});h.flush();h.apply(n,m,'MI2V','configure');
+    const saved=plain(n.properties.orv_capability_intent.media),canonical=canonicalDependencies(h,n);
+    h.apply(n,m,'I2V');assert.deepEqual(h.active(n).map(i=>[i.name,i.origin]),[['first_frame',sources[0].id]]);h.checkGraph(n);
+    h.apply(n,m,'FLF2V');assert.deepEqual(h.active(n).map(i=>[i.name,i.origin]),[['first_frame',sources[0].id],['last_frame',sources[1].id]]);h.checkGraph(n);
+    h.apply(n,m,'MI2V');assert.deepEqual(canonicalDependencies(h,n),canonical);
+    assert.deepEqual(plain(n.properties.orv_capability_intent.media).map(e=>[e.id,e.origin_id,e.reference_name]),saved.map(e=>[e.id,e.origin_id,e.reference_name]));h.checkGraph(n);
+});
+
+record('Import-alias canonical and unrelated names remain unchanged across repeated configure',()=>{
+    const h=harness(),m=model('bytedance/seedance-2.5'),n=h.register(h.node(m,'MI2V'));
+    h.add(n,'image');
+    for(const name of ['reference_x','other.reference_0','reference_0_suffix'])n.addInput(name,'STRING');
+    const inputs=[...n.inputs],before=plain(inputs);
+    for(let repeat=0;repeat<2;repeat++){
+        n.onConfigure({widgets_values_named:Object.fromEntries(n.widgets.map(w=>[w.name,w.value]))});
+        inputs.forEach((input,index)=>assert.equal(n.inputs[index],input));assert.deepEqual(plain(n.inputs),before);
+    }
+    h.flush();h.apply(n,m,'MI2V','configure');h.checkGraph(n);
+});
+
+for(const linked of [false,true])record(`Import-alias canonical collision fails closed atomically without material or link drops [linked=${linked}]`,()=>{
+    const h=harness(),m=model('bytedance/seedance-2.5'),n=h.register(h.node(m,'MI2V'));
+    const source=h.add(n,'image'),canonical=h.refs(n).find(i=>i.link!=null);
+    n.addInput(canonical.name.replace('direct_references.',''),canonical.type);
+    const alias=n.inputs.at(-1);if(linked)h.origin('image').connect(0,n,n.inputs.indexOf(alias));
+    n.addInput('reference_99','IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE');
+    const inputs=[...n.inputs],beforeInputs=plain(n.inputs),beforeLinks=plain(h.graph.links),beforeMedia=plain(n.properties.orv_capability_intent.media);
+    n.onConfigure({widgets_values_named:Object.fromEntries(n.widgets.map(w=>[w.name,w.value]))});
+    assert.equal(n.__orvReferenceAliasConflict,true);assert.equal(n.__orvReferenceInvalid,true);
+    assert.equal(n.inputs.at(-1).name,'reference_99','no partial normalization on collision');
+    h.flush();n.onConnectionsChange(1,n.inputs.indexOf(alias),linked,null,alias);h.flush();
+    for(const method of ['MI2V','I2V','FLF2V'])h.apply(n,m,method);
+    assert.equal(n.__orvReferenceInvalid,true);assert.match(n.__orvCapabilityStatus.value,/CONFLICTING REFERENCE INPUT NAMES/);
+    assert.deepEqual(plain(n.inputs),beforeInputs);inputs.forEach((input,index)=>assert.equal(n.inputs[index],input));
+    assert.deepEqual(plain(h.graph.links),beforeLinks);assert.deepEqual(plain(n.properties.orv_capability_intent.media),beforeMedia);
+    assert.equal(h.graph.links[canonical.link].origin_id,source.id);h.checkGraph(n);
+});
+
 for(const globalGraphConfigure of [true,false])record(`Native-order reconstruction target-first before source tokens [app.configuringGraph=${globalGraphConfigure}] retains parked5 and restores Wan20`,()=>{
     const h=harness(),wan=model('alibaba/wan-3.0'),seed=model('bytedance/seedance-2.0'),n=h.register(h.node(wan,'MMR2V'),true);
     const sources=[];

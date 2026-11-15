@@ -716,7 +716,8 @@ function restorePhase10NamedValues(node, namedValues) {
     for (const name of [
         "model", "inference_method", "prompt", "resolution", "aspect_ratio",
         "duration", "size", "seed", "generate_audio", "first_frame_url",
-        "last_frame_url", "geometry_authority",
+        "last_frame_url", "geometry_authority", "previous_job_id",
+        "upscale_factor", "creativity", "provider_options",
     ]) {
         if (Object.hasOwn(namedValues, name)) {
             const item = widget(node, name);
@@ -1199,6 +1200,25 @@ function isDirectReferenceInput(item) {
     return String(item?.name || "").startsWith("direct_references.reference_");
 }
 
+function normalizeImportedReferenceInputs(node) {
+    const inputs = node.inputs || [];
+    const aliases = inputs.filter(input => /^reference_\d+$/.test(input.name))
+        .map(input => ({ input, name: `direct_references.${input.name}` }));
+    const names = new Set(inputs.map(input => input.name)), targets = new Set();
+    node.__orvReferenceAliasConflict = false;
+    for (const { name } of aliases) {
+        if (names.has(name) || targets.has(name)) {
+            node.__orvReferenceAliasConflict = true;
+            node.__orvReferenceInvalid = true;
+            return;
+        }
+        targets.add(name);
+    }
+    // Native inputs are hydrated at onConfigure. Rename only after validating
+    // every alias, without replacing sockets or touching their slots/links.
+    for (const { input, name } of aliases) input.name = name;
+}
+
 function capabilityIntent(node) {
     node.properties ||= {};
     return node.properties.orv_capability_intent ||= { controls: {}, media: [], methods: {} };
@@ -1666,6 +1686,10 @@ function mediaSourceToken(origin) {
 // This is the existing intent store, extended to retain each occurrence while it
 // is active as well as parked. Never deduplicate intentionally repeated sources.
 function captureMediaIntent(node) {
+    if (node.__orvReferenceAliasConflict) {
+        node.__orvMediaIntentInvalid = true;
+        return [];
+    }
     // Native configure restores target links before every source's properties.
     // Observing that intermediate state must never retire saved occurrences.
     if (app.configuringGraph || node.__orvConfiguringMedia) {
@@ -1949,6 +1973,11 @@ function configureReferenceTopology(node, capability, method, transition = {}) {
 }
 
 function reconcileReferenceTopology(node, capability, method, transition) {
+    if (node.__orvReferenceAliasConflict) {
+        node.__orvReferenceInvalid = true;
+        disclose(node, "CONFLICTING REFERENCE INPUT NAMES; saved state preserved; Generate blocked");
+        return;
+    }
     const baseTopology = capability.__methodProfile?.topology || { fixed: [], reference_kinds: [], kind_sets: [[]], min: 0, max: 0 };
     parkIncompatibleMedia(node, baseTopology, transition);
     const sourcePresent = inputByName(node, "source_video")?.link != null;
@@ -3601,6 +3630,7 @@ app.registerExtension({
                     ? serializedModel
                     : widget(this, "model")?.value;
             const result = previousConfigure?.apply(this, args);
+            normalizeImportedReferenceInputs(this);
             orderPresentationWidgets(this);
             applyPresentation(this);
             const restoredNamed = restorePhase10NamedValues(this, namedValues);

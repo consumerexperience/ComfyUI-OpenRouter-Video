@@ -109,6 +109,50 @@ test("named Phase 10 values win over presentation positions", () => {
     assert.equal(values["control after generate"], "fixed");
 });
 
+for (const operation of [
+    { previous_job_id: "", upscale_factor: "", creativity: -1 },
+    { previous_job_id: "synthetic-job", upscale_factor: "2", creativity: 0 },
+]) test(`named operation values survive round trips over wrong positional fallback [creativity=${operation.creativity}]`, () => {
+    const providerOptions = '{ "$version": 2, "values": [{"provider":"synthetic","key":"mode","value":"fast"}] }';
+    let named = { model: "exact/model-id", inference_method: "MMR2V", ...operation,
+        provider_options: providerOptions };
+    for (let round = 0; round < 3; round++) {
+        const target = node();
+        for (const name of ["geometry_authority", "previous_job_id", "upscale_factor", "creativity", "provider_options"]) {
+            target.widgets.push({ name, value: "wrong-position" });
+        }
+        // Native positional fallback may assign geometry text to provider
+        // options and strings to numeric operation controls before onConfigure.
+        target.widgets.find(item => item.name === "provider_options").value = "NORMALIZED";
+        target.widgets.find(item => item.name === "creativity").value = "";
+        assert.equal(context.restorePhase10Values(target, [
+            "wrong/model", "MI2V", "wrong prompt", "480p", "4:3", 3,
+            "", 7, "fixed", false, "", "",
+        ]), true);
+        const inputs = target.widgets;
+        assert.equal(context.restorePhase10NamedValues(target, named), true);
+        assert.equal(target.widgets, inputs, "restoration keeps the native widget collection");
+        named = Object.fromEntries(target.widgets.map(({ name, value }) => [name, value]));
+        for (const [name, value] of Object.entries(operation)) assert.equal(named[name], value);
+        assert.equal(named.provider_options, providerOptions, "JSON string is preserved byte for byte");
+        assert.equal(named.inference_method, "MMR2V");
+    }
+});
+
+test("named operation restoration leaves absent fields unchanged", () => {
+    const target = node();
+    const controls = [
+        { name: "previous_job_id", value: "synthetic-existing-job" },
+        { name: "upscale_factor", value: "4" },
+        { name: "creativity", value: 0 },
+        { name: "provider_options", value: '{"$version":2,"values":[]}' },
+    ];
+    target.widgets.push(...controls);
+    const before = controls.map(item => item.value);
+    assert.equal(context.restorePhase10NamedValues(target, { inference_method: "MMR2V" }), true);
+    assert.deepEqual(controls.map(item => item.value), before);
+});
+
 test("prior Phase 10 positional values restore by field after presentation reorder", () => {
     const target = node();
     const saved = [
