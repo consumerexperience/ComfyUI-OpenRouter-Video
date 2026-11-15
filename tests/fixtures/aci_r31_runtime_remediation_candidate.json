@@ -1,8 +1,21 @@
 {
   "status": "UNACCEPTED",
   "baseline_sha": "a39204322349b5d13270c7df3f3e6cc24d12180a",
-  "authority": "Owner-authorized ACI Runtime Remediation; source/test binding only, not runtime/Beta/Owner acceptance",
+  "authority": "Owner RESOURCE EFFICIENCY / Product Acceptance Blocking Issues A-D; unaccepted exact frontend scope, no runtime/Beta acceptance",
   "candidate_files": {
-    "web/openrouter_video.js": "cb20a5f9e40f681dc66085c4fe14ffedb5ea63c12d80bcb2071a50bed6b2addd"
+    "web/openrouter_video.js": "e68d3d63e79cb01e8135fe37c3630743309fd52dd76bfbe23a8eb203c24b754e"
+  },
+  "presentation_functions": {
+    "syncBetaPresentation": "4937e88f6ff677c4f3fd604956fa2e18fbafa6970a8c5e47de0a88eb10e8c0f0",
+    "actualCostText": "05aec857626b5e27a0d99c27b0e6ce1a4463f4028d42f9f568b07ce56fabe6a4",
+    "renderCostDetails": "426c2e4985e9823b5ff5561610a96f57f172b3031f6802f7cf233a36e4053554",
+    "costDetailAccent": "1b10bfb87ef0e59a256bc8a0c875a76da722d0f9d90c89a62e76254b6517ecb3",
+    "costBadgeText": "ec2f5e130176bf0ccb4e8ac7f82d49f4b2f213ce8739544cd433d6f207cb22cb",
+    "costDetailsText": "3c32b4db5270370b64e953bdd52212720d57077a4e3cc15644a482eb19e8a25a",
+    "bindCostBadge": "bd0111d3639ca718d4a87e62431005f6919a1dec2069751063a22375493e2a74",
+    "syncClassicCostBadge": "a8f802122394be0858a8002b39d855d53c8dffe5d5a449571b6c7403918289ea",
+    "costCompactDecimal": "c9a01362bdada992f1dc9a954d74cb6d39cc78a71e639714810fa5c810e161c4",
+    "costAdvisoryComparison": "821a528c797b14857cdcc8535d3f2843dafb3d1b8b7425febd8884267241a0c5",
+    "costTechnicalDetailsText": "1e6667187cc23f548d05f783d2716b4842108ba7b8cfc05aa135101d0bdc0f0b"
   }
 }

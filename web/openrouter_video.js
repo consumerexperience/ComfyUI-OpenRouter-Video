@@ -536,10 +536,25 @@ function installBetaPresentation(node) {
 }
 
 function syncBetaPresentation(node) {
+    const activeGraph = app.canvas?.graph || app.graph;
+    if (node.graph && activeGraph?.getNodeById?.(node.id) !== node) {
+        if (node.__orvClassicCostBadge) node.__orvClassicCostBadge.hidden = true;
+        node.__orvCostPopover?.remove();
+        node.__orvCostPopover = null;
+        return;
+    }
     const root = [...document.querySelectorAll(".lg-node[data-node-id]")].find(
         (element) => element.dataset.nodeId === String(node.id),
     );
     if (!root) return; // Classic has no Vue node DOM; never touch its canvas.
+    if (node.__orvClassicCostBadge) {
+        node.__orvClassicCostBadge.hidden = true;
+        if (node.__orvCostPopoverOwner === node.__orvClassicCostBadge) {
+            node.__orvCostPopover?.remove();
+            node.__orvCostPopover = null;
+            node.__orvCostPopoverOwner = null;
+        }
+    }
     root.classList.add("orv-nodes2");
     const header = root.querySelector(".lg-node-header > div");
     if (header && (!node.graph || (app.canvas?.graph || app.graph)?.getNodeById?.(node.id) === node)) {
@@ -558,8 +573,7 @@ function syncBetaPresentation(node) {
         badge.style.color = colors.accent;
         badge.style.borderColor = colors.accent;
         badge.style.backgroundColor = colors.background;
-        const details = costDetailsText(node);
-        if (badge.title !== details) badge.title = details;
+        badge.removeAttribute?.("title");
         badge.setAttribute("aria-label", `Next estimate: ${node.__orvEstimate?.value || "PRICE UNKNOWN"}. ${actualCostText(node, true)} Cost details`);
     }
     if (node.__orvResumeActualInstalled) return; // Resume adds cost disclosure only, no Generate widget/layout treatment.
@@ -2319,6 +2333,29 @@ function costDecimalShift(value, places) {
     return `${digits.slice(0, point).replace(/^0+/, "") || "0"}${digits.length > point ? `.${digits.slice(point)}` : ""}`;
 }
 
+function costCompactDecimal(value) {
+    const text = String(value ?? "");
+    if (!/^\d{1,32}(\.\d{1,60})?$/.test(text)) return "?";
+    const [whole, fraction = ""] = text.split(".");
+    const digits = (fraction + "00000").slice(0, 5);
+    let units = BigInt(whole) * 10000n + BigInt(digits.slice(0, 4));
+    if (digits[4] >= "5") units += 1n;
+    if (units === 0n && /[1-9]/.test(text)) return "<0.0001";
+    const tail = String(units % 10000n).padStart(4, "0").replace(/0+$/, "");
+    return `${units / 10000n}${tail ? `.${tail}` : ""}`;
+}
+
+function costAdvisoryComparison(result) {
+    if (!["UNKNOWN", "RATE_ONLY", "PARTIAL"].includes(result?.state) ||
+        result.planning?.version !== "ACI-PLANNING-1" || result.planning.display !== "DETAIL_ONLY") return null;
+    // Owner-approved advisory presentation. The Core result remains unchanged:
+    // this is a labelled comparison, never an exact total or a spending bound.
+    return result.planning.scenarios?.find(row => row.scope === "COMPARISON" &&
+        typeof row.label === "string" && row.label.length > 0 &&
+        typeof row.assumption === "string" && row.assumption.length > 0 &&
+        costMoney(row.amount_usd) !== null) || null;
+}
+
 function actualText(value) {
     return typeof value === "string" && value.length > 0 && value.length <= 512 && !/[\x00-\x1f\x7f]/.test(value);
 }
@@ -2503,7 +2540,7 @@ function actualCostText(node, detail = false) {
     const state = node.__orvActualState || emptyActualState(), receipt = state.receipt;
     if (state.status === "KNOWN" && receipt) {
         const amount = costMoney(receipt.amount);
-        if (amount !== null) return detail ? `Last completed job · $${receipt.amount} USD ACTUAL\n${receipt.model} · ${receipt.job}` : `$${amount} ACTUAL`;
+        if (amount !== null) return detail ? `Last completed job · $${amount} USD ACTUAL\n${receipt.model} · ${receipt.job}` : `$${amount} ACTUAL`;
     }
     if (state.status === "NO_JOB" && !node.__orvActualBindingUnavailable) return detail ? "No completed job." : "";
     const reason = ({ CONFLICT: "conflicting completion", INVALID_ACTUAL: "invalid reported cost", MISSING: "cost not reported" })[state.status] || "execution ownership unavailable";
@@ -2547,6 +2584,7 @@ function drawCostBadgeLabel(node, ctx, text, x, y, width) {
 }
 
 function renderCostDetails(node, detail) {
+    const expanded = detail.querySelector?.("details")?.open || false;
     const text = costDetailsText(node);
     detail.textContent = text;
     const actual = actualCostText(node, true);
@@ -2556,6 +2594,17 @@ function renderCostDetails(node, detail) {
         span.textContent = actual;
         span.style.color = ACI_INDICATOR_COLORS.green;
         detail.append(span);
+    }
+    const technical = costTechnicalDetailsText(node);
+    if (technical && typeof document !== "undefined") {
+        const section = document.createElement("details");
+        section.open = expanded;
+        const summary = document.createElement("summary");
+        summary.textContent = "Technical details";
+        const body = document.createElement("div");
+        body.textContent = technical;
+        section.append(summary, body);
+        detail.append(section);
     }
 }
 
@@ -2721,7 +2770,7 @@ function costDetailAccent(node) {
     const result = node.__orvEstimate?.result;
     const planning = result?.planning;
     // Violet marks informational comparisons/components only, never the primary price.
-    if (["RATE_ONLY", "PARTIAL", "UNKNOWN"].includes(result?.state) &&
+    if (!costAdvisoryComparison(result) && ["RATE_ONLY", "PARTIAL", "UNKNOWN"].includes(result?.state) &&
         planning?.version === "ACI-PLANNING-1" && planning.display === "DETAIL_ONLY" &&
         planning.scenarios?.some(row => ["COMPARISON", "COMPONENT"].includes(row.scope) && costMoney(row.amount_usd) !== null)) {
         return ACI_INDICATOR_COLORS.violet;
@@ -2770,6 +2819,8 @@ function costBadgeText(result) {
             const lower = costMoney(planning.scenario_min_usd), upper = costMoney(planning.scenario_max_usd);
             if (lower !== null && upper !== null) return `≈ $${lower}–${upper} MODEL`;
         }
+        const comparison = costAdvisoryComparison(result);
+        if (comparison) return `≈ $${costMoney(comparison.amount_usd)} MODEL`;
     }
     if (state === "RATE_ONLY" && result.rate_usd != null) {
         const rate = costDecimalShift(result.rate_usd, 0);
@@ -2779,7 +2830,7 @@ function costBadgeText(result) {
                 if (million !== null) return `$${million}/M tok RATE`;
             }
             const unit = ["s", "output_seconds", "source_seconds", "OUTPUT_SECOND"].includes(result.rate_unit) ? "s" : result.rate_unit;
-            return `$${rate}/${unit || "unit"} RATE`;
+            return `$${costMoney(rate)}/${unit || "unit"} RATE`;
         }
     }
     return ({ PARTIAL: "COST PARTIAL", STALE: "PRICE STALE", INVALID: "CHECK INPUTS",
@@ -2789,21 +2840,50 @@ function costBadgeText(result) {
 function costDetailsText(node) {
     expireCostPresentation(node);
     const result = node.__orvEstimate?.result;
+    const lines = [String(node.__orvEstimate?.value || "PRICE UNKNOWN"),
+        `${canonicalModel(node) || ""} · ${widget(node, "inference_method")?.value || ""}`];
+    const comparison = costAdvisoryComparison(result);
+    if (comparison) {
+        lines.push("Advisory comparison, not a quote or total. Selected billing is not fully disclosed.",
+            `${comparison.label}: ≈ $${costMoney(comparison.amount_usd)}`,
+            comparison.assumption);
+    } else if (["UNKNOWN", "RATE_ONLY", "PARTIAL"].includes(result?.state) &&
+        ["MODELLED", "SCENARIO_RANGE"].includes(result.planning?.display)) {
+        lines.push("Advisory pricing scenario, not a quote or spending cap.");
+        if (result.planning.scenarios?.[0]?.assumption) lines.push(result.planning.scenarios[0].assumption);
+    } else {
+        const description = { FORMULA: "Estimate from published pricing; final cost may differ.",
+            RANGE: "Documented price alternatives; not a spending cap.",
+            RATE_ONLY: "Published rate; billable quantity is not yet known.",
+            PARTIAL: "Known components only; the total is not determined.",
+            INVALID: "Check the required inputs and selected settings.",
+            STALE: "Pricing has expired. Refresh the catalogue.", CALCULATING: "Updating the estimate…" };
+        lines.push(description[result?.state] || "No useful numerical pricing scenario is available.");
+        const reason = result?.reason_codes?.[0] || result?.reason;
+        if (reason) lines.push(costReasonText(reason));
+    }
+    lines.push(actualCostText(node, true));
+    return lines.filter(Boolean).join("\n");
+}
+
+function costTechnicalDetailsText(node) {
+    expireCostPresentation(node);
+    const result = node.__orvEstimate?.result;
     const lines = [String(node.__orvEstimate?.value || "PRICE UNKNOWN")];
     if (result) {
         lines.push(`${canonicalModel(node) || ""} · ${widget(node, "inference_method")?.value || ""}`);
         if (result.observed_at) lines.push(`Catalogue observed ${result.observed_at}`);
         for (const row of result.breakdown || []) {
-            const amount = row.amount_usd == null ? "quantity unknown" : `$${row.amount_usd}`;
-            lines.push(`${row.sku}: ${row.quantity ?? "?"} × $${row.rate_usd} = ${amount}${row.relation === "minimum" ? " (request floor)" : ""}`);
+            const amount = row.amount_usd == null ? "quantity unknown" : `$${costCompactDecimal(row.amount_usd)}`;
+            lines.push(`${row.sku}: ${costCompactDecimal(row.quantity)} × $${costCompactDecimal(row.rate_usd)} = ${amount}${row.relation === "minimum" ? " (request floor)" : ""}`);
         }
         if (result.state === "PARTIAL") lines.push("Known components are not a total or a lower bound.");
         if (result.state === "RANGE") lines.push("Documented alternatives; this range is not a spending cap.");
         if (result.planning?.version === "ACI-PLANNING-1") {
             lines.push("Limited billing transparency. OpenRouter does not fully disclose the billing mechanism for this configuration.", "Modelled scenarios are not a quote, a bound, or spending authorization.");
             for (const scenario of result.planning.scenarios || []) {
-                lines.push(`${scenario.scope}: ${scenario.label} · $${scenario.amount_usd}`, scenario.assumption);
-                for (const charge of scenario.charges || []) lines.push(`${charge.sku}: ${charge.quantity ?? "?"} ${charge.quantity_unit || ""} × $${charge.rate_usd}/${charge.quantity_unit || "unit"} = $${charge.amount_usd}`);
+                lines.push(`${scenario.scope}: ${scenario.label} · $${costCompactDecimal(scenario.amount_usd)}`, scenario.assumption);
+                for (const charge of scenario.charges || []) lines.push(`${charge.sku}: ${costCompactDecimal(charge.quantity)} ${charge.quantity_unit || ""} × $${costCompactDecimal(charge.rate_usd)}/${charge.quantity_unit || "unit"} = $${costCompactDecimal(charge.amount_usd)}`);
             }
             if (result.planning.missing?.length) lines.push(`Missing: ${result.planning.missing.join(", ")}`);
         }
@@ -2872,6 +2952,7 @@ function discardCurrentCost(node, reason) {
 }
 
 function bindCostBadge(node, badge) {
+    badge.removeAttribute?.("title");
     if (badge.__orvCostBound) return;
     badge.__orvCostBound = true;
     badge.tabIndex = 0;
@@ -2880,11 +2961,19 @@ function bindCostBadge(node, badge) {
     const close = () => {
         node.__orvCostPopover?.remove();
         node.__orvCostPopover = null;
+        node.__orvCostPopoverOwner = null;
         badge.setAttribute("aria-expanded", "false");
     };
     const open = (pinned) => {
         expireCostPresentation(node);
+        for (const other of costPresentationNodes) if (other !== node && other.__orvCostPopover) {
+            other.__orvCostPopover.remove();
+            other.__orvCostPopover = null;
+            other.__orvCostPopoverOwner?.setAttribute("aria-expanded", "false");
+            other.__orvCostPopoverOwner = null;
+        }
         node.__orvCostPinned = pinned;
+        node.__orvCostPopoverOwner = badge;
         if (!node.__orvCostPopover) {
             const detail = document.createElement("div");
             detail.className = "orv-cost-detail";
@@ -2919,6 +3008,20 @@ function bindCostBadge(node, badge) {
 
 function syncClassicCostBadge(node, ctx, rect) {
     if (typeof document === "undefined") return;
+    const vue = [...(document.querySelectorAll?.(".lg-node[data-node-id]") || [])]
+        .some(element => element.dataset.nodeId === String(node.id));
+    const inactive = node.graph && (app.canvas?.graph || app.graph)?.getNodeById?.(node.id) !== node;
+    if (vue || inactive) {
+        const badge = node.__orvClassicCostBadge;
+        if (badge) badge.hidden = true;
+        if (badge && node.__orvCostPopoverOwner === badge) {
+            node.__orvCostPopover?.remove();
+            node.__orvCostPopover = null;
+            node.__orvCostPopoverOwner = null;
+            badge.setAttribute("aria-expanded", "false");
+        }
+        return;
+    }
     if (!ctx?.canvas || !rect) {
         if (node.__orvClassicCostBadge) node.__orvClassicCostBadge.hidden = true;
         return;
@@ -2949,7 +3052,7 @@ function syncClassicCostBadge(node, ctx, rect) {
     badge.style.color = colors.accent;
     badge.style.backgroundColor = colors.background || "transparent";
     badge.setAttribute("aria-label", `Next estimate: ${node.__orvEstimate?.value || "PRICE UNKNOWN"}. ${actualCostText(node, true)} Cost details`);
-    badge.title = costDetailsText(node);
+    badge.removeAttribute?.("title");
 }
 
 function costMediaOccurrences(node, topology) {

@@ -261,10 +261,83 @@ test("R3 distinguishes modelled money from EST and uses exact decimal rendering"
 test("R3 limited transparency disclosure and comparison details",()=>{
     const {c,n}=harness();
     c.setCostPresentation(n,{state:"UNKNOWN",planning:{...modelPlan,display:"DETAIL_ONLY",scenarios:[{scope:"COMPARISON",label:"with audio",amount_usd:"0.20",assumption:"not selected silent mode"}]}});
-    assert.match(c.costDetailsText(n),/Limited billing transparency/);
-    assert.match(c.costDetailsText(n),/COMPARISON/);
-    assert.match(c.costDetailsText(n),/not a quote, a bound, or spending authorization/);
-    assert.equal(n.__orvEstimate.value,"PRICE UNKNOWN");
+    assert.match(c.costDetailsText(n),/Advisory comparison, not a quote or total/);
+    assert.match(c.costDetailsText(n),/with audio: ≈ \$0.20/);
+    assert(!c.costDetailsText(n).includes(" × "));
+    assert.match(c.costTechnicalDetailsText(n),/COMPARISON/);
+    assert.equal(n.__orvEstimate.value,"≈ $0.20 MODEL");
+});
+
+test("Owner UX: the existing Gemini comparison becomes an honest yellow advisory without changing Core",()=>{
+    const {c,n}=harness();
+    const result={state:"UNKNOWN",planning:{version:"ACI-PLANNING-1",display:"DETAIL_ONLY",scenarios:[{
+        scope:"COMPARISON",label:"with-audio output component (comparison)",amount_usd:"0.208512",
+        assumption:"Published with-audio output rate; selected audio and input charges may differ.",
+        charges:[{sku:"output_seconds",quantity:"3.00000000",rate_usd:"0.069504000000",amount_usd:"0.208512",quantity_unit:"s"}]
+    }]}};
+    const before=JSON.stringify(result);c.setCostPresentation(n,result);
+    assert.equal(n.__orvEstimate.value,"≈ $0.21 MODEL");
+    assert.equal(c.costBadgeColors(n,n.__orvEstimate.value).accent,"#FFBB00");
+    assert.match(c.costDetailsText(n),/not a quote or total/);
+    assert.match(c.costDetailsText(n),/input charges may differ/);
+    assert(!c.costDetailsText(n).includes("0.208512"));
+    assert(!c.costDetailsText(n).includes("output_seconds"));
+    assert.equal(JSON.stringify(result),before,"No tariff, amount, scope or Core state mutation");
+});
+
+test("Owner UX: no advisory total is fabricated from components, malformed comparisons or expired states",()=>{
+    const {c}=harness();
+    for(const row of [
+        {scope:"COMPONENT",label:"input only",assumption:"not total",amount_usd:"0.2"},
+        {scope:"COMPARISON",label:"invalid",assumption:"invalid",amount_usd:"NaN"},
+        {scope:"COMPARISON",label:"unqualified",amount_usd:"1"},
+    ])assert.equal(c.costBadgeText({state:"UNKNOWN",planning:{version:"ACI-PLANNING-1",display:"DETAIL_ONLY",scenarios:[row]}}),"PRICE UNKNOWN");
+    const planning={version:"ACI-PLANNING-1",display:"DETAIL_ONLY",scenarios:[{scope:"COMPARISON",label:"published scenario",assumption:"not a quote",amount_usd:"0.2"}]};
+    assert.equal(c.costBadgeText({state:"INVALID",planning}),"CHECK INPUTS");
+    assert.equal(c.costBadgeText({state:"STALE",planning}),"PRICE STALE");
+    assert.equal(c.costBadgeText({state:"FORMULA",amount_usd:"4.8535200",planning}),"≈ $4.85 EST.");
+});
+
+test("Owner UX: compact decimal precision is bounded without turning tiny positive rates into zero",()=>{
+    const {c}=harness();
+    for(const [input,expected] of [["0.3267354000000","0.3267"],["4.8535200","4.8535"],["0.20000000000","0.2"],
+        ["1.9999999","2"],["0.0000001","<0.0001"],["0","0"],["NaN","?"]])assert.equal(c.costCompactDecimal(input),expected);
+    assert.equal(c.costBadgeText({state:"RATE_ONLY",rate_usd:"0.3267354000000",rate_unit:"s"}),"$0.33/s RATE");
+});
+
+test("Owner UX: one custom tooltip owner, no native title, and technical arithmetic collapsed by default",()=>{
+    const {c,n}=harness();
+    function element(tag){return {tag,style:{},children:[],attributes:{title:"legacy tooltip"},handlers:{},textContent:"",
+        setAttribute(k,v){this.attributes[k]=v;},removeAttribute(k){delete this.attributes[k];},
+        addEventListener(k,fn){this.handlers[k]=fn;},append(...items){for(const item of items){item.parent=this;this.children.push(item);}},
+        remove(){if(this.parent)this.parent.children=this.parent.children.filter(item=>item!==this);},
+        querySelector(name){return this.children.find(item=>item.tag===name);},focus(){},
+        getBoundingClientRect(){return {left:100,bottom:100};}};}
+    c.document={createElement:element,body:element("body")};c.window={innerWidth:1000,innerHeight:700};
+    const badge=element("button");c.setCostPresentation(n,{state:"FORMULA",amount_usd:"4.8535200",breakdown:[{sku:"duration",quantity:"3",rate_usd:"1.61784",amount_usd:"4.85352"}]});
+    c.bindCostBadge(n,badge);assert(!("title" in badge.attributes));
+    badge.handlers.mouseenter();badge.handlers.mouseenter();
+    assert.equal(c.document.body.children.length,1);
+    const section=n.__orvCostPopover.querySelector("details");assert.equal(section.open,false);
+    assert.equal(section.children[0].textContent,"Technical details");
+    assert(!c.costDetailsText(n).includes(" × "));
+    badge.handlers.mouseleave();assert.equal(c.document.body.children.length,0);
+});
+
+test("Owner UX: renderer and graph switches retire invisible Classic cost owners",()=>{
+    const {c,n}=harness();let removed=0;
+    const badge={hidden:false,setAttribute(){}};
+    n.__orvClassicCostBadge=badge;n.__orvCostPopoverOwner=badge;n.__orvCostPopover={remove(){removed++;}};
+    c.document={querySelectorAll(){return [{dataset:{nodeId:String(n.id)}}]}};
+    c.syncClassicCostBadge(n,{},{});
+    assert.equal(badge.hidden,true);assert.equal(removed,1);assert.equal(n.__orvCostPopover,null);
+    badge.hidden=false;n.__orvCostPopoverOwner=badge;n.__orvCostPopover={remove(){removed++;}};n.__orvResumeActualInstalled=true;
+    const root={dataset:{nodeId:String(n.id)},classList:{add(){}},querySelector(){return null;}};
+    c.document.querySelectorAll=()=>[root];c.syncBetaPresentation(n);
+    assert.equal(badge.hidden,true);assert.equal(removed,2);assert.equal(n.__orvCostPopover,null);
+    n.graph={};n.__orvCostPopover={remove(){removed++;}};
+    c.syncBetaPresentation(n);
+    assert.equal(removed,3);assert.equal(n.__orvCostPopover,null);
 });
 test("R3 expired result cannot present a numerical modelled estimate",async()=>{
     const {c,n,requests}=harness(); const pending=c.refreshEstimate(n);
@@ -303,9 +376,10 @@ test("R3.1 violet is informational detail only and resets on stale",()=>{
     const {c,n}=harness(); n.__orvCostPopover={style:{},textContent:""};
     for(const scope of ["COMPARISON","COMPONENT"]){
         c.setCostPresentation(n,{state:"UNKNOWN",planning:{...modelPlan,display:"DETAIL_ONLY",scenarios:[{scope,label:"illustration",amount_usd:"1.20",assumption:"not total"}]}});
-        assert.equal(n.__orvEstimate.value,"PRICE UNKNOWN");
-        assert.equal(c.costBadgeColors(n,n.__orvEstimate.value).accent,"");
-        assert.equal(n.__orvCostPopover.style.borderColor,"#9E6BFF");
+        const comparison=scope==="COMPARISON";
+        assert.equal(n.__orvEstimate.value,comparison?"≈ $1.20 MODEL":"PRICE UNKNOWN");
+        assert.equal(c.costBadgeColors(n,n.__orvEstimate.value).accent,comparison?"#FFBB00":"");
+        assert.equal(n.__orvCostPopover.style.borderColor,comparison?"#FFBB00":"#9E6BFF");
     }
     c.setCostPresentation(n,{state:"STALE",planning:modelPlan});
     assert.equal(n.__orvCostPopover.style.borderColor,"");

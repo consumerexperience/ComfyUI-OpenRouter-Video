@@ -278,7 +278,9 @@ test("mixed MODEL/ACTUAL uses Yellow and Green separately on Canvas and DOM", as
     const detail = new Element(); h.c.renderCostDetails(h.n, detail);
     assert.equal(detail.children[0].style.color, "#0ACF83");
     h.n.__orvActualState = { status: "MISSING", receipt: null, watermark: 2 };
-    h.c.renderCostDetails(h.n, detail); assert.equal(detail.children.length, 0);
+    h.c.renderCostDetails(h.n, detail);
+    assert(!detail.children.some(child=>child.style.color==="#0ACF83"));
+    assert(!detail.textContent.includes("2.28 USD ACTUAL"));
 });
 
 test("RATE_ONLY uses exact decimal scaling and never displays positive token rate as free", () => {
@@ -286,7 +288,7 @@ test("RATE_ONLY uses exact decimal scaling and never displays positive token rat
     assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.000001005", rate_unit: "token" }), "$1.01/M tok RATE");
     assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.000000000000000001", rate_unit: "token" }), "$<0.01/M tok RATE");
     assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.0000064", rate_unit: "token" }), "$6.40/M tok RATE");
-    assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.1234567890123456789", rate_unit: "s" }), "$0.1234567890123456789/s RATE");
+    assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.1234567890123456789", rate_unit: "s" }), "$0.12/s RATE");
 });
 
 function mediaFixture(h) {

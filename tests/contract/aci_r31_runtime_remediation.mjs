@@ -69,7 +69,30 @@ export function assertRuntimeRemediationScope(root, current) {
         assert.equal(expected.split(before).length - 1, 1, 'Declared insertion must occur exactly once');
         expected = expected.replace(before, after);
     }
-    assert.equal(normalized(current), expected, 'Only the declared import/restore remediation is authorized');
+    const pin = JSON.parse(readFileSync(new URL('tests/fixtures/aci_r31_runtime_remediation_candidate.json', root), 'utf8'));
+    if (pin.presentation_functions) {
+        const allowed = ['syncBetaPresentation', 'actualCostText', 'renderCostDetails', 'costDetailAccent',
+            'costBadgeText', 'costDetailsText', 'bindCostBadge', 'syncClassicCostBadge'];
+        const added = { costCompactDecimal: 'actualText', costAdvisoryComparison: 'actualText',
+            costTechnicalDetailsText: 'costReasonText' };
+        const find = (text, name) => {
+            const matches = [...text.matchAll(new RegExp(`^function ${name}\\([^\\n]*\\) \\{[\\s\\S]*?^\\}\\n`, 'gm'))];
+            assert.equal(matches.length, 1, `Unique presentation function ${name}`);
+            return matches[0][0];
+        };
+        for (const name of Object.keys(pin.presentation_functions)) assert([...allowed, ...Object.keys(added)].includes(name));
+        for (const name of [...allowed, ...Object.keys(added)]) {
+            const body = find(normalized(current), name);
+            assert.equal(createHash('sha256').update(body).digest('hex'), pin.presentation_functions[name], `${name} exact reviewed bytes`);
+            if (name !== 'syncBetaPresentation') assert(!/api\.|fetch\(|queuePrompt\(|handleActualExecuted\(/.test(body), 'Presentation cannot submit or change execution ownership');
+            if (added[name]) expected = expected.replace(`function ${added[name]}(`, () => body + `\nfunction ${added[name]}(`);
+            else expected = expected.replace(find(expected, name), () => body);
+        }
+    }
+    if (normalized(current) !== expected) {
+        const index = [...normalized(current)].findIndex((char, i) => char !== expected[i]);
+        assert.fail(`Undeclared source delta near ${index}: current=${JSON.stringify(normalized(current).slice(index - 30, index + 90))} expected=${JSON.stringify(expected.slice(index - 30, index + 90))}`);
+    }
 }
 
 export function remediationHistoricalSource(root, file, current) {
