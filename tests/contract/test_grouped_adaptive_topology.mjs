@@ -530,3 +530,128 @@ for(const globalGraphConfigure of [true,false])record(`Native-order reconstructi
     assert.deepEqual(canonicalDependencies(h,n).map(i=>i.origin),sources.map(o=>o.id),'all original20 occurrences survive target-before-source reconstruction');
     h.checkGraph(n);
 });
+
+// Predictable Progress: model the independently installed host writer, not just
+// the product's VM graph. This is a behavioral adversary, not copied host code.
+function withHostWriter(h,n) {
+    const groups={direct_references:{prefix:'reference_',min:0,max:100,inputSpecs:[{}]},unrelated:{marker:1}};
+    n.comfyDynamic={autogrow:groups};
+    const product=n.onConnectionsChange;
+    let writes=0;
+    n.onConnectionsChange=function(type,slot,connected,link,input){
+        product.call(this,type,slot,connected,link,input);
+        if(!groups.direct_references||!connected||!link)return;
+        const current=this.inputs[slot];
+        if(!current?.name.startsWith('direct_references.'))return;
+        const last=h.refs(this).at(-1);
+        if(current!==last)return;
+        const name=`direct_references.reference_${h.c.referenceInputSuffix(current)+1}`;
+        if(h.refs(this).some(i=>i.name===name))return;
+        writes++;this.addInput(name,'IMAGE,VIDEO,AUDIO,OPENROUTER_VIDEO_INPUT_REFERENCE',{label:name.split('.').at(-1)});
+    };
+    return {groups,writes:()=>writes};
+}
+record('PP01 native writer cannot append raw reference on a live connection or at Gemini capacity',()=>{
+    const h=harness(),m=model('google/gemini-omni-1.2-flash'),n=h.register(h.node(m,'MI2V'));
+    const host=withHostWriter(h,n);
+    h.apply(n,m,'MI2V','connection');
+    for(let i=1;i<=6;i++){
+        const input=h.refs(n).find(i=>i.link==null),slot=n.inputs.indexOf(input),o=h.origin('image');
+        assert(input);const link=o.connect(0,n,slot);assert(link);n.onConnectionsChange(1,slot,true,link,input);
+        assert.equal(host.writes(),0,'host must never add a second free reference');
+        h.flush();h.groups(n,m.method_profiles.MI2V.topology);assert.equal(h.active(n).length,i);
+    }
+    assert.equal(h.refs(n).length,6);assert.equal(host.groups.unrelated.marker,1);
+});
+record('PP02 price metadata change cannot cancel pending socket reconciliation',()=>{
+    const h=harness(),m=model('bytedance/seedance-2.5'),n=h.register(h.node(m,'MI2V'));
+    const input=h.refs(n)[0],slot=n.inputs.indexOf(input),o=h.origin('image');
+    const link=o.connect(0,n,slot);n.onConnectionsChange(1,slot,true,link,input);
+    n.__orvCostMetadataSignature='different';h.c.refreshEstimate=()=>{};
+    h.c.checkNativeCostMetadata(n);h.flush();
+    h.groups(n,m.method_profiles.MI2V.topology);assert.equal(h.refs(n).length,2);
+});
+record('PP03 live legacy alias captured, typed and included in count without link removal',()=>{
+    const h=harness(),m=model('google/gemini-omni-1.2-flash'),n=h.register(h.node(m,'MI2V'));
+    n.addInput('reference_32','IMAGE,OPENROUTER_VIDEO_INPUT_REFERENCE');
+    const input=n.inputs.at(-1),slot=n.inputs.indexOf(input),o=h.origin('image');
+    const link=o.connect(0,n,slot);n.onConnectionsChange(1,slot,true,link,input);h.flush();
+    assert.equal(input.name,'direct_references.reference_32');assert.equal(input.label,'image_1');
+    assert.equal(input.link,link.id);assert.equal(h.active(n).length,1);h.groups(n,m.method_profiles.MI2V.topology);
+});
+record('PP04 mixed pricing context follows wire order rather than visible group order',()=>{
+    const h=harness(),m=model('bytedance/seedance-2.5'),n=h.node(m,'MMR2V');
+    for(const kind of ['video','image','audio','image'])h.add(n,kind);
+    const expected=['video','image','audio','image'];
+    assert.deepEqual(plain(h.c.selectedReferenceKinds(n)),expected);
+    assert.deepEqual(plain(h.c.costMediaOccurrences(n,m.method_profiles.MMR2V.topology).map(i=>i.kind)),expected);
+    h.groups(n,m.method_profiles.MMR2V.topology);
+});
+record('PP05 host writer excluded during 50-slot fill and model round trip; all occurrences retained',()=>{
+    const h=harness(),m=model('bytedance/seedance-2.5'),mini=model('bytedance/seedance-2.0-mini'),n=h.register(h.node(m,'MMR2V'));
+    const host=withHostWriter(h,n);h.apply(n,m,'MMR2V','connection');
+    for(const [kind,count] of [['image',30],['video',10],['audio',10]])for(let i=0;i<count;i++){
+        const input=h.refs(n).find(i=>i.link==null&&i.type.split(',').includes(kind.toUpperCase()));assert(input);
+        const slot=n.inputs.indexOf(input),o=h.origin(kind),link=o.connect(0,n,slot);assert(link);
+        n.onConnectionsChange(1,slot,true,link,input);h.flush();h.groups(n,m.method_profiles.MMR2V.topology);
+    }
+    const before=canonicalDependencies(h,n);assert.equal(before.length,50);assert.equal(host.writes(),0);
+    h.apply(n,mini,'MMR2V');assert.equal(h.active(n).length,15);h.groups(n,mini.method_profiles.MMR2V.topology);
+    h.apply(n,m,'MMR2V');assert.deepEqual(canonicalDependencies(h,n),before);h.groups(n,m.method_profiles.MMR2V.topology);
+});
+record('PP06 full Seedance 2.5 input capacity must fit native reference_0..99 namespace',()=>{
+    const h=harness(),m=model('bytedance/seedance-2.5'),n=h.node(m,'MMR2V');
+    for(const [kind,count] of [['image',30],['video',10],['audio',10]])for(let i=0;i<count;i++)h.add(n,kind);
+    assert.equal(h.active(n).length,50);assert(h.refs(n).every(i=>h.c.referenceInputSuffix(i)<100));
+    const before=canonicalDependencies(h,n),identities=plain(n.properties.orv_capability_intent.media).map(e=>[e.id,e.order,e.origin_id]);
+    h.apply(n,m,'I2V');h.apply(n,m,'MMR2V');assert.deepEqual(canonicalDependencies(h,n),before);
+    assert.deepEqual(plain(n.properties.orv_capability_intent.media).map(e=>[e.id,e.order,e.origin_id]),identities);h.groups(n,m.method_profiles.MMR2V.topology);
+});
+record('PP07 repeated replacement and mixed-group switches cannot exhaust wire names or rewrite retained order',()=>{
+    const h=harness(),m=model('bytedance/seedance-2.5'),mini=model('bytedance/seedance-2.0-mini'),n=h.node(m,'MI2V');
+    const retained=h.add(n,'image').id;
+    for(let i=0;i<115;i++){
+        const o=h.add(n,'image'),input=h.refs(n).find(x=>x.link!=null&&h.graph.links[x.link].origin_id===o.id);
+        assert(h.refs(n).every(x=>h.c.referenceInputSuffix(x)<100),'bounded while two active');
+        h.unlink(input.link);h.apply(n,m,'MI2V','connection');
+        if(i%10===0){h.apply(n,mini,'MI2V');h.apply(n,m,'MI2V');}
+        assert.deepEqual(h.active(n).map(x=>x.origin),[retained]);
+    }
+    assert.equal(h.refs(n).length,2);h.groups(n,m.method_profiles.MI2V.topology);
+});
+record('PP08 compact wire names preserve more than 100 retained occurrences without submitting parked media',()=>{
+    const h=harness(),m=model('bytedance/seedance-2.5'),n=h.node(m,'MI2V');
+    // Construct saved owner-intent entries with distinct sources. Only a small
+    // compatible projection is active at any given time.
+    const all=Array.from({length:110},()=>h.origin('image'));
+    n.properties.orv_capability_intent.media=all.map((o,index)=>({id:`media_${index}`,order:index,owner_id:n.id,
+        origin_id:o.id,origin_slot:0,kind:'image',reference_name:`direct_references.reference_${index}`,roles:[],collection:false,active_name:null}));
+    h.apply(n,m,'MI2V');assert.equal(h.active(n).length,30);
+    assert.equal(n.properties.orv_capability_intent.media.length,110);
+    assert(h.refs(n).every(i=>h.c.referenceInputSuffix(i)<100));
+    const before=canonicalDependencies(h,n);h.apply(n,m,'T2V');assert.equal(h.active(n).length,0);
+    assert.equal(n.properties.orv_capability_intent.media.length,110);h.apply(n,m,'MI2V');
+    assert.deepEqual(canonicalDependencies(h,n),before);h.groups(n,m.method_profiles.MI2V.topology);
+});
+record('PP09 high parked logical ordinals activate as bounded canonical wires, without dropping parked sources',()=>{
+    const h=harness(),m=model('bytedance/seedance-2.5'),n=h.node(m,'MI2V');
+    const all=Array.from({length:110},(_,i)=>h.origin(i<100?'image':'video'));
+    n.properties.orv_capability_intent.media=all.map((o,index)=>({id:`media_${index}`,order:index,owner_id:n.id,
+        origin_id:o.id,origin_slot:0,kind:index<100?'image':'video',reference_name:`direct_references.reference_${index}`,roles:[],collection:false,active_name:null}));
+    h.apply(n,m,'VR2V');assert.deepEqual(canonicalDependencies(h,n).map(e=>e.origin),all.slice(100).map(o=>o.id));
+    assert(h.refs(n).every(i=>h.c.referenceInputSuffix(i)<100));assert.equal(n.properties.orv_capability_intent.media.length,110);
+    const before=canonicalDependencies(h,n);h.apply(n,m,'MI2V');h.apply(n,m,'VR2V');assert.deepEqual(canonicalDependencies(h,n),before);
+    h.groups(n,m.method_profiles.VR2V.topology);
+});
+record('PP10 stale model selection cannot accept a connection or apply old model method topology',()=>{
+    const h=harness(),m=model('bytedance/seedance-2.5'),g=model('google/gemini-omni-1.2-flash'),n=h.register(h.node(m,'MI2V'));
+    const retained=h.add(n,'image').id;h.c.bindInferenceMethod(n);
+    widget(n,'model').value=g.model_id;n.__orvPendingMediaSelection={model:g.model_id,method:'MI2V',revision:1};
+    const slot=n.inputs.findIndex(i=>i.link==null&&i.name.startsWith('direct_references.'));
+    assert.equal(h.origin('image').connect(0,n,slot),null,'do not connect against old model');
+    widget(n,'inference_method').value='I2V';widget(n,'inference_method').callback();
+    assert.equal(n.__orvCapability.model_id,m.model_id,'old snapshot retained until new projection arrives');
+    assert.equal(n.__orvProjectedKey,`${m.model_id}|MI2V`,'old topology not applied to new selection');
+    assert.equal(n.__orvPendingMediaSelection.model,g.model_id);assert.equal(n.__orvPendingMediaSelection.method,'I2V');
+    assert.deepEqual(h.active(n).map(i=>i.origin),[retained]);
+});
