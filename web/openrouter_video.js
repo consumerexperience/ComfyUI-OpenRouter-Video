@@ -498,6 +498,11 @@ function installResponsiveHeight(node) {
     const previousResize = node.onResize;
     node.onResize = function (size, ...args) {
         const userResize = app.canvas?.resizing_node === this || this.__orvUserResizeActive;
+        if (this.__orvRestoreGeometry && !userResize) {
+            previousResize?.call(this,size,...args);
+            return;
+        }
+        if (userResize && !this.__orvAutomaticLayout && !this.__orvConfiguringMedia) delete this.__orvRestoreGeometry;
         if (userResize && !this.__orvAutomaticLayout && !this.__orvConfiguringMedia) this.__orvPreferredWidth = Math.max(320,size[0]);
         const minimum = this.computeSize?.()?.[1];
         if (Number.isFinite(minimum)) size[1] = Math.max(size[1], minimum);
@@ -518,6 +523,7 @@ function fitPresentationWidth(node) {
     if (!measured) return;
     if (node.__orvConfiguringMedia) return;
     if (node.__orvRestoreGeometry) {
+        if (!node.__orvCapability?.__methodProfile) return; // Decode saved total height only against hydrated controls.
         node.__orvPreferredWidth = Math.max(320,node.__orvRestoreGeometry[0]);
         node.__orvPreferredPromptExtra = Math.max(0,node.__orvRestoreGeometry[1]-measured[1]);
         delete node.__orvRestoreGeometry;
@@ -691,6 +697,7 @@ function syncBetaPresentation(node) {
         badge.setAttribute("aria-label", costDetailsText(node));
     }
     if (node.__orvResumeActualInstalled) return; // Resume adds cost disclosure only, no Generate widget/layout treatment.
+    if (!node.__orvUserResizeActive && !node.__orvRestoreGeometry) fitPresentationWidth(node);
     const duration = widget(node, "duration");
     if (duration?.__orvDurationAdapter && duration.options?.read_only) {
         const label = durationPresentationLabel(duration);

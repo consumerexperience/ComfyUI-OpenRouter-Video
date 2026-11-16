@@ -51,7 +51,9 @@ test('PUX03 v1.1 delayed native onResize cannot become user intent',()=>{
 });
 
 test('PUX03 v1.1 native saved size reconstructs independent preferred geometry',()=>{
- const n=fixture(800);n.__orvRestoreGeometry=[610,970];c.fitPresentationWidth(n);
+ const n=fixture(800);n.__orvRestoreGeometry=[610,970];
+ n.onResize(n.size);c.fitPresentationWidth(n);assert(n.__orvRestoreGeometry);
+ n.__orvCapability={__methodProfile:{}};c.fitPresentationWidth(n);
  const extra=n.__orvPreferredPromptExtra;assert.equal(n.size[0],610);assert.equal(n.size[1],970);
  n.socketHeight+=100;c.fitPresentationWidth(n);assert.equal(n.size[1],1070);assert.equal(n.__orvPreferredPromptExtra,extra);
  const other=fixture(500);assert.notEqual(other.__orvPreferredPromptExtra,extra);
