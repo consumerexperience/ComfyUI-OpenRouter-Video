@@ -32,6 +32,9 @@ function normalizeLayoutCandidate(root,current) {
     restored=restored.replace(added+'\n','');
     const registration='            if (Array.isArray(args[0]?.size) && args[0].size.length === 2 && args[0].size.every(Number.isFinite)) this.__orvRestoreGeometry = [...args[0].size];\n';
     assert.equal(restored.split(registration).length,2);restored=restored.replace(registration,'');
+    const sizing='capacitySummaryLines(this,this.__orvPreferredWidth || this.size?.[0] || width)';
+    assert.equal(restored.split(sizing).length,2);
+    restored=restored.replace(sizing,'capacitySummaryLines(this,width || this.size?.[0])');
     assert.equal(restored,base,'Only exact authorized layout functions/helper/restore geometry capture');
     return base;
 }

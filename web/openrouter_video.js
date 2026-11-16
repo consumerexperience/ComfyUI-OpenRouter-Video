@@ -490,24 +490,25 @@ function installResponsiveHeight(node) {
         this.__orvMeasuringMinimum = true;
         try {
             const measured = previousCompute?.apply(this, args);
-            if (measured) measured[0] = 225; // Pinned native Vue resize minimum; labels never set node width.
+            if (measured) measured[0] = 320; // Shared floor for native control/slot columns; labels never set node width.
             return measured;
         }
         finally { this.__orvMeasuringMinimum = false; }
     };
     const previousResize = node.onResize;
     node.onResize = function (size, ...args) {
+        const userResize = app.canvas?.resizing_node === this || this.__orvUserResizeActive;
+        if (userResize && !this.__orvAutomaticLayout && !this.__orvConfiguringMedia) this.__orvPreferredWidth = Math.max(320,size[0]);
         const minimum = this.computeSize?.()?.[1];
         if (Number.isFinite(minimum)) size[1] = Math.max(size[1], minimum);
-        const userResize = app.canvas?.resizing_node === this || this.__orvUserResizeActive;
         if (userResize && !this.__orvAutomaticLayout && !this.__orvConfiguringMedia && Number.isFinite(minimum)) {
             this.__orvPreferredPromptExtra = Math.max(0,size[1]-minimum);
-            this.__orvPreferredWidth = Math.max(225,size[0]);
+            this.__orvPreferredWidth = Math.max(320,size[0]);
         } else if (!this.__orvConfiguringMedia && Number.isFinite(this.__orvPreferredWidth) && Number.isFinite(minimum)) {
             size[0] = this.__orvPreferredWidth;
             size[1] = minimum + (this.__orvPreferredPromptExtra || 0);
         }
-        size[0] = Math.max(225,size[0]);
+        size[0] = Math.max(320,size[0]);
         previousResize?.call(this, size, ...args);
     };
 }
@@ -517,7 +518,7 @@ function fitPresentationWidth(node) {
     if (!measured) return;
     if (node.__orvConfiguringMedia) return;
     if (node.__orvRestoreGeometry) {
-        node.__orvPreferredWidth = Math.max(225,node.__orvRestoreGeometry[0]);
+        node.__orvPreferredWidth = Math.max(320,node.__orvRestoreGeometry[0]);
         node.__orvPreferredPromptExtra = Math.max(0,node.__orvRestoreGeometry[1]-measured[1]);
         delete node.__orvRestoreGeometry;
     }
@@ -526,7 +527,7 @@ function fitPresentationWidth(node) {
         if (node.__orvIsNewNode) width = Math.max(COMPACT_LAYOUT.width, width);
         node.__orvPresentationWidthInitialized = true;
     }
-    width = Math.fround(Math.max(225,width));
+    width = Math.fround(Math.max(320,width));
     node.__orvPreferredWidth = width;
     if (!Number.isFinite(node.__orvPreferredPromptExtra)) {
         node.__orvPreferredPromptExtra = Math.max(0,(node.size?.[1] || 0)-measured[1]);
@@ -644,7 +645,7 @@ function syncBetaPresentation(node) {
         }
     }
     root.classList.add("orv-nodes2");
-    root.style && (root.style.minWidth = "225px");
+    root.style && (root.style.minWidth = "320px");
     if (!root.__orvGeometryBound && root.addEventListener) {
         root.__orvGeometryBound = true;
         root.addEventListener("pointerdown", event => {
@@ -659,7 +660,7 @@ function syncBetaPresentation(node) {
                 const minimum = node.computeSize?.()?.[1];
                 if (Number.isFinite(minimum)) {
                     node.__orvPreferredPromptExtra = Math.max(0,node.size[1]-minimum);
-                    node.__orvPreferredWidth = Math.max(225,node.size[0]);
+                    node.__orvPreferredWidth = Math.max(320,node.size[0]);
                 }
                 node.__orvUserResizeActive = false;
                 fitPresentationWidth(node);
@@ -700,7 +701,7 @@ function syncBetaPresentation(node) {
     const rows = [...grid.querySelectorAll(':scope > [data-testid="node-widget"]')];
     const labelWidth = Math.max(112,Math.min(160,128+((node.size?.[0] || 400)-400)/3));
     // Native subgrid owns controls and hit testing. Only its column budget changes.
-    grid.style.gridTemplateColumns = `${labelWidth}px minmax(0, 1fr)`;
+    grid.style.gridTemplateColumns = `min-content ${labelWidth}px minmax(125px, 1fr)`;
     for (const row of rows) {
         if (row.style) {
             row.style.minWidth = "0";
@@ -4244,7 +4245,7 @@ app.registerExtension({
             setVisible(this.__orvAdvanced, false);
             this.__orvSummary = addReadOnlyWidget(this, "REFERENCES", "");
             this.__orvSummary.label = " ";
-            this.__orvSummary.__orvComputeSize = (width) => [0, Math.max(22,capacitySummaryLines(this,width || this.size?.[0]).length * 18 + 4)];
+            this.__orvSummary.__orvComputeSize = (width) => [0, Math.max(22,capacitySummaryLines(this,this.__orvPreferredWidth || this.size?.[0] || width).length * 18 + 4)];
             this.__orvSummary.draw = (ctx, node, width, y) => {
                 ctx.save();
                 ctx.font = "12px sans-serif";

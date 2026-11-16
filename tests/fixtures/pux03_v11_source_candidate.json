@@ -2,12 +2,12 @@
   "baseline": "059216452192cac427466cb8d404f9957b09a848",
   "baseline_sha256": "2127129ce26d3a7528130b3baea0103a282601250f94a3eae734685b7c8b6f2f",
   "status": "UNACCEPTED_LAYOUT_V11",
-  "candidate_sha256": "67a74ec1f5fc3b1c626af52cdc48ec8824b6fa9b5d32eb73162603c7f6d384a1",
+  "candidate_sha256": "334c64ddbf6e300698c0a0b79421d7ca3e34a4b9d3b1fe36cb1516a074a54240",
   "functions": {
     "sizePrimaryControls": "c3c9ca54e669274621907b6e1e3026513eebba308155fe0242c50363b51d0c75",
-    "installResponsiveHeight": "e02ea58fa96e4775d58f6f4a20a72fa079fd6884cd8732921747a9f663a403df",
-    "fitPresentationWidth": "6521e267b3da27b188881cb48ff7fe9850ad76e33a812b5f9b63dc79c5fa93a4",
-    "syncBetaPresentation": "902ca8e6b09d1a6190443b1fcb8287e7aa2bd8e6baae9657f41f53151c1ae4f9"
+    "installResponsiveHeight": "c7c68368efc247604c67ff335ed0ff9d589d17f94a921c59524f3c2abad07f7f",
+    "fitPresentationWidth": "11b8720bba451cd850e87853efadefa957258e3058a9477c7e888f4b20bec276",
+    "syncBetaPresentation": "6cea513e2e9916043a9c478a0152710eedcbfd7b266c1c3a820bbb2fae3f13f7"
   },
   "added_helper_sha256": "d1744af9743044a3a5f82f9d630ef566b2e517d95c35b649b2887262cb522408"
 }

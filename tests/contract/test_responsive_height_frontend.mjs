@@ -42,7 +42,7 @@ test('PUX03 v1.1 content changes preserve preferred Prompt and anchored position
 
 test('PUX03 v1.1 delayed native onResize cannot become user intent',()=>{
  const n=fixture(800);n.setSize([620,920]);const preferred=n.__orvPreferredPromptExtra;
- for(const size of [[225,10],[900,1800],[400,442]]){
+ for(const size of [[320,10],[900,1800],[400,442]]){
    n.size=size;n.onResize(size);assert.equal(n.__orvPreferredPromptExtra,preferred);
    assert.equal(n.size[0],620);assert.equal(n.size[1],n.computeSize()[1]+preferred);
  }
@@ -55,7 +55,7 @@ test('PUX03 v1.1 native saved size reconstructs independent preferred geometry',
  const extra=n.__orvPreferredPromptExtra;assert.equal(n.size[0],610);assert.equal(n.size[1],970);
  n.socketHeight+=100;c.fitPresentationWidth(n);assert.equal(n.size[1],1070);assert.equal(n.__orvPreferredPromptExtra,extra);
  const other=fixture(500);assert.notEqual(other.__orvPreferredPromptExtra,extra);
- n.__orvRestoreGeometry=[100,1];c.fitPresentationWidth(n);assert.equal(n.size[0],225);assert.equal(n.__orvPreferredPromptExtra,0);
+ n.__orvRestoreGeometry=[100,1];c.fitPresentationWidth(n);assert.equal(n.size[0],320);assert.equal(n.__orvPreferredPromptExtra,0);
 });
 
 test('PUX03 v1.1 Float32 native bounds settle without a programmatic resize loop',()=>{

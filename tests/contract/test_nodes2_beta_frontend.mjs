@@ -46,8 +46,8 @@ test('PUX03 advanced textareas never compete with Prompt for flexible height',()
 
 test('PUX03 v1.1 shared column budget is bounded independently of labels and values',()=>{
  const {c,n,grid}=domFixture();n.size=[400,600];n.__orvPreferredPromptExtra=182;
- for(const [width,label] of [[225,112],[400,128],[1000,160]]){
-   n.size[0]=width;c.syncBetaPresentation(n);assert.equal(grid.style.gridTemplateColumns,`${label}px minmax(0, 1fr)`);
+ for(const [width,label] of [[320,112],[400,128],[1000,160]]){
+   n.size[0]=width;c.syncBetaPresentation(n);assert.equal(grid.style.gridTemplateColumns,`min-content ${label}px minmax(125px, 1fr)`);
    assert(grid.style.gridTemplateRows.includes('224px'));assert.equal(grid.style.flex,'0 0 auto');
  }
 });
@@ -55,7 +55,7 @@ test('PUX03 v1.1 shared column budget is bounded independently of labels and val
 test('PUX03 v1.1 native resize gesture is explicit; untrusted/layout events do not own geometry',()=>{
  const {c,n,grid}=domFixture(),root=c.document.querySelectorAll()[0],handlers={},frames=[];
  root.style={};root.addEventListener=(name,fn)=>handlers[name]=fn;c.requestAnimationFrame=fn=>frames.push(fn);
- n.size=[400,800];n.computeSize=()=>[225,400];c.syncBetaPresentation(n);
+ n.size=[400,800];n.computeSize=()=>[320,400];c.syncBetaPresentation(n);
  handlers.pointerdown({isTrusted:false,button:0,target:{closest:()=>({})}});assert(!n.__orvUserResizeActive);
  handlers.pointerdown({isTrusted:true,button:0,target:{closest:()=>null}});assert(!n.__orvUserResizeActive);
  handlers.pointerdown({isTrusted:true,button:0,target:{closest:()=>({})}});assert.equal(n.__orvUserResizeActive,true);
@@ -63,7 +63,7 @@ test('PUX03 v1.1 native resize gesture is explicit; untrusted/layout events do n
  n.size=[610,900];handlers.lostpointercapture();frames.shift()();frames.shift()();
  assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvPreferredPromptExtra,500);assert.equal(n.__orvUserResizeActive,false);
  assert(grid.style.gridTemplateRows.includes('542px'));assert.equal(grid.style.flex,'0 0 auto');
- assert.equal(root.style.minWidth,'225px');
+ assert.equal(root.style.minWidth,'320px');
 });
 
 test('PUX03 v1.1 Classic bounded cells retain native values, options and widget identity',()=>{
