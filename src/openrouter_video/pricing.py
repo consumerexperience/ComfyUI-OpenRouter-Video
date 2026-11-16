@@ -287,6 +287,7 @@ class EstimateResult:
     rules_version: str = RULES_VERSION
     context_revision: int = 0
     planning: Mapping[str, object] | None = None
+    precompletion_advisory: Mapping[str, object] | None = None
 
     def __post_init__(self) -> None:
         # Old positional constructors retain their behavior and gain the new contract.
@@ -889,6 +890,143 @@ def _rate_unit(quantity: str, declared_unit: object) -> str | None:
     return units.get(quantity)
 
 
+def precompletion_cost_estimate(
+    capabilities: ModelCapabilities, inputs: CostEstimateInputs, *, observed_at: datetime
+) -> EstimateResult | None:
+    """Price an explicitly hypothetical image completion, never executable intent.
+
+    The same projected bounds and estimator validate the completion. Unknown
+    time/geometry is never invented; an unresolved total is not promoted to REF.
+    """
+    from openrouter_video.configuration import (
+        configuration_status,
+        project_method,
+        project_semantic_values,
+        projected_shape_valid,
+    )
+
+    inputs = canonicalize_cost_metadata(inputs)
+    if inputs.schema_version != 2 or media_inventory_status(inputs) is not None:
+        return None
+    profile = project_method(capabilities, inputs.inference_method.value)
+    if profile["state"] != "SUPPORTED" or profile["topology"].get("fixed"):
+        return None
+    kinds = tuple(kind.value for kind in inputs.reference_kinds)
+    if projected_shape_valid(profile, kinds, inputs.source_video_present):
+        return None
+    maximum = profile["topology"].get("max")
+    ceiling = min(64, maximum) if maximum is not None else 64
+    added = next(
+        (
+            count
+            for count in range(1, max(0, ceiling - len(kinds)) + 1)
+            if projected_shape_valid(
+                profile, kinds + ("image",) * count, inputs.source_video_present
+            )
+        ),
+        None,
+    )
+    if added is None:
+        return None
+    hypothetical = replace(
+        inputs,
+        reference_count=inputs.reference_count + added,
+        reference_kinds=inputs.reference_kinds + (InputReferenceKind.IMAGE,) * added,
+        media=inputs.media
+        + tuple(MediaCostMetadata(kind=InputReferenceKind.IMAGE) for _ in range(added)),
+    )
+    if _invalid_reason(capabilities, hypothetical):
+        return None
+    names = (
+        "duration",
+        "resolution",
+        "aspect_ratio",
+        "size",
+        "generate_audio",
+        "upscale_factor",
+        "creativity",
+    )
+    raw = {name: getattr(hypothetical, name) for name in names}
+    raw["geometry_authority"] = "EXACT" if hypothetical.size else "NORMALIZED"
+    raw["provider_options"] = project_cost_provider_controls(capabilities, hypothetical)
+    try:
+        projected = project_semantic_values(capabilities, inputs.inference_method.value, raw)
+    except ValueError:
+        return None
+    context = dict(
+        raw,
+        inference_method=inputs.inference_method.value,
+        reference_count=hypothetical.reference_count,
+        reference_kinds=[kind.value for kind in hypothetical.reference_kinds],
+        source_video_present=hypothetical.source_video_present,
+    )
+    if (
+        configuration_status(tuple(profile["configuration_relations"]), projected, context)
+        != "READY"
+    ):
+        return None
+    priced = PreflightCostEstimator().estimate(capabilities, hypothetical, observed_at=observed_at)
+    assumption = f"Hypothetical completion: add {added} IMAGE reference(s); not executable yet."
+    amount = format(priced.amount_usd, "f") if priced.amount_usd is not None else None
+    scenario = {
+        "label": "Completed image-reference configuration",
+        "scope": "COMPARISON",
+        "sku": priced.applied_skus[0] if len(priced.applied_skus) == 1 else "combined_charges",
+        "quantity": "1",
+        "quantity_unit": "configuration",
+        "amount_usd": amount,
+        "assumption": assumption,
+        "charges": [
+            {
+                "sku": row.sku,
+                "unit": row.unit,
+                "quantity_unit": "documented_quantity",
+                "quantity": format(row.quantity, "f") if row.quantity is not None else None,
+                "rate_usd": format(row.rate_usd, "f"),
+                "amount_usd": format(row.amount_usd, "f") if row.amount_usd is not None else None,
+                "relation": row.relation,
+            }
+            for row in priced.breakdown
+        ],
+    }
+    if priced.state is not EstimateState.FORMULA or amount is None:
+        plan = priced.planning or {}
+        rows = plan.get("scenarios")
+        if (
+            plan.get("version") != "ACI-PLANNING-1"
+            or plan.get("display") != "DETAIL_ONLY"
+            or not isinstance(rows, list)
+            or len(rows) != 1
+            or not isinstance(rows[0], dict)
+            or rows[0].get("scope") not in {"COMPARISON", "COMPONENT"}
+            or not isinstance(rows[0].get("amount_usd"), str)
+        ):
+            return None
+        scenario = dict(rows[0])
+        amount = rows[0]["amount_usd"]
+        scenario["assumption"] = f"{scenario.get('assumption', '')} {assumption}".strip()
+    return replace(
+        EstimateResult.unavailable(
+            observed_at,
+            "required_inputs_missing",
+            state=EstimateState.INVALID,
+            context_revision=inputs.context_revision,
+        ),
+        rates_hash=priced.rates_hash,
+        applied_skus=priced.applied_skus,
+        precompletion_advisory={
+            "version": "ACI-PRECOMPLETION-1",
+            "currency": "USD",
+            "scope": scenario["scope"],
+            "amount_usd": amount,
+            "actual_reference_kinds": list(kinds),
+            "missing_inputs": [{"kind": "image", "role": "reference", "count": added}],
+            "completion_assumptions": [assumption],
+            "scenario": scenario,
+        },
+    )
+
+
 def _invalid_reason(capabilities: ModelCapabilities, inputs: CostEstimateInputs) -> str | None:
     if type(inputs.schema_version) is not int or inputs.schema_version not in {1, 2}:
         return "cost_schema_invalid"
@@ -998,6 +1136,7 @@ def explicit_v2_cost_input_reason(
     if inputs.schema_version != 2:
         return None
     from openrouter_video.configuration import (
+        combined_media_duration_reason,
         project_method,
         project_semantic_values,
         projected_shape_valid,
@@ -1048,7 +1187,8 @@ def explicit_v2_cost_input_reason(
     ):
         return "reference_shape_not_projected"
     limits = profile.get("media_limits", {})
-    for item in canonicalize_cost_metadata(inputs).media:
+    active_media = canonicalize_cost_metadata(inputs).media
+    for item in active_media:
         if item.status not in {"KNOWN", "HINT"}:
             continue
         rule = {**limits.get(item.kind.value, {}), **limits.get(item.role, {})}
@@ -1070,6 +1210,17 @@ def explicit_v2_cost_input_reason(
                     or (prefix == "max" and quantity > Decimal(str(bound)))
                 ):
                     return "media_metadata_outside_projected_limits"
+    for kind in (InputReferenceKind.VIDEO, InputReferenceKind.AUDIO):
+        durations = tuple(
+            item.duration_seconds if item.status in {"KNOWN", "HINT"} else None
+            for item in active_media
+            if item.kind is kind
+        )
+        reason = combined_media_duration_reason(
+            limits.get(kind.value, {}), durations, inputs.duration
+        )
+        if reason and reason != "media_combined_duration_unknown":
+            return reason
     return None
 
 

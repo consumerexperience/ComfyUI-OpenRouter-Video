@@ -387,3 +387,202 @@ def test_unstamped_revision_zero_has_no_metadata_authority_exception() -> None:
     body["media"][0].pop("occurrence_index")
     result = run(body)
     assert result.state == "RATE_ONLY" and result.amount_usd is None
+
+
+def wan_payload(
+    output: int = 10,
+    videos: tuple[str | None, ...] = ("5.041667",),
+    audios: tuple[str | None, ...] = (),
+) -> dict[str, Any]:
+    body = payload("alibaba/wan-3.0", InferenceMethod.MMR2V)
+    body.update(duration=output, resolution="1080p", aspect_ratio="16:9", generate_audio=False)
+    kinds = ["image", "image"] + ["video"] * len(videos) + ["audio"] * len(audios)
+    body.update(reference_count=len(kinds), reference_kinds=kinds)
+    body["media"] = []
+    for index, (kind, duration) in enumerate(
+        [("image", None), ("image", None)]
+        + [("video", value) for value in videos]
+        + [("audio", value) for value in audios]
+    ):
+        item: dict[str, Any] = dict(kind=kind, role="reference", status="UNKNOWN")
+        if duration is not None:
+            item.update(
+                status="HINT",
+                duration_seconds=duration,
+                occurrence_index=index,
+                context_revision=body["context_revision"],
+            )
+            if kind == "video":
+                item.update(width=720, height=416)
+        body["media"].append(item)
+    return body
+
+
+@pytest.mark.parametrize(
+    ("output", "videos", "audios", "reason"),
+    [
+        (25, ("5.041667",), (), "media_input_output_duration_exceeds_limit"),
+        (30, ("5.041667",), (), "media_input_output_duration_exceeds_limit"),
+        (10, ("8", "8"), (), "media_combined_duration_exceeds_limit"),
+        (10, ("5.041667",), ("8", "8"), "media_combined_duration_exceeds_limit"),
+    ],
+)
+def test_known_aggregate_violation_cannot_have_model_or_total(
+    output: int,
+    videos: tuple[str, ...],
+    audios: tuple[str, ...],
+    reason: str,
+) -> None:
+    result = run(wan_payload(output, videos, audios))
+    assert result.state == "INVALID"
+    assert result.reason == reason
+    assert result.amount_usd is result.estimated_cost_usd is None
+    assert result.planning is None
+
+
+@pytest.mark.parametrize("output", [10, 20, 24])
+@pytest.mark.parametrize("audio", [(), ("15",)])
+def test_valid_duration_boundaries_remain_available_to_existing_pricing(
+    output: int,
+    audio: tuple[str, ...],
+) -> None:
+    result = run(wan_payload(output, audios=audio))
+    assert result.state != "INVALID"
+    assert result.planning is not None
+    assert result.planning["display"] == ("DETAIL_ONLY" if audio else "MODELLED")
+
+
+@pytest.mark.parametrize("output", [10, 20])
+def test_individual_audio_just_over_limit_stays_invalid(output: int) -> None:
+    assert run(wan_payload(output, audios=("15.284535",))).state == "INVALID"
+
+
+def test_unknown_video_duration_is_not_zero_or_hard_invalid() -> None:
+    result = run(wan_payload(videos=(None,)))
+    assert result.state != "INVALID"
+    assert result.amount_usd is None
+
+
+def test_known_partial_sum_over_cap_is_invalid_even_with_unknown_duration() -> None:
+    assert run(wan_payload(videos=("8", "8", None))).state == "INVALID"
+
+
+@pytest.mark.parametrize("extra", ["0", "0.000001"])
+def test_exact_aggregate_boundary_and_just_over(extra: str) -> None:
+    from decimal import Decimal
+
+    second = str(Decimal("7.5") + Decimal(extra))
+    result = run(wan_payload(15, videos=("7.5", second)))
+    assert (result.state == "INVALID") == (extra != "0")
+
+
+def seedance_images(count: int) -> dict[str, Any]:
+    body = payload("bytedance/seedance-2.5", InferenceMethod.MI2V)
+    body.update(duration=8, resolution="720p", aspect_ratio="16:9", generate_audio=False)
+    body.update(reference_count=count, reference_kinds=["image"] * count)
+    body["media"] = [dict(kind="image", role="reference", status="UNKNOWN") for _ in range(count)]
+    return body
+
+
+@pytest.mark.parametrize("count", [0, 1, 2, 15, 30, 31])
+def test_image_boundaries_preserve_actual_intent_and_primary_readiness(count: int) -> None:
+    body = seedance_images(count)
+    saved = copy.deepcopy(body)
+    result = run(body)
+    assert body == saved
+    if count in {0, 1}:
+        assert result.state == "INVALID" and result.availability.value == "UNAVAILABLE"
+        assert result.amount_usd is result.estimated_cost_usd is None
+        assert result.lower_usd is result.upper_usd is None
+        assert result.planning is None
+        advisory = result.precompletion_advisory
+        assert advisory is not None
+        assert advisory["version"] == "ACI-PRECOMPLETION-1"
+        assert advisory["actual_reference_kinds"] == ["image"] * count
+        assert advisory["missing_inputs"] == [
+            {"kind": "image", "role": "reference", "count": 2 - count}
+        ]
+        assert Decimal(str(advisory["amount_usd"])) == Decimal("1.8489600")
+        assert advisory["scenario"]["amount_usd"] == advisory["amount_usd"]  # type: ignore[index]
+        assert result.rates_hash
+    elif count == 31:
+        assert result.state == "INVALID" and result.precompletion_advisory is None
+    else:
+        assert result.state == "FORMULA" and result.amount_usd == Decimal("1.8489600")
+        assert result.precompletion_advisory is None
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"duration": 1000},
+        {"resolution": "invalid"},
+        {"size": "1280x720"},
+        {"reference_count": 2},
+        {"reference_kinds": ["audio"]},
+        {"provider_controls": [{"provider": "unknown", "key": "unknown", "number_value": "2"}]},
+    ],
+)
+def test_incomplete_shape_cannot_mask_other_invalid_intent(change: dict[str, Any]) -> None:
+    body = seedance_images(1)
+    body.update(change)
+    result = run(body)
+    assert result.precompletion_advisory is None
+    assert result.amount_usd is None
+
+
+def test_no_advisory_for_stale_catalogue_or_missing_rates() -> None:
+    assert run(seedance_images(1), fresh=False).precompletion_advisory is None
+    cap = replace(model("bytedance/seedance-2.5"), pricing_evidence=None)
+    assert run(seedance_images(1), cap=cap).precompletion_advisory is None
+
+
+def test_incomplete_input_with_known_bad_geometry_gets_no_advisory() -> None:
+    body = payload("alibaba/wan-3.0", InferenceMethod.MI2V)
+    body.update(reference_count=1, reference_kinds=["image"])
+    body["media"] = [dict(kind="image", role="reference", status="UNKNOWN")]
+    body["media"][0].update(
+        status="HINT",
+        width=1,
+        height=1,
+        occurrence_index=0,
+        context_revision=1,
+    )
+    assert run(body).precompletion_advisory is None
+
+
+@pytest.mark.parametrize("method", [InferenceMethod.I2V, InferenceMethod.FLF2V])
+def test_missing_fixed_frames_are_not_fabricated_for_advisory(method: InferenceMethod) -> None:
+    body = payload("bytedance/seedance-2.5", method)
+    body["media"] = []
+    result = run(body)
+    assert result.amount_usd is None and result.precompletion_advisory is None
+
+
+def test_accepted_seedance_mixed_witness_keeps_yellow_scenario_semantics() -> None:
+    body = payload("bytedance/seedance-2.5", InferenceMethod.MMR2V)
+    body.update(duration=23, resolution="720p", aspect_ratio="16:9", generate_audio=False)
+    body.update(reference_count=4, reference_kinds=["image", "image", "video", "audio"])
+    body["media"] = [
+        dict(kind=kind, role="reference", status="UNKNOWN") for kind in body["reference_kinds"]
+    ]
+    for index, seconds in [(2, "5.041667"), (3, "15.284535")]:
+        body["media"][index].update(
+            status="HINT", duration_seconds=seconds, occurrence_index=index, context_revision=1
+        )
+    body["media"][2].update(width=720, height=416)
+    result = run(body)
+    assert result.precompletion_advisory is None
+    assert planning(result)["display"] == "SCENARIO_RANGE"
+    assert scenario_amounts(result) == {Decimal("5.3913600"), Decimal("5.3971200")}
+
+
+def test_identical_independent_contexts_and_restore_do_not_share_mutable_advisory() -> None:
+    first = seedance_images(1)
+    other = copy.deepcopy(first)
+    a, b = run(first), run(other)
+    first["duration"] = 10
+    changed = run(first)
+    assert a.precompletion_advisory == b.precompletion_advisory
+    assert changed.precompletion_advisory != b.precompletion_advisory
+    assert run(copy.deepcopy(other)).precompletion_advisory == b.precompletion_advisory

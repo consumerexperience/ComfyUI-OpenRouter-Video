@@ -2448,7 +2448,31 @@ function costCompactDecimal(value) {
     return `${units / 10000n}${tail ? `.${tail}` : ""}`;
 }
 
+function costPrecompletionAdvisory(result) {
+    const advisory = result?.precompletion_advisory, scenario = advisory?.scenario;
+    if (result?.state !== "INVALID" || result.availability !== "UNAVAILABLE" ||
+        result.reason !== "required_inputs_missing" ||
+        [result.amount_usd, result.estimated_cost_usd, result.lower_usd, result.upper_usd].some(value => value != null) ||
+        !Number.isSafeInteger(result.context_revision) || result.context_revision < 0 ||
+        !Number.isFinite(result.valid_for_ms) || !(result.valid_for_ms > 0) ||
+        !/^[a-f0-9]{64}$/.test(result.rates_hash || "") ||
+        advisory?.version !== "ACI-PRECOMPLETION-1" || advisory.currency !== "USD" ||
+        !["COMPARISON", "COMPONENT"].includes(advisory.scope) || scenario?.scope !== advisory.scope ||
+        costMoney(advisory.amount_usd) === null || scenario.amount_usd !== advisory.amount_usd ||
+        !Array.isArray(advisory.actual_reference_kinds) || advisory.actual_reference_kinds.length > 64 ||
+        !advisory.actual_reference_kinds.every(kind => ["image", "video", "audio"].includes(kind)) ||
+        !Array.isArray(advisory.missing_inputs) || !advisory.missing_inputs.length ||
+        !advisory.missing_inputs.every(item => item.kind === "image" && item.role === "reference" &&
+            Number.isInteger(item.count) && item.count > 0 && item.count <= 64) ||
+        !Array.isArray(advisory.completion_assumptions) || !advisory.completion_assumptions.length ||
+        !advisory.completion_assumptions.every(item => typeof item === "string" && item.trim().length > 0) ||
+        typeof scenario.assumption !== "string" || !scenario.assumption.trim()) return null;
+    return advisory;
+}
+
 function costAdvisoryComparison(result) {
+    const precompletion = costPrecompletionAdvisory(result);
+    if (precompletion) return precompletion.scenario;
     if (!["UNKNOWN", "RATE_ONLY", "PARTIAL"].includes(result?.state) ||
         result.planning?.version !== "ACI-PLANNING-1" || result.planning.display !== "DETAIL_ONLY") return null;
     if (result.state === "RATE_ONLY" && costMoney(result.rate_usd) !== null) return null;
@@ -2482,7 +2506,9 @@ function costText(key) {
             conditional:"Conditional total", alternative:"Alternative conditional totals", referenceScope:"Reference scenario",
             selected:"Selected configuration", audio:"Generate audio", on:"On", off:"Off", inputCharges:"Input charges", notEstablished:"Not established",
             lastJob:"Last completed job", actual:"Actual cost", job:"Job", modelLabel:"Model", actualUnavailable:"Unavailable",
-            referenceRow:"Reference", componentRow:"Component", seconds:"s", automatic:"Automatic", perSecond:"s", millionTokens:"M tok", modelUnavailable:"Model not selected" },
+            referenceRow:"Reference", componentRow:"Component", seconds:"s", automatic:"Automatic", perSecond:"s", millionTokens:"M tok", modelUnavailable:"Model not selected",
+            completionNote:"Reference for a completed input configuration, not a quote. Add the missing inputs before generation.",
+            missingInputs:"Missing inputs", imageReferences:"IMAGE references" },
         ru: { formula:"Расчётная стоимость", range:"Расчётный диапазон", model:"Модельная оценка", scenarios:"Сценарии стоимости",
             reference:"Справочная стоимость", component:"Компонент стоимости", details:"Сведения о стоимости", rate:"Опубликованный тариф",
             partial:"Частичная стоимость", unknown:"Цена неизвестна", invalid:"Проверьте входы", stale:"Цена устарела", calculating:"Расчёт стоимости",
@@ -2498,7 +2524,9 @@ function costText(key) {
             conditional:"Условная сумма", alternative:"Условные суммы по сценариям", referenceScope:"Справочный сценарий",
             selected:"Выбранная конфигурация", audio:"Генерация звука", on:"Вкл.", off:"Выкл.", inputCharges:"Стоимость входа", notEstablished:"Не установлена",
             lastJob:"Последняя завершённая операция", actual:"Фактическая стоимость", job:"Задание", modelLabel:"Модель", actualUnavailable:"Недоступна",
-            referenceRow:"Ориентир", componentRow:"Компонент", seconds:" с", automatic:"Автоматически", perSecond:"с", millionTokens:"млн ток.", modelUnavailable:"Модель не выбрана" }
+            referenceRow:"Ориентир", componentRow:"Компонент", seconds:" с", automatic:"Автоматически", perSecond:"с", millionTokens:"млн ток.", modelUnavailable:"Модель не выбрана",
+            completionNote:"Ориентир для дополненной конфигурации, не итоговая стоимость. Перед генерацией подключите недостающие входы.",
+            missingInputs:"Не хватает входов", imageReferences:"IMAGE-референсы" }
     };
     return messages[costLocale()][key] || messages.en[key] || "";
 }
@@ -2547,16 +2575,17 @@ function costRateLabel(result) {
 function costTooltipView(node) {
     expireCostPresentation(node);
     const result = node.__orvEstimate?.result || { state: "UNKNOWN" };
+    const precompletion = costPrecompletionAdvisory(result);
     const reference = costAdvisoryComparison(result), rows = costReferenceRows(result);
     const { kind, amount, accent } = costPriceView(result);
     const id = canonicalModel(node), model = widget(node, "model")?.__orvIdToLabel?.get(id) || node.__orvModelCapability?.display_name || costText("modelUnavailable");
     const chosenMethod = widget(node, "inference_method")?.value;
     const method = METHODS.includes(chosenMethod) ? chosenMethod : "";
     const selectedDuration = widget(node, "duration")?.value;
-    const duration = reference ? (reference.quantity_unit === "s" ? reference.quantity : null) : selectedDuration;
+    const duration = reference && !precompletion ? (reference.quantity_unit === "s" ? reference.quantity : null) : selectedDuration;
     const resolution = widget(node, "resolution")?.value;
     const referenceTier = reference && reference.sku?.endsWith(`_${resolution}`);
-    const geometry = reference ? (referenceTier ? resolution : null) :
+    const geometry = reference && !precompletion ? (referenceTier ? resolution : null) :
         geometryAuthority(node) === "EXACT" ? widget(node, "size")?.value : [resolution, widget(node, "aspect_ratio")?.value].filter(Boolean).join(" · ");
     const context = [geometry, duration === -1 ? costText("automatic") : duration != null && /^\d+(\.\d+)?$/.test(String(duration)) ? `${String(duration).replace(".", costLocale() === "ru" ? "," : ".")}${costText("seconds")}` : null].filter(Boolean).join(" · ");
     const silent = (result.reason_codes || [result.reason]).includes("AUDIO_EFFECTIVE_SEMANTICS_UNRESOLVED");
@@ -2566,6 +2595,8 @@ function costTooltipView(node) {
     const notes = { formula:"formulaNote", range:"rangeNote", model:"modelNote", scenarios:"scenariosNote", component:"componentNote", reference:silent?"silentNote":"referenceNote",
         details:"detailsNote", rate:"rateNote", partial:"partialNote", unknown:"unknownNote", invalid:"invalidNote", stale:"staleNote", calculating:"calculatingNote" };
     const sections = [];
+    if (precompletion) sections.push({ title:costText("missingInputs"), rows:
+        precompletion.missing_inputs.map(item => [costText("imageReferences"), String(item.count)]) });
     if (reference && silent) {
         const audio = widget(node,"generate_audio")?.value;
         sections.push({ title:costText("selected"), rows:[
@@ -2581,7 +2612,7 @@ function costTooltipView(node) {
         if (actualText(receipt.model) && receipt.model !== id) actualRows.push([costText("modelLabel"), widget(node, "model")?.__orvIdToLabel?.get(receipt.model) || costText("modelUnavailable")]);
         sections.push({ title:costText("lastJob"), rows:actualRows });
     } else if (["MISSING", "CONFLICT", "INVALID_ACTUAL"].includes(actual?.status) || node.__orvActualBindingUnavailable) sections.push({ title:costText("lastJob"), rows:[[costText("actual"), costText("actualUnavailable")]] });
-    return { kind, title:costText(kind), identity:`${String(model).replace(/^[^:]+:\s*/, "")}${method ? ` · ${method}` : ""}`, context, sub, amount, note:costText(notes[kind]), sections, accent };
+    return { kind, title:costText(kind), identity:`${String(model).replace(/^[^:]+:\s*/, "")}${method ? ` · ${method}` : ""}`, context, sub, amount, note:costText(precompletion ? "completionNote" : notes[kind]), sections, accent };
 }
 
 function costPriceView(result = {}) {
@@ -3516,7 +3547,8 @@ async function refreshEstimate(node) {
     if (referenceKinds === null) { unavailable("active_reference_shape_not_known"); return; }
     const profile = node.__orvCapability?.__methodProfile;
     const topology = applyTransportInputConstraints(profile?.topology, inputByName(node, "source_video")?.link != null);
-    if (profile?.state !== "SUPPORTED" || !topology || !referenceShapeValid(topology, referenceKinds)) {
+    if (profile?.state !== "SUPPORTED" || !topology ||
+        (!referenceShapeValid(topology, referenceKinds) && !referencePartialAllowed(topology, referenceKinds))) {
         unavailable("configuration_not_authorized", "INVALID"); return;
     }
     const sourcePresent = inputByName(node, "source_video")?.link != null;

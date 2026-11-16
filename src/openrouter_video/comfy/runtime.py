@@ -34,6 +34,7 @@ from openrouter_video.pricing import (
     EstimateState,
     PreflightCostEstimator,
     explicit_v2_cost_input_reason,
+    precompletion_cost_estimate,
     project_cost_provider_controls,
 )
 from openrouter_video.request_policy import OpenRouterRequestPolicy
@@ -257,6 +258,12 @@ class ProcessRuntime:
                         )
                     explicit_reason = explicit_v2_cost_input_reason(model, inputs)
                     if explicit_reason:
+                        if explicit_reason == "reference_shape_not_projected":
+                            advisory = precompletion_cost_estimate(
+                                model, inputs, observed_at=observation.observed_at
+                            )
+                            if advisory is not None:
+                                return advisory
                         return EstimateResult.unavailable(
                             observation.observed_at,
                             explicit_reason,

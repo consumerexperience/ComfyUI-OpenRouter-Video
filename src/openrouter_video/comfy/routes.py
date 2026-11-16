@@ -319,6 +319,7 @@ async def _cost_estimate_handler(request: Any) -> Any:
         "upper_usd": _cost_decimal(result.upper_usd),
         "range_kind": result.range_kind,
         "planning": result.planning,
+        "precompletion_advisory": result.precompletion_advisory,
         "valid_for_ms": max(
             0,
             min(

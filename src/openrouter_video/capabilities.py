@@ -21,6 +21,7 @@ from openrouter_video.client import DiscoveryClient
 from openrouter_video.configuration import (
     CONFIGURATION_KEY,
     REQUEST_SHAPES_KEY,
+    combined_media_duration_reason,
     configuration_status,
     input_constraint_reconciliation,
     profile_constraints,
@@ -1178,9 +1179,10 @@ class RequestValidator:
                     )
 
                 def check_duration(
-                    group: tuple[InputReference, ...] = tuple(group), cap: float = float(combined)
+                    group: tuple[InputReference, ...] = tuple(group),
+                    rule: dict[str, Any] = rule,
                 ) -> None:
-                    total = 0.0
+                    durations: list[float] = []
                     for item in group:
                         source = item.local_media
                         if source is None or source.duration is None:
@@ -1192,8 +1194,11 @@ class RequestValidator:
                             raise NativeMediaError(
                                 "Combined reference duration could not be verified."
                             )
-                        total += value
-                    if total > cap:
+                        durations.append(value)
+                    reason = combined_media_duration_reason(
+                        rule, tuple(durations), request.duration
+                    )
+                    if reason:
                         raise NativeMediaError(
                             "Combined reference duration exceeds the selected method's limit."
                         )

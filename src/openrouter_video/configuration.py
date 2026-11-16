@@ -9,6 +9,7 @@ from __future__ import annotations
 import math
 import re
 from collections.abc import Mapping
+from decimal import Decimal
 from itertools import product
 from typing import Any
 
@@ -48,6 +49,34 @@ CONTROL_FIELDS = {
     "previous_job_id": None,
     "provider_options": None,
 }
+
+
+def combined_media_duration_reason(
+    rule: Mapping[str, Any],
+    durations: tuple[Decimal | float | None, ...],
+    output_duration: int | None,
+) -> str | None:
+    """Shared generation/financial aggregate bounds; unknown quantities stay unknown.
+
+    A known subtotal can prove a violation even if another occurrence is unknown.
+    The unknown result is not proof of validity and grants no execution authority.
+    """
+    cap = rule.get("max_combined_duration_seconds")
+    coupled_cap = rule.get("max_combined_input_output_duration_seconds")
+    coupled_known = coupled_cap is not None and output_duration is not None and output_duration > 0
+    if not durations or (cap is None and not coupled_known):
+        return None
+    known = tuple(Decimal(str(value)) for value in durations if value is not None)
+    if any(not value.is_finite() or value <= 0 for value in known):
+        return "media_combined_duration_unknown"
+    total = sum(known, Decimal(0))
+    if cap is not None and total > Decimal(str(cap)):
+        return "media_combined_duration_exceeds_limit"
+    if coupled_known and total + Decimal(str(output_duration)) > Decimal(str(coupled_cap)):
+        return "media_input_output_duration_exceeds_limit"
+    if len(known) != len(durations):
+        return "media_combined_duration_unknown"
+    return None
 
 
 def normalize_request_shapes(raw: object) -> dict[str, Any]:

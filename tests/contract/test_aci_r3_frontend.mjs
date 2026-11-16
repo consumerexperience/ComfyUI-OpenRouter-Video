@@ -37,6 +37,82 @@ function respond(request, result) {
     request.resolve({ ok: true, async json() { return { valid_for_ms: 900000, ...result, context_revision: request.body.context_revision }; } });
 }
 
+function precompletionResult(count = 1) {
+    const amount = "1.8489600";
+    return { state:"INVALID", availability:"UNAVAILABLE", reason:"required_inputs_missing",
+        amount_usd:null, context_revision:1, valid_for_ms:900000, rates_hash:"a".repeat(64),
+        precompletion_advisory:{ version:"ACI-PRECOMPLETION-1", currency:"USD", scope:"COMPARISON",
+            amount_usd:amount, actual_reference_kinds:Array(count).fill("image"),
+            missing_inputs:[{kind:"image",role:"reference",count:2-count}],
+            completion_assumptions:["Add missing IMAGE references before generation."],
+            scenario:{scope:"COMPARISON",amount_usd:amount,quantity:"8",quantity_unit:"s",
+                sku:"video_tokens_without_audio",assumption:"Hypothetical valid completion."} } };
+}
+
+test("ACI pre-completion REF is violet and never changes primary readiness", () => {
+    const { c, n } = harness();
+    const result = precompletionResult();
+    c.setCostPresentation(n, result);
+    assert.equal(n.__orvEstimate.value, "≈ $1.85 REF.");
+    assert.equal(n.__orvEstimate.result.state, "INVALID");
+    assert.equal(c.costPriceView(result).accent, "#9E6BFF");
+    assert.match(c.costDetailsText(n), /missing inputs/i);
+});
+
+for (const [name, mutate] of [
+    ["unknown version", r => r.precompletion_advisory.version = "unknown"],
+    ["hard invalid", r => r.reason = "media_combined_duration_exceeds_limit"],
+    ["stale", r => r.state = "STALE"],
+    ["expired", r => r.valid_for_ms = 0],
+    ["primary total", r => r.amount_usd = "1.85"],
+    ["scenario mismatch", r => r.precompletion_advisory.scenario.amount_usd = "2"],
+    ["total scope", r => r.precompletion_advisory.scope = "CONDITIONAL_TOTAL"],
+    ["missing assumptions", r => r.precompletion_advisory.completion_assumptions = []],
+    ["missing inputs absent", r => r.precompletion_advisory.missing_inputs = []],
+]) test(`ACI pre-completion fails closed: ${name}`, () => {
+    const { c } = harness();
+    const result = precompletionResult(); mutate(result);
+    assert.equal(c.costAdvisoryComparison(result), null);
+    assert.notEqual(c.costPriceView(result).kind, "reference");
+});
+
+test("ACI incomplete native shape sends actual zero counts and rejects late cross-context REF", async () => {
+    const { c, n, requests } = harness();
+    n.widgets.find(item => item.name === "inference_method").value = "MI2V";
+    const selected = c.configureInferenceMethod(n, model);
+    c.reprojectNodeSemantics(n, model, selected, { cause:"catalogue" });
+    const first = c.refreshEstimate(n);
+    assert.equal(requests.length, 1);
+    assert.equal(requests[0].body.reference_count, 0);
+    assert.deepEqual(Array.from(requests[0].body.reference_kinds), []);
+    const second = c.refreshEstimate(n);
+    respond(requests[1], precompletionResult(0)); await second;
+    assert.equal(n.__orvEstimate.value, "≈ $1.85 REF.");
+    respond(requests[0], {state:"FORMULA",amount_usd:"999"}); await first;
+    assert.equal(n.__orvEstimate.value, "≈ $1.85 REF.");
+});
+
+test("ACI pre-completion estimates stay independent across two nodes in one graph", async () => {
+    const { c, n, requests } = harness();
+    n.widgets.find(item => item.name === "inference_method").value = "MI2V";
+    const selected = c.configureInferenceMethod(n, model);
+    c.reprojectNodeSemantics(n, model, selected, {cause:"catalogue"});
+    const other = { ...n, id:43, widgets:n.widgets.map(item => ({...item})),
+        __orvEstimate:{value:""}, inputs:n.inputs.map(item => ({...item})) };
+    c.app.graph.nodes[n.id] = n; c.app.graph.nodes[other.id] = other;
+    const first = c.refreshEstimate(n), second = c.refreshEstimate(other);
+    assert.equal(requests.length, 2);
+    respond(requests[1], precompletionResult(0)); await second;
+    respond(requests[0], precompletionResult(0)); await first;
+    assert.equal(n.__orvEstimate.value, other.__orvEstimate.value);
+    const changed = c.refreshEstimate(n);
+    respond(requests[2], {state:"INVALID",reason:"provider_control_invalid"}); await changed;
+    assert.equal(other.__orvEstimate.value, "≈ $1.85 REF.");
+    assert.equal(n.__orvEstimate.result.reason, "provider_control_invalid");
+    c.discardCurrentCost(other, "pricing_evidence_stale");
+    assert(!other.__orvEstimate.value.includes("REF."));
+});
+
 function tooltipDOM(c) {
     class Element {
         constructor(tag){this.tag=tag;this.style={};this.children=[];this.attributes={};this.handlers={};this.ownText="";}
