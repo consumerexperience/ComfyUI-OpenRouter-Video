@@ -652,17 +652,22 @@ function syncBetaPresentation(node) {
     }
     root.classList.add("orv-nodes2");
     root.style && (root.style.minWidth = "320px");
-    if (!root.__orvGeometryBound && root.addEventListener) {
-        root.__orvGeometryBound = true;
-        root.addEventListener("pointerdown", event => {
+    if (root.__orvGeometryOwner !== node && root.addEventListener) {
+        root.__orvGeometryCleanup?.();
+        root.__orvGeometryOwner = node;
+        const start = event => {
             if (event.isTrusted && event.button === 0 && event.target?.closest?.('[data-corner]')) {
                 node.__orvUserResizeActive = true;
                 syncBetaPresentation(node);
             }
-        },true);
+        };
         const finish = () => {
             if (!node.__orvUserResizeActive) return;
             requestAnimationFrame(() => requestAnimationFrame(() => {
+                if (!node.__orvUserResizeActive || root.isConnected === false || root.__orvGeometryOwner !== node) {
+                    node.__orvUserResizeActive = false;
+                    return;
+                }
                 const minimum = node.computeSize?.()?.[1];
                 if (Number.isFinite(minimum)) {
                     node.__orvPreferredPromptExtra = Math.max(0,node.size[1]-minimum);
@@ -673,8 +678,15 @@ function syncBetaPresentation(node) {
                 syncBetaPresentation(node);
             }));
         };
+        root.addEventListener("pointerdown",start,true);
         root.addEventListener("lostpointercapture",finish,true);
         root.addEventListener("pointercancel",finish,true);
+        root.__orvGeometryCleanup = () => {
+            node.__orvUserResizeActive = false;
+            root.removeEventListener?.("pointerdown",start,true);
+            root.removeEventListener?.("lostpointercapture",finish,true);
+            root.removeEventListener?.("pointercancel",finish,true);
+        };
     }
     const header = root.querySelector(".lg-node-header > div");
     if (header && (!node.graph || (app.canvas?.graph || app.graph)?.getNodeById?.(node.id) === node)) {

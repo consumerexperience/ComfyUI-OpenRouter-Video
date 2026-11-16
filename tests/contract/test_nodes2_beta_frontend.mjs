@@ -64,6 +64,10 @@ test('PUX03 v1.1 native resize gesture is explicit; untrusted/layout events do n
  assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvPreferredPromptExtra,500);assert.equal(n.__orvUserResizeActive,false);
  assert(grid.style.gridTemplateRows.includes('542px'));assert.equal(grid.style.flex,'0 0 auto');
  assert.equal(root.style.minWidth,'320px');
+ const replacement={...n,size:[400,700],__orvUserResizeActive:false};c.syncBetaPresentation(replacement);
+ assert.equal(root.__orvGeometryOwner,replacement);assert.equal(n.__orvUserResizeActive,false);
+ handlers.pointerdown({isTrusted:true,button:0,target:{closest:()=>({})}});
+ assert.equal(replacement.__orvUserResizeActive,true);assert.equal(n.__orvUserResizeActive,false);
 });
 
 test('PUX03 v1.1 Classic bounded cells retain native values, options and widget identity',()=>{
