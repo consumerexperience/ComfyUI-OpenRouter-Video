@@ -2700,7 +2700,7 @@ function localCostValidationDetails(node, code, topology = null, kinds = null) {
     if (/provider_control|provider_configuration/.test(code)) return fallback("provider_controls",
         code === "provider_control_invalid" ? "correct_provider_controls" : "review_provider_controls");
     if (code === "select_model") return fallback("model", "choose_model");
-    if (code === "pricing_evidence_stale") return fallback("catalogue", "refresh_price");
+    if (code === "pricing_evidence_stale" || code === "pricing_request_unavailable") return fallback("catalogue", "refresh_price");
     if (geometryAuthority(node) === "AMBIGUOUS") return fallback("geometry", "choose_geometry");
     topology ||= applyTransportInputConstraints(node.__orvCapability?.__methodProfile?.topology,
         inputByName(node,"source_video")?.link != null);
@@ -2783,8 +2783,14 @@ function costTooltipView(node) {
     const sections = [];
     const validation = costValidationSection(node,result);
     if (validation) sections.push(validation);
-    if (precompletion && !validation) sections.push({ title:costText("missingInputs"), rows:
-        precompletion.missing_inputs.map(item => [costText("imageReferences"), String(item.count)]) });
+    if (precompletion) {
+        const missing = precompletion.missing_inputs.filter(item => !validation ||
+            !(result.validation_details || []).slice(0,3).some(detail => detail?.field === "reference_count" &&
+                detail.kind === item.kind && detail.operator === "min" &&
+                Number.isFinite(detail.observed) && Number.isFinite(detail.bound) && detail.bound - detail.observed === item.count));
+        if (missing.length) sections.push({ title:costText("missingInputs"), rows:
+            missing.map(item => [costText("imageReferences"), String(item.count)]) });
+    }
     if (reference && silent) {
         const audio = widget(node,"generate_audio")?.value;
         sections.push({ title:costText("selected"), rows:[

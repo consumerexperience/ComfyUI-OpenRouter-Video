@@ -6,6 +6,62 @@ import { execFileSync } from 'node:child_process';
 export const remediationBaseline = 'a39204322349b5d13270c7df3f3e6cc24d12180a';
 export const remediationFile = 'web/openrouter_video.js';
 const normalized = text => text.replace(/\r\n/g, '\n');
+const integratedBase = '5f1bc3f4df60ad3b19f43215a7d32a3827adf5f6';
+let verifiedIntegratedFingerprint = '';
+
+// Final closure extends declarations, not historical approval. Exactly two
+// presentation functions may differ from the independently reviewed candidate.
+// All other JS bytes (including queue observation) and every backend byte stay exact.
+export function assertIntegratedCandidate(root, current) {
+    const pin = JSON.parse(readFileSync(new URL('tests/fixtures/integrated_prebeta_source_candidate.json',root),'utf8'));
+    assert.equal(pin.status,'UNACCEPTED_FINAL_CORRECTION');
+    assert.equal(pin.reviewed_baseline,integratedBase);
+    const sha = text => createHash('sha256').update(normalized(String(text))).digest('hex');
+    const tracked=execFileSync('git',['ls-files','src'],{cwd:root,encoding:'utf8'}).trim().split('\n').sort();
+    assert.deepEqual(Object.keys(pin.reviewed_source_files).sort(),tracked);
+    const contents=tracked.map(path=>readFileSync(new URL(path,root),'utf8'));
+    const fingerprint=String(root)+sha(JSON.stringify(pin))+sha(current)+contents.map(sha).join('');
+    if (fingerprint===verifiedIntegratedFingerprint) return;
+    const base = normalized(execFileSync('git',['show',`${integratedBase}:${remediationFile}`],{cwd:root,encoding:'utf8'}));
+    assert.equal(sha(base),pin.reviewed_frontend_sha256);
+    assert.deepEqual(Object.keys(pin.replacement_functions).sort(),['costTooltipView','localCostValidationDetails']);
+    let restored = normalized(current);
+    for (const name of Object.keys(pin.replacement_functions)) {
+        const find = text => {
+            const found = [...text.matchAll(new RegExp(`^function ${name}\\([^\\n]*\\) \\{[\\s\\S]*?^\\}\\n`,'gm'))];
+            assert.equal(found.length,1,name);return found[0][0];
+        };
+        const body=find(restored);assert.equal(sha(body),pin.replacement_functions[name],name);
+        restored=restored.replace(body,()=>find(base));
+    }
+    assert.equal(restored,base,'No undeclared functions, globals, registration or interstitial changes');
+    const paths=execFileSync('git',['ls-tree','-r','--name-only',integratedBase,'src'],{cwd:root,encoding:'utf8'}).trim().split('\n');
+    assert.deepEqual(Object.keys(pin.reviewed_source_files).sort(),paths.sort());
+    for (const path of paths) {
+        const expected=execFileSync('git',['show',`${integratedBase}:${path}`],{cwd:root,encoding:'utf8'});
+        assert.equal(sha(expected),pin.reviewed_source_files[path],path);
+        assert.equal(sha(readFileSync(new URL(path,root),'utf8')),pin.reviewed_source_files[path],path);
+    }
+    assert.equal(sha(current),pin.candidate_frontend_sha256);
+    verifiedIntegratedFingerprint=fingerprint;
+}
+
+export function integratedHistoricalSource(root,file,current,revision) {
+    assert(['4026c34',remediationBaseline].includes(revision),'Explicit historical stage only');
+    try { assertIntegratedCandidate(root,file===remediationFile?current:readFileSync(new URL(remediationFile,root),'utf8')); }
+    catch { return current; }
+    if (file!==remediationFile) {
+        const base=execFileSync('git',['show',`${integratedBase}:${file}`],{cwd:root,encoding:'utf8'});
+        if (normalized(current)!==normalized(String(base))) return current;
+    }
+    return normalized(execFileSync('git',['show',`${revision}:${file}`],{cwd:root,encoding:'utf8'}));
+}
+
+export function integratedAuthorizedBackendDelta(root,baseline,currentPaths) {
+    assertIntegratedCandidate(root,readFileSync(new URL(remediationFile,root),'utf8'));
+    const authorized=execFileSync('git',['diff','--name-only',baseline,integratedBase,'--','src'],{cwd:root,encoding:'utf8'}).trim().split('\n');
+    return currentPaths.split('\n').filter(path=>path && !authorized.includes(path)).join('\n');
+}
 const declaredEdits = [
     ['        "last_frame_url", "geometry_authority",\n',
      '        "last_frame_url", "geometry_authority", "previous_job_id",\n        "upscale_factor", "creativity", "provider_options",\n'],
@@ -63,6 +119,7 @@ function capabilityIntent(node) {`],
 // routing is involved: any other byte change (including pricing/queue/transport)
 // rejects the candidate, even if somebody also changes its digest pin.
 export function assertRuntimeRemediationScope(root, current) {
+    current = integratedHistoricalSource(root,remediationFile,current,'4026c34');
     let expected = normalized(execFileSync('git', ['show', `${remediationBaseline}:${remediationFile}`],
         { cwd: root, encoding: 'utf8' }));
     for (const [before, after] of declaredEdits) {
@@ -111,6 +168,8 @@ export function assertRuntimeRemediationScope(root, current) {
 
 export function remediationHistoricalSource(root, file, current) {
     if (file !== remediationFile) return current;
+    const integrated = integratedHistoricalSource(root,file,current,remediationBaseline);
+    if (integrated !== normalized(current)) return integrated;
     const path = new URL('tests/fixtures/aci_r31_runtime_remediation_candidate.json', root);
     if (!existsSync(path)) return current;
     const pin = JSON.parse(readFileSync(path, 'utf8'));

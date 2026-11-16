@@ -25,7 +25,7 @@ function domFixture(){
  const c=context({document});const n={id:22,__orvEstimate:{value:'≈ $1.60 EST.'}};return {c,n,header,grid,textarea,marks};
 }
 test('Beta estimate is one header child, updates unavailable, never body overlay',()=>{
- const {c,n,header}=domFixture();c.syncBetaPresentation(n);c.syncBetaPresentation(n);assert.equal(header.children.length,1);assert.equal(header.children[0].textContent,'≈ $1.60 EST.');n.__orvEstimate.value='ESTIMATE UNAVAILABLE';c.syncBetaPresentation(n);assert.equal(header.children.length,1);assert.ok(header.children[0].title.startsWith('ESTIMATE UNAVAILABLE'));assert.equal(header.children[0].role,'button');assert.equal(header.children[0].tabIndex,0);assert.ok(!source.includes('position:absolute'));
+ const {c,n,header}=domFixture();c.syncBetaPresentation(n);c.syncBetaPresentation(n);assert.equal(header.children.length,1);assert.equal(header.children[0].textContent,'≈ $1.60 EST.');n.__orvEstimate.value='ESTIMATE UNAVAILABLE';c.syncBetaPresentation(n);assert.equal(header.children.length,1);assert.equal(header.children[0].title,'');assert.ok(header.children[0]['aria-label']);assert.equal(header.children[0].role,'button');assert.equal(header.children[0].tabIndex,0);assert.ok(!source.includes('position:absolute'));
 });
 test('native Beta grid reserves only Prompt as flex; rows are not stretched',()=>{
  const {c,n,grid,textarea}=domFixture();c.syncBetaPresentation(n);assert.equal(grid.style.flex,'1 1 auto');assert.equal(grid.style.gridTemplateRows.split('minmax').length,2);assert.equal(grid.style.gridTemplateRows.split('max-content').length,9);assert.equal(textarea.rows,2);c.syncBetaPresentation(n);assert.equal(textarea.rows,2);

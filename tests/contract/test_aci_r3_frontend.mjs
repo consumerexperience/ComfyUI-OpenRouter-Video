@@ -59,6 +59,30 @@ test("ACI pre-completion REF is violet and never changes primary readiness", () 
     assert.match(c.costDetailsText(n), /missing inputs/i);
 });
 
+for (const locale of ["en","ru"]) test(`final review preserves missing IMAGE alongside Wan comparison and diagnostics (${locale})`,()=>{
+    const {c,n}=harness();c.app.ui={settings:{getSettingValue:()=>locale}};
+    const result={valid_for_ms:900000,...JSON.parse(readFileSync(new URL('../fixtures/aci_final_wan_precompletion.json',import.meta.url),'utf8')).result};
+    c.setCostPresentation(n,result);const view=c.costTooltipView(n);
+    assert.equal(view.kind,'reference');assert.equal(view.amount,locale==='ru'?'$2,00':'$2.00');
+    assert(view.sections.some(section=>section.title===c.costText('validationTitle')));
+    const missing=view.sections.find(section=>section.title===c.costText('missingInputs'));
+    assert(missing);assert.deepEqual(Array.from(missing.rows[0]),[c.costText('imageReferences'),'1']);
+    assert.match(view.note,locale==='ru'?/OpenRouter/:/OpenRouter/);
+    assert.match(view.note,locale==='ru'?/референс|вход/i:/reference|input/i);
+    assert.equal(n.__orvEstimate.result.state,'INVALID');
+    const duplicate=structuredClone(result);duplicate.validation_details=[{field:'reference_count',kind:'image',operator:'min',observed:0,bound:1,correction_key:'add_references'}];
+    c.setCostPresentation(n,duplicate);assert(!c.costTooltipView(n).sections.some(section=>section.title===c.costText('missingInputs')));
+});
+
+for (const locale of ["en","ru"]) test(`final review transport failure never invents a reference diagnosis (${locale})`,()=>{
+    const {c,n}=harness();c.app.ui={settings:{getSettingValue:()=>locale}};
+    const details=c.localCostValidationDetails(n,'pricing_request_unavailable',{min:2,max:30,reference_kinds:['image']},[]);
+    assert.equal(details[0].field,'catalogue');assert.equal(details[0].observed,undefined);
+    c.setCostPresentation(n,{state:'UNKNOWN',reason:'pricing_request_unavailable',validation_details:details});
+    assert.equal(c.costTooltipView(n).kind,'unknown');assert(!c.costDetailsText(n).includes(c.costText('validation_reference_shape')));
+    assert(!c.costDetailsText(n).includes(c.costText('add_references')));
+});
+
 for (const locale of ["en","ru"]) test(`PUX02 bounded diagnostics use readable ${locale} values and corrective action`,()=>{
     const {c,n}=harness();c.app.ui={settings:{getSettingValue(){return locale;}}};
     c.setCostPresentation(n,{state:"INVALID",validation_details:[{code:"media_metadata_outside_projected_limits",field:"duration_seconds",kind:"audio",kind_index:1,
