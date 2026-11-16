@@ -59,6 +59,57 @@ test("ACI pre-completion REF is violet and never changes primary readiness", () 
     assert.match(c.costDetailsText(n), /missing inputs/i);
 });
 
+// Existing backend scenario vocabulary; only the COMPONENT envelope is a
+// synthetic receiver-contract fixture, not a claim of a new HeyGen backend path.
+for (const locale of ["en", "ru"]) for (const [family, amount, scope, sku, assumption, expected] of [
+    ["Seedance completion", "1.8489600", "COMPARISON", "video_tokens_without_audio", "Hypothetical valid completion.",
+        {en:/not a total/i,ru:/не итоговая стоимость/i}],
+    ["Gemini comparison", "0.208512", "COMPARISON", "duration_seconds_with_audio_720p",
+        "Published with-audio output rate; selected audio and input charges may differ.",
+        {en:/silent-output pricing is not disclosed/i,ru:/тариф без звука не раскрыт/i}],
+    ["Wan audio comparison", "2.0", "COMPARISON", "duration_seconds_1080p",
+        "Native input+output seconds; OpenRouter equivalence and audio/reference charges unconfirmed. Assumes no additional reference fees.",
+        {en:/OpenRouter.*equivalence.*unconfirmed/i,ru:/эквивалентность.*OpenRouter.*не подтвержден/i}],
+    ["HeyGen component", "0.35", "COMPONENT", "reference_duration_seconds_480p",
+        "Output and image components; input VIDEO fees and tariff precedence unconfirmed.",
+        {en:/input VIDEO.*tariff precedence.*unconfirmed/i,ru:/входного VIDEO.*приоритет тарифов.*не подтвержден/i}],
+]) test(`ACI completion retains material financial limitations: ${family} / ${locale}`, () => {
+    const { c, n } = harness();
+    c.app.ui = {settings:{getSettingValue(){return locale;}}};
+    const result = precompletionResult();
+    result.precompletion_advisory.scope = scope;
+    result.precompletion_advisory.amount_usd = amount;
+    Object.assign(result.precompletion_advisory.scenario,{scope,sku,assumption,amount_usd:amount});
+    if (family === "Wan audio comparison") {
+        result.precompletion_advisory.actual_reference_kinds = ["audio"];
+        n.widgets.find(item => item.name === "resolution").value = "1080p";
+        n.widgets.find(item => item.name === "duration").value = 10;
+    }
+    c.setCostPresentation(n,result);
+    const view = c.costTooltipView(n);
+    assert.match(view.note, expected[locale]);
+    if (family === "Wan audio comparison") assert.match(view.note,
+        locale === "ru" ? /отсутствие дополнительных сборов за референсы/i : /assumes no additional reference fees/i);
+    assert.match(view.note, locale === "ru" ? /дополненной конфигурации.*подключите/i : /completed input configuration.*missing inputs/i);
+    assert(view.sections.some(section => section.title === c.costText("missingInputs")));
+    assert.equal(view.accent,"#9E6BFF");
+    assert.equal(view.amount,c.costUsd(amount));
+    if (family === "Gemini comparison") assert.equal(view.sub,c.costText("withAudioOutput"));
+    assert.equal(result.state,"INVALID");
+});
+
+for (const entry of [null, undefined, false, 0, "bad", {}, []]) {
+    test(`ACI malformed advisory input safely fails closed: ${JSON.stringify(entry)}`, () => {
+        const { c } = harness();
+        const result = precompletionResult();
+        result.precompletion_advisory.missing_inputs.push(entry);
+        assert.doesNotThrow(() => c.costPrecompletionAdvisory(result));
+        assert.equal(c.costPrecompletionAdvisory(result),null);
+        assert.equal(c.costAdvisoryComparison(result),null);
+        assert.notEqual(c.costPriceView(result).kind,"reference");
+    });
+}
+
 for (const [name, mutate] of [
     ["unknown version", r => r.precompletion_advisory.version = "unknown"],
     ["hard invalid", r => r.reason = "media_combined_duration_exceeds_limit"],

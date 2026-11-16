@@ -2462,7 +2462,7 @@ function costPrecompletionAdvisory(result) {
         !Array.isArray(advisory.actual_reference_kinds) || advisory.actual_reference_kinds.length > 64 ||
         !advisory.actual_reference_kinds.every(kind => ["image", "video", "audio"].includes(kind)) ||
         !Array.isArray(advisory.missing_inputs) || !advisory.missing_inputs.length ||
-        !advisory.missing_inputs.every(item => item.kind === "image" && item.role === "reference" &&
+        !advisory.missing_inputs.every(item => item?.kind === "image" && item.role === "reference" &&
             Number.isInteger(item.count) && item.count > 0 && item.count <= 64) ||
         !Array.isArray(advisory.completion_assumptions) || !advisory.completion_assumptions.length ||
         !advisory.completion_assumptions.every(item => typeof item === "string" && item.trim().length > 0) ||
@@ -2508,6 +2508,8 @@ function costText(key) {
             lastJob:"Last completed job", actual:"Actual cost", job:"Job", modelLabel:"Model", actualUnavailable:"Unavailable",
             referenceRow:"Reference", componentRow:"Component", seconds:"s", automatic:"Automatic", perSecond:"s", millionTokens:"M tok", modelUnavailable:"Model not selected",
             completionNote:"Reference for a completed input configuration, not a quote. Add the missing inputs before generation.",
+            routeComparisonNote:"Comparison assumes no additional reference fees. OpenRouter billing equivalence and audio/reference charges are unconfirmed; not a total.",
+            inputComponentNote:"Input VIDEO charges and tariff precedence are unconfirmed. Known components only; not a total or lower bound.",
             missingInputs:"Missing inputs", imageReferences:"IMAGE references" },
         ru: { formula:"Расчётная стоимость", range:"Расчётный диапазон", model:"Модельная оценка", scenarios:"Сценарии стоимости",
             reference:"Справочная стоимость", component:"Компонент стоимости", details:"Сведения о стоимости", rate:"Опубликованный тариф",
@@ -2526,6 +2528,8 @@ function costText(key) {
             lastJob:"Последняя завершённая операция", actual:"Фактическая стоимость", job:"Задание", modelLabel:"Модель", actualUnavailable:"Недоступна",
             referenceRow:"Ориентир", componentRow:"Компонент", seconds:" с", automatic:"Автоматически", perSecond:"с", millionTokens:"млн ток.", modelUnavailable:"Модель не выбрана",
             completionNote:"Ориентир для дополненной конфигурации, не итоговая стоимость. Перед генерацией подключите недостающие входы.",
+            routeComparisonNote:"Сравнение предполагает отсутствие дополнительных сборов за референсы. Эквивалентность тарификации OpenRouter и начисления за аудио/референсы не подтверждены; это не итог.",
+            inputComponentNote:"Тарификация входного VIDEO и приоритет тарифов не подтверждены. Только известные компоненты; не итог и не нижняя граница.",
             missingInputs:"Не хватает входов", imageReferences:"IMAGE-референсы" }
     };
     return messages[costLocale()][key] || messages.en[key] || "";
@@ -2588,8 +2592,9 @@ function costTooltipView(node) {
     const geometry = reference && !precompletion ? (referenceTier ? resolution : null) :
         geometryAuthority(node) === "EXACT" ? widget(node, "size")?.value : [resolution, widget(node, "aspect_ratio")?.value].filter(Boolean).join(" · ");
     const context = [geometry, duration === -1 ? costText("automatic") : duration != null && /^\d+(\.\d+)?$/.test(String(duration)) ? `${String(duration).replace(".", costLocale() === "ru" ? "," : ".")}${costText("seconds")}` : null].filter(Boolean).join(" · ");
-    const silent = (result.reason_codes || [result.reason]).includes("AUDIO_EFFECTIVE_SEMANTICS_UNRESOLVED");
     const withAudio = reference && /^duration_seconds_with_audio_/.test(reference.sku || "");
+    const silent = (result.reason_codes || [result.reason]).includes("AUDIO_EFFECTIVE_SEMANTICS_UNRESOLVED") ||
+        Boolean(precompletion && withAudio && widget(node,"generate_audio")?.value === false);
     const sub = reference ? withAudio ? costText("withAudioOutput") : costText(reference.scope === "COMPONENT" ? "knownComponent" : "referenceScope") :
         ["formula", "range", "rate", "model", "scenarios"].includes(kind) ? costText(kind === "model" ? "conditional" : kind === "scenarios" ? "alternative" : "output") : "";
     const notes = { formula:"formulaNote", range:"rangeNote", model:"modelNote", scenarios:"scenariosNote", component:"componentNote", reference:silent?"silentNote":"referenceNote",
@@ -2612,7 +2617,15 @@ function costTooltipView(node) {
         if (actualText(receipt.model) && receipt.model !== id) actualRows.push([costText("modelLabel"), widget(node, "model")?.__orvIdToLabel?.get(receipt.model) || costText("modelUnavailable")]);
         sections.push({ title:costText("lastJob"), rows:actualRows });
     } else if (["MISSING", "CONFLICT", "INVALID_ACTUAL"].includes(actual?.status) || node.__orvActualBindingUnavailable) sections.push({ title:costText("lastJob"), rows:[[costText("actual"), costText("actualUnavailable")]] });
-    return { kind, title:costText(kind), identity:`${String(model).replace(/^[^:]+:\s*/, "")}${method ? ` · ${method}` : ""}`, context, sub, amount, note:costText(precompletion ? "completionNote" : notes[kind]), sections, accent };
+    let note = costText(notes[kind]);
+    if (precompletion) {
+        // Localize existing scenario limitations for presentation only. These
+        // markers never select a tariff, change its amount or grant readiness.
+        if (/OpenRouter equivalence|route equivalence/i.test(reference.assumption)) note = costText("routeComparisonNote");
+        else if (/tariff precedence/i.test(reference.assumption)) note = costText("inputComponentNote");
+        note = `${costText("completionNote")} ${note}`;
+    }
+    return { kind, title:costText(kind), identity:`${String(model).replace(/^[^:]+:\s*/, "")}${method ? ` · ${method}` : ""}`, context, sub, amount, note, sections, accent };
 }
 
 function costPriceView(result = {}) {
