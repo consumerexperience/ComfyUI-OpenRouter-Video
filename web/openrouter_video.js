@@ -303,7 +303,33 @@ function setMinimumWidgetHeight(item, minimum) {
     setVisible(item, !item.hidden);
 }
 
+function installParameterColumns(node) {
+    for (const item of node.widgets || []) {
+        if (["prompt","REFERENCES","STATE","Advanced"].includes(item.name) || item.__orvColumnsInstalled) continue;
+        if (!["text","combo","number","toggle","slider"].includes(item.type)) continue;
+        const original = item.drawTruncatingText;
+        const originalLabel = item.drawLabel;
+        if (typeof original !== "function" && typeof originalLabel !== "function") continue;
+        item.__orvColumnsInstalled = true;
+        const drawLabel = (ctx) => {
+            const label = Math.max(112,Math.min(160,128+((node.size?.[0] || 400)-400)/3));
+            ctx.save();ctx.beginPath();ctx.rect(35,item.y || 0,label-28,item.height || 20);ctx.clip();
+            ctx.fillStyle = item.secondary_text_color || "#C4C4C4";ctx.textAlign = "left";
+            ctx.fillText(String(item.displayName ?? item.label ?? item.name),35,item.labelBaseline ?? ((item.y || 0)+15));ctx.restore();
+            return 15+label+8;
+        };
+        if (typeof originalLabel === "function") item.drawLabel = function(ctx) { drawLabel(ctx); };
+        if (typeof original === "function") item.drawTruncatingText = function(options) {
+            const {ctx,width} = options, left=drawLabel(ctx);
+            ctx.save();ctx.beginPath();ctx.rect(left,this.y || 0,Math.max(0,width-left-30),this.height || 20);ctx.clip();
+            ctx.textAlign="right";ctx.fillStyle=this.text_color || "#F9F9F9";
+            ctx.fillText(String(this._displayValue ?? this.value ?? ""),width-30,this.labelBaseline ?? ((this.y || 0)+15));ctx.restore();
+        };
+    }
+}
+
 function sizePrimaryControls(node) {
+    installParameterColumns(node);
     for (const item of node.widgets || []) {
         if (["model", "inference_method", "resolution", "aspect_ratio", "duration", "seed", "generate_audio", "size", "randomize"].includes(item.name)) {
             const section = ["inference_method", "duration"].includes(item.name);
@@ -316,8 +342,7 @@ function sizePrimaryControls(node) {
         prompt.__orvComputeSize = () => {
             const minimum = COMPACT_LAYOUT.prompt + COMPACT_LAYOUT.domInset;
             if (node.__orvMeasuringMinimum) return [0, minimum];
-            const contentHeight = node.computeSize?.()?.[1] || node.size?.[1] || 0;
-            return [0, minimum + Math.max(0, (node.size?.[1] || 0) - contentHeight)];
+            return [0, minimum + Math.max(0, node.__orvPreferredPromptExtra || 0)];
         };
         setVisible(prompt, !prompt.hidden);
     }
@@ -463,13 +488,26 @@ function installResponsiveHeight(node) {
         // Native content sizing measures current sockets and fixed widget rows.
         // Keep that minimum independent of the user's flexible height.
         this.__orvMeasuringMinimum = true;
-        try { return previousCompute?.apply(this, args); }
+        try {
+            const measured = previousCompute?.apply(this, args);
+            if (measured) measured[0] = 225; // Pinned native Vue resize minimum; labels never set node width.
+            return measured;
+        }
         finally { this.__orvMeasuringMinimum = false; }
     };
     const previousResize = node.onResize;
     node.onResize = function (size, ...args) {
         const minimum = this.computeSize?.()?.[1];
         if (Number.isFinite(minimum)) size[1] = Math.max(size[1], minimum);
+        const userResize = app.canvas?.resizing_node === this || this.__orvUserResizeActive;
+        if (userResize && !this.__orvAutomaticLayout && !this.__orvConfiguringMedia && Number.isFinite(minimum)) {
+            this.__orvPreferredPromptExtra = Math.max(0,size[1]-minimum);
+            this.__orvPreferredWidth = Math.max(225,size[0]);
+        } else if (!this.__orvConfiguringMedia && Number.isFinite(this.__orvPreferredWidth) && Number.isFinite(minimum)) {
+            size[0] = this.__orvPreferredWidth;
+            size[1] = minimum + (this.__orvPreferredPromptExtra || 0);
+        }
+        size[0] = Math.max(225,size[0]);
         previousResize?.call(this, size, ...args);
     };
 }
@@ -477,13 +515,28 @@ function installResponsiveHeight(node) {
 function fitPresentationWidth(node) {
     const measured = node.computeSize?.();
     if (!measured) return;
-    let width = Number.isFinite(node.size?.[0]) && node.size[0] > 0 ? node.size[0] : COMPACT_LAYOUT.width;
+    if (node.__orvConfiguringMedia) return;
+    if (node.__orvRestoreGeometry) {
+        node.__orvPreferredWidth = Math.max(225,node.__orvRestoreGeometry[0]);
+        node.__orvPreferredPromptExtra = Math.max(0,node.__orvRestoreGeometry[1]-measured[1]);
+        delete node.__orvRestoreGeometry;
+    }
+    let width = node.__orvPreferredWidth ?? (Number.isFinite(node.size?.[0]) && node.size[0] > 0 ? node.size[0] : COMPACT_LAYOUT.width);
     if (!node.__orvPresentationWidthInitialized) {
         if (node.__orvIsNewNode) width = Math.max(COMPACT_LAYOUT.width, width);
         node.__orvPresentationWidthInitialized = true;
     }
-    const height = Math.max(node.size?.[1] || 0, measured[1]);
-    if (node.size?.[0] !== width || node.size?.[1] !== height) node.setSize?.([width, height]);
+    width = Math.max(225,width);
+    node.__orvPreferredWidth = width;
+    if (!Number.isFinite(node.__orvPreferredPromptExtra)) {
+        node.__orvPreferredPromptExtra = Math.max(0,(node.size?.[1] || 0)-measured[1]);
+    }
+    const height = measured[1] + node.__orvPreferredPromptExtra;
+    if (node.size?.[0] !== width || node.size?.[1] !== height) {
+        node.__orvAutomaticLayout = true;
+        try { node.setSize?.([width, height]); }
+        finally { node.__orvAutomaticLayout = false; }
+    }
 }
 
 function createEstimateState() {
@@ -591,6 +644,28 @@ function syncBetaPresentation(node) {
         }
     }
     root.classList.add("orv-nodes2");
+    root.style && (root.style.minWidth = "225px");
+    if (!root.__orvGeometryBound && root.addEventListener) {
+        root.__orvGeometryBound = true;
+        root.addEventListener("pointerdown", event => {
+            if (event.isTrusted && event.button === 0 && event.target?.closest?.('[data-corner]')) node.__orvUserResizeActive = true;
+        },true);
+        const finish = () => {
+            if (!node.__orvUserResizeActive) return;
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                const minimum = node.computeSize?.()?.[1];
+                if (Number.isFinite(minimum)) {
+                    node.__orvPreferredPromptExtra = Math.max(0,node.size[1]-minimum);
+                    node.__orvPreferredWidth = Math.max(225,node.size[0]);
+                }
+                node.__orvUserResizeActive = false;
+                fitPresentationWidth(node);
+                syncBetaPresentation(node);
+            }));
+        };
+        root.addEventListener("lostpointercapture",finish,true);
+        root.addEventListener("pointercancel",finish,true);
+    }
     const header = root.querySelector(".lg-node-header > div");
     if (header && (!node.graph || (app.canvas?.graph || app.graph)?.getNodeById?.(node.id) === node)) {
         checkNativeCostMetadata(node);
@@ -620,13 +695,29 @@ function syncBetaPresentation(node) {
     const grid = root.querySelector('[data-testid="node-widgets"]');
     if (!grid) return;
     const rows = [...grid.querySelectorAll(':scope > [data-testid="node-widget"]')];
+    const labelWidth = Math.max(112,Math.min(160,128+((node.size?.[0] || 400)-400)/3));
+    // Native subgrid owns controls and hit testing. Only its column budget changes.
+    grid.style.gridTemplateColumns = `${labelWidth}px minmax(0, 1fr)`;
+    for (const row of rows) {
+        if (row.style) {
+            row.style.minWidth = "0";
+            row.style.gridColumn = "1 / -1";
+        }
+        const label = row.querySelector('[data-testid="widget-layout-field-label"]');
+        if (label?.style) {
+            label.style.maxWidth = `${labelWidth}px`;
+            label.style.overflow = "hidden";
+            label.style.textOverflow = "ellipsis";
+            label.title = label.textContent || "";
+        }
+    }
     for (const row of rows) {
         const input = row.querySelector('input[aria-label="REFERENCES"]');
         if (!input || !node.__orvSummary) continue;
         let summary = row.querySelector(".orv-capacity-summary");
         if (!summary) {
             summary = document.createElement("div"); summary.className = "orv-capacity-summary";
-            Object.assign(summary.style,{whiteSpace:"normal",overflowWrap:"anywhere",font:"400 12px/18px Arial, Helvetica, sans-serif",padding:"2px 12px",minWidth:"0"});
+            Object.assign(summary.style,{whiteSpace:"normal",overflowWrap:"anywhere",font:"400 12px/18px Arial, Helvetica, sans-serif",padding:"2px 12px",minWidth:"0",gridColumn:"1 / -1"});
             row.append(summary);
         }
         input.style.display = "none";
@@ -649,11 +740,11 @@ function syncBetaPresentation(node) {
         hasPrompt = true;
         row.classList.add("orv-prompt-row");
         if (textarea.rows !== 2) textarea.rows = 2;
-        return "minmax(42px, 1fr)";
+        return `${42 + Math.max(0,node.__orvPreferredPromptExtra || 0)}px`;
     });
     const template = templates.join(" ");
     if (grid.style.gridTemplateRows !== template) grid.style.gridTemplateRows = template;
-    const flex = hasPrompt ? "1 1 auto" : "";
+    const flex = hasPrompt ? "0 0 auto" : "";
     if (grid.style.flex !== flex) grid.style.flex = flex;
 }
 
@@ -4182,6 +4273,7 @@ app.registerExtension({
         };
         const previousConfigure = nodeType.prototype.onConfigure;
         nodeType.prototype.onConfigure = function (...args) {
+            if (Array.isArray(args[0]?.size) && args[0].size.every(Number.isFinite)) this.__orvRestoreGeometry = [...args[0].size];
             claimDirectReferenceTopology(this);
             cancelTopologyRefresh(this);
             clearTimeout(this.__orvCostRefreshTimer);

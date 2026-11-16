@@ -28,7 +28,7 @@ test('Beta estimate is one header child, updates unavailable, never body overlay
  const {c,n,header}=domFixture();c.syncBetaPresentation(n);c.syncBetaPresentation(n);assert.equal(header.children.length,1);assert.equal(header.children[0].textContent,'≈ $1.60 EST.');n.__orvEstimate.value='ESTIMATE UNAVAILABLE';c.syncBetaPresentation(n);assert.equal(header.children.length,1);assert.equal(header.children[0].title,'');assert.ok(header.children[0]['aria-label']);assert.equal(header.children[0].role,'button');assert.equal(header.children[0].tabIndex,0);assert.ok(!source.includes('position:absolute'));
 });
 test('native Beta grid reserves only Prompt as flex; rows are not stretched',()=>{
- const {c,n,grid,textarea}=domFixture();c.syncBetaPresentation(n);assert.equal(grid.style.flex,'1 1 auto');assert.equal(grid.style.gridTemplateRows.split('minmax').length,2);assert.equal(grid.style.gridTemplateRows.split('max-content').length,9);assert.equal(textarea.rows,2);c.syncBetaPresentation(n);assert.equal(textarea.rows,2);
+ const {c,n,grid,textarea}=domFixture();c.syncBetaPresentation(n);assert.equal(grid.style.flex,'0 0 auto');assert.equal(grid.style.gridTemplateRows.split('42px').length,2);assert.equal(grid.style.gridTemplateRows.split('max-content').length,9);assert.equal(textarea.rows,2);c.syncBetaPresentation(n);assert.equal(textarea.rows,2);
 });
 test('Classic canvas remains untouched when Vue DOM is absent',()=>{
  const c=context({document:{querySelectorAll:()=>[]}});assert.doesNotThrow(()=>c.syncBetaPresentation({id:22}));
@@ -39,9 +39,37 @@ test('PUX03 advanced textareas never compete with Prompt for flexible height',()
  const advanced={rows:5,placeholder:'negative_prompt'},promptArea={rows:2,placeholder:'Prompt'};
  const row=(area)=>({querySelector(s){return s==='textarea'?area:null;},classList:{add(v){marks.push([area.placeholder,v])},remove(){}}});
  grid.querySelectorAll=()=>[row(advanced),row(promptArea),row({rows:3,placeholder:'provider notes'})];
- c.syncBetaPresentation(n);assert.equal(grid.style.gridTemplateRows,'max-content minmax(42px, 1fr) max-content');
+ c.syncBetaPresentation(n);assert.equal(grid.style.gridTemplateRows,'max-content 42px max-content');
  assert.equal(advanced.rows,5);assert.deepEqual(marks,[['Prompt','orv-prompt-row']]);
  grid.querySelectorAll=()=>[row(advanced)];c.syncBetaPresentation(n);assert.equal(grid.style.flex,'');
+});
+
+test('PUX03 v1.1 shared column budget is bounded independently of labels and values',()=>{
+ const {c,n,grid}=domFixture();n.size=[400,600];n.__orvPreferredPromptExtra=182;
+ for(const [width,label] of [[225,112],[400,128],[1000,160]]){
+   n.size[0]=width;c.syncBetaPresentation(n);assert.equal(grid.style.gridTemplateColumns,`${label}px minmax(0, 1fr)`);
+   assert(grid.style.gridTemplateRows.includes('224px'));assert.equal(grid.style.flex,'0 0 auto');
+ }
+});
+
+test('PUX03 v1.1 native resize gesture is explicit; untrusted/layout events do not own geometry',()=>{
+ const {c,n}=domFixture(),root=c.document.querySelectorAll()[0],handlers={},frames=[];
+ root.style={};root.addEventListener=(name,fn)=>handlers[name]=fn;c.requestAnimationFrame=fn=>frames.push(fn);
+ n.size=[400,800];n.computeSize=()=>[225,400];c.syncBetaPresentation(n);
+ handlers.pointerdown({isTrusted:false,button:0,target:{closest:()=>({})}});assert(!n.__orvUserResizeActive);
+ handlers.pointerdown({isTrusted:true,button:0,target:{closest:()=>null}});assert(!n.__orvUserResizeActive);
+ handlers.pointerdown({isTrusted:true,button:0,target:{closest:()=>({})}});assert.equal(n.__orvUserResizeActive,true);
+ n.size=[610,900];handlers.lostpointercapture();frames.shift()();frames.shift()();
+ assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvPreferredPromptExtra,500);assert.equal(n.__orvUserResizeActive,false);
+ assert.equal(root.style.minWidth,'225px');
+});
+
+test('PUX03 v1.1 Classic bounded cells retain native values, options and widget identity',()=>{
+ const c=context(),options={values:['one','two']},item={name:'provider.long.parameter',type:'combo',label:'Long provider parameter',value:'two',options,y:20,height:20,labelBaseline:35,drawTruncatingText(){}};
+ const node={size:[400,600],widgets:[item]};c.installParameterColumns(node);const rectangles=[],texts=[];
+ const ctx={save(){},restore(){},beginPath(){},rect(...args){rectangles.push(args)},clip(){},fillText(...args){texts.push(args)}};
+ item.drawTruncatingText({ctx,width:400});assert.equal(rectangles[0][2],100);assert.equal(rectangles[1][0],151);
+ assert.equal(texts[0][0],'Long provider parameter');assert.equal(texts[1][0],'two');assert.equal(item.options,options);assert.equal(item.value,'two');assert.equal(node.widgets[0],item);
 });
 test('PUX05 capacity presentation preserves every quantity and uncertainty across widths and locale',()=>{
  const c=context(),n={__orvReferenceSummary:'4 connected · image 2 · video 1 · audio 1 · 46 remaining · IMAGE 28 available · VIDEO 9 available · AUDIO 9 available · 2 parked'};

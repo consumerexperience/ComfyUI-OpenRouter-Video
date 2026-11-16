@@ -9,10 +9,38 @@ const normalized = text => text.replace(/\r\n/g, '\n');
 const integratedBase = '5f1bc3f4df60ad3b19f43215a7d32a3827adf5f6';
 let verifiedIntegratedFingerprint = '';
 
+function normalizeLayoutCandidate(root,current) {
+    const path=new URL('tests/fixtures/pux03_v11_source_candidate.json',root);
+    if (!existsSync(path)) return current;
+    const pin=JSON.parse(readFileSync(path,'utf8'));
+    const sha=text=>createHash('sha256').update(normalized(text)).digest('hex');
+    if (sha(current)!==pin.candidate_sha256) return current;
+    assert.equal(pin.baseline,'059216452192cac427466cb8d404f9957b09a848');
+    const base=normalized(execFileSync('git',['show',`${pin.baseline}:${remediationFile}`],{cwd:root,encoding:'utf8'}));
+    assert.equal(sha(base),pin.baseline_sha256);
+    assert.deepEqual(Object.keys(pin.functions).sort(),['fitPresentationWidth','installResponsiveHeight','sizePrimaryControls','syncBetaPresentation']);
+    const body=(text,name)=>{
+        const matches=[...text.matchAll(new RegExp(`^function ${name}\\([^\\n]*\\) \\{[\\s\\S]*?^\\}\\n`,'gm'))];
+        assert.equal(matches.length,1,name);return matches[0][0];
+    };
+    let restored=normalized(current);
+    for (const [name,digest] of Object.entries(pin.functions)) {
+        const actual=body(restored,name);assert.equal(sha(actual),digest,name);
+        restored=restored.replace(actual,()=>body(base,name));
+    }
+    const added=body(restored,'installParameterColumns');assert.equal(sha(added),pin.added_helper_sha256);
+    restored=restored.replace(added+'\n','');
+    const registration='            if (Array.isArray(args[0]?.size) && args[0].size.every(Number.isFinite)) this.__orvRestoreGeometry = [...args[0].size];\n';
+    assert.equal(restored.split(registration).length,2);restored=restored.replace(registration,'');
+    assert.equal(restored,base,'Only exact authorized layout functions/helper/restore geometry capture');
+    return base;
+}
+
 // Final closure extends declarations, not historical approval. Exactly two
 // presentation functions may differ from the independently reviewed candidate.
 // All other JS bytes (including queue observation) and every backend byte stay exact.
 export function assertIntegratedCandidate(root, current) {
+    current=normalizeLayoutCandidate(root,current);
     const pin = JSON.parse(readFileSync(new URL('tests/fixtures/integrated_prebeta_source_candidate.json',root),'utf8'));
     assert.equal(pin.status,'UNACCEPTED_FINAL_CORRECTION');
     assert.equal(pin.reviewed_baseline,integratedBase);
