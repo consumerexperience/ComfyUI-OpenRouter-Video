@@ -58,6 +58,12 @@ test('PUX03 v1.1 native saved size reconstructs independent preferred geometry',
  n.__orvRestoreGeometry=[100,1];c.fitPresentationWidth(n);assert.equal(n.size[0],225);assert.equal(n.__orvPreferredPromptExtra,0);
 });
 
+test('PUX03 v1.1 Float32 native bounds settle without a programmatic resize loop',()=>{
+ const n=fixture(800);let writes=0;n.setSize=function(size){writes++;this.size=Float32Array.from(size);this.onResize(this.size);};
+ n.socketHeight+=123.333333;c.fitPresentationWidth(n);const settled=writes;
+ for(let i=0;i<10;i++)c.fitPresentationWidth(n);assert.equal(writes,settled);
+});
+
 test('all non-layout source functions and protected values retain current baseline',()=>{
  const baseline=execFileSync('git',['show','25451ff:web/openrouter_video.js'],{cwd:new URL('../../',import.meta.url),encoding:'utf8'}).replace(/\r\n/g,'\n').replace(/^import .*;\n/gm,'');
  const functions=t=>Object.fromEntries(t.split(/(?=^function |^async function )/m).slice(1).map(p=>[p.match(/function (\w+)/)[1],p.slice(0,p.indexOf('\n}')+2)]));

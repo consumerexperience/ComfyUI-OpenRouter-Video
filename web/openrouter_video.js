@@ -526,12 +526,12 @@ function fitPresentationWidth(node) {
         if (node.__orvIsNewNode) width = Math.max(COMPACT_LAYOUT.width, width);
         node.__orvPresentationWidthInitialized = true;
     }
-    width = Math.max(225,width);
+    width = Math.fround(Math.max(225,width));
     node.__orvPreferredWidth = width;
     if (!Number.isFinite(node.__orvPreferredPromptExtra)) {
         node.__orvPreferredPromptExtra = Math.max(0,(node.size?.[1] || 0)-measured[1]);
     }
-    const height = measured[1] + node.__orvPreferredPromptExtra;
+    const height = Math.fround(measured[1] + node.__orvPreferredPromptExtra);
     if (node.size?.[0] !== width || node.size?.[1] !== height) {
         node.__orvAutomaticLayout = true;
         try { node.setSize?.([width, height]); }
