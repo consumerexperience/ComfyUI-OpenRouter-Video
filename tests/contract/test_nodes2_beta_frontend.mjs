@@ -53,20 +53,20 @@ test('PUX03 v1.1 shared column budget is bounded independently of labels and val
 });
 
 test('PUX03 v1.1 native resize gesture is explicit; untrusted/layout events do not own geometry',()=>{
- const {c,n,grid}=domFixture(),root=c.document.querySelectorAll()[0],handlers={},frames=[];
- root.style={};root.addEventListener=(name,fn)=>handlers[name]=fn;c.requestAnimationFrame=fn=>frames.push(fn);
- n.size=[400,800];n.computeSize=()=>[320,400];c.syncBetaPresentation(n);
+ const {c,n,grid}=domFixture(),root=c.document.querySelectorAll()[0],handlers={},frames=[],microtasks=[];
+ root.style={getPropertyValue:key=>key==='--node-width'?'610px':'930px'};root.getBoundingClientRect=()=>({width:400,height:830});root.addEventListener=(name,fn)=>handlers[name]=fn;c.requestAnimationFrame=fn=>frames.push(fn);c.queueMicrotask=fn=>microtasks.push(fn);
+ n.size=[400,800];n.computeSize=()=>[320,400];c.installResponsiveHeight(n);c.syncBetaPresentation(n);
  handlers.pointerdown({isTrusted:false,button:0,target:{closest:()=>({})}});assert(!n.__orvUserResizeActive);
  handlers.pointerdown({isTrusted:true,button:0,target:{closest:()=>null}});assert(!n.__orvUserResizeActive);
- handlers.pointerdown({isTrusted:true,button:0,target:{closest:()=>({})}});assert.equal(n.__orvUserResizeActive,true);
+ handlers.pointerdown({isTrusted:true,button:0,clientX:0,clientY:0,pointerId:1,target:{closest:()=>({dataset:{corner:'SE'}})}});assert.equal(n.__orvUserResizeActive,true);
  assert(grid.style.gridTemplateRows.includes('minmax(42px, 1fr)'));assert.equal(grid.style.flex,'1 1 auto');
- n.size=[610,900];handlers.lostpointercapture();frames.shift()();frames.shift()();
+ handlers.pointermove({isTrusted:true,pointerId:1});microtasks.shift()();n.size=[777,1777];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvPreferredPromptExtra,500);n.size=[555,1400];handlers.lostpointercapture();frames.shift()();frames.shift()();
  assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvPreferredPromptExtra,500);assert.equal(n.__orvUserResizeActive,false);
  assert(grid.style.gridTemplateRows.includes('542px'));assert.equal(grid.style.flex,'0 0 auto');
  assert.equal(root.style.minWidth,'320px');
  const replacement={...n,size:[400,700],__orvUserResizeActive:false};c.syncBetaPresentation(replacement);
  assert.equal(root.__orvGeometryOwner,replacement);assert.equal(n.__orvUserResizeActive,false);
- handlers.pointerdown({isTrusted:true,button:0,target:{closest:()=>({})}});
+ handlers.pointerdown({isTrusted:true,button:0,clientX:0,clientY:0,pointerId:1,target:{closest:()=>({dataset:{corner:'SE'}})}});
  assert.equal(replacement.__orvUserResizeActive,true);assert.equal(n.__orvUserResizeActive,false);
 });
 
@@ -76,6 +76,19 @@ test('PUX03 v1.1 Classic bounded cells retain native values, options and widget 
  const ctx={save(){},restore(){},beginPath(){},rect(...args){rectangles.push(args)},clip(){},fillText(...args){texts.push(args)}};
  item.drawTruncatingText({ctx,width:400});assert.equal(rectangles[0][2],100);assert.equal(rectangles[1][0],151);
  assert.equal(texts[0][0],'Long provider parameter');assert.equal(texts[1][0],'two');assert.equal(item.options,options);assert.equal(item.value,'two');assert.equal(node.widgets[0],item);
+});
+
+test('final review Resume has cost disclosure without Generate geometry or listeners',()=>{
+ const {c,n,header,grid}=domFixture(),root=c.document.querySelectorAll()[0],handlers={};
+ root.style={minWidth:'217px'};root.addEventListener=(name,fn)=>handlers[name]=fn;root.removeEventListener=name=>delete handlers[name];
+ const label={style:{maxWidth:'81px'},textContent:'Native label',title:'Native hint'},row={style:{gridColumn:'native'},querySelector:s=>s==='[data-testid="widget-layout-field-label"]'?label:null};
+ grid.querySelectorAll=()=>[row];
+ n.__orvResumeActualInstalled=true;c.syncBetaPresentation(n);
+ assert.equal(root.style.minWidth,'217px');assert.equal(Object.keys(handlers).length,0);assert.equal(root.__orvGeometryOwner,undefined);
+ assert.equal(header.children.length,1);assert.equal(grid.style.gridTemplateColumns,undefined);
+ n.__orvResumeActualInstalled=false;c.syncBetaPresentation(n);assert.equal(root.style.minWidth,'320px');
+ n.__orvResumeActualInstalled=true;c.syncBetaPresentation(n);assert.equal(root.style.minWidth,'217px');assert.equal(Object.keys(handlers).length,0);
+ assert.equal(label.style.maxWidth,'81px');assert.equal(label.title,'Native hint');assert.equal(row.style.gridColumn,'native');
 });
 test('PUX05 capacity presentation preserves every quantity and uncertainty across widths and locale',()=>{
  const c=context(),n={__orvReferenceSummary:'4 connected · image 2 · video 1 · audio 1 · 46 remaining · IMAGE 28 available · VIDEO 9 available · AUDIO 9 available · 2 parked'};

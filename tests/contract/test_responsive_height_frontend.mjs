@@ -7,7 +7,7 @@ import test from 'node:test';
 const source=readFileSync(new URL('../../web/openrouter_video.js',import.meta.url),'utf8').replace(/^import .*;\r?\n/gm,'');
 const c={app:{registerExtension(){}},api:{}};vm.runInNewContext(source,c);
 function fixture(savedHeight=400){
- const n={size:[400,savedHeight],socketHeight:148,widgets:['model','inference_method','prompt','resolution','aspect_ratio','duration','seed','generate_audio','size','randomize'].map(name=>({name,value:name==='prompt'?'line one\nline two':null,hidden:false})),computeSize(){return [400,this.socketHeight+this.widgets.reduce((sum,w)=>sum+w.computeSize()[1]+4,0)+8];},setSize(size){this.size=size;this.__orvUserResizeActive=true;this.onResize?.(size);this.__orvUserResizeActive=false;}};
+ const n={size:[400,savedHeight],socketHeight:148,widgets:['model','inference_method','prompt','resolution','aspect_ratio','duration','seed','generate_audio','size','randomize'].map(name=>({name,value:name==='prompt'?'line one\nline two':null,hidden:false})),computeSize(){return [400,this.socketHeight+this.widgets.reduce((sum,w)=>sum+w.computeSize()[1]+4,0)+8];},setSize(size){this.size=size;this.__orvUserResizeActive=true;this.__orvCommitResizeIntent?.(size[0],size[1]);this.onResize?.(size);this.__orvUserResizeActive=false;}};
  c.sizePrimaryControls(n);c.installResponsiveHeight(n);c.fitPresentationWidth(n);return n;
 }
 function geometry(n){let y=n.socketHeight+2;const rows={};for(const w of n.widgets){rows[w.name]={y,height:w.computeSize()[1]};y+=w.computeSize()[1]+4;}return {rows,bottom:n.size[1]-y,prompt:rows.prompt.height-16};}
@@ -47,7 +47,7 @@ test('PUX03 v1.1 delayed native onResize cannot become user intent',()=>{
    assert.equal(n.size[0],620);assert.equal(n.size[1],n.computeSize()[1]+preferred);
  }
  c.app.canvas={resizing_node:n};n.size=[500,1000];n.onResize(n.size);
- assert.equal(n.__orvPreferredWidth,500);assert.equal(n.__orvPreferredPromptExtra,1000-n.computeSize()[1]);c.app.canvas=undefined;
+ assert.equal(n.__orvPreferredWidth,620);assert.equal(n.__orvPreferredPromptExtra,preferred);c.app.canvas=undefined;
 });
 
 test('PUX03 v1.1 native saved size reconstructs independent preferred geometry',()=>{
@@ -64,6 +64,28 @@ test('PUX03 v1.1 Float32 native bounds settle without a programmatic resize loop
  const n=fixture(800);let writes=0;n.setSize=function(size){writes++;this.size=Float32Array.from(size);this.onResize(this.size);};
  n.socketHeight+=123.333333;c.fitPresentationWidth(n);const settled=writes;
  for(let i=0;i<10;i++)c.fitPresentationWidth(n);assert.equal(writes,settled);
+});
+
+test('final review interleaved callbacks during a gesture cannot own persistent dimensions',()=>{
+ const callbacks={},microtasks=[];let n;
+ c.queueMicrotask=fn=>microtasks.push(fn);
+ c.app.canvas={canvas:{addEventListener:(name,fn)=>callbacks[name]=fn,removeEventListener(){}},graph:{getNodeById:()=>n}};
+ n=fixture(800);n.id=1;n.findResizeDirection=()=> 'SE';n.__orvUserResizeActive=true;
+ callbacks.pointerdown({isTrusted:true,button:0,canvasX:10,canvasY:20,pointerId:1});
+ const event={isTrusted:true,canvasX:20,canvasY:30,pointerId:1};callbacks.pointermove(event);c.app.canvas.pointer={eMove:event};
+ n.size=[610,900];n.onResize(n.size);const extra=n.__orvPreferredPromptExtra;
+ n.size=[999,1900];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvPreferredPromptExtra,extra);
+ microtasks.shift()();n.size=[888,1800];n.onResize(n.size);
+ assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvPreferredPromptExtra,extra);
+ c.app.canvas=undefined;
+});
+
+test('final review deferred notification inside active gesture has no trusted dispatch authority',()=>{
+ const n=fixture(800);n.setSize([620,920]);const extra=n.__orvPreferredPromptExtra;
+ n.__orvUserResizeActive=true;c.app.canvas={resizing_node:n};
+ n.size=[999,1900];n.onResize(n.size);
+ assert.equal(n.__orvPreferredWidth,620);assert.equal(n.__orvPreferredPromptExtra,extra);
+ c.app.canvas=undefined;
 });
 
 test('all non-layout source functions and protected values retain current baseline',()=>{

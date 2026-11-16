@@ -496,26 +496,60 @@ function installResponsiveHeight(node) {
         finally { this.__orvMeasuringMinimum = false; }
     };
     const previousResize = node.onResize;
+    // Only a trusted pointer sample calls this writer. onResize is a notification,
+    // including when a programmatic callback interleaves with a user gesture.
+    node.__orvCommitResizeIntent = (width,height) => {
+        if (!Number.isFinite(width) || !Number.isFinite(height) || node.__orvAutomaticLayout || node.__orvConfiguringMedia) return;
+        delete node.__orvRestoreGeometry;
+        node.__orvPreferredWidth = Math.max(320,width);
+        const minimum = node.computeSize?.()?.[1];
+        if (Number.isFinite(minimum)) node.__orvPreferredPromptExtra = Math.max(0,height-minimum);
+    };
     node.onResize = function (size, ...args) {
-        const userResize = app.canvas?.resizing_node === this || this.__orvUserResizeActive;
-        if (this.__orvRestoreGeometry && !userResize) {
+        const dispatch=this.__orvResizeDispatch;
+        if (dispatch && !dispatch.used && app.canvas?.pointer?.eMove===dispatch.event && !this.__orvAutomaticLayout) {
+            dispatch.used=true;
+            this.__orvCommitResizeIntent(size[0],size[1]);
+        }
+        if (this.__orvRestoreGeometry) {
             previousResize?.call(this,size,...args);
             return;
         }
-        if (userResize && !this.__orvAutomaticLayout && !this.__orvConfiguringMedia) delete this.__orvRestoreGeometry;
-        if (userResize && !this.__orvAutomaticLayout && !this.__orvConfiguringMedia) this.__orvPreferredWidth = Math.max(320,size[0]);
         const minimum = this.computeSize?.()?.[1];
         if (Number.isFinite(minimum)) size[1] = Math.max(size[1], minimum);
-        if (userResize && !this.__orvAutomaticLayout && !this.__orvConfiguringMedia && Number.isFinite(minimum)) {
-            this.__orvPreferredPromptExtra = Math.max(0,size[1]-minimum);
-            this.__orvPreferredWidth = Math.max(320,size[0]);
-        } else if (!this.__orvConfiguringMedia && Number.isFinite(this.__orvPreferredWidth) && Number.isFinite(minimum)) {
+        if (!this.__orvConfiguringMedia && Number.isFinite(this.__orvPreferredWidth) && Number.isFinite(minimum)) {
             size[0] = this.__orvPreferredWidth;
             size[1] = minimum + (this.__orvPreferredPromptExtra || 0);
         }
         size[0] = Math.max(320,size[0]);
         previousResize?.call(this, size, ...args);
     };
+    const canvas=app.canvas?.canvas;
+    if (canvas?.addEventListener) {
+        let origin=null;
+        const start=event=>{
+            if (!event.isTrusted || event.button!==0 || app.canvas?.read_only || node.flags?.pinned || node.resizable===false || app.canvas?.graph?.getNodeById?.(node.id)!==node) return;
+            const corner=node.findResizeDirection?.(event.canvasX,event.canvasY);
+            if (!["SE","SW","NE","NW"].includes(corner) || !Number.isFinite(event.canvasX) || !Number.isFinite(event.canvasY)) return;
+            origin={x:event.canvasX,y:event.canvasY,width:node.size[0],height:node.size[1],corner,id:event.pointerId};
+        };
+        const move=event=>{
+            if (!origin || !event.isTrusted || event.pointerId!==origin.id) return;
+            const dispatch={event,used:false};node.__orvResizeDispatch=dispatch;
+            // Capture runs before the native drag handler; clear before any
+            // deferred callback, even if native propagation stops early.
+            queueMicrotask(()=>{if(node.__orvResizeDispatch===dispatch)delete node.__orvResizeDispatch;});
+        };
+        const end=()=>{origin=null;delete node.__orvResizeDispatch;};
+        canvas.addEventListener("pointerdown",start);canvas.addEventListener("pointermove",move,true);
+        canvas.addEventListener("pointerup",end);canvas.addEventListener("pointercancel",end);
+        const removed=node.onRemoved;
+        node.onRemoved=function(...args){
+            end();canvas.removeEventListener("pointerdown",start);canvas.removeEventListener("pointermove",move,true);
+            canvas.removeEventListener("pointerup",end);canvas.removeEventListener("pointercancel",end);
+            return removed?.apply(this,args);
+        };
+    }
 }
 
 function fitPresentationWidth(node) {
@@ -651,43 +685,6 @@ function syncBetaPresentation(node) {
         }
     }
     root.classList.add("orv-nodes2");
-    root.style && (root.style.minWidth = "320px");
-    if (root.__orvGeometryOwner !== node && root.addEventListener) {
-        root.__orvGeometryCleanup?.();
-        root.__orvGeometryOwner = node;
-        const start = event => {
-            if (event.isTrusted && event.button === 0 && event.target?.closest?.('[data-corner]')) {
-                node.__orvUserResizeActive = true;
-                syncBetaPresentation(node);
-            }
-        };
-        const finish = () => {
-            if (!node.__orvUserResizeActive) return;
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-                if (!node.__orvUserResizeActive || root.isConnected === false || root.__orvGeometryOwner !== node) {
-                    node.__orvUserResizeActive = false;
-                    return;
-                }
-                const minimum = node.computeSize?.()?.[1];
-                if (Number.isFinite(minimum)) {
-                    node.__orvPreferredPromptExtra = Math.max(0,node.size[1]-minimum);
-                    node.__orvPreferredWidth = Math.max(320,node.size[0]);
-                }
-                node.__orvUserResizeActive = false;
-                fitPresentationWidth(node);
-                syncBetaPresentation(node);
-            }));
-        };
-        root.addEventListener("pointerdown",start,true);
-        root.addEventListener("lostpointercapture",finish,true);
-        root.addEventListener("pointercancel",finish,true);
-        root.__orvGeometryCleanup = () => {
-            node.__orvUserResizeActive = false;
-            root.removeEventListener?.("pointerdown",start,true);
-            root.removeEventListener?.("lostpointercapture",finish,true);
-            root.removeEventListener?.("pointercancel",finish,true);
-        };
-    }
     const header = root.querySelector(".lg-node-header > div");
     if (header && (!node.graph || (app.canvas?.graph || app.graph)?.getNodeById?.(node.id) === node)) {
         checkNativeCostMetadata(node);
@@ -708,7 +705,83 @@ function syncBetaPresentation(node) {
         badge.removeAttribute?.("title");
         badge.setAttribute("aria-label", costDetailsText(node));
     }
-    if (node.__orvResumeActualInstalled) return; // Resume adds cost disclosure only, no Generate widget/layout treatment.
+    if (node.__orvResumeActualInstalled) {
+        root.__orvGeometryCleanup?.();
+        delete root.__orvGeometryOwner;
+        delete root.__orvGeometryCleanup;
+        return;
+    } // Resume adds cost disclosure only, no Generate geometry treatment.
+    if (root.__orvGeometryOwner !== node && root.addEventListener) {
+        root.__orvGeometryCleanup?.();
+        const previousMinWidth=root.style?.minWidth || "";
+        const nativeGrid=root.querySelector('[data-testid="node-widgets"]');
+        const previousGrid=nativeGrid?.style ? [nativeGrid.style.gridTemplateColumns || "",nativeGrid.style.gridTemplateRows || "",nativeGrid.style.flex || ""] : null;
+        const touched=new Map();
+        root.__orvRememberGeometry=(element,keys,title=false)=>{
+            for (const prior of touched.keys()) if (prior.isConnected===false) touched.delete(prior);
+            if (!element?.style || touched.has(element)) return;
+            touched.set(element,{styles:Object.fromEntries(keys.map(key=>[key,element.style[key] || ""])),title,originalTitle:element.title || ""});
+        };
+        root.style && (root.style.minWidth = "320px");
+        root.__orvGeometryOwner = node;
+        let origin=null;
+        const start = event => {
+            if (event.isTrusted && event.button === 0 && event.target?.closest?.('[data-corner]')) {
+                const corner=event.target.closest('[data-corner]').dataset?.corner;
+                const rect=root.getBoundingClientRect?.();
+                const scale=rect?.width/node.size?.[0];
+                if (!["SE","SW","NE","NW"].includes(corner) || !Number.isFinite(event.clientX) || !Number.isFinite(event.clientY) || !(scale>0)) return;
+                origin={height:node.size[1],totalHeight:rect.height/scale,id:event.pointerId};
+                node.__orvUserResizeActive = true;
+                syncBetaPresentation(node);
+            }
+        };
+        const move = event => {
+            if (!origin || !event.isTrusted || event.pointerId!==origin.id || root.__orvGeometryOwner!==node) return;
+            const intent=origin;
+            queueMicrotask(()=>{
+                if (origin!==intent || root.__orvGeometryOwner!==node) return;
+                // Native pointer handler writes these CSS dimensions in this
+                // trusted dispatch (including its snapping/minimum rules).
+                // onResize notifications and mutable node.size are not evidence.
+                const width=parseFloat(root.style?.getPropertyValue?.("--node-width"));
+                const height=parseFloat(root.style?.getPropertyValue?.("--node-height"));
+                if (Number.isFinite(width) && Number.isFinite(height)) node.__orvCommitResizeIntent?.(width,intent.height+height-intent.totalHeight);
+            });
+        };
+        const finish = () => {
+            if (!node.__orvUserResizeActive) return;
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                if (!node.__orvUserResizeActive || root.isConnected === false || root.__orvGeometryOwner !== node) {
+                    node.__orvUserResizeActive = false;
+                    return;
+                }
+                origin=null;
+                node.__orvUserResizeActive = false;
+                fitPresentationWidth(node);
+                syncBetaPresentation(node);
+            }));
+        };
+        root.addEventListener("pointerdown",start,true);
+        root.addEventListener("pointermove",move,true);
+        root.addEventListener("lostpointercapture",finish,true);
+        root.addEventListener("pointercancel",finish,true);
+        root.__orvGeometryCleanup = () => {
+            node.__orvUserResizeActive = false;
+            origin=null;
+            if (root.style) root.style.minWidth=previousMinWidth;
+            if (previousGrid) [nativeGrid.style.gridTemplateColumns,nativeGrid.style.gridTemplateRows,nativeGrid.style.flex]=previousGrid;
+            for (const [element,previous] of touched) {
+                Object.assign(element.style,previous.styles);
+                if (previous.title) element.title=previous.originalTitle;
+            }
+            touched.clear();delete root.__orvRememberGeometry;
+            root.removeEventListener?.("pointerdown",start,true);
+            root.removeEventListener?.("pointermove",move,true);
+            root.removeEventListener?.("lostpointercapture",finish,true);
+            root.removeEventListener?.("pointercancel",finish,true);
+        };
+    }
     if (!node.__orvUserResizeActive && !node.__orvRestoreGeometry) fitPresentationWidth(node);
     const duration = widget(node, "duration");
     if (duration?.__orvDurationAdapter && duration.options?.read_only) {
@@ -723,11 +796,13 @@ function syncBetaPresentation(node) {
     grid.style.gridTemplateColumns = `min-content ${labelWidth}px minmax(125px, 1fr)`;
     for (const row of rows) {
         if (row.style) {
+            root.__orvRememberGeometry?.(row,["minWidth","gridColumn"]);
             row.style.minWidth = "0";
             row.style.gridColumn = "1 / -1";
         }
         const label = row.querySelector('[data-testid="widget-layout-field-label"]');
         if (label?.style) {
+            root.__orvRememberGeometry?.(label,["maxWidth","overflow","textOverflow"],true);
             label.style.maxWidth = `${labelWidth}px`;
             label.style.overflow = "hidden";
             label.style.textOverflow = "ellipsis";
