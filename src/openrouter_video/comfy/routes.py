@@ -320,6 +320,7 @@ async def _cost_estimate_handler(request: Any) -> Any:
         "range_kind": result.range_kind,
         "planning": result.planning,
         "precompletion_advisory": result.precompletion_advisory,
+        "validation_details": result.validation_details,
         "valid_for_ms": max(
             0,
             min(

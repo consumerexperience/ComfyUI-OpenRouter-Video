@@ -586,3 +586,63 @@ def test_identical_independent_contexts_and_restore_do_not_share_mutable_advisor
     assert a.precompletion_advisory == b.precompletion_advisory
     assert changed.precompletion_advisory != b.precompletion_advisory
     assert run(copy.deepcopy(other)).precompletion_advisory == b.precompletion_advisory
+
+
+def test_pux02_individual_and_aggregate_audio_details_keep_hint_authority() -> None:
+    result = run(wan_payload(20, audios=("15.284535",)))
+    assert result.state == "INVALID"
+    first, group = result.validation_details
+    assert first["field"] == "duration_seconds" and first["kind"] == "audio"
+    assert first["kind_index"] == 1 and first["observed"] == "15.284535"
+    assert first["bound"] == "15" and first["metadata_status"] == "HINT"
+    assert group["field"] == "combined_duration" and group["bound"] == "15"
+
+
+def test_pux02_combined_input_output_is_not_sum_of_inputs() -> None:
+    result = run(wan_payload(30))
+    detail = result.validation_details[0]
+    assert detail["field"] == "input_output_duration"
+    assert detail["observed"] == "35.041667" and detail["bound"] == "30"
+    assert detail["correction_key"] == "shorten_input_or_output"
+
+
+@pytest.mark.parametrize("count", [0, 1])
+def test_pux02_distinct_types_and_reference_minimum_are_different(count: int) -> None:
+    body = wan_payload(videos=())
+    body.update(
+        reference_count=count,
+        reference_kinds=["image"] * count,
+        media=[dict(kind="image", role="reference", status="UNKNOWN") for _ in range(count)],
+    )
+    result = run(body)
+    assert result.state == "INVALID"
+    assert any(
+        d["field"] == "distinct_media_types" and d["observed"] == count and d["bound"] == 2
+        for d in result.validation_details
+    )
+
+
+def test_pux02_advisory_retains_readiness_diagnostic_without_changing_primary() -> None:
+    result = run(seedance_images(1))
+    assert result.precompletion_advisory is not None and result.state == "INVALID"
+    assert result.validation_details[0]["observed"] == 1
+    assert result.validation_details[0]["bound"] == 2
+
+
+def test_pux02_coupled_duration_exposes_existing_core_filtered_domain() -> None:
+    body = payload("google/veo-3.1", InferenceMethod.T2V)
+    body.update(duration=4, resolution="1080p", aspect_ratio="16:9")
+    result = run(body)
+    assert result.state == "UNKNOWN"  # Existing outcome preserved, not weakened.
+    assert any(d["field"] == "duration" and d["allowed"] == [8] for d in result.validation_details)
+
+
+def test_pux02_missing_frame_and_unknown_media_have_no_fabricated_quantities() -> None:
+    body = payload("bytedance/seedance-2.5", InferenceMethod.I2V)
+    body["media"] = []
+    assert run(body).validation_details[0]["field"] == "first_frame"
+    unknown = run(wan_payload(videos=(None,)))
+    assert any(
+        d["metadata_status"] == "UNKNOWN" and "observed" not in d
+        for d in unknown.validation_details
+    )

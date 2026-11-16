@@ -2541,7 +2541,21 @@ function costText(key) {
             routeComparisonNote:"Comparison assumes no additional reference fees. OpenRouter billing equivalence and audio/reference charges are unconfirmed; not a total.",
             inputComponentNote:"Input VIDEO charges and tariff precedence are unconfirmed. Known components only; not a total or lower bound.",
             missingInputs:"Missing inputs", imageReferences:"IMAGE references",
-            durationLabel:"Duration", fixedDuration:"Fixed", unverifiedDuration:"Not verified" },
+            durationLabel:"Duration", fixedDuration:"Fixed", unverifiedDuration:"Not verified",
+            validationTitle:"Inputs to check", correction:"To correct", preview:"Preview", notKnown:"Not known",
+            validation_configuration:"Configuration", validation_inference_method:"Method", validation_model:"Model",
+            validation_first_frame:"First frame", validation_last_frame:"Last frame", validation_source_video:"Source video",
+            validation_reference_shape:"Reference types", validation_reference_count:"References", validation_distinct_media_types:"Distinct media types",
+            validation_duration:"Duration", validation_combined_duration:"Combined input duration", validation_input_output_duration:"Input + output duration",
+            validation_resolution:"Resolution", validation_aspect_ratio:"Aspect ratio", validation_size:"Exact size", validation_width:"Width", validation_height:"Height", validation_pixels:"Pixels",
+            validation_provider_controls:"Provider controls", validation_geometry:"Geometry", validation_catalogue:"Prices", validation_media_metadata:"Media metadata",
+            choose_allowed:"Choose a compatible value from the allowed options.", choose_model:"Select an available model.",
+            connect_input:"Connect the required input.", add_references:"Connect at least {limit} matching references.", remove_references:"Keep at most {limit} active references.",
+            connect_distinct_types:"Connect at least {limit} different supported media types.",
+            shorten_media:"Shorten this input to {limit} s or less.", lengthen_media:"Use an input of at least {limit} s.",
+            shorten_group:"Reduce combined input duration to {limit} s or less.", shorten_input_or_output:"Shorten input or output so their sum is at most {limit} s.",
+            adjust_media:"Adjust media to the displayed bound.", correct_provider_controls:"Correct saved provider controls; values are preserved.", review_provider_controls:"Review the selected provider controls.",
+            choose_geometry:"Choose Resolution/Aspect or Exact Size explicitly.", check_metadata:"Load the media and wait for its metadata; unknown is not zero.", refresh_price:"Refresh catalogue pricing.", check_inputs:"Check the required inputs and selected settings." },
         ru: { formula:"Расчётная стоимость", range:"Расчётный диапазон", model:"Модельная оценка", scenarios:"Сценарии стоимости",
             reference:"Справочная стоимость", component:"Компонент стоимости", details:"Сведения о стоимости", rate:"Опубликованный тариф",
             partial:"Частичная стоимость", unknown:"Цена неизвестна", invalid:"Проверьте входы", stale:"Цена устарела", calculating:"Расчёт стоимости",
@@ -2562,7 +2576,21 @@ function costText(key) {
             routeComparisonNote:"Сравнение предполагает отсутствие дополнительных сборов за референсы. Эквивалентность тарификации OpenRouter и начисления за аудио/референсы не подтверждены; это не итог.",
             inputComponentNote:"Тарификация входного VIDEO и приоритет тарифов не подтверждены. Только известные компоненты; не итог и не нижняя граница.",
             missingInputs:"Не хватает входов", imageReferences:"IMAGE-референсы",
-            durationLabel:"Длительность", fixedDuration:"Фиксировано", unverifiedDuration:"Не подтверждено" }
+            durationLabel:"Длительность", fixedDuration:"Фиксировано", unverifiedDuration:"Не подтверждено",
+            validationTitle:"Проверьте входы", correction:"Как исправить", preview:"Предпросмотр", notKnown:"Неизвестно",
+            validation_configuration:"Конфигурация", validation_inference_method:"Метод", validation_model:"Модель",
+            validation_first_frame:"Первый кадр", validation_last_frame:"Последний кадр", validation_source_video:"Исходное видео",
+            validation_reference_shape:"Типы референсов", validation_reference_count:"Референсы", validation_distinct_media_types:"Различные типы медиа",
+            validation_duration:"Длительность", validation_combined_duration:"Суммарная длительность входа", validation_input_output_duration:"Длительность входа + выхода",
+            validation_resolution:"Разрешение", validation_aspect_ratio:"Пропорции", validation_size:"Точный размер", validation_width:"Ширина", validation_height:"Высота", validation_pixels:"Пиксели",
+            validation_provider_controls:"Параметры провайдера", validation_geometry:"Геометрия", validation_catalogue:"Тарифы", validation_media_metadata:"Метаданные медиа",
+            choose_allowed:"Выберите совместимое значение из допустимых вариантов.", choose_model:"Выберите доступную модель.",
+            connect_input:"Подключите обязательный вход.", add_references:"Подключите не менее {limit} подходящих референсов.", remove_references:"Оставьте не более {limit} активных референсов.",
+            connect_distinct_types:"Подключите не менее {limit} разных поддерживаемых типов медиа.",
+            shorten_media:"Сократите этот вход до {limit} с или менее.", lengthen_media:"Используйте вход длительностью не менее {limit} с.",
+            shorten_group:"Сократите суммарную длительность входов до {limit} с или менее.", shorten_input_or_output:"Сократите вход или выход, чтобы сумма не превышала {limit} с.",
+            adjust_media:"Приведите медиа к указанному ограничению.", correct_provider_controls:"Исправьте сохранённые параметры провайдера; значения сохранены.", review_provider_controls:"Проверьте выбранные параметры провайдера.",
+            choose_geometry:"Явно выберите Разрешение/Пропорции или Точный размер.", check_metadata:"Загрузите медиа и дождитесь метаданных; неизвестное не равно нулю.", refresh_price:"Обновите тарифы каталога.", check_inputs:"Проверьте обязательные входы и выбранные настройки." }
     };
     return messages[costLocale()][key] || messages.en[key] || "";
 }
@@ -2608,6 +2636,68 @@ function costRateLabel(result) {
     return `${money}/${unit}`;
 }
 
+function localCostValidationDetails(node, code, topology = null, kinds = null) {
+    const fallback = (field, correction_key) => [{ code, scope:"selection", field, correction_key }];
+    if (/provider_control|provider_configuration/.test(code)) return fallback("provider_controls",
+        code === "provider_control_invalid" ? "correct_provider_controls" : "review_provider_controls");
+    if (code === "select_model") return fallback("model", "choose_model");
+    if (code === "pricing_evidence_stale") return fallback("catalogue", "refresh_price");
+    if (geometryAuthority(node) === "AMBIGUOUS") return fallback("geometry", "choose_geometry");
+    topology ||= applyTransportInputConstraints(node.__orvCapability?.__methodProfile?.topology,
+        inputByName(node,"source_video")?.link != null);
+    kinds ||= selectedReferenceKinds(node);
+    if (!topology || !Array.isArray(kinds)) return fallback("media_metadata", "check_metadata");
+    // Diagnostic quantities only: the existing shape predicates remain the gate.
+    const details = [], add = (field, observed, bound, operator, correction_key, kind = "") =>
+        details.push({code,scope:"reference_group",field,observed,bound,operator,correction_key,kind});
+    for (const [kind,max] of Object.entries(topology.per_kind_max || {})) if (kinds.filter(k=>k===kind).length > max)
+        add("reference_count",kinds.filter(k=>k===kind).length,max,"max","remove_references",kind);
+    if (kinds.length < topology.min) add("reference_count",kinds.length,topology.min,"min","add_references",topology.reference_kinds?.length===1?topology.reference_kinds[0]:"");
+    if (topology.max != null && kinds.length > topology.max) add("reference_count",kinds.length,topology.max,"max","remove_references");
+    const minimumTypes = Math.min(...(topology.kind_sets || []).map(set=>new Set(set).size));
+    if (Number.isFinite(minimumTypes) && minimumTypes > 1 && new Set(kinds).size < minimumTypes)
+        add("distinct_media_types",new Set(kinds).size,minimumTypes,"min","connect_distinct_types");
+    return details.length ? details : fallback("reference_shape", "check_inputs");
+}
+
+function costValidationSection(node, result) {
+    let details = Array.isArray(result?.validation_details) ? result.validation_details : [];
+    if (result?.state === "STALE") details = localCostValidationDetails(node,"pricing_evidence_stale");
+    const knownFields = ["configuration","inference_method","model","source_video","first_frame","last_frame","reference_shape","reference_count","distinct_media_types","duration","duration_seconds","combined_duration","input_output_duration","resolution","aspect_ratio","size","width","height","pixels","provider_controls","geometry","catalogue","media_metadata"];
+    details = details.filter(item=>item && typeof item === "object" && knownFields.includes(item.field));
+    if (!details.length) return null;
+    const quantity = (value,field) => {
+        if (value == null) return costText("notKnown");
+        if (!["string","number","boolean"].includes(typeof value)) return costText("notKnown");
+        if (value === -1 || value === "-1") return costText("automatic");
+        if (typeof value === "boolean") return costText(value?"on":"off");
+        const text = String(value);
+        if (/^\d{1,20}(\.\d{1,20})?$/.test(text)) return costCompactDecimal(text);
+        if ((field === "resolution" && /^\d{1,4}(p|K)$/.test(text)) ||
+            (field === "aspect_ratio" && /^\d{1,4}:\d{1,4}$/.test(text)) ||
+            (field === "size" && /^\d{1,5}x\d{1,5}$/.test(text))) return text;
+        return costText("notKnown");
+    };
+    const rows = [];
+    for (const detail of details.slice(0,3)) {
+        const kind = ["image","video","audio"].includes(detail.kind) ? detail.kind.toUpperCase() : "";
+        const occurrence = Number.isSafeInteger(detail.kind_index) && detail.kind_index>0 ? ` ${detail.kind_index}` : "";
+        const field = ["duration_seconds"].includes(detail.field)?"duration":detail.field;
+        const name = `${kind}${occurrence}${kind?" · ":""}${costText(`validation_${field}`) || costText("validation_configuration")}${detail.metadata_status === "HINT" ? ` (${costText("preview")})` : detail.metadata_status === "UNKNOWN" ? ` (${costText("notKnown")})` : ""}`;
+        const observed = `${detail.observed_is_lower_bound?"≥ ":""}${quantity(detail.observed,field)}`;
+        const bound = detail.bound != null ? quantity(detail.bound,field) : null;
+        const allowed = Array.isArray(detail.allowed) ? detail.allowed.slice(0,20).map(value=>quantity(value,field)).join(" / ") : null;
+        const value = `${observed}${bound?` / ${bound}`:allowed?` → ${allowed}`:""}${detail.unit === "s" ? costText("seconds") : detail.unit === "px" ? " px" : ""}`;
+        rows.push([name,value,false,detail.observed != null && (bound || allowed)?"violation":"neutral"]);
+        const actions = ["choose_allowed","choose_model","connect_input","add_references","remove_references","connect_distinct_types","shorten_media","lengthen_media","shorten_group","shorten_input_or_output","adjust_media","correct_provider_controls","review_provider_controls","choose_geometry","check_metadata","refresh_price","check_inputs"];
+        let actionKey = actions.includes(detail.correction_key) ? detail.correction_key : "check_inputs";
+        if (detail.field === "duration_seconds") actionKey = detail.operator === "max"?"shorten_media":"lengthen_media";
+        const action = costText(actionKey) || costText("check_inputs");
+        rows.push([costText("correction"),action.replace("{limit}",bound || "")]);
+    }
+    return {title:`${costText("validationTitle")}${details.length>3?` (3/${details.length})`:""}`,rows};
+}
+
 function costTooltipView(node) {
     expireCostPresentation(node);
     const result = node.__orvEstimate?.result || { state: "UNKNOWN" };
@@ -2632,7 +2722,9 @@ function costTooltipView(node) {
     const notes = { formula:"formulaNote", range:"rangeNote", model:"modelNote", scenarios:"scenariosNote", component:"componentNote", reference:silent?"silentNote":"referenceNote",
         details:"detailsNote", rate:"rateNote", partial:"partialNote", unknown:"unknownNote", invalid:"invalidNote", stale:"staleNote", calculating:"calculatingNote" };
     const sections = [];
-    if (precompletion) sections.push({ title:costText("missingInputs"), rows:
+    const validation = costValidationSection(node,result);
+    if (validation) sections.push(validation);
+    if (precompletion && !validation) sections.push({ title:costText("missingInputs"), rows:
         precompletion.missing_inputs.map(item => [costText("imageReferences"), String(item.count)]) });
     if (reference && silent) {
         const audio = widget(node,"generate_audio")?.value;
@@ -2933,9 +3025,9 @@ function renderCostDetails(node, detail) {
     for (const section of view.sections) {
         const group = element("section","section",null,{borderTop:"1px solid rgba(196,196,196,0.15)",marginTop:"10px",paddingTop:"8px"});
         group.append(element("h3","section-heading",section.title,{fontSize:"11px",fontWeight:"600",lineHeight:"18px",color:"#F9F9F9",margin:"0 0 5px"}));
-        for (const [label,value,actual] of section.rows) {
+        for (const [label,value,actual,severity] of section.rows) {
             const row = element("div","line",null,{display:"flex",justifyContent:"space-between",gap:"12px",padding:"3px 0",alignItems:"baseline"});
-            row.append(element("span","label",label,{minWidth:"0"}),element("span",actual?"actual":"value",value,{textAlign:"end",color:actual?ACI_INDICATOR_COLORS.green:"#F9F9F9",fontWeight:actual?"600":"400",unicodeBidi:"isolate"}));
+            row.append(element("span","label",label,{minWidth:"0"}),element("span",actual?"actual":"value",value,{textAlign:"end",color:severity === "violation"?"#FC5083":actual?ACI_INDICATOR_COLORS.green:"#F9F9F9",fontWeight:actual?"600":"400",unicodeBidi:"isolate"}));
             group.append(row);
         }
         detail.append(group);
@@ -3574,7 +3666,8 @@ async function refreshEstimate(node) {
         node.__orvReconcilingMedia || !projectionMatchesSelection(node)) return;
     const revision = node.__orvEstimateRevision = (node.__orvEstimateRevision || 0) + 1;
     setCostPresentation(node, { state: "CALCULATING" });
-    const unavailable = (reason, state = "UNKNOWN") => setCostPresentation(node, { state, reason_codes: [reason] });
+    const unavailable = (reason, state = "UNKNOWN") => setCostPresentation(node, { state, reason_codes: [reason],
+        validation_details:localCostValidationDetails(node,reason) });
     let providerControls;
     try { providerControls = JSON.parse(widget(node, "provider_options")?.value || "[]"); }
     catch { providerControls = null; }

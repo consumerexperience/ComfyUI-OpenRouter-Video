@@ -288,6 +288,7 @@ class EstimateResult:
     context_revision: int = 0
     planning: Mapping[str, object] | None = None
     precompletion_advisory: Mapping[str, object] | None = None
+    validation_details: tuple[Mapping[str, object], ...] = ()
 
     def __post_init__(self) -> None:
         # Old positional constructors retain their behavior and gain the new contract.
@@ -1130,21 +1131,38 @@ def media_inventory_status(inputs: CostEstimateInputs) -> str | None:
 
 
 def explicit_v2_cost_input_reason(
-    capabilities: ModelCapabilities, inputs: CostEstimateInputs
+    capabilities: ModelCapabilities,
+    inputs: CostEstimateInputs,
+    *,
+    diagnostics: list[dict[str, object]] | None = None,
 ) -> str | None:
     """Never project an explicit v2 choice into a different priced configuration."""
     if inputs.schema_version != 2:
         return None
     from openrouter_video.configuration import (
+        apply_transport_input_constraints,
         combined_media_duration_reason,
         project_method,
         project_semantic_values,
         projected_shape_valid,
     )
 
+    def reject(code: str, field: str = "configuration", **facts: object) -> str:
+        if diagnostics is not None:
+            diagnostics.append(
+                dict(
+                    code=code,
+                    scope="selection",
+                    field=field,
+                    correction_key="choose_allowed",
+                    **facts,
+                )
+            )
+        return code
+
     profile = project_method(capabilities, inputs.inference_method.value)
     if profile["state"] != "SUPPORTED":
-        return "inference_method_not_authorized"
+        return reject("inference_method_not_authorized", "inference_method")
     names = (
         "duration",
         "resolution",
@@ -1162,7 +1180,7 @@ def explicit_v2_cost_input_reason(
     try:
         projected = project_semantic_values(capabilities, inputs.inference_method.value, raw)
     except ValueError:
-        return "configuration_not_authorized"
+        return reject("configuration_not_authorized")
     for name in names:
         selected = getattr(inputs, name)
         if selected is None:
@@ -1175,20 +1193,100 @@ def explicit_v2_cost_input_reason(
         ):
             continue
         if type(selected) is not type(effective) or selected != effective:
-            return "configuration_not_authorized"
+            allowed = profile["controls"].get(name, {}).get("values")
+            observed = (
+                selected
+                if isinstance(selected, (int, bool))
+                or (isinstance(allowed, list) and selected in allowed)
+                else None
+            )
+            return reject(
+                "configuration_not_authorized",
+                name,
+                observed=observed,
+                allowed=allowed,
+                unit="s" if name == "duration" else "",
+            )
     if inputs.source_video_present and "source_video" not in profile["topology"]["fixed"]:
-        return "reference_shape_not_projected"
+        return reject("reference_shape_not_projected", "source_video")
     if inputs.reference_kinds and not profile["topology"]["reference_kinds"]:
-        return "reference_shape_not_projected"
+        return reject("reference_shape_not_projected", "reference_shape")
     if not projected_shape_valid(
         profile,
         tuple(kind.value for kind in inputs.reference_kinds),
         inputs.source_video_present,
     ):
+        topology = apply_transport_input_constraints(
+            profile["topology"], inputs.source_video_present
+        )
+        kinds = tuple(kind.value for kind in inputs.reference_kinds)
+        if diagnostics is not None:
+            for kind, maximum in topology.get("per_kind_max", {}).items():
+                if kinds.count(kind) > maximum:
+                    diagnostics.append(
+                        dict(
+                            code="reference_shape_not_projected",
+                            scope="reference_group",
+                            field="reference_count",
+                            kind=kind,
+                            observed=kinds.count(kind),
+                            bound=maximum,
+                            operator="max",
+                            unit="references",
+                            correction_key="remove_references",
+                        )
+                    )
+            if len(kinds) < topology.get("min", 0):
+                diagnostics.append(
+                    dict(
+                        code="reference_shape_not_projected",
+                        scope="reference_group",
+                        field="reference_count",
+                        kind=topology["reference_kinds"][0]
+                        if len(topology.get("reference_kinds", [])) == 1
+                        else "",
+                        observed=len(kinds),
+                        bound=topology["min"],
+                        operator="min",
+                        unit="references",
+                        correction_key="add_references",
+                    )
+                )
+            if topology.get("max") is not None and len(kinds) > topology["max"]:
+                diagnostics.append(
+                    dict(
+                        code="reference_shape_not_projected",
+                        scope="reference_group",
+                        field="reference_count",
+                        observed=len(kinds),
+                        bound=topology["max"],
+                        operator="max",
+                        unit="references",
+                        correction_key="remove_references",
+                    )
+                )
+            sets = topology.get("kind_sets", [])
+            minimum_types = min((len(set(group)) for group in sets), default=0)
+            if minimum_types > 1 and len(set(kinds)) < minimum_types:
+                diagnostics.append(
+                    dict(
+                        code="reference_shape_not_projected",
+                        scope="reference_group",
+                        field="distinct_media_types",
+                        observed=len(set(kinds)),
+                        bound=minimum_types,
+                        operator="min",
+                        unit="types",
+                        correction_key="connect_distinct_types",
+                    )
+                )
+            if not diagnostics:
+                reject("reference_shape_not_projected", "reference_shape")
         return "reference_shape_not_projected"
     limits = profile.get("media_limits", {})
     active_media = canonicalize_cost_metadata(inputs).media
-    for item in active_media:
+    first_media_reason: str | None = None
+    for index, item in enumerate(active_media):
         if item.status not in {"KNOWN", "HINT"}:
             continue
         rule = {**limits.get(item.kind.value, {}), **limits.get(item.role, {})}
@@ -1209,7 +1307,29 @@ def explicit_v2_cost_input_reason(
                     (prefix == "min" and quantity < Decimal(str(bound)))
                     or (prefix == "max" and quantity > Decimal(str(bound)))
                 ):
-                    return "media_metadata_outside_projected_limits"
+                    first_media_reason = (
+                        first_media_reason or "media_metadata_outside_projected_limits"
+                    )
+                    if diagnostics is not None:
+                        diagnostics.append(
+                            dict(
+                                code="media_metadata_outside_projected_limits",
+                                scope="occurrence",
+                                field=name,
+                                kind=item.kind.value,
+                                role=item.role,
+                                occurrence_index=index,
+                                kind_index=sum(
+                                    other.kind is item.kind for other in active_media[: index + 1]
+                                ),
+                                observed=str(quantity),
+                                bound=str(bound),
+                                operator=prefix,
+                                unit="s" if name == "duration_seconds" else "px",
+                                metadata_status=item.status,
+                                correction_key="adjust_media",
+                            )
+                        )
     for kind in (InputReferenceKind.VIDEO, InputReferenceKind.AUDIO):
         durations = tuple(
             item.duration_seconds if item.status in {"KNOWN", "HINT"} else None
@@ -1220,8 +1340,38 @@ def explicit_v2_cost_input_reason(
             limits.get(kind.value, {}), durations, inputs.duration
         )
         if reason and reason != "media_combined_duration_unknown":
-            return reason
-    return None
+            first_media_reason = first_media_reason or reason
+            if diagnostics is not None:
+                rule = limits.get(kind.value, {})
+                total = sum((value for value in durations if value is not None), Decimal(0))
+                coupled = reason == "media_input_output_duration_exceeds_limit"
+                observed = total + Decimal(inputs.duration or 0) if coupled else total
+                diagnostics.append(
+                    dict(
+                        code=reason,
+                        scope="reference_group",
+                        kind=kind.value,
+                        field="input_output_duration" if coupled else "combined_duration",
+                        observed=str(observed),
+                        bound=str(
+                            rule[
+                                "max_combined_input_output_duration_seconds"
+                                if coupled
+                                else "max_combined_duration_seconds"
+                            ]
+                        ),
+                        operator="max",
+                        unit="s",
+                        observed_is_lower_bound=any(value is None for value in durations),
+                        metadata_status="HINT"
+                        if any(item.kind is kind and item.status == "HINT" for item in active_media)
+                        else "UNKNOWN"
+                        if any(value is None for value in durations)
+                        else "KNOWN",
+                        correction_key="shorten_input_or_output" if coupled else "shorten_group",
+                    )
+                )
+    return first_media_reason
 
 
 __all__ = (

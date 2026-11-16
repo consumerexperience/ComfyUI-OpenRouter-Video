@@ -59,6 +59,33 @@ test("ACI pre-completion REF is violet and never changes primary readiness", () 
     assert.match(c.costDetailsText(n), /missing inputs/i);
 });
 
+for (const locale of ["en","ru"]) test(`PUX02 bounded diagnostics use readable ${locale} values and corrective action`,()=>{
+    const {c,n}=harness();c.app.ui={settings:{getSettingValue(){return locale;}}};
+    c.setCostPresentation(n,{state:"INVALID",validation_details:[{code:"media_metadata_outside_projected_limits",field:"duration_seconds",kind:"audio",kind_index:1,
+        observed:"15.284535",bound:"15",operator:"max",unit:"s",metadata_status:"HINT",correction_key:"adjust_media"}]});
+    const view=c.costTooltipView(n),text=c.costDetailsText(n);
+    assert.equal(view.accent,"#C4C4C4");assert.match(text,/AUDIO 1/);
+    assert.match(text,locale==="ru"?/Предпросмотр/:/Preview/);
+    assert.match(text,locale==="ru"?/Сократите этот вход до 15/:/Shorten this input to 15/);
+    assert.equal(view.sections[0].rows[0][3],"violation");
+});
+
+test("PUX02 local pre-HTTP shape rejection and provider rejection have actionable diagnostics",()=>{
+    const {c,n}=harness();
+    const topology={min:2,max:20,reference_kinds:["image","video","audio"],kind_sets:[["image","video"],["image","audio"]],per_kind_max:{image:10,video:5,audio:5}};
+    const details=c.localCostValidationDetails(n,"configuration_not_authorized",topology,["image"]);
+    assert(details.some(d=>d.field==="distinct_media_types"&&d.observed===1&&d.bound===2));
+    assert.equal(c.localCostValidationDetails(n,"provider_control_invalid")[0].field,"provider_controls");
+});
+
+test("PUX02 unknown/stale or malformed diagnostics do not retain old numerical values or leak raw data",()=>{
+    const {c,n}=harness();
+    c.setCostPresentation(n,{state:"UNKNOWN",validation_details:[null,{field:"provider_controls",observed:"SECRET_URL_OR_OPTION",correction_key:"__proto__"}]});
+    assert.doesNotThrow(()=>c.costDetailsText(n));assert(!c.costDetailsText(n).includes("SECRET_URL_OR_OPTION"));
+    c.setCostPresentation(n,{state:"STALE",validation_details:[{field:"duration",observed:999,bound:15}]});
+    assert(!c.costDetailsText(n).includes("999"));assert.match(c.costDetailsText(n),/Refresh catalogue/);
+});
+
 // Existing backend scenario vocabulary; only the COMPONENT envelope is a
 // synthetic receiver-contract fixture, not a claim of a new HeyGen backend path.
 for (const locale of ["en", "ru"]) for (const [family, amount, scope, sku, assumption, expected] of [

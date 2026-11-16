@@ -33,6 +33,7 @@ from openrouter_video.pricing import (
     EstimateResult,
     EstimateState,
     PreflightCostEstimator,
+    canonicalize_cost_metadata,
     explicit_v2_cost_input_reason,
     precompletion_cost_estimate,
     project_cost_provider_controls,
@@ -256,18 +257,24 @@ class ProcessRuntime:
                             observation.observed_at,
                             "provider_configuration_pricing_unverified",
                         )
-                    explicit_reason = explicit_v2_cost_input_reason(model, inputs)
+                    diagnostics: list[dict[str, object]] = []
+                    explicit_reason = explicit_v2_cost_input_reason(
+                        model, inputs, diagnostics=diagnostics
+                    )
                     if explicit_reason:
                         if explicit_reason == "reference_shape_not_projected":
                             advisory = precompletion_cost_estimate(
                                 model, inputs, observed_at=observation.observed_at
                             )
                             if advisory is not None:
-                                return advisory
-                        return EstimateResult.unavailable(
-                            observation.observed_at,
-                            explicit_reason,
-                            state=EstimateState.INVALID,
+                                return replace(advisory, validation_details=tuple(diagnostics))
+                        return replace(
+                            EstimateResult.unavailable(
+                                observation.observed_at,
+                                explicit_reason,
+                                state=EstimateState.INVALID,
+                            ),
+                            validation_details=tuple(diagnostics),
                         )
                     # Cost-only v2: do not silently price a different explicit user choice.
                     if inputs.schema_version == 2 and any(
@@ -343,8 +350,36 @@ class ProcessRuntime:
                         )
                         != "READY"
                     ):
-                        return EstimateResult.unavailable(
-                            observation.observed_at, "combination_not_projected"
+                        incompatible: list[dict[str, object]] = []
+                        for axis in ("duration", "resolution", "aspect_ratio", "size"):
+                            domain = profile["controls"].get(axis, {}).get("values", [])
+                            allowed = [
+                                value
+                                for value in domain
+                                if configuration_status(
+                                    tuple(profile["configuration_relations"]),
+                                    dict(values, **{axis: value}),
+                                    context,
+                                )
+                                == "READY"
+                            ]
+                            if allowed and values.get(axis) not in allowed:
+                                incompatible.append(
+                                    dict(
+                                        code="combination_not_projected",
+                                        scope="selection",
+                                        field=axis,
+                                        observed=values.get(axis),
+                                        allowed=allowed,
+                                        unit="s" if axis == "duration" else "",
+                                        correction_key="choose_allowed",
+                                    )
+                                )
+                        return replace(
+                            EstimateResult.unavailable(
+                                observation.observed_at, "combination_not_projected"
+                            ),
+                            validation_details=tuple(incompatible),
                         )
                     effective = replace(
                         inputs,
@@ -362,14 +397,90 @@ class ProcessRuntime:
                         reference_count=len(kinds),
                         source_video_present=bool(context["source_video_present"]),
                     )
-                    return PreflightCostEstimator().estimate(
+                    estimated = PreflightCostEstimator().estimate(
                         model,
                         effective,
                         observed_at=observation.observed_at,
                     )
+                    missing = [
+                        role
+                        for role in profile["topology"].get("fixed", [])
+                        if not any(item.role == role for item in inputs.media)
+                    ]
+                    if missing:
+                        return replace(
+                            estimated,
+                            validation_details=tuple(
+                                dict(
+                                    code=estimated.reason,
+                                    scope="selection",
+                                    field=role,
+                                    observed=None
+                                    if role == "source_video" and inputs.source_video_present
+                                    else 0,
+                                    bound=1,
+                                    operator="min",
+                                    correction_key="check_metadata"
+                                    if role == "source_video" and inputs.source_video_present
+                                    else "connect_input",
+                                )
+                                for role in missing
+                            ),
+                        )
+                    if estimated.reason == "billing_quantity_unavailable" or (
+                        estimated.planning and estimated.planning.get("missing")
+                    ):
+                        unknown = [
+                            item
+                            for item in canonicalize_cost_metadata(effective).media
+                            if item.kind.value in {"video", "audio"}
+                            and (item.status == "UNKNOWN" or item.duration_seconds is None)
+                        ]
+                        if unknown:
+                            return replace(
+                                estimated,
+                                validation_details=tuple(
+                                    dict(
+                                        code="media_metadata_unknown",
+                                        scope="occurrence",
+                                        field="media_metadata",
+                                        kind=item.kind.value,
+                                        role=item.role,
+                                        metadata_status="UNKNOWN",
+                                        correction_key="check_metadata",
+                                    )
+                                    for item in unknown
+                                ),
+                            )
+                    return estimated
             return EstimateResult.unavailable(observation.observed_at, "model_unavailable")
 
         result = await self._dispatch(run)
+        if not result.validation_details:
+            field, action = {
+                "provider_control_invalid": ("provider_controls", "correct_provider_controls"),
+                "provider_configuration_pricing_unverified": (
+                    "provider_controls",
+                    "review_provider_controls",
+                ),
+                "geometry_intent_conflict": ("geometry", "choose_geometry"),
+                "pricing_evidence_stale": ("catalogue", "refresh_price"),
+                "billing_quantity_unavailable": ("media_metadata", "check_metadata"),
+                "active_occurrence_metadata_missing": ("media_metadata", "check_metadata"),
+                "active_occurrence_metadata_invalid": ("media_metadata", "check_metadata"),
+            }.get(result.reason or "", ("", ""))
+            if field:
+                result = replace(
+                    result,
+                    validation_details=(
+                        {
+                            "code": result.reason or "unknown",
+                            "scope": "selection",
+                            "field": field,
+                            "correction_key": action,
+                        },
+                    ),
+                )
         return replace(result, context_revision=inputs.context_revision)
 
     async def generate(self, request: GenerationRequest, node_id: str | None) -> GenerationResult:
