@@ -648,7 +648,10 @@ function syncBetaPresentation(node) {
     if (!root.__orvGeometryBound && root.addEventListener) {
         root.__orvGeometryBound = true;
         root.addEventListener("pointerdown", event => {
-            if (event.isTrusted && event.button === 0 && event.target?.closest?.('[data-corner]')) node.__orvUserResizeActive = true;
+            if (event.isTrusted && event.button === 0 && event.target?.closest?.('[data-corner]')) {
+                node.__orvUserResizeActive = true;
+                syncBetaPresentation(node);
+            }
         },true);
         const finish = () => {
             if (!node.__orvUserResizeActive) return;
@@ -740,11 +743,11 @@ function syncBetaPresentation(node) {
         hasPrompt = true;
         row.classList.add("orv-prompt-row");
         if (textarea.rows !== 2) textarea.rows = 2;
-        return `${42 + Math.max(0,node.__orvPreferredPromptExtra || 0)}px`;
+        return node.__orvUserResizeActive ? "minmax(42px, 1fr)" : `${42 + Math.max(0,node.__orvPreferredPromptExtra || 0)}px`;
     });
     const template = templates.join(" ");
     if (grid.style.gridTemplateRows !== template) grid.style.gridTemplateRows = template;
-    const flex = hasPrompt ? "0 0 auto" : "";
+    const flex = hasPrompt ? (node.__orvUserResizeActive ? "1 1 auto" : "0 0 auto") : "";
     if (grid.style.flex !== flex) grid.style.flex = flex;
 }
 

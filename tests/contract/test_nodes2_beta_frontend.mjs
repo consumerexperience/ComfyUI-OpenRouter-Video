@@ -53,14 +53,16 @@ test('PUX03 v1.1 shared column budget is bounded independently of labels and val
 });
 
 test('PUX03 v1.1 native resize gesture is explicit; untrusted/layout events do not own geometry',()=>{
- const {c,n}=domFixture(),root=c.document.querySelectorAll()[0],handlers={},frames=[];
+ const {c,n,grid}=domFixture(),root=c.document.querySelectorAll()[0],handlers={},frames=[];
  root.style={};root.addEventListener=(name,fn)=>handlers[name]=fn;c.requestAnimationFrame=fn=>frames.push(fn);
  n.size=[400,800];n.computeSize=()=>[225,400];c.syncBetaPresentation(n);
  handlers.pointerdown({isTrusted:false,button:0,target:{closest:()=>({})}});assert(!n.__orvUserResizeActive);
  handlers.pointerdown({isTrusted:true,button:0,target:{closest:()=>null}});assert(!n.__orvUserResizeActive);
  handlers.pointerdown({isTrusted:true,button:0,target:{closest:()=>({})}});assert.equal(n.__orvUserResizeActive,true);
+ assert(grid.style.gridTemplateRows.includes('minmax(42px, 1fr)'));assert.equal(grid.style.flex,'1 1 auto');
  n.size=[610,900];handlers.lostpointercapture();frames.shift()();frames.shift()();
  assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvPreferredPromptExtra,500);assert.equal(n.__orvUserResizeActive,false);
+ assert(grid.style.gridTemplateRows.includes('542px'));assert.equal(grid.style.flex,'0 0 auto');
  assert.equal(root.style.minWidth,'225px');
 });
 
