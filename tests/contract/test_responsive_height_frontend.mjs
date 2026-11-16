@@ -20,7 +20,14 @@ test('socket topology/model reflow preserves height or grows measured minimum',(
  const n=fixture(800);n.socketHeight+=120;c.fitPresentationWidth(n);assert.equal(n.size[1],800);assert.equal(geometry(n).prompt,42+800-n.computeSize()[1]);n.socketHeight+=700;c.fitPresentationWidth(n);assert.equal(n.size[1],n.computeSize()[1]);assert.equal(geometry(n).prompt,42);
 });
 test('saved tall and compact dimensions reconstruct without pixel persistence',()=>{
- for(const height of [400,800]){const n=fixture(height);const saved=JSON.parse(JSON.stringify({size:n.size,prompt:n.widgets[2].value}));const r=fixture(saved.size[1]);assert.deepEqual(r.size,n.size);assert.deepEqual(geometry(r),geometry(n));}
+ for(const height of [400,800]){const n=fixture(height);const saved=JSON.parse(JSON.stringify({size:n.size,prompt:n.widgets[2].value}));const r=fixture(saved.size[1]);assert.deepEqual(Array.from(r.size),Array.from(n.size));assert.deepEqual(geometry(r),geometry(n));}
+});
+
+test('PUX03 user width survives model/socket/price reflow and restoration',()=>{
+ const n=fixture(800);n.setSize([620,800]);
+ for(const delta of [120,-60,200,-150]){n.socketHeight+=delta;c.fitPresentationWidth(n);assert.equal(n.size[0],620);}
+ const saved=JSON.parse(JSON.stringify(n.size));n.size=saved;c.fitPresentationWidth(n);assert.equal(n.size[0],620);
+ n.setSize([490,n.size[1]]);c.fitPresentationWidth(n);assert.equal(n.size[0],490);
 });
 test('all non-layout source functions and protected values retain current baseline',()=>{
  const baseline=execFileSync('git',['show','25451ff:web/openrouter_video.js'],{cwd:new URL('../../',import.meta.url),encoding:'utf8'}).replace(/\r\n/g,'\n').replace(/^import .*;\n/gm,'');

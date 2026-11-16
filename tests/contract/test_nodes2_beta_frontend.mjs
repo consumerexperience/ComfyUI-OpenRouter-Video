@@ -17,7 +17,7 @@ test('estimate is plain presentation state, no COST widget or serializer slot',(
  const c=context();const state=c.createEstimateState();state.value='≈ $1.60 EST.';assert.equal(state.value,'≈ $1.60 EST.');assert.equal(state.type,undefined);assert.equal(state.serializeValue,undefined);assert.ok(!source.includes('addReadOnlyWidget(\n                this,\n                "COST"'));assert.ok(source.includes('this.__orvEstimate = createEstimateState()'));
 });
 function domFixture(){
- const marks=[];const textarea={rows:5};const plain={querySelector(){return null;},classList:{add(){}}};const prompt={querySelector(){return textarea;},classList:{add(s){marks.push(s);}}};
+ const marks=[];const textarea={rows:5,placeholder:'Prompt'};const plain={querySelector(){return null;},classList:{add(){}}};const prompt={querySelector(s){return s==='textarea'?textarea:null;},classList:{add(s){marks.push(s);}}};
  const grid={style:{},querySelectorAll(){return [plain,plain,prompt,plain,plain,plain,plain,plain,plain];}};
  const header={children:[],querySelector(){return this.children[0];},append(x){this.children.push(x);}};
  const element={dataset:{nodeId:'22'},classList:{add(s){marks.push(s);}},querySelector(s){return s.startsWith('.lg-node-header')?header:grid;}};
@@ -32,6 +32,16 @@ test('native Beta grid reserves only Prompt as flex; rows are not stretched',()=
 });
 test('Classic canvas remains untouched when Vue DOM is absent',()=>{
  const c=context({document:{querySelectorAll:()=>[]}});assert.doesNotThrow(()=>c.syncBetaPresentation({id:22}));
+});
+
+test('PUX03 advanced textareas never compete with Prompt for flexible height',()=>{
+ const {c,n,grid}=domFixture(),marks=[];
+ const advanced={rows:5,placeholder:'negative_prompt'},promptArea={rows:2,placeholder:'Prompt'};
+ const row=(area)=>({querySelector(s){return s==='textarea'?area:null;},classList:{add(v){marks.push([area.placeholder,v])},remove(){}}});
+ grid.querySelectorAll=()=>[row(advanced),row(promptArea),row({rows:3,placeholder:'provider notes'})];
+ c.syncBetaPresentation(n);assert.equal(grid.style.gridTemplateRows,'max-content minmax(42px, 1fr) max-content');
+ assert.equal(advanced.rows,5);assert.deepEqual(marks,[['Prompt','orv-prompt-row']]);
+ grid.querySelectorAll=()=>[row(advanced)];c.syncBetaPresentation(n);assert.equal(grid.style.flex,'');
 });
 test('renderer adapter cleans node ownership and shares one observer',()=>{
  let observers=0;const scheduled=[];const document={head:{append(){}},body:{},querySelectorAll:()=>[],createElement:()=>({})};const c=context({document,MutationObserver:class {constructor(){observers++;}observe(){}},queueMicrotask:fn=>scheduled.push(fn)});const a={},b={};c.installBetaPresentation(a);c.installBetaPresentation(a);c.installBetaPresentation(b);assert.equal(observers,1);assert.equal(c.installBetaPresentation.nodes.size,2);assert.equal(scheduled.length,1);scheduled.shift()();a.onRemoved();assert.equal(c.installBetaPresentation.nodes.size,1);b.onRemoved();assert.equal(c.installBetaPresentation.nodes.size,0);

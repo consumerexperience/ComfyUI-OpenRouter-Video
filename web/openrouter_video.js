@@ -476,7 +476,14 @@ function installResponsiveHeight(node) {
 
 function fitPresentationWidth(node) {
     const measured = node.computeSize?.();
-    if (measured) node.setSize?.([COMPACT_LAYOUT.width, Math.max(node.size?.[1] || 0, measured[1])]);
+    if (!measured) return;
+    let width = Number.isFinite(node.size?.[0]) && node.size[0] > 0 ? node.size[0] : COMPACT_LAYOUT.width;
+    if (!node.__orvPresentationWidthInitialized) {
+        if (node.__orvIsNewNode) width = Math.max(COMPACT_LAYOUT.width, width);
+        node.__orvPresentationWidthInitialized = true;
+    }
+    const height = Math.max(node.size?.[1] || 0, measured[1]);
+    if (node.size?.[0] !== width || node.size?.[1] !== height) node.setSize?.([width, height]);
 }
 
 function createEstimateState() {
@@ -586,16 +593,28 @@ function syncBetaPresentation(node) {
     const grid = root.querySelector('[data-testid="node-widgets"]');
     if (!grid) return;
     const rows = [...grid.querySelectorAll(':scope > [data-testid="node-widget"]')];
+    const prompt = widget(node,"prompt");
+    let hasPrompt = false;
     const templates = rows.map((row) => {
         const textarea = row.querySelector("textarea");
         if (!textarea) return "max-content";
+        const label = row.querySelector('[data-testid="widget-layout-field-label"]')?.textContent?.trim();
+        const isPrompt = (prompt?.element && textarea === prompt.element) ||
+            textarea.getAttribute?.("name") === "prompt" ||
+            (label && label === (prompt?.label || prompt?.name || "prompt")) || textarea.placeholder === "Prompt";
+        if (!isPrompt) {
+            row.classList.remove?.("orv-prompt-row");
+            return "max-content";
+        }
+        hasPrompt = true;
         row.classList.add("orv-prompt-row");
         if (textarea.rows !== 2) textarea.rows = 2;
         return "minmax(42px, 1fr)";
     });
     const template = templates.join(" ");
     if (grid.style.gridTemplateRows !== template) grid.style.gridTemplateRows = template;
-    if (grid.style.flex !== "1 1 auto") grid.style.flex = "1 1 auto";
+    const flex = hasPrompt ? "1 1 auto" : "";
+    if (grid.style.flex !== flex) grid.style.flex = flex;
 }
 
 function canonicalModel(node) {
