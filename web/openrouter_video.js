@@ -4273,7 +4273,7 @@ app.registerExtension({
         };
         const previousConfigure = nodeType.prototype.onConfigure;
         nodeType.prototype.onConfigure = function (...args) {
-            if (Array.isArray(args[0]?.size) && args[0].size.every(Number.isFinite)) this.__orvRestoreGeometry = [...args[0].size];
+            if (Array.isArray(args[0]?.size) && args[0].size.length === 2 && args[0].size.every(Number.isFinite)) this.__orvRestoreGeometry = [...args[0].size];
             claimDirectReferenceTopology(this);
             cancelTopologyRefresh(this);
             clearTimeout(this.__orvCostRefreshTimer);

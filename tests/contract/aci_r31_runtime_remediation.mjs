@@ -30,7 +30,7 @@ function normalizeLayoutCandidate(root,current) {
     }
     const added=body(restored,'installParameterColumns');assert.equal(sha(added),pin.added_helper_sha256);
     restored=restored.replace(added+'\n','');
-    const registration='            if (Array.isArray(args[0]?.size) && args[0].size.every(Number.isFinite)) this.__orvRestoreGeometry = [...args[0].size];\n';
+    const registration='            if (Array.isArray(args[0]?.size) && args[0].size.length === 2 && args[0].size.every(Number.isFinite)) this.__orvRestoreGeometry = [...args[0].size];\n';
     assert.equal(restored.split(registration).length,2);restored=restored.replace(registration,'');
     assert.equal(restored,base,'Only exact authorized layout functions/helper/restore geometry capture');
     return base;

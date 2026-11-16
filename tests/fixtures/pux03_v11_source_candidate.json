@@ -2,7 +2,7 @@
   "baseline": "059216452192cac427466cb8d404f9957b09a848",
   "baseline_sha256": "2127129ce26d3a7528130b3baea0103a282601250f94a3eae734685b7c8b6f2f",
   "status": "UNACCEPTED_LAYOUT_V11",
-  "candidate_sha256": "6e00658ce1166f3f491b933f53eb040710528101c52e9a0591686667a2741e37",
+  "candidate_sha256": "d2358a102baec6c90a3f880c5a823402ad25230d65ad1a3b34b5f99b94318c46",
   "functions": {
     "sizePrimaryControls": "c3c9ca54e669274621907b6e1e3026513eebba308155fe0242c50363b51d0c75",
     "installResponsiveHeight": "e02ea58fa96e4775d58f6f4a20a72fa079fd6884cd8732921747a9f663a403df",
