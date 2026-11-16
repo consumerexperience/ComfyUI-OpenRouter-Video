@@ -637,7 +637,7 @@ test("R2 keeps exact bounds while outward display rounding avoids false equality
 test("R2 normative metrics use common screen-space DOM with no focusable or scrollable descendants",()=>{
     const {c,n}=harness();const element=tooltipDOM(c);c.setCostPresentation(n,r2Reference);const detail=element("div");c.renderCostDetails(n,detail);
     const all=item=>[item,...item.children.flatMap(all)],items=all(detail),find=name=>items.find(item=>item.className===`orv-cost-${name}`);
-    assert.equal(detail.style.width,"430px");assert.equal(detail.style.boxSizing,"border-box");assert.equal(detail.style.padding,"12px");assert.equal(detail.style.pointerEvents,"none");
+    assert.equal(detail.style.width,"340px");assert.equal(detail.style.boxSizing,"border-box");assert.equal(detail.style.padding,"12px");assert.equal(detail.style.pointerEvents,"none");
     assert.equal(find("heading").style.fontSize,"13px");assert.equal(find("heading").style.lineHeight,"18px");assert.equal(find("heading").style.fontWeight,"600");
     assert.equal(find("context").style.lineHeight,"18px");assert.equal(find("identity").style.lineHeight,"18px");
     assert.equal(find("amount").style.fontSize,"20px");assert.equal(find("amount").style.lineHeight,"24px");assert.equal(find("amount").style.letterSpacing,"-0.35px");

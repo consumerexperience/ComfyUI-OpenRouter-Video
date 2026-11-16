@@ -3022,7 +3022,7 @@ function renderCostDetails(node, detail) {
     const view = costTooltipView(node);
     detail.textContent = "";
     detail.dir = document.documentElement?.dir || "ltr";
-    Object.assign(detail.style, { boxSizing:"border-box", width:"430px", maxWidth:"calc(100vw - 16px)",
+    Object.assign(detail.style, { boxSizing:"border-box", width:"340px", maxWidth:"calc(100vw - 16px)",
         padding:"12px", borderRadius:"8px", border:`1px solid ${view.accent}`, background:"#1A1A1A",
         color:"#C4C4C4", font:"400 12px/18px Arial, Helvetica, sans-serif", fontVariantNumeric:"tabular-nums",
         whiteSpace:"normal", overflowWrap:"anywhere", pointerEvents:"none", boxShadow:"0 4px 16px rgba(0,0,0,0.33)" });
