@@ -1,11 +1,12 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { remediationCandidateMatches, remediationHistoricalSource } from './aci_r31_runtime_remediation.mjs';
+import { remediationCandidateMatches, remediationHistoricalSource, integratedBackendCandidateMatches } from './aci_r31_runtime_remediation.mjs';
 
 const baseline = '15cc5aea7570fe43d2154b4e3b6f1efba8f4ac2d';
 
 export function r31CandidateMatches(root, file, digest) {
+    if (integratedBackendCandidateMatches(root,file,digest)) return true;
     if (remediationCandidateMatches(root, file, digest)) return true;
     const path = new URL('tests/fixtures/aci_r31_source_candidate.json', root);
     if (!existsSync(path)) return false;

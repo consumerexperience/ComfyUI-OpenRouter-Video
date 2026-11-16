@@ -62,6 +62,17 @@ export function integratedAuthorizedBackendDelta(root,baseline,currentPaths) {
     const authorized=execFileSync('git',['diff','--name-only',baseline,integratedBase,'--','src'],{cwd:root,encoding:'utf8'}).trim().split('\n');
     return currentPaths.split('\n').filter(path=>path && !authorized.includes(path)).join('\n');
 }
+
+export function integratedBackendCandidateMatches(root,file,digest) {
+    if (!file.startsWith('src/')) return false;
+    const pin=JSON.parse(readFileSync(new URL('tests/fixtures/integrated_prebeta_source_candidate.json',root),'utf8'));
+    if (pin.reviewed_source_files?.[file]!==digest) return false;
+    const actual=createHash('sha256').update(normalized(readFileSync(new URL(file,root),'utf8'))).digest('hex');
+    if (actual!==digest) return false;
+    try { assertIntegratedCandidate(root,readFileSync(new URL(remediationFile,root),'utf8')); }
+    catch { return false; }
+    return true;
+}
 const declaredEdits = [
     ['        "last_frame_url", "geometry_authority",\n',
      '        "last_frame_url", "geometry_authority", "previous_job_id",\n        "upscale_factor", "creativity", "provider_options",\n'],
