@@ -257,7 +257,8 @@ function createGeometryCombos(node) {
     // named/positional serialization slot and the backend STRING contract.
     for (const name of ["resolution", "aspect_ratio", "size", "duration"]) {
         const previous = widget(node, name);
-        if (!previous || previous.type === "combo" || previous.type === "slider") continue;
+        if (!previous || previous.type === "combo" || previous.type === "slider" ||
+            (name === "duration" && previous.__orvDurationAdapter)) continue;
         if (name === "duration") {
             createDurationSlider(node, previous);
             continue;
@@ -577,6 +578,11 @@ function syncBetaPresentation(node) {
         badge.setAttribute("aria-label", costDetailsText(node));
     }
     if (node.__orvResumeActualInstalled) return; // Resume adds cost disclosure only, no Generate widget/layout treatment.
+    const duration = widget(node, "duration");
+    if (duration?.__orvDurationAdapter && duration.options?.read_only) {
+        const label = durationPresentationLabel(duration);
+        if (duration.label !== label) duration.label = label;
+    }
     const grid = root.querySelector('[data-testid="node-widgets"]');
     if (!grid) return;
     const rows = [...grid.querySelectorAll(':scope > [data-testid="node-widget"]')];
@@ -1003,9 +1009,17 @@ function durationValueAllowed(domain, value) {
     return domain.kind !== "UNKNOWN" && value >= domain.min && value <= domain.max;
 }
 
+function durationPresentationLabel(item) {
+    const state = item.__orvDurationPresentation;
+    if (state === "VARIABLE") return "Duration";
+    const name = costText(state === "FIXED" ? "fixedDuration" : state === "AUTOMATIC" ? "automatic" : "unverifiedDuration");
+    return `${costText("durationLabel")} · ${name}${state === "AUTOMATIC" ? "" : ` · ${item.value}${costText("seconds")}`}`;
+}
+
 function createDurationSlider(node, previous) {
     const index = node.widgets.indexOf(previous);
     const item = node.addWidget("slider", "duration", previous.value ?? 0, null, { min: 0, max: 1, step: 1, precision: 0 });
+    item.__orvDurationAdapter = true;
     let valueOwner = item;
     while (valueOwner && !Object.getOwnPropertyDescriptor(valueOwner, "value")) valueOwner = Object.getPrototypeOf(valueOwner);
     const nativeValue = valueOwner && Object.getOwnPropertyDescriptor(valueOwner, "value");
@@ -1033,6 +1047,7 @@ function createDurationSlider(node, previous) {
     } });
     Object.defineProperty(view, "height", { value: COMPACT_LAYOUT.row });
     view.setValue = position => {
+        if (item.options.read_only) return;
         const next = durationAtPosition(item.__orvDomain || { kind: "UNKNOWN" }, position);
         if (next == null) return;
         item.value = next;
@@ -1042,6 +1057,13 @@ function createDurationSlider(node, previous) {
     // Delegate geometry, fill and pointer interaction to the public native slider.
     // Only its display coordinate differs from the product's semantic seconds.
     if (nativeDraw) item.drawWidget = function (ctx, options) {
+        if (item.options.read_only) {
+            ctx.save?.();
+            ctx.fillStyle = item.text_color || "#C4C4C4";
+            ctx.fillText(durationPresentationLabel(item), 14, (item.y || 0) + COMPACT_LAYOUT.row * 0.7);
+            ctx.restore?.();
+            return;
+        }
         view.y = item.y;
         view.options = nativeOptions();
         view.width = item.width;
@@ -1054,8 +1076,8 @@ function createDurationSlider(node, previous) {
         }, set(target, key, value) { target[key] = value; return true; } });
         nativeDraw.call(view, drawContext, options);
     };
-    if (nativeClick) item.onClick = event => { view.options = nativeOptions(); view.width = item.width; nativeClick.call(view, event); };
-    if (nativeDrag) item.onDrag = event => { view.options = nativeOptions(); view.width = item.width; return nativeDrag.call(view, event); };
+    if (nativeClick) item.onClick = event => { if (item.options.read_only) return; view.options = nativeOptions(); view.width = item.width; nativeClick.call(view, event); };
+    if (nativeDrag) item.onDrag = event => { if (item.options.read_only) return false; view.options = nativeOptions(); view.width = item.width; return nativeDrag.call(view, event); };
     const appended = node.widgets.indexOf(item);
     node.widgets.splice(appended, 1);
     node.widgets[index] = item;
@@ -1070,17 +1092,25 @@ function configureDuration(node, supported) {
     item.options = item.options || {};
     const domain = durationDomain(supported);
     item.__orvDomain = domain;
-    item.type = "slider";
     setVisible(item, true);
     const values = domain.allowed_values || [];
     const current = Number(item.value || 0);
     const valid = durationValueAllowed(domain, current);
-    if (!valid && domain.kind !== "UNKNOWN") item.value = productDefault("duration", values.filter(value => value > 0)) ?? domain.min;
+    const linked = inputByName(node, "duration")?.link != null;
+    if (!valid && domain.kind !== "UNKNOWN" && !linked) item.value = productDefault("duration", values.filter(value => value > 0)) ?? domain.min;
+    const singleton = domain.kind !== "UNKNOWN" && domain.min === domain.max;
+    const presentation = domain.kind === "UNKNOWN" ? "UNKNOWN" : singleton ?
+        domain.min === -1 ? "AUTOMATIC" : "FIXED" : "VARIABLE";
+    item.__orvDurationPresentation = presentation;
+    const readOnly = presentation !== "VARIABLE";
+    item.type = readOnly ? "text" : "slider";
+    item.label = durationPresentationLabel(item);
     item.options.values = values;
     item.options.min = domain.min ?? 0;
-    item.options.max = domain.max === domain.min ? domain.max + 1 : domain.max ?? 1;
+    item.options.max = domain.max ?? 1;
     item.options.step = values.length ? arithmeticStep(values) ?? 1 : 10 ** -(domain.precision ?? 0);
-    item.options.read_only = domain.kind === "UNKNOWN";
+    item.options.read_only = item.options.readOnly = item.options.disabled = readOnly;
+    if (linked && !valid) disclose(node, "DURATION: linked value is outside the projected domain; correct the upstream value");
     if (domain.kind === "UNKNOWN" && current > 0) disclose(node, "DURATION: saved value is not verified by catalogue");
 }
 
@@ -2510,7 +2540,8 @@ function costText(key) {
             completionNote:"Reference for a completed input configuration, not a quote. Add the missing inputs before generation.",
             routeComparisonNote:"Comparison assumes no additional reference fees. OpenRouter billing equivalence and audio/reference charges are unconfirmed; not a total.",
             inputComponentNote:"Input VIDEO charges and tariff precedence are unconfirmed. Known components only; not a total or lower bound.",
-            missingInputs:"Missing inputs", imageReferences:"IMAGE references" },
+            missingInputs:"Missing inputs", imageReferences:"IMAGE references",
+            durationLabel:"Duration", fixedDuration:"Fixed", unverifiedDuration:"Not verified" },
         ru: { formula:"Расчётная стоимость", range:"Расчётный диапазон", model:"Модельная оценка", scenarios:"Сценарии стоимости",
             reference:"Справочная стоимость", component:"Компонент стоимости", details:"Сведения о стоимости", rate:"Опубликованный тариф",
             partial:"Частичная стоимость", unknown:"Цена неизвестна", invalid:"Проверьте входы", stale:"Цена устарела", calculating:"Расчёт стоимости",
@@ -2530,7 +2561,8 @@ function costText(key) {
             completionNote:"Ориентир для дополненной конфигурации, не итоговая стоимость. Перед генерацией подключите недостающие входы.",
             routeComparisonNote:"Сравнение предполагает отсутствие дополнительных сборов за референсы. Эквивалентность тарификации OpenRouter и начисления за аудио/референсы не подтверждены; это не итог.",
             inputComponentNote:"Тарификация входного VIDEO и приоритет тарифов не подтверждены. Только известные компоненты; не итог и не нижняя граница.",
-            missingInputs:"Не хватает входов", imageReferences:"IMAGE-референсы" }
+            missingInputs:"Не хватает входов", imageReferences:"IMAGE-референсы",
+            durationLabel:"Длительность", fixedDuration:"Фиксировано", unverifiedDuration:"Не подтверждено" }
     };
     return messages[costLocale()][key] || messages.en[key] || "";
 }
