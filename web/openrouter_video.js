@@ -543,6 +543,33 @@ function installBetaPresentation(node) {
     scheduleBetaPresentation();
 }
 
+function capacitySummaryText(node) {
+    const parts = String(node.__orvReferenceSummary || "").split(" · ");
+    const parked = parts.filter(part => /^\d+ parked$/.test(part));
+    const primary = parts.filter(part => /^\d+ (connected|remaining)$/.test(part));
+    const rest = parts.filter(part => !parked.includes(part) && !primary.includes(part));
+    let text = [...primary, ...parked, ...rest].join(" · ");
+    if (costLocale() === "ru") {
+        for (const [from,to] of [["capacity unverified","ёмкость не подтверждена"],["verified subset boundary","граница подтверждённого набора"],
+            ["upper bound unverified","верхний предел не подтверждён"],["maximum reached","достигнут максимум"],
+            ["limit not published","лимит не опубликован"],["limit unverified","лимит не подтверждён"],
+            ["connected","подключено"],["remaining","осталось"],["parked","сохранено вне режима"],["available","доступно"]]) text = text.replaceAll(from,to);
+    }
+    return text;
+}
+
+function capacitySummaryLines(node, width) {
+    // Conservative screen-space text budget shared by measurement and Classic drawing.
+    const budget = Math.max(8, Math.floor((Math.max(80,width || 400) - 24) / 8));
+    const lines = []; let line = "";
+    for (const word of capacitySummaryText(node).split(/\s+/)) {
+        if (line && line.length + word.length + 1 > budget) { lines.push(line); line = ""; }
+        line = line ? `${line} ${word}` : word;
+    }
+    if (line) lines.push(line);
+    return lines;
+}
+
 function syncBetaPresentation(node) {
     const activeGraph = app.canvas?.graph || app.graph;
     if (node.graph && activeGraph?.getNodeById?.(node.id) !== node) {
@@ -593,6 +620,19 @@ function syncBetaPresentation(node) {
     const grid = root.querySelector('[data-testid="node-widgets"]');
     if (!grid) return;
     const rows = [...grid.querySelectorAll(':scope > [data-testid="node-widget"]')];
+    for (const row of rows) {
+        const input = row.querySelector('input[aria-label="REFERENCES"]');
+        if (!input || !node.__orvSummary) continue;
+        let summary = row.querySelector(".orv-capacity-summary");
+        if (!summary) {
+            summary = document.createElement("div"); summary.className = "orv-capacity-summary";
+            Object.assign(summary.style,{whiteSpace:"normal",overflowWrap:"anywhere",font:"400 12px/18px Arial, Helvetica, sans-serif",padding:"2px 12px",minWidth:"0"});
+            row.append(summary);
+        }
+        input.style.display = "none";
+        const text = capacitySummaryText(node);
+        if (summary.textContent !== text) summary.textContent = text;
+    }
     const prompt = widget(node,"prompt");
     let hasPrompt = false;
     const templates = rows.map((row) => {
@@ -4104,13 +4144,13 @@ app.registerExtension({
             setVisible(this.__orvAdvanced, false);
             this.__orvSummary = addReadOnlyWidget(this, "REFERENCES", "");
             this.__orvSummary.label = " ";
-            this.__orvSummary.__orvComputeSize = () => [0, 22];
+            this.__orvSummary.__orvComputeSize = (width) => [0, Math.max(22,capacitySummaryLines(this,width || this.size?.[0]).length * 18 + 4)];
             this.__orvSummary.draw = (ctx, node, width, y) => {
                 ctx.save();
                 ctx.font = "12px sans-serif";
                 ctx.fillStyle = "#b8c8c4";
                 ctx.textAlign = "left";
-                ctx.fillText(String(node.__orvReferenceSummary || ""), 12, y + 15, width - 24);
+                capacitySummaryLines(node,width).forEach((line,index) => ctx.fillText(line, 12, y + 15 + index * 18));
                 ctx.restore();
             };
             setVisible(this.__orvSummary, false);

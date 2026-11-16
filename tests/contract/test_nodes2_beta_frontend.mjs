@@ -43,6 +43,27 @@ test('PUX03 advanced textareas never compete with Prompt for flexible height',()
  assert.equal(advanced.rows,5);assert.deepEqual(marks,[['Prompt','orv-prompt-row']]);
  grid.querySelectorAll=()=>[row(advanced)];c.syncBetaPresentation(n);assert.equal(grid.style.flex,'');
 });
+test('PUX05 capacity presentation preserves every quantity and uncertainty across widths and locale',()=>{
+ const c=context(),n={__orvReferenceSummary:'4 connected · image 2 · video 1 · audio 1 · 46 remaining · IMAGE 28 available · VIDEO 9 available · AUDIO 9 available · 2 parked'};
+ const original=n.__orvReferenceSummary;
+ const text=c.capacitySummaryText(n);assert(text.startsWith('4 connected · 46 remaining · 2 parked'));
+ for(const width of [220,340,620,1000]){const lines=Array.from(c.capacitySummaryLines(n,width));assert.equal(lines.join(' '),text);assert(lines.every(line=>line.length<=Math.floor((width-24)/8)));}
+ assert(c.capacitySummaryLines(n,1000).length<c.capacitySummaryLines(n,220).length);
+ c.app.ui={settings:{getSettingValue:()=> 'ru'}};assert(c.capacitySummaryText(n).includes('2 сохранено вне режима'));
+ n.__orvReferenceSummary='0 connected · verified subset boundary · upper bound unverified · VIDEO capacity unverified';
+ assert(c.capacitySummaryText(n).includes('ёмкость не подтверждена'));assert(!c.capacitySummaryText(n).includes('доступно'));
+ n.__orvReferenceSummary=original;assert.equal(n.__orvReferenceSummary,original);
+});
+
+test('PUX05 Nodes2 wraps one nonserialized summary without replacing the native widget',()=>{
+ const {c,n,grid}=domFixture(),input={style:{}},children=[];
+ n.__orvReferenceSummary='4 connected · 46 remaining · 2 parked';n.__orvSummary={name:'REFERENCES',serialize:false,value:n.__orvReferenceSummary};const widget=n.__orvSummary;
+ const row={querySelector(s){return s==='input[aria-label="REFERENCES"]'?input:s==='.orv-capacity-summary'?children[0]:null;},append(item){children.push(item);}};
+ grid.querySelectorAll=()=>[row];c.syncBetaPresentation(n);c.syncBetaPresentation(n);
+ assert.equal(children.length,1);assert.equal(children[0].textContent,c.capacitySummaryText(n));assert.equal(input.style.display,'none');
+ assert.equal(children[0].style.whiteSpace,'normal');assert.equal(n.__orvSummary,widget);assert.equal(widget.serialize,false);
+});
+
 test('renderer adapter cleans node ownership and shares one observer',()=>{
  let observers=0;const scheduled=[];const document={head:{append(){}},body:{},querySelectorAll:()=>[],createElement:()=>({})};const c=context({document,MutationObserver:class {constructor(){observers++;}observe(){}},queueMicrotask:fn=>scheduled.push(fn)});const a={},b={};c.installBetaPresentation(a);c.installBetaPresentation(a);c.installBetaPresentation(b);assert.equal(observers,1);assert.equal(c.installBetaPresentation.nodes.size,2);assert.equal(scheduled.length,1);scheduled.shift()();a.onRemoved();assert.equal(c.installBetaPresentation.nodes.size,1);b.onRemoved();assert.equal(c.installBetaPresentation.nodes.size,0);
 });
