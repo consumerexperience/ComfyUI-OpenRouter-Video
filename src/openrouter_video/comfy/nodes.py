@@ -381,6 +381,24 @@ def _creative_provider_inputs() -> dict[str, tuple[str, str | None, str]]:
     return dict(sorted(result.items()))
 
 
+def _creative_provider_label(name: str) -> str:
+    """Static schema label from the same reviewed text semantic, not its key."""
+    for model in load_manifest()["models"]:
+        shapes = model["facts"].get("request_shape_profiles", {}).get("value", {})
+        for method in shapes.get("methods", {}).values():
+            providers = method.get("controls", {}).get("provider_options", {}).get("providers", {})
+            for provider, options in providers.items():
+                for key, spec in options.items():
+                    if f"provider_option:{provider}:{spec.get('container') or ''}:{key}" == name:
+                        label = spec.get("presentation", {}).get("label", {}).get("en")
+                        return label or (
+                            "negative prompt"
+                            if spec.get("text_semantic") == "negative_prompt"
+                            else "prompt"
+                        )
+    raise ValueError("Unknown creative text input")
+
+
 def _merge_linked_creative_text(
     capability: ModelCapabilities,
     method: str,
@@ -506,7 +524,7 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                 *[
                     compat.IO.String.Input(
                         name,
-                        display_name="negative prompt",
+                        display_name=_creative_provider_label(name),
                         default="",
                         optional=True,
                         multiline=True,

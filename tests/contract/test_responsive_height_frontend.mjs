@@ -41,23 +41,23 @@ test('PUX03 v1.1 content changes preserve preferred Prompt and anchored position
 });
 
 test('PUX03 v1.1 delayed native onResize cannot become user intent',()=>{
- const n=fixture(800);n.setSize([620,920]);const preferred=n.__orvPreferredTextBudget;
+ const n=fixture(800);n.setSize([620,920]);const preferred=n.__orvMasterPromptHeight;
  for(const size of [[320,10],[900,1800],[400,442]]){
-   n.size=size;n.onResize(size);assert.equal(n.__orvPreferredTextBudget,preferred);
+   n.size=size;n.onResize(size);assert.equal(n.__orvMasterPromptHeight,preferred);
    assert.equal(n.size[0],620);assert.equal(n.size[1],n.computeSize()[1]+preferred-c.textRegionGeometry(n).min);
  }
  c.app.canvas={resizing_node:n};n.size=[500,1000];n.onResize(n.size);
- assert.equal(n.__orvPreferredWidth,620);assert.equal(n.__orvPreferredTextBudget,preferred);c.app.canvas=undefined;
+ assert.equal(n.__orvPreferredWidth,620);assert.equal(n.__orvMasterPromptHeight,preferred);c.app.canvas=undefined;
 });
 
 test('PUX03 v1.1 native saved size reconstructs independent preferred geometry',()=>{
- const n=fixture(800);n.__orvRestoreGeometry=[610,970];
+ const n=fixture(800);delete n.__orvMasterPromptHeight;delete n.properties.orv_prompt_geometry;n.__orvRestoreGeometry=[610,970];
  n.onResize(n.size);c.fitPresentationWidth(n);assert(n.__orvRestoreGeometry);
  n.__orvCapability={__methodProfile:{}};c.fitPresentationWidth(n);
- const extra=n.__orvPreferredTextBudget;assert.equal(n.size[0],610);assert.equal(n.size[1],970);
- n.socketHeight+=100;c.fitPresentationWidth(n);assert.equal(n.size[1],1070);assert.equal(n.__orvPreferredTextBudget,extra);
- const other=fixture(500);assert.notEqual(other.__orvPreferredTextBudget,extra);
- n.__orvRestoreGeometry=[100,1];c.fitPresentationWidth(n);assert.equal(n.size[0],320);assert.equal(n.__orvPreferredTextBudget,0);
+ const extra=n.__orvMasterPromptHeight;assert.equal(n.size[0],610);assert.equal(n.size[1],970);
+ n.socketHeight+=100;c.fitPresentationWidth(n);assert.equal(n.size[1],1070);assert.equal(n.__orvMasterPromptHeight,extra);
+ const other=fixture(500);assert.notEqual(other.__orvMasterPromptHeight,extra);
+ n.__orvRestoreGeometry=[100,1];c.fitPresentationWidth(n);assert.equal(n.size[0],320);assert.equal(n.__orvMasterPromptHeight,extra);
 });
 
 test('PUX03 v1.1 Float32 native bounds settle without a programmatic resize loop',()=>{
@@ -73,18 +73,18 @@ test('final review interleaved callbacks during a gesture cannot own persistent 
  n=fixture(800);n.id=1;n.findResizeDirection=()=> 'SE';n.__orvUserResizeActive=true;
  callbacks.pointerdown({isTrusted:true,button:0,canvasX:10,canvasY:20,pointerId:1});
  const event={isTrusted:true,canvasX:20,canvasY:30,pointerId:1};callbacks.pointermove(event);c.app.canvas.pointer={eMove:event};
- n.size=[610,900];n.onResize(n.size);const extra=n.__orvPreferredTextBudget;
- n.size=[999,1900];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvPreferredTextBudget,extra);
+ n.size=[610,900];n.onResize(n.size);const extra=n.__orvMasterPromptHeight;
+ n.size=[999,1900];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvMasterPromptHeight,extra);
  microtasks.shift()();n.size=[888,1800];n.onResize(n.size);
- assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvPreferredTextBudget,extra);
+ assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvMasterPromptHeight,extra);
  c.app.canvas=undefined;
 });
 
 test('final review deferred notification inside active gesture has no trusted dispatch authority',()=>{
- const n=fixture(800);n.setSize([620,920]);const extra=n.__orvPreferredTextBudget;
+ const n=fixture(800);n.setSize([620,920]);const extra=n.__orvMasterPromptHeight;
  n.__orvUserResizeActive=true;c.app.canvas={resizing_node:n};
  n.size=[999,1900];n.onResize(n.size);
- assert.equal(n.__orvPreferredWidth,620);assert.equal(n.__orvPreferredTextBudget,extra);
+ assert.equal(n.__orvPreferredWidth,620);assert.equal(n.__orvMasterPromptHeight,extra);
  c.app.canvas=undefined;
 });
 

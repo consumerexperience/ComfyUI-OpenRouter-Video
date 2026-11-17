@@ -19,14 +19,14 @@ function node(c) {
 function profile(spec) {return {controls:{provider_options:{state:'SUPPORTED',providers:{test:spec}}}};}
 function project(c,n,p) {n.__orvCapability={__methodProfile:p};return c.configureOperationControls(n,p);}
 
-test('one shared budget gives identical full-width creative fields, not ordinary technical inputs',()=>{
- const c=context(),n=node(c);n.__orvPreferredTextBudget=304;
+test('Master height gives identical additive full-width creative fields, not ordinary technical inputs',()=>{
+ const c=context(),n=node(c);n.__orvMasterPromptHeight=304;
  const p=profile({negative:{type:'string',text_semantic:'negative_prompt'},title:{type:'string'}});
  project(c,n,p);const fields=c.creativeTextWidgets(n);assert.equal(fields.length,2);
  assert.deepEqual(Array.from(fields,w=>w.label),['prompt','negative prompt']);
  assert.equal(fields[1].type,'customtext');assert.equal(fields[1].options.multiline,true);assert.equal(fields[1].serialize,false);
  assert.equal(n.widgets.find(w=>w.name.endsWith(':title')).type,'text');
- assert.equal(fields[0].computeSize()[1],150);assert.equal(fields[1].computeSize()[1],150);
+ assert.equal(fields[0].computeSize()[1],304);assert.equal(fields[1].computeSize()[1],304);
  assert.equal(fields[0].element?.placeholder,undefined);assert.equal(fields[1].element.placeholder,'negative prompt');
  assert.equal(n.widgets.indexOf(fields[1]),n.widgets.indexOf(fields[0])+1);
 });
@@ -37,43 +37,44 @@ test('creative presentation is evidence-driven, never inferred from negativeProm
  assert.equal(n.widgets.find(w=>w.name.endsWith(':arbitrary')).type,'customtext');
 });
 
-test('N-way allocation preserves preferred budget through temporary minima, visibility and ordinary rows',()=>{
- const c=context(),n=node(c);n.__orvPreferredTextBudget=100;const one=c.textRegionGeometry(n);
+test('Additive allocation preserves master height through temporary minima, visibility and ordinary rows',()=>{
+ const c=context(),n=node(c);n.__orvMasterPromptHeight=100;const one=c.textRegionGeometry(n);
  project(c,n,profile({a:{type:'string',text_semantic:'negative_prompt'},b:{type:'string',text_semantic:'creative_prompt'}}));
- assert.equal(c.textRegionGeometry(n).budget,182);assert.equal(c.textRegionGeometry(n).field,58);assert.equal(n.__orvPreferredTextBudget,100);
- project(c,n,profile({technical:{type:'string'}}));assert.equal(c.textRegionGeometry(n).budget,one.budget);assert.equal(n.__orvPreferredTextBudget,100);
- n.__orvPreferredTextBudget=604;project(c,n,profile({a:{type:'string',text_semantic:'negative_prompt'},b:{type:'string',text_semantic:'creative_prompt'}}));
- assert.equal(c.textRegionGeometry(n).field,(604-8)/3);assert.deepEqual(n.pos,[10,20]);
+ assert.equal(c.textRegionGeometry(n).budget,308);assert.equal(c.textRegionGeometry(n).field,100);assert.equal(n.__orvMasterPromptHeight,100);
+ project(c,n,profile({technical:{type:'string'}}));assert.equal(c.textRegionGeometry(n).budget,one.budget);assert.equal(n.__orvMasterPromptHeight,100);
+ n.__orvMasterPromptHeight=604;project(c,n,profile({a:{type:'string',text_semantic:'negative_prompt'},b:{type:'string',text_semantic:'creative_prompt'}}));
+ assert.equal(c.textRegionGeometry(n).field,604);assert.deepEqual(n.pos,[10,20]);
 });
 
 test('user resize budget is independent from programmatic, deferred and restored callbacks',()=>{
  const c=context(),a=node(c),b=node(c);a.__orvCommitResizeIntent(620,a.computeSize()[1]+300);
- const budget=a.__orvPreferredTextBudget;assert.equal(budget,c.textRegionGeometry(a).min+300);
- for(const total of [10,4000,500]){a.size=[1000,total];a.onResize(a.size);assert.equal(a.__orvPreferredWidth,620);assert.equal(a.__orvPreferredTextBudget,budget);}
+ const budget=a.__orvMasterPromptHeight;assert.equal(budget,c.textRegionGeometry(a).min+300);
+ for(const total of [10,4000,500]){a.size=[1000,total];a.onResize(a.size);assert.equal(a.__orvPreferredWidth,620);assert.equal(a.__orvMasterPromptHeight,budget);}
  project(c,a,profile({a:{type:'string',text_semantic:'negative_prompt'}}));c.fitPresentationWidth(a);
- assert.equal(a.size[0],620);assert.equal(a.__orvPreferredTextBudget,budget);assert.notEqual(a.__orvPreferredTextBudget,b.__orvPreferredTextBudget);
+ assert.equal(a.size[0],620);assert.equal(a.__orvMasterPromptHeight,budget);assert.notEqual(a.__orvMasterPromptHeight,b.__orvMasterPromptHeight);
 });
 
 test('native creative widget callbacks preserve newline text and optional boolean omission',()=>{
  const c=context(),n=node(c);c.publishSemanticProjection=()=>{};c.refreshEstimate=async()=>{};
  const p=profile({negative:{type:'string',text_semantic:'negative_prompt'},flag:{type:'boolean'}});project(c,n,p);
- const negative=n.widgets.find(w=>w.__orvTextSemantic),flag=n.widgets.find(w=>w.name.endsWith(':flag')),mode=n.widgets.find(w=>w.name.endsWith(':flag:override'));
- assert.equal(flag.type,'toggle');assert(flag.hidden);assert.equal(n.widgets.find(w=>w.name==='provider_options').value,'[]');
- negative.callback('one\ntwo');mode.callback('SET');flag.callback(true);
+ const negative=n.widgets.find(w=>w.__orvTextSemantic),flag=n.widgets.find(w=>w.name.endsWith(':flag'));
+ assert.equal(flag.type,'combo');assert(!flag.hidden);assert.equal(n.widgets.find(w=>w.name==='provider_options').value,'[]');
+ negative.callback('one\ntwo');flag.callback(true);
  let saved=JSON.parse(n.widgets.find(w=>w.name==='provider_options').value);assert.equal(saved.find(v=>v.key==='negative').value,'one\ntwo');assert.equal(saved.find(v=>v.key==='flag').value,true);
- mode.callback('AUTO / PROVIDER DEFAULT');saved=JSON.parse(n.widgets.find(w=>w.name==='provider_options').value);assert(!saved.some(v=>v.key==='flag'));
+ flag.__orvResetProvider();saved=JSON.parse(n.widgets.find(w=>w.name==='provider_options').value);assert(!saved.some(v=>v.key==='flag'));
  project(c,n,{controls:{}});assert(negative.hidden);assert(saved.some(v=>v.value==='one\ntwo'));project(c,n,p);assert.equal(negative.value,'one\ntwo');
 });
 
 test('dynamic numeric ranges and enums reuse their semantic native components',()=>{
- const c=context(),n=node(c);project(c,n,profile({range:{type:'number',min:0,max:1},discrete:{type:'integer',values:[1,4,9]},short:{type:'string'}}));
+ const c=context(),n=node(c);project(c,n,profile({range:{type:'number',min:0,max:1,omitted_default:0.5},discrete:{type:'integer',values:[1,4,9]},short:{type:'string'}}));
  assert.equal(n.widgets.find(w=>w.name.endsWith(':range')).type,'slider');assert.equal(n.widgets.find(w=>w.name.endsWith(':discrete')).type,'combo');assert.equal(n.widgets.find(w=>w.name.endsWith(':short')).type,'text');
 });
 
 test('a changing dynamic domain replaces the native component without duplicating widget identity or links',()=>{
  const c=context(),n=node(c);const widgets=n.widgets;n.inputs=[{name:'provider_option:test::mode',link:17}];
  project(c,n,profile({mode:{type:'integer',values:[1,4,9]}}));assert.equal(n.widgets.find(w=>w.name==='provider_option:test::mode').type,'combo');
- project(c,n,profile({mode:{type:'integer',min:1,max:9}}));assert.equal(n.widgets.find(w=>w.name==='provider_option:test::mode').type,'slider');
+ project(c,n,profile({mode:{type:'integer',min:1,max:9}}));assert.equal(n.widgets.find(w=>w.name==='provider_option:test::mode').type,'number');
+ c.publishSemanticProjection=()=>{};c.refreshEstimate=async()=>{};n.widgets.find(w=>w.name==='provider_option:test::mode').callback(4);assert.equal(n.widgets.find(w=>w.name==='provider_option:test::mode').type,'slider');
  assert.equal(n.widgets,widgets);assert.equal(n.widgets.filter(w=>w.name==='provider_option:test::mode').length,1);assert.equal(n.inputs[0].link,17);
 });
 
@@ -94,7 +95,7 @@ test('actual Vue Prompt DOM with empty placeholder and native associated label i
  const c=context(),n=node(c),area={placeholder:'',rows:5,style:{},getAttribute:()=>null,setAttribute(k,v){this[k]=v;}},label={textContent:'prompt',style:{}},marks=[];
  const row={style:{},querySelector:s=>s==='textarea'?area:s==='label[for]'?label:null,classList:{add:x=>marks.push(x),remove(){}}};
  const grid={style:{},querySelectorAll:()=>[row]},header={querySelector:()=>null,append(){}},root={dataset:{nodeId:'1'},classList:{add(){}},querySelector:s=>s.startsWith('.lg-node-header')?null:grid};
- c.document={querySelectorAll:()=>[root]};n.id=1;n.__orvPreferredTextBudget=224;c.syncBetaPresentation(n);
+ c.document={querySelectorAll:()=>[root]};n.id=1;n.__orvMasterPromptHeight=224;c.syncBetaPresentation(n);
  assert(marks.includes('orv-prompt-row'));assert.equal(grid.style.gridTemplateRows,'224px');assert.equal(area.placeholder,'prompt');assert.equal(label.style.display,'none');assert.equal(area['aria-label'],'prompt');
 });
 
@@ -113,21 +114,21 @@ test('unknown duration never masquerades as a fixed or automatic value',()=>{
 
 test('horizontal-only Classic gesture cannot promote a temporary N-field minimum to user budget',()=>{
  const c=context(),handlers={};let n;c.app.canvas={canvas:{addEventListener:(key,fn)=>handlers[key]=fn},graph:{getNodeById:()=>n}};const microtasks=[];c.queueMicrotask=fn=>microtasks.push(fn);
- n=node(c);n.id=1;n.findResizeDirection=()=> 'SE';n.__orvPreferredTextBudget=70;
+ n=node(c);n.id=1;n.findResizeDirection=()=> 'SE';n.__orvMasterPromptHeight=70;
  project(c,n,profile({negative:{type:'string',text_semantic:'negative_prompt'}}));c.fitPresentationWidth(n);const originalHeight=n.size[1];
  handlers.pointerdown({isTrusted:true,button:0,canvasX:0,canvasY:0,pointerId:1});
  const e={isTrusted:true,pointerId:1};handlers.pointermove(e);c.app.canvas.pointer={eMove:e};n.size=[620,originalHeight];n.onResize(n.size);
- assert.equal(n.__orvPreferredTextBudget,70);assert.equal(n.__orvPreferredWidth,620);
+ assert.equal(n.__orvMasterPromptHeight,70);assert.equal(n.__orvPreferredWidth,620);
  project(c,n,{controls:{}});assert.equal(c.textRegionGeometry(n).budget,70);microtasks.shift()();
 });
 
-test('actual native multiline minima split an unchanged budget equally and release it on hide',()=>{
- const c=context(),n=node(c);project(c,n,profile({neg:{type:'string',text_semantic:'negative_prompt'}}));n.__orvPreferredTextBudget=224;n.id=1;
+test('native multiline minima retain independent master height and release additive allocation on hide',()=>{
+ const c=context(),n=node(c);project(c,n,profile({neg:{type:'string',text_semantic:'negative_prompt'}}));n.__orvMasterPromptHeight=224;n.id=1;
  const areas=[{placeholder:'',rows:4},{placeholder:'',rows:4}];const rows=areas.map((area,i)=>({style:{},classList:{add(){},remove(){}},querySelector:s=>s==='textarea'?area:s==='label[for]'?{textContent:i?'negative prompt':'prompt',style:{}}:null}));
  const grid={style:{},querySelectorAll:()=>rows};const root={dataset:{nodeId:'1'},classList:{add(){}},querySelector:s=>s.startsWith('.lg-node-header')?null:grid};c.document={querySelectorAll:()=>[root]};c.getComputedStyle=()=>({minHeight:'64px'});
- c.syncBetaPresentation(n);assert.equal(grid.style.gridTemplateRows,'110px 110px');assert.equal(areas[0].placeholder,'prompt');assert.equal(areas[1].placeholder,'negative prompt');
- n.__orvPreferredTextBudget=70;c.syncBetaPresentation(n);assert.equal(grid.style.gridTemplateRows,'64px 64px');assert.equal(n.__orvPreferredTextBudget,70);
- n.widgets.find(w=>w.__orvTextSemantic).hidden=true;rows.pop();c.syncBetaPresentation(n);assert.equal(grid.style.gridTemplateRows,'70px');assert.equal(n.__orvPreferredTextBudget,70);
+ c.syncBetaPresentation(n);assert.equal(grid.style.gridTemplateRows,'224px 224px');assert.equal(areas[0].placeholder,'prompt');assert.equal(areas[1].placeholder,'negative prompt');
+ n.__orvMasterPromptHeight=70;c.syncBetaPresentation(n);assert.equal(grid.style.gridTemplateRows,'70px 70px');assert.equal(n.__orvMasterPromptHeight,70);
+ n.widgets.find(w=>w.__orvTextSemantic).hidden=true;rows.pop();c.syncBetaPresentation(n);assert.equal(grid.style.gridTemplateRows,'70px');assert.equal(n.__orvMasterPromptHeight,70);
 });
 
 test('read-only native Duration replaces only its value cell and restores native editing without duplicates',()=>{

@@ -304,6 +304,60 @@ function setMinimumWidgetHeight(item, minimum) {
     setVisible(item, !item.hidden);
 }
 
+function nodeTypography(node = null) {
+    const native=node?.innerFontStyle;
+    const size=typeof native==="string" ? Number(native.match(/([0-9.]+)px/)?.[1]) : 12;
+    const family='Inter, Arial, Helvetica, "Noto Sans", "Noto Sans CJK SC", "Noto Sans CJK JP", "Noto Sans Arabic", "Noto Sans Devanagari", sans-serif';
+    return {family,size:Number.isFinite(size)&&size>0?size:12,weight:400,line:20};
+}
+
+function installNodeTypography(node) {
+    const token=nodeTypography(node);
+    for(const item of node.widgets || []){
+        if(item.element?.style)Object.assign(item.element.style,{fontFamily:token.family,fontWeight:"400",lineHeight:"18px"});
+        if(typeof item.draw!=="function" || item.__orvTypographyInstalled)continue;
+        const draw=item.draw;item.__orvTypographyInstalled=true;
+        item.draw=function(ctx,...args){ctx.save();ctx.font=`${token.weight} ${token.size}px ${token.family}`;ctx.textBaseline="alphabetic";
+            try{return draw.call(this,ctx,...args);}finally{ctx.restore();}};
+    }
+}
+
+function providerDisplayValue(item) {
+    if(item.__orvProviderAuto && ["slider","number"].includes(item.type)){
+        const auto=costLocale()==="ru"?"Авто":"Auto";
+        return item.__orvProviderKnownDefault ? `${item._displayValue ?? item.value} ${auto}` : auto;
+    }
+    return String(item._displayValue ?? item.value ?? "");
+}
+
+function syncProviderGroupHeading(node,row) {
+    const input=row.querySelector('input');
+    const item=(node.widgets || []).find(w=>w.__orvProviderHeading && input?.getAttribute?.('aria-label')===w.name);
+    if(!item)return;
+    let title=row.querySelector('.orv-provider-heading');
+    if(!title){title=document.createElement('span');title.className='orv-provider-heading';Object.assign(title.style,{gridColumn:'1 / -1',font:`600 11px/20px ${nodeTypography(node).family}`,color:'#999',padding:'0 15px'});row.append(title);}
+    title.textContent=item.label;input.style.display='none';
+    const label=row.querySelector('[data-testid="widget-layout-field-label"]');if(label?.style)label.style.display='none';
+}
+
+function syncProviderNumericState(node, row) {
+    const label=row.querySelector('[data-testid="widget-layout-field-label"]');
+    const input=row.querySelector('input');
+    const item=(node.widgets || []).find(item=>item.__orvProviderOption && !item.hidden &&
+        ["number","slider"].includes(item.type) && (input?.getAttribute?.("aria-label")===item.name || label?.textContent?.trim()===(item.displayName || item.label)));
+    if(!item)return;
+    if(input && item.__orvProviderAuto && !item.__orvProviderKnownDefault)input.placeholder=providerAutoLabel({});
+    const host=input?.parentElement;
+    if(!host?.append)return;
+    let state=host.querySelector?.('.orv-provider-state');
+    if(!state){state=document.createElement('button');state.type='button';state.className='orv-provider-state';
+        Object.assign(state.style,{font:'inherit',fontSize:'11px',flex:'0 0 auto',padding:'0 4px',border:'0',background:'transparent',color:'inherit'});
+        state.addEventListener('click',event=>{event.stopPropagation();state.__orvItem?.__orvResetProvider?.();});host.append(state);}
+    state.__orvItem=item;state.textContent=item.__orvProviderAuto?providerAutoLabel({}):'↺';
+    state.title=costLocale()==='ru'?'Сбросить в Авто':'Reset to Auto';
+    state.setAttribute('aria-label',`${item.label}: ${state.title}`);
+}
+
 function presentationSize(node) { return node.__orvLiveSize || node.size || [400,0]; }
 
 function classicContentBounds(item, width) {
@@ -357,7 +411,7 @@ function installParameterColumns(node) {
         const bounds = width => classicContentBounds(item,width);
         const label = (ctx,width) => {
             const b=bounds(width), y=item.y || 0;
-            ctx.save();ctx.beginPath();ctx.rect(b.left,y,b.labelWidth,item.height || COMPACT_LAYOUT.row);ctx.clip();
+            ctx.save();ctx.font=`400 ${nodeTypography(node).size}px ${nodeTypography(node).family}`;ctx.textBaseline="alphabetic";ctx.beginPath();ctx.rect(b.left,y,b.labelWidth,item.height || COMPACT_LAYOUT.row);ctx.clip();
             ctx.textAlign="left";ctx.fillStyle=item.secondary_text_color || "#C4C4C4";
             ctx.fillText(fitWidgetText(ctx,String(item.displayName ?? item.label ?? item.name),b.labelWidth),b.left,item.labelBaseline ?? y+15);ctx.restore();
             return b;
@@ -365,9 +419,9 @@ function installParameterColumns(node) {
         if (typeof item.drawLabel === "function") item.drawLabel=function(ctx) { label(ctx,this.width || presentationSize(node)[0]); };
         if (typeof item.drawTruncatingText === "function") item.drawTruncatingText=function({ctx,width}) {
             const b=label(ctx,width), y=this.y || 0;
-            ctx.save();ctx.beginPath();ctx.rect(b.valueLeft,y,Math.max(0,b.right-b.valueLeft),this.height || COMPACT_LAYOUT.row);ctx.clip();
+            ctx.save();ctx.font=`400 ${nodeTypography(node).size}px ${nodeTypography(node).family}`;ctx.textBaseline="alphabetic";ctx.beginPath();ctx.rect(b.valueLeft,y,Math.max(0,b.right-b.valueLeft),this.height || COMPACT_LAYOUT.row);ctx.clip();
             ctx.textAlign="right";ctx.fillStyle=this.text_color || "#F9F9F9";
-            ctx.fillText(fitWidgetText(ctx,String(this._displayValue ?? this.value ?? ""),Math.max(0,b.right-b.valueLeft)),b.right,this.labelBaseline ?? y+15);ctx.restore();
+            ctx.fillText(fitWidgetText(ctx,providerDisplayValue(this),Math.max(0,b.right-b.valueLeft)),b.right,this.labelBaseline ?? y+15);ctx.restore();
         };
     }
 }
@@ -398,10 +452,22 @@ function creativeTextWidgets(node, includeHidden = false) {
 function textRegionGeometry(node, minimum = COMPACT_LAYOUT.prompt + COMPACT_LAYOUT.domInset) {
     const count = creativeTextWidgets(node).length;
     const gaps = Math.max(0, count - 1) * COMPACT_LAYOUT.gap;
-    const min = count * minimum + gaps;
-    const preferred = node.__orvLiveTextBudget ?? node.__orvPreferredTextBudget;
-    const budget = count ? Math.max(min, preferred ?? minimum) : 0;
-    return { count, min, budget, field: count ? (budget - gaps) / count : 0 };
+    const stored=node.properties?.orv_prompt_geometry;
+    const preferred=node.__orvLivePromptHeight ?? node.__orvMasterPromptHeight ?? (stored?.version===2 ? stored.height : undefined);
+    const field=count ? Math.max(minimum,Number.isFinite(preferred) ? preferred : minimum) : 0;
+    return {count,min:count*minimum+gaps,budget:count*field+gaps,field};
+}
+
+function persistMasterPromptHeight(node, height) {
+    if(!Number.isFinite(height))return;
+    node.__orvMasterPromptHeight=Math.max(0,height);
+    node.properties ||= {};
+    node.properties.orv_prompt_geometry={version:2,height:node.__orvMasterPromptHeight};
+}
+
+function masterHeightFromRegion(node, budget) {
+    const count=creativeTextWidgets(node).length;
+    return count ? Math.max(0,(budget-Math.max(0,count-1)*COMPACT_LAYOUT.gap)/count) : node.__orvMasterPromptHeight;
 }
 
 function nativeFlowHeight(element, scale) {
@@ -423,7 +489,7 @@ function nativeFlowHeight(element, scale) {
 
 function stylePrompt(node) {
     for (const item of creativeTextWidgets(node, true)) {
-    item.label = item.__orvTextSemantic === "negative_prompt" ? "negative prompt" : "prompt";
+    item.label = creativeTextLabel(item);
     const element = item.element;
     if (!element?.style) continue;
     element.placeholder = item.label;
@@ -441,7 +507,9 @@ function stylePrompt(node) {
     element.style.width = `calc(100% - ${COMPACT_LAYOUT.inset*2}px)`;
     element.style.marginInline = `${COMPACT_LAYOUT.inset}px`;
     element.style.textIndent = "0";
-    element.style.lineHeight = "normal";
+    element.style.lineHeight = "18px";
+    element.style.fontFamily=nodeTypography(node).family;
+    element.style.fontWeight="400";
     }
 }
 
@@ -461,7 +529,14 @@ function orderPresentationWidgets(node) {
         widget(node, "size"), control,
     ].filter(Boolean);
     const used = new Set(leading);
-    const ordered = [...leading, ...(node.widgets || []).filter((item) => !used.has(item))];
+    // Keep persisted fixed-control tails ahead of nonserialized provider rows.
+    const fixed=(node.widgets || []).filter(item=>!used.has(item) && !item.__orvProviderOption);
+    const grouped=["voice","appearance","advanced"].flatMap(group=>[
+        widget(node,`provider_group:${group}`),
+        ...(node.widgets || []).filter(w=>w.__orvProviderOption && !w.__orvProviderHeading && !w.__orvTextSemantic && w.__orvProviderGroup===group)
+    ]).filter(item=>item && !used.has(item));
+    for(const item of [...fixed,...grouped])used.add(item);
+    const ordered = [...leading,...fixed,...grouped, ...(node.widgets || []).filter((item) => !used.has(item))];
     if (ordered.some((item, index) => item !== node.widgets[index])) {
         // Keep the array identity: Comfy's widget layer may retain the
         // original array while the node definition is being configured.
@@ -471,8 +546,27 @@ function orderPresentationWidgets(node) {
     return false;
 }
 
+function installSemanticSerialization(node) {
+    if(node.__orvNamedSerializationInstalled)return;
+    node.__orvNamedSerializationInstalled=true;
+    const previous=node.onSerialize;
+    node.onSerialize=function(data,...args){
+        const result=previous?.call(this,data,...args);
+        if(!data || typeof data!=="object")return result;
+        const names=["model","inference_method","prompt","resolution","aspect_ratio","duration","size","seed","generate_audio","first_frame_url","last_frame_url","geometry_authority","previous_job_id","upscale_factor","creativity","provider_options"];
+        const named={...(data.widgets_values_named || {})};
+        for(const name of names){const item=widget(this,name);if(item)named[name]=item.value;}
+        const control=(this.widgets || []).find(item=>/control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`));
+        if(control)named[control.name]=control.value;
+        data.widgets_values_named=named;
+        return result;
+    };
+}
+
 function applyPresentation(node) {
+    installSemanticSerialization(node);
     suppressPackageBadge(node);
+    installNodeTypography(node);
     if(node.__orvSummary && node.__orvCapability?.__methodProfile)setVisible(node.__orvSummary,referenceCapacity(node).visible);
     node.color = "#173c33";
     node.bgcolor = "#1b2024";
@@ -499,6 +593,7 @@ function applyPresentation(node) {
     const previousDraw = node.onDrawForeground;
     node.onDrawForeground = function (ctx, ...args) {
         suppressPackageBadge(this);
+        if(this.__orvProviderProfile && this.__orvProviderLocale!==costLocale())configureOperationControls(this,this.__orvProviderProfile);
         const reordered = orderPresentationWidgets(this);
         const advancedChanged = syncAdvancedControls(this);
         if (reordered || advancedChanged) {
@@ -521,7 +616,7 @@ function applyPresentation(node) {
         ctx.strokeStyle = "#328761";
         ctx.lineWidth = 1.5;
         ctx.stroke();
-        ctx.font = "600 11px Arial, Helvetica, sans-serif";
+        ctx.font = `600 11px ${nodeTypography(node).family}`;
         const badgeWidth = Math.min(width * 0.5, ctx.measureText(badge).width + 24);
         ctx.beginPath();
         if (ctx.roundRect) ctx.roundRect(width - badgeWidth - 10, -27, badgeWidth, 21, 6);
@@ -591,7 +686,7 @@ function installResponsiveHeight(node) {
         delete node.__orvRestoreGeometry;
         node.__orvPreferredWidth = Math.max(320,width);
         const minimum = node.computeSize?.()?.[1];
-        if (Number.isFinite(minimum)) node.__orvPreferredTextBudget = Math.max(0, Number.isFinite(textBudget) ? textBudget : textRegionGeometry(node).min+height-minimum);
+        if (Number.isFinite(minimum)) persistMasterPromptHeight(node,masterHeightFromRegion(node,Number.isFinite(textBudget) ? textBudget : textRegionGeometry(node).min+height-minimum));
     };
     node.onResize = function (size, ...args) {
         if(this.__orvApplyingLiveResize){previousResize?.call(this,size,...args);return;}
@@ -600,7 +695,7 @@ function installResponsiveHeight(node) {
             dispatch.used=true;
             this.__orvCommitResizeIntent(size[0],size[1],Math.abs(size[1]-dispatch.height)<0.01 ? dispatch.budget : undefined);
             this.__orvLiveSize=Array.from(size);
-            this.__orvLiveTextBudget=this.__orvPreferredTextBudget;
+            this.__orvLivePromptHeight=this.__orvMasterPromptHeight;
             scheduleResizeLayout(this);
         }
         if (this.__orvRestoreGeometry) {
@@ -627,7 +722,7 @@ function installResponsiveHeight(node) {
             if(!point)return;
             const corner=node.findResizeDirection?.(point[0],point[1]);
             if (!["SE","SW","NE","NW"].includes(corner) ) return;
-            origin={x:point[0],y:point[1],width:node.size[0],height:node.size[1],corner,id:event.pointerId,budget:node.__orvPreferredTextBudget};
+            origin={x:point[0],y:point[1],width:node.size[0],height:node.size[1],corner,id:event.pointerId,budget:textRegionGeometry(node).budget};
             node.__orvUserResizeActive=true;
         };
         const move=event=>{
@@ -637,7 +732,7 @@ function installResponsiveHeight(node) {
             // deferred callback, even if native propagation stops early.
             queueMicrotask(()=>{if(node.__orvResizeDispatch===dispatch)delete node.__orvResizeDispatch;});
         };
-        const end=()=>{origin=null;delete node.__orvResizeDispatch;delete node.__orvLiveSize;delete node.__orvLiveTextBudget;node.__orvUserResizeActive=false;};
+        const end=()=>{origin=null;delete node.__orvResizeDispatch;delete node.__orvLiveSize;delete node.__orvLivePromptHeight;node.__orvUserResizeActive=false;};
         canvas.addEventListener("pointerdown",start,true);canvas.addEventListener("pointermove",move,true);
         canvas.addEventListener("pointerup",end);canvas.addEventListener("pointercancel",end);
         const removed=node.onRemoved;
@@ -662,9 +757,12 @@ function fitPresentationWidth(node) {
         if (!node.__orvCapability?.__methodProfile) return; // Decode saved total height only against hydrated controls.
         if (app.ui?.settings?.getSettingValue?.("Comfy.VueNodes.Enabled") && !Number.isFinite(node.__orvNativeFixedHeight)) return;
         node.__orvPreferredWidth = Math.max(320,node.__orvRestoreGeometry[0]);
-        node.__orvPreferredTextBudget = Math.max(0, Number.isFinite(node.__orvNativeFixedHeight)
-            ? node.__orvRestoreGeometry[1]-node.__orvNativeFixedHeight
-            : textRegionGeometry(node).min+node.__orvRestoreGeometry[1]-measured[1]);
+        if(!Number.isFinite(node.__orvMasterPromptHeight)) {
+            const saved=node.properties?.orv_prompt_geometry;
+            persistMasterPromptHeight(node,saved?.version===2 && Number.isFinite(saved.height) ? saved.height : masterHeightFromRegion(node,
+                Number.isFinite(node.__orvNativeFixedHeight) ? node.__orvRestoreGeometry[1]-node.__orvNativeFixedHeight
+                : textRegionGeometry(node).min+node.__orvRestoreGeometry[1]-measured[1]));
+        }
         delete node.__orvRestoreGeometry;
     }
     let width = node.__orvPreferredWidth ?? (Number.isFinite(node.size?.[0]) && node.size[0] > 0 ? node.size[0] : COMPACT_LAYOUT.width);
@@ -674,8 +772,9 @@ function fitPresentationWidth(node) {
     }
     width = Math.fround(Math.max(320,width));
     node.__orvPreferredWidth = width;
-    if (!Number.isFinite(node.__orvPreferredTextBudget)) {
-        node.__orvPreferredTextBudget = Math.max(0,textRegionGeometry(node).min+(node.size?.[1] || 0)-measured[1]);
+    if (!Number.isFinite(node.__orvMasterPromptHeight)) {
+        const stored=node.properties?.orv_prompt_geometry;
+        persistMasterPromptHeight(node,stored?.version===2 && Number.isFinite(stored.height) ? stored.height : masterHeightFromRegion(node,textRegionGeometry(node).min+(node.size?.[1] || 0)-measured[1]));
     }
     const region = textRegionGeometry(node, node.__orvNativeTextMinimum);
     const height = Math.fround(Number.isFinite(node.__orvNativeFixedHeight)
@@ -720,14 +819,16 @@ function installBetaPresentation(node) {
         // This guarded adapter inserts a normal-flow header span, not an overlay.
         const style = document.createElement("style");
         style.textContent = `
+            .orv-nodes2 { font-family:${nodeTypography().family}; }
+            .orv-nodes2 [data-testid="node-widget"] :is(label,input,button,[role="combobox"]) { font-family:${nodeTypography().family}; font-size:12px; font-weight:400; line-height:20px; }
             .orv-nodes2 .orv-estimate { flex:0 1 auto; max-width:50%; overflow:hidden;
                 text-overflow:ellipsis; white-space:nowrap; border:1px solid var(--border-color, #666);
-                border-radius:6px; padding:1px 7px; color:var(--input-text, #ddd); font:600 11px/16px Arial, Helvetica, sans-serif;
+                border-radius:6px; padding:1px 7px; color:var(--input-text, #ddd); font:600 11px/16px ${nodeTypography().family};
                 cursor:pointer; font-variant-numeric:tabular-nums; }
             .orv-nodes2 .orv-estimate:focus-visible { outline:2px solid var(--input-text, #ddd); }
             .orv-nodes2 .orv-prompt-row { min-height:42px; }
             .orv-nodes2 .orv-prompt-row textarea { min-height:42px; height:100%;
-                padding:4px 6px; margin:0; box-sizing:border-box; font-size:12px; overflow:auto; }
+                padding:4px 6px; margin:0; box-sizing:border-box; font:400 12px/18px ${nodeTypography().family}; overflow:auto; }
         `;
         document.head.append(style);
         installBetaPresentation.observer = new MutationObserver(scheduleBetaPresentation);
@@ -770,7 +871,7 @@ function capacityMeterHeight(node) {
 
 function drawCapacityMeter(ctx,node,width,y) {
     const data=referenceCapacity(node),left=COMPACT_LAYOUT.inset,right=width-left;
-    ctx.save();ctx.font="12px sans-serif";ctx.fillStyle="#C4C4C4";ctx.textAlign="left";
+    ctx.save();ctx.font=`400 ${nodeTypography(node).size}px ${nodeTypography(node).family}`;ctx.fillStyle="#C4C4C4";ctx.textAlign="left";
     ctx.fillText(costLocale()==="ru"?"Референсы":"References",left,y+15);
     ctx.textAlign="right";ctx.fillText(`${data.active??"?"} / ${data.limit??"?"}`,right,y+15);
     const track=y+COMPACT_LAYOUT.row+COMPACT_LAYOUT.gap;
@@ -790,7 +891,7 @@ function syncCapacityMeter(node,row,input) {
     let meter=row.querySelector(".orv-capacity-summary");
     if(!meter){
         meter=document.createElement("div");meter.className="orv-capacity-summary";
-        Object.assign(meter.style,{gridColumn:"1 / -1",minWidth:"0",font:"400 12px/20px Arial, Helvetica, sans-serif",padding:`0 ${COMPACT_LAYOUT.inset}px`,color:"#C4C4C4"});
+        Object.assign(meter.style,{gridColumn:"1 / -1",minWidth:"0",font:`400 12px/20px ${nodeTypography(node).family}`,padding:`0 ${COMPACT_LAYOUT.inset}px`,color:"#C4C4C4"});
         const title=document.createElement("div"),name=document.createElement("span"),count=document.createElement("span");
         Object.assign(title.style,{display:"flex",justifyContent:"space-between",gap:"8px"});title.append(name,count);
         const track=document.createElement("div"),fill=document.createElement("div");Object.assign(track.style,{height:"3px",margin:"4px 0",background:"#44494b"});Object.assign(fill.style,{height:"3px",background:"#B6BBBD"});track.append(fill);
@@ -856,6 +957,7 @@ function syncBetaPresentation(node) {
             node.__orvCostPopoverOwner = null;
         }
     }
+    if(!node.__orvResumeActualInstalled && node.__orvProviderProfile && node.__orvProviderLocale!==costLocale())configureOperationControls(node,node.__orvProviderProfile);
     root.classList.add("orv-nodes2");
     suppressPackageBadge(node,root);
     const header = root.querySelector(".lg-node-header > div");
@@ -906,7 +1008,7 @@ function syncBetaPresentation(node) {
                 if (!["SE","SW","NE","NW"].includes(corner) || !Number.isFinite(event.clientX) || !Number.isFinite(event.clientY) || !(scale>0)) return;
                 const fields=[...(root.querySelectorAll?.(".orv-prompt-row") || [])];
                 const regionHeight=fields.length ? fields.reduce((sum,row)=>sum+row.getBoundingClientRect().height/scale,0)+Math.max(0,fields.length-1)*COMPACT_LAYOUT.gap : textRegionGeometry(node,node.__orvNativeTextMinimum).budget;
-                origin={height:node.size[1],totalHeight:rect.height/scale,regionHeight,budget:node.__orvPreferredTextBudget,id:event.pointerId};
+                origin={height:node.size[1],totalHeight:rect.height/scale,regionHeight,budget:textRegionGeometry(node).budget,id:event.pointerId};
                 node.__orvUserResizeActive = true;
                 syncBetaPresentation(node);
             }
@@ -925,7 +1027,7 @@ function syncBetaPresentation(node) {
                     const delta=height-intent.totalHeight;
                     node.__orvCommitResizeIntent?.(width,intent.height+delta,Math.abs(delta)<0.01 ? intent.budget : intent.regionHeight+delta);
                     node.__orvLiveSize=[width,height];
-                    node.__orvLiveTextBudget=Math.max(0,intent.regionHeight+delta);
+                    node.__orvLivePromptHeight=masterHeightFromRegion(node,Math.max(0,intent.regionHeight+delta));
                     const apply=()=>{
                         if(origin!==intent || root.__orvGeometryOwner!==node)return;
                         node.__orvAutomaticLayout=true;node.__orvApplyingLiveResize=true;
@@ -944,7 +1046,7 @@ function syncBetaPresentation(node) {
             if(node.__orvLiveFrame!=null && typeof cancelAnimationFrame==="function")cancelAnimationFrame(node.__orvLiveFrame);
             node.__orvLiveFrame=null;node.__orvPendingLiveLayout=null;
             origin=null;node.__orvUserResizeActive=false;
-            delete node.__orvLiveSize;delete node.__orvLiveTextBudget;
+            delete node.__orvLiveSize;delete node.__orvLivePromptHeight;
             syncBetaPresentation(node);
         };
         root.addEventListener("pointerdown",start,true);
@@ -956,7 +1058,7 @@ function syncBetaPresentation(node) {
             origin=null;
             if(typeof cancelAnimationFrame==="function")cancelAnimationFrame(node.__orvLiveFrame);
             node.__orvPendingLiveLayout=null;node.__orvLiveFrame=null;
-            delete node.__orvLiveSize;delete node.__orvLiveTextBudget;
+            delete node.__orvLiveSize;delete node.__orvLivePromptHeight;
             if (root.style) root.style.minWidth=previousMinWidth;
             if (previousGrid) [nativeGrid.style.gridTemplateColumns,nativeGrid.style.gridTemplateRows,nativeGrid.style.flex]=previousGrid;
             for (const [element,previous] of touched) {
@@ -1017,7 +1119,7 @@ function syncBetaPresentation(node) {
             || text === (item.label || item.name));
         if (!item) { row.classList.remove?.("orv-prompt-row"); return null; }
         row.classList.add("orv-prompt-row");
-        const display = item.__orvTextSemantic === "negative_prompt" ? "negative prompt" : "prompt";
+        const display = creativeTextLabel(item);
         textarea.placeholder = display;
         textarea.setAttribute?.("aria-label",display);
         if (label) {
@@ -1038,7 +1140,7 @@ function syncBetaPresentation(node) {
     if (grid.style.gridTemplateRows !== template) grid.style.gridTemplateRows = template;
     const flex = bindings.some(Boolean) ? (node.__orvUserResizeActive ? "1 1 auto" : "0 0 auto") : "";
     if (grid.style.flex !== flex) grid.style.flex = flex;
-    for (const row of rows) syncReadOnlyDurationRow(node,root,row);
+    for (const row of rows) {syncReadOnlyDurationRow(node,root,row);syncProviderNumericState(node,row);syncProviderGroupHeading(node,row);}
     const rect = root.getBoundingClientRect?.();
     const scale = rect?.width / presentationSize(node)[0];
     if (scale > 0 && bindings.filter(Boolean).length === region.count) {
@@ -1484,6 +1586,7 @@ function readOnlyValueParts(item) {
 
 function drawReadOnlyValue(node, item, ctx) {
     ctx.save?.();
+    ctx.font=`400 ${nodeTypography(node).size}px ${nodeTypography(node).family}`;ctx.textBaseline="alphabetic";
     const width = item.width || node.size?.[0] || 400, y = item.y || 0;
     const left = 15+Math.max(112,Math.min(160,128+(width-400)/3))+8;
     const parts = readOnlyValueParts(item);
@@ -1524,7 +1627,7 @@ function syncReadOnlyDurationRow(node, root, row) {
     }
     if (typeof getComputedStyle === "function") {
         const native = getComputedStyle(input);
-        display.style.font = native.font;
+        display.style.font = `400 ${nodeTypography(node).size}px/20px ${nodeTypography(node).family}`;
         display.style.borderRadius = native.borderRadius;
         if (parseFloat(native.height)>0) display.style.minHeight = native.height;
     }
@@ -2008,7 +2111,7 @@ function providerOptionLeaf(spec, path = []) {
     return !["object","array"].includes(spec?.type) ? spec : null;
 }
 
-function providerObjectIssue(spec, values, path = []) {
+function providerObjectIssue(spec, values, path = [], rootKey = "") {
     const descendants = values.filter(v => path.every((key, index) => v.path?.[index] === key));
     if (spec.type === "array") {
         if (!descendants.length) return "";
@@ -2017,14 +2120,14 @@ function providerObjectIssue(spec, values, path = []) {
         for (let index=0;index<count;index++) {
             const child=descendants.filter(v=>v.path[path.length]===index);
             if (!child.length) return "Complete each provider array item before Generate.";
-            const issue=providerObjectIssue(spec.items,child,[...path,index]);
+            const issue=providerObjectIssue(spec.items,child,[...path,index],rootKey);
             if (issue) return issue;
         }
         return "";
     }
     if (spec.type !== "object") return spec.required && !descendants.some(v =>
         JSON.stringify(v.path || []) === JSON.stringify(path) && (typeof v.value !== "string" || v.value.trim()))
-        ? `Required provider control: ${path.join(" · ") || "value"}.` : "";
+        ? (costLocale()==="ru" ? `Заполните ${providerControlLabel(spec,rootKey,path)} перед генерацией.` : `Enter ${providerControlLabel(spec,rootKey,path)} before generation.`) : "";
     if (!descendants.length) return "";
     const present = key => descendants.some(v => v.path?.[path.length] === key &&
         (typeof v.value !== "string" || v.value.trim()));
@@ -2032,18 +2135,101 @@ function providerObjectIssue(spec, values, path = []) {
     const selected = discriminator && descendants.find(v => JSON.stringify(v.path) === JSON.stringify([...path,discriminator]))?.value;
     const variant = spec.variants?.cases?.[selected];
     for (const key of [...(spec.required_fields || []), ...(variant?.required_fields || [])])
-        if (!present(key)) return `Required provider control: ${[...path,key].join(" · ")}.`;
+        if (!present(key)) return costLocale()==="ru" ? `Заполните ${providerControlLabel(spec.fields[key],rootKey,[...path,key])} перед генерацией.` : `Enter ${providerControlLabel(spec.fields[key],rootKey,[...path,key])} before generation.`;
     for (const group of [...(spec.one_of_required || []), ...(variant?.one_of_required || [])])
-        if (group.filter(present).length !== 1) return `Choose exactly one provider control: ${group.join(" / ")}.`;
+        if (group.filter(present).length !== 1) return (costLocale()==="ru" ? "Укажите один источник: " : "Choose exactly one source: ")+group.map(key=>providerControlLabel(spec.fields[key],rootKey,[...path,key])).join(" / ")+".";
     for (const [key, child] of Object.entries(spec.fields || {})) {
-        const issue = providerObjectIssue(child, descendants, [...path,key]);
+        const issue = providerObjectIssue(child, descendants, [...path,key],rootKey);
         if (issue) return issue;
     }
     return "";
 }
 
+function providerControlLabel(spec, key, path = []) {
+    const label=spec?.presentation?.label;
+    if(label)return label[costLocale()] || label.en;
+    return [key,...path].map(part=>String(part).replace(/([a-z])([A-Z])/g,"$1 $2").replaceAll("_"," "))
+        .join(" ").replace(/\b(id|url|tts|api)\b/gi,word=>word.toUpperCase()).replace(/(^|\s)\S/g,word=>word.toUpperCase());
+}
+
+function providerAutoLabel(spec) {
+    const word=costLocale()==="ru"?"Авто":"Auto";
+    return spec.values?.includes(word) ? `${word} (${costLocale()==="ru"?"не передавать":"omit"})` : word;
+}
+
+function creativeTextLabel(item) {
+    return item.name==="prompt" ? "prompt" : item.__orvCreativeLabel || (item.__orvTextSemantic==="negative_prompt" ? "negative prompt" : "prompt");
+}
+
+function updateProviderIntent(node, root, identity, entries, value, omit) {
+    const {provider,key,container,path}=identity;
+    const matches=v=>v.provider===provider && v.key===key && (v.container || null)===(container || null);
+    const prefix=(entry,base)=>matches(entry) && base.every((p,i)=>entry.path?.[i]===p);
+    const branchKey=(base,selected)=>JSON.stringify([node.__orvProjectedKey || canonicalModel(node),provider,container || null,key,base,selected]);
+    const intent=capabilityIntent(node);intent.provider_variants ||= {};
+    let spec=root,base=[];
+    const ancestors=[];
+    for(const part of path){ancestors.push({spec,base});spec=spec?.type==="array"?spec.items:spec?.fields?.[part];base=[...base,part];}
+    const parent=ancestors.at(-1);
+    if(parent?.spec?.variants && parent.spec.variants.discriminator_field===path.at(-1)){
+        const base=parent.base,old=entries.find(v=>prefix(v,path) && v.path?.length===path.length)?.value;
+        if(old!==undefined)intent.provider_variants[branchKey(base,old)]=entries.filter(v=>prefix(v,base) && JSON.stringify(v.path)!==JSON.stringify(path)).map(v=>({...v,path:[...v.path]}));
+        entries=entries.filter(v=>!prefix(v,base));
+        if(!omit){entries.push({provider,key,value,...(container?{container}:{}),...(path.length?{path}: {})});
+            const restored=intent.provider_variants[branchKey(base,value)] || [];
+            const leaves=providerOptionLeaves(root,[],[...entries,...restored]);
+            for(const entry of restored){const active=leaves.find(leaf=>JSON.stringify(leaf.path)===JSON.stringify(entry.path));
+                if(active && (!active.spec.values || active.spec.values.includes(entry.value)))entries.push(entry);}
+        }
+        return entries;
+    }
+    const discriminator=parent?.spec?.variants?.discriminator_field;
+    const selected=discriminator && entries.find(entry=>matches(entry) && JSON.stringify(entry.path)===JSON.stringify([...parent.base,discriminator]))?.value;
+    const exclusive=[...(parent?.spec?.one_of_required || []),...(parent?.spec?.variants?.cases?.[selected]?.one_of_required || [])];
+    if(!omit) for(const group of exclusive){
+        if(!group.includes(path.at(-1)))continue;
+        entries=entries.filter(entry=>{
+            if(prefix(entry,parent.base) && group.includes(entry.path?.[parent.base.length]) && entry.path?.[parent.base.length]!==path.at(-1)){
+                intent.provider_variants[branchKey(entry.path,"exclusive")]=[{...entry,path:[...entry.path]}];return false;
+            }return true;
+        });
+    }
+    entries=entries.filter(v=>!(matches(v) && JSON.stringify(v.path || [])===JSON.stringify(path)));
+    if(!omit)entries.push({provider,key,value,...(container?{container}:{}),...(path.length?{path}: {})});
+    return entries;
+}
+
+function installProviderResetMenu(node) {
+    if(node.__orvProviderMenuInstalled)return;
+    node.__orvProviderMenuInstalled=true;
+    const previous=node.getExtraMenuOptions;
+    node.getExtraMenuOptions=function(canvas,options,...args){
+        const result=previous?.call(this,canvas,options,...args);
+        const items=(this.widgets || []).filter(item=>!item.hidden && item.__orvResetProvider).map(item=>({
+            content:`${item.label}: ${costLocale()==="ru"?"сбросить в Авто":"reset to Auto"}`,callback:()=>item.__orvResetProvider()
+        }));
+        const target=Array.isArray(result)?result:options;
+        if(items.length)target.push({content:costLocale()==="ru"?"Параметры провайдера":"Provider controls",submenu:{options:items}});
+        return result;
+    };
+}
+
+function providerControlGroups(node) {
+    const groups=["voice","appearance","advanced"];
+    for(const name of groups){
+        const items=(node.widgets || []).filter(w=>w.__orvProviderOption && !w.hidden && w.__orvProviderGroup===name && !w.__orvTextSemantic);
+        const labels={voice:["Voice","Голос"],appearance:["Appearance","Внешний вид"],advanced:["Other controls","Другие параметры"]};
+        let heading=widget(node,`provider_group:${name}`);
+        if(items.length>=3 && !heading){heading=addReadOnlyWidget(node,`provider_group:${name}`,"");heading.__orvProviderOption=true;heading.__orvProviderGroup=name;heading.__orvProviderHeading=true;
+            heading.draw=(ctx,n,width,y)=>{ctx.save();ctx.font=`600 11px ${nodeTypography(n).family}`;ctx.fillStyle="#999";ctx.textAlign="left";ctx.fillText(heading.label,15,y+14);ctx.restore();};}
+        if(heading){heading.label=labels[name][costLocale()==="ru"?1:0];setVisible(heading,items.length>=3);}
+    }
+}
+
 function configureOperationControls(node, profile) {
     node.__orvProviderProfile = profile;
+    node.__orvProviderLocale=costLocale();
+    installProviderResetMenu(node);
     const controls = profile.controls || {};
     for (const name of ["previous_job_id", "upscale_factor", "creativity"]) {
         let item = widget(node, name);
@@ -2098,8 +2284,8 @@ function configureOperationControls(node, profile) {
         }
     }
     for (const [provider, options] of Object.entries(providers)) for (const [key, spec] of Object.entries(options)) {
-        const problem = providerObjectIssue(spec, saved.filter(v => v.provider === provider && v.key === key));
-        if (!issue && problem) issue = `${key}: ${problem}`;
+        const problem = providerObjectIssue(spec, saved.filter(v => v.provider === provider && v.key === key),[],key);
+        if (!issue && problem) issue = problem;
         if(saved.some(v=>v.provider===provider&&v.key===key)) for(const [dependency,domain] of Object.entries(spec.requires || {})) {
             const selected=saved.find(v=>v.provider===provider&&v.key===dependency)?.value ?? options[dependency]?.omitted_default;
             if(!domain.includes(selected)&&!issue)issue=`${key}: requires compatible ${dependency}.`;
@@ -2121,21 +2307,21 @@ function configureOperationControls(node, profile) {
                     setVisible(node.__orvCapabilityStatus,Boolean(problem));
                     publishSemanticProjection(node);node.setDirtyCanvas?.(true,true);
                 },{values:Array.from({length:root.max_items+1},(_,i)=>i)});
-                count.__orvProviderOption=true;count.serialize=false;
+                count.__orvProviderOption=true;count.__orvProviderGroup=root.presentation?.group || "advanced";count.serialize=false;
             }
-            count.label=`${key} · count`;
+            count.label=`${providerControlLabel(root,key)} ${costLocale()==="ru"?"— количество":"Count"}`;
             count.value=Math.max(Number(count.value)||0,storedCount);
             if(count.value>storedCount&&!issue)issue=`${key}: Complete each provider array item before Generate.`;
             counts['[]']=count.value;setVisible(count,true);
         }
         for (const leaf of providerOptionLeaves(root, [], values, counts)) {
         const path = leaf.path, spec = {...leaf.spec, container:root.container};
-        if (spec.values?.length === 1 && (spec.default !== undefined || spec.omitted_default === spec.values[0])) continue;
-        const defaultLabel = "AUTO / PROVIDER DEFAULT";
+        const defaultLabel = providerAutoLabel(spec);
         const boolean = spec.type === "boolean";
         const enabled=Object.entries(root.requires || {}).every(([dependency,domain])=>domain.includes(
             saved.find(v=>v.provider===provider&&v.key===dependency)?.value ?? options[dependency]?.omitted_default));
-        const choices = boolean ? undefined : !enabled ? [defaultLabel]
+        const on=costLocale()==="ru"?"Вкл.":"On",off=costLocale()==="ru"?"Выкл.":"Off";
+        const choices = boolean ? [defaultLabel,on,off] : !enabled ? [defaultLabel]
             : spec.values ? [defaultLabel, ...spec.values] : undefined;
         const numeric = !choices && ["integer", "number"].includes(spec.type);
         const name = `provider_option:${provider}:${spec.container || ""}:${key}${path.length ? ":" + path.join(":") : ""}`;
@@ -2144,33 +2330,35 @@ function configureOperationControls(node, profile) {
         const old = saved.find(matches);
         let item = widget(node, name);
         const updateValue = value => {
-                if (item.__orvProjectingProviderValue) return;
-                if ((numeric || boolean) && value !== defaultLabel && widget(node, name + ":override")?.value !== "SET") return;
+                if (item.__orvProjectingProviderValue || node.__orvProviderProfile!==profile) return;
                 let values;
                 try { values = storage.value ? JSON.parse(storage.value) : []; } catch { return; }
                 if (!Array.isArray(values)) return;
-                const remaining = values.filter(v => !matches(v));
-                if (value !== "" && value !== defaultLabel) remaining.push({provider, key,
-                    value: boolean ? value === true || value === "true" : value, ...(spec.container ? {container:spec.container} : {}),
-                    ...(path.length ? {path} : {})});
+                const omit=value===defaultLabel || value==="" || value==null;
+                const actual=boolean && !omit ? value===true || value===on || value==="true" : value;
+                const remaining=updateProviderIntent(node,root,{provider,key,container:spec.container,path},values,actual,omit);
                 storage.value = JSON.stringify(remaining);
                 const issue = configureOperationControls(node, node.__orvProviderProfile);
                 if (node.__orvCapabilityStatus) node.__orvCapabilityStatus.value = issue || "";
                 setVisible(node.__orvCapabilityStatus, Boolean(issue));
+                fitPresentationWidth(node);
                 publishSemanticProjection(node);
                 node.setDirtyCanvas?.(true, true);
                 void refreshEstimate(node);
             };
         const creative = ["negative_prompt","creative_prompt"].includes(spec.text_semantic);
+        const knownDefault=spec.omitted_default ?? spec.default;
         const bounded = numeric && Number.isFinite(spec.min) && Number.isFinite(spec.max) && spec.max>spec.min;
-        const type = creative ? "customtext" : boolean ? "toggle" : choices ? "combo" : bounded ? "slider" : numeric ? "number" : "text";
+        // An unknown automatic value has no honest slider position. A native
+        // nullable numeric input accepts the first explicit value directly.
+        const type = creative ? "customtext" : choices ? "combo" : bounded && (old || Number.isFinite(knownDefault)) ? "slider" : numeric ? "number" : "text";
         const previous = item && item.type !== type ? item : null;
         const position = previous ? node.widgets.indexOf(previous) : -1;
         if (previous) item = null;
         if (!item) {
             if (creative) item = ComfyWidgets.STRING(node,name,["STRING",{default:old?.value ?? "",multiline:true}],app).widget;
             else {
-                item = node.addWidget(type,name,old?.value ?? (boolean ? false : ""),updateValue,
+                item = node.addWidget(type,name,old?.value ?? (numeric ? knownDefault ?? null : defaultLabel),updateValue,
                     {values:choices,min:spec.min,max:spec.max,step:spec.type === "integer" ? 1 : undefined});
             }
         }
@@ -2182,15 +2370,21 @@ function configureOperationControls(node, profile) {
         item.callback = updateValue;
         item.__orvProviderOption = true;
         item.__orvTextSemantic = creative ? spec.text_semantic : undefined;
+        item.__orvCreativeLabel = creative && spec.presentation ? providerControlLabel(spec,key,path) : undefined;
+        item.__orvProviderGroup=spec.presentation?.group || root.presentation?.group || "advanced";
+        item.__orvProviderAuto=!old;
+        item.__orvProviderKnownDefault=knownDefault!==undefined;
+        item.__orvResetProvider=()=>updateValue(defaultLabel);
         item.__orvFixedValue = numeric && spec.min === spec.max && Number.isFinite(spec.min);
         item.serialize = false;
-        item.label = [key, ...path].join(" · ") + (spec.required ? " (required)" : "");
+        item.label = providerControlLabel(spec,key,path) + (spec.required ? " *" : "");
         Object.assign(item.options ||= {}, {min:spec.min, max:spec.max});
-        item.options.tooltip=[spec.max_length == null ? "" : `Maximum ${spec.max_length} characters`,
+        item.options.placeholder=spec.required ? (costLocale()==="ru"?"Обязательное поле":"Required") : defaultLabel;
+        item.options.tooltip=[numeric ? (costLocale()==="ru"?"Измените значение для ручной настройки. Сброс в Авто — в меню ноды.":"Edit to override. Reset to Auto from the node menu.") : "",spec.max_length == null ? "" : `Maximum ${spec.max_length} characters`,
             ...Object.entries(root.requires || {}).map(([key,domain])=>`Requires ${key}: ${domain.join(" / ")}`)].filter(Boolean).join("; ");
         if (choices) (item.options ||= {}).values = choices;
         item.__orvProjectingProviderValue = true;
-        try { item.value = old ? old.value : choices ? defaultLabel : boolean ? spec.omitted_default ?? false : numeric ? spec.omitted_default ?? spec.min ?? 0 : ""; }
+        try { item.value = old ? (boolean ? old.value ? on : off : old.value) : choices ? defaultLabel : numeric ? knownDefault ?? null : ""; }
         finally { item.__orvProjectingProviderValue = false; }
         if (item.__orvFixedValue) {
             item.options.read_only = item.options.readOnly = item.options.disabled = true;
@@ -2202,24 +2396,8 @@ function configureOperationControls(node, profile) {
                 item.__orvFixedDrawInstalled = true;
             }
         }
-        let mode = widget(node, name + ":override");
-        if ((numeric || boolean) && !mode) {
-            mode = node.addWidget("combo", name + ":override", old ? "SET" : defaultLabel, value => {
-                mode.value = value;
-                item.callback(value === "SET" ? item.value : defaultLabel);
-                setVisible(item, value === "SET");
-                publishSemanticProjection(node);
-                node.setDirtyCanvas?.(true, true);
-            }, {values:[defaultLabel, "SET"]});
-            mode.__orvProviderOption = true;
-            mode.serialize = false;
-        }
-        if (mode) {
-            mode.label = item.label;
-            mode.value = old ? "SET" : defaultLabel;
-            setVisible(mode, numeric || boolean);
-        }
-        setVisible(item, enabled && (!(numeric || boolean) || Boolean(old)));
+        const legacyMode=widget(node,name+":override");if(legacyMode)setVisible(legacyMode,false);
+        setVisible(item,enabled);
         }
     }
     const geometry=new Set(),omitted=new Set();
@@ -2229,7 +2407,7 @@ function configureOperationControls(node, profile) {
         if(selected&&(!spec.omit_when||spec.omit_when.includes(selected.value)))for(const name of spec.omits_controls || [])omitted.add(name);
     }
     for(const name of geometry)setVisible(widget(node,name),!omitted.has(name)&&controls[name]?.state==='SUPPORTED');
-    orderPresentationWidgets(node); sizePrimaryControls(node); stylePrompt(node);
+    providerControlGroups(node); orderPresentationWidgets(node); sizePrimaryControls(node); stylePrompt(node); installNodeTypography(node);
     return issue;
 }
 
@@ -3605,7 +3783,7 @@ function renderCostDetails(node, detail) {
     detail.dir = document.documentElement?.dir || "ltr";
     Object.assign(detail.style, { boxSizing:"border-box", width:"340px", maxWidth:"calc(100vw - 16px)",
         padding:"12px", borderRadius:"8px", border:`1px solid ${view.accent}`, background:"#1A1A1A",
-        color:"#C4C4C4", font:"400 12px/18px Arial, Helvetica, sans-serif", fontVariantNumeric:"tabular-nums",
+        color:"#C4C4C4", font:`400 12px/18px ${nodeTypography(node).family}`, fontVariantNumeric:"tabular-nums",
         whiteSpace:"normal", overflowWrap:"anywhere", pointerEvents:"none", boxShadow:"0 4px 16px rgba(0,0,0,0.33)" });
     const element = (tag, cls, text, style = {}) => {
         const item = document.createElement(tag); item.className = `orv-cost-${cls}`;
@@ -3811,7 +3989,7 @@ function drawCollapsedCostBadge(node, ctx) {
     const badgeWidth = Math.min(width * 0.5, 160);
     const text = costBadgeLabel(node, badgeWidth - 12);
     ctx.save();
-    ctx.font = "600 11px Arial, Helvetica, sans-serif";
+    ctx.font = `600 11px ${nodeTypography(node).family}`;
     const colors = costBadgeColors(node, text);
     ctx.fillStyle = colors.background || "#27302f";
     ctx.fillRect(width - badgeWidth, -24, badgeWidth - 4, 18);
@@ -4009,7 +4187,7 @@ function syncClassicCostBadge(node, ctx, rect) {
         badge.type = "button";
         badge.className = "orv-classic-cost-badge";
         Object.assign(badge.style, { position: "fixed", zIndex: "4", opacity: "0", margin: "0",
-            padding: "0", border: "0", borderRadius:"6px", font:"600 11px/16px Arial, Helvetica, sans-serif", cursor: "pointer", background: "transparent" });
+            padding: "0", border: "0", borderRadius:"6px", font:`600 11px/16px ${nodeTypography(node).family}`, cursor: "pointer", background: "transparent" });
         badge.addEventListener("focus", () => { badge.style.opacity = "1"; setCostBadgeLabel(node, badge, costBadgeLabel(node, node.__orvClassicCostWidth || 0)); });
         badge.addEventListener("blur", () => { badge.style.opacity = "0"; badge.textContent = ""; });
         bindCostBadge(node, badge);
@@ -4713,6 +4891,10 @@ app.registerExtension({
         };
         const previousConfigure = nodeType.prototype.onConfigure;
         nodeType.prototype.onConfigure = function (...args) {
+            delete this.__orvMasterPromptHeight;
+            const promptGeometry=args[0]?.properties?.orv_prompt_geometry;
+            if(!promptGeometry && this.properties)delete this.properties.orv_prompt_geometry;
+            if(promptGeometry?.version===2 && Number.isFinite(promptGeometry.height) && promptGeometry.height>=0) this.__orvMasterPromptHeight=promptGeometry.height;
             if (Array.isArray(args[0]?.size) && args[0].size.length === 2 && args[0].size.every(Number.isFinite)) this.__orvRestoreGeometry = [...args[0].size];
             claimDirectReferenceTopology(this);
             cancelTopologyRefresh(this);

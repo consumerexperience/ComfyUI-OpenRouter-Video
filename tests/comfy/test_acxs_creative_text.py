@@ -33,11 +33,16 @@ def test_native_optional_string_inputs_keep_original_dynamic_machine_names() -> 
     assert set(identities) == {
         "provider_option:atlas-cloud::negative_prompt",
         "provider_option:google-vertex:parameters:negativePrompt",
+        "provider_option:heygen::motion_prompt",
     }
     for name in identities:
         assert fields[name].options["multiline"] is True
         assert fields[name].options["optional"] is True
-        assert fields[name].options["display_name"] == "negative prompt"
+        assert fields[name].options["display_name"] == (
+            "motion prompt"
+            if name == "provider_option:heygen::motion_prompt"
+            else "negative prompt"
+        )
     assert fields["prompt"].options["multiline"] is True
 
 

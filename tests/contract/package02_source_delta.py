@@ -15,6 +15,9 @@ BASE = "cdab03f03d218f6ac30129638d3ce0a9e9a3c50f"
 
 
 def package02_baseline_source(path: str, current: str) -> str:
+    from tests.contract.package02_amendment_delta import package02_amendment_baseline_source
+
+    current = package02_amendment_baseline_source(path, current)
     pin = json.loads(
         (ROOT / "tests/fixtures/package02-source-candidate.json").read_text(encoding="utf8")
     )

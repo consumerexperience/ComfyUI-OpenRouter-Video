@@ -231,15 +231,25 @@ def test_google_frontend_fixture_matches_real_core_projection() -> None:
             evidence_path, (Path(__file__).parents[2] / evidence_path).read_text(encoding="utf8")
         )
 
-        def historical(value: object) -> object:
+        def historical(
+            value: object, path: tuple[str, ...] = (), model_id: str = view["model_id"]
+        ) -> object:
             if isinstance(value, dict):
                 if "text_semantic" in value:
-                    assert value["text_semantic"] == "negative_prompt"
+                    assert value["text_semantic"] == "negative_prompt" or (
+                        model_id == "heygen/avatar-iv"
+                        and path[-1:] == ("motion_prompt",)
+                        and value["text_semantic"] == "creative_prompt"
+                    )
+                if "presentation" in value:
+                    assert model_id in {"heygen/avatar-iv", "alibaba/wan-2.6"}
                 return {
-                    key: historical(item) for key, item in value.items() if key != "text_semantic"
+                    key: historical(item, (*path, key))
+                    for key, item in value.items()
+                    if key not in {"text_semantic", "presentation"}
                 }
             if isinstance(value, (list, tuple)):
-                return [historical(item) for item in value]
+                return [historical(item, path) for item in value]
             return value
 
         assert historical(json.loads(json.dumps(actual))) == view

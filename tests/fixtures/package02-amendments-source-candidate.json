@@ -1,0 +1,53 @@
+{
+  "status": "UNACCEPTED_PACKAGE02_FINAL_12",
+  "baseline": "0e55e984471ad8a8aecc91d8bd580ea3856520d8",
+  "files": {
+    "web/openrouter_video.js": "c0c0713d32802ec6e897b054c605f8e7fd530267bdf88cea9a43ee09180fd7ba",
+    "src/openrouter_video/configuration.py": "a28fdaafbc359e49e6a5fd29e207d56bccfd8d2c9f80696195023b8cbe35170e",
+    "src/openrouter_video/comfy/nodes.py": "6cef718eb567515ece6308daac3701549ba10b75d4d3a45bb3e1e80328ef56ad",
+    "src/openrouter_video/data/capability-evidence.json": "9765ef6966ec6674efd594940c7e2fbfb636209a07d30849b27c0fc2e3222137"
+  },
+  "baseline_files": {
+    "web/openrouter_video.js": "faffe3a940a6a4e5c375cdbb11d480aa9f0043c21ffbfdfd750466cc1488a671",
+    "src/openrouter_video/configuration.py": "9814bea63703e338c7f41b5fe17fce49affbec5d98ac6f784a74be6b2783750f",
+    "src/openrouter_video/comfy/nodes.py": "eedf99ba7373accd6ad5d88c12fac9b913f0222db223d38698d45ae0b191b6e5",
+    "src/openrouter_video/data/capability-evidence.json": "5b581ebe7f5c08342a8ced81680d7da2024c05f0f9a2fd3aa986be8a4e0db45c"
+  },
+  "functions": {
+    "installParameterColumns": "f99b37a2eb04c37d474bd0cb215679555ce103bc5c708c98731da08ff59291a2",
+    "textRegionGeometry": "46b3c84ea812f8549cb421103010a311fe1c716b91bec37f42c7dffad5c89221",
+    "stylePrompt": "aa1c19ba3b5fc1f448a3f4e30f4c5278c0184798953a7cacb3a9586bc3009ef0",
+    "orderPresentationWidgets": "6b9ab3f3b5fd8b291ec4ee03b7078e94b090e0bbade10e0689ee15e9ca74cb50",
+    "applyPresentation": "c4abcb1beb3805c31f25878f6b8e0efbccd1008731e835b61e95529041416d50",
+    "installResponsiveHeight": "04c79c0255bb83d60819330373043782629de6833ca61e431a9d9772ab965ee8",
+    "fitPresentationWidth": "6f3ec83fa564e94efe581a7eab68d0ff495fe28de5ba82a3be6e0b9f8169f46b",
+    "installBetaPresentation": "83570f1eeb3efc2550ce5fb036ec3f8e95ab636423dde8e1c8cba3f6cb37e437",
+    "drawCapacityMeter": "03b6bce14e46aa7566a1b4b952f880ff409ad89572a8517bf281363df549a8ff",
+    "syncCapacityMeter": "bdd8663150ca2bbb3b24e424720686124af370b3a8507488cca993c1a512e7a4",
+    "syncBetaPresentation": "3327f06ed3f9789f378a90a51709cee8e4bf552ae8223edfaec272746b2af4c9",
+    "drawReadOnlyValue": "d5f23a31a7a475ce06bbf18162235ecde3dfcef58a1b441a090bab54dcfaab17",
+    "syncReadOnlyDurationRow": "792fc5f63250c1e2e3c22a8fdd6e435e325412a4cecc82b6d3d7f302c426680d",
+    "providerObjectIssue": "35a67027b18b0de8ef1dade33ce3a3cb256113227245487dee5811f5d0f0c563",
+    "configureOperationControls": "cad035ae9cc050643aa2f3db76a5cfc8da652b167f9e9c40c3be0ea5c00d9a26",
+    "renderCostDetails": "aea5020f99a2f55472c5c9e391a655950ab92c3ceaf76d5017d23a3423ef4cf1",
+    "drawCollapsedCostBadge": "f115d5d5ddc0ee6e5ed3fe861eef4683cab3bb317625f2fc85638b1567cc8b29",
+    "syncClassicCostBadge": "07362ac7dc1d090530ac2a9cea20658a5305e5f5d83b1998d798d2de0d002c26"
+  },
+  "added": {
+    "creativeTextLabel": "f407c8a58821e9ae5f608675653a9ccda2de1ac0a5b050e4f668aebaba46b494",
+    "installNodeTypography": "86fc8b0f821c3a29030b402515a13b54a482b3981a62e808600928a8d5cfe0a3",
+    "installProviderResetMenu": "af2cad5df43d7007e1cb69617bce2582837276b07aa2888f633d0801985c8bae",
+    "masterHeightFromRegion": "6130b627ba38a60e6c137abe3fe06e00fde446b40a6a875eceecfc1598f6b9ef",
+    "nodeTypography": "84fb94ede4b34e8733add714bdb0157010c955e9a14aaf24519e7ffa67968019",
+    "persistMasterPromptHeight": "ce9ec1ed0b309d9020cb00ee7b81d404ec19f96d2948005b63f8d55b396d1223",
+    "providerAutoLabel": "ae5ab6dc1139cc51801e4bea67362fd26e94573b100c177583e1aa8aff68966b",
+    "providerControlGroups": "1f6d398faa4923040e759d7e7c3d86021bf253df3e6707c9fb9dac43e9777a60",
+    "providerControlLabel": "00a903e84d50faf02ef8fce859f8efdbfd4cd6724441de2aa85740d19b75f005",
+    "providerDisplayValue": "257c1738217ea2f10ab84f3949590a510c6e9ad9a26f51bd06b7ffd666cd31f8",
+    "syncProviderGroupHeading": "afb8d8d8212c91eb7ba79590139f3c216a43d6ac2accb759add0cb029cead2a4",
+    "syncProviderNumericState": "bb63bebeec1589dc9dd8e06fa6bc2e7996a52ba9fe9f336d043a59fb635d8328",
+    "updateProviderIntent": "d37731ad36de7e97fed90f170e3be4a79ad17c4143774af86fba2c1a1da6d964",
+    "installSemanticSerialization": "20f19e9c9ad9423dab9c65607c9330df1495232e2654e62b53b62e2ebfc9df9e"
+  },
+  "registration": "            delete this.__orvMasterPromptHeight;\n            const promptGeometry=args[0]?.properties?.orv_prompt_geometry;\n            if(!promptGeometry && this.properties)delete this.properties.orv_prompt_geometry;\n            if(promptGeometry?.version===2 && Number.isFinite(promptGeometry.height) && promptGeometry.height>=0) this.__orvMasterPromptHeight=promptGeometry.height;\n"
+}

@@ -1,3 +1,4 @@
+import {package02AmendmentBaselineSource} from "./package02_amendment_delta.mjs";
 // Exact proposed Package02 delta. No acceptance implied; historical pins stay immutable.
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -13,6 +14,7 @@ function body(text,name){
  const end=/^\}\n/m.exec(text.slice(e+1));assert(end,name);return text.slice(a,e+1+end.index+end[0].length);
 }
 export function package02BaselineSource(root,path,current){
+ current=package02AmendmentBaselineSource(root,path,current);
  const pin=JSON.parse(readFileSync(new URL('tests/fixtures/package02-source-candidate.json',root),'utf8'));
  if(!pin.files[path] || sha(current)!==pin.files[path])return current;
  assert.equal(pin.status,'UNACCEPTED_PACKAGE02');assert.equal(pin.baseline,base);

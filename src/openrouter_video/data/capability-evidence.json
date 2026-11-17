@@ -2731,20 +2731,49 @@
                       "heygen": {
                         "voice_id": {
                           "type": "string",
-                          "required": true
+                          "required": true,
+                          "presentation": {
+                            "label": {
+                              "en": "Voice ID",
+                              "ru": "ID голоса"
+                            },
+                            "group": "voice"
+                          }
                         },
                         "title": {
-                          "type": "string"
+                          "type": "string",
+                          "presentation": {
+                            "label": {
+                              "en": "Title",
+                              "ru": "Название"
+                            },
+                            "group": "advanced"
+                          }
                         },
                         "motion_prompt": {
-                          "type": "string"
+                          "type": "string",
+                          "presentation": {
+                            "label": {
+                              "en": "motion prompt",
+                              "ru": "motion prompt"
+                            },
+                            "group": "creative"
+                          },
+                          "text_semantic": "creative_prompt"
                         },
                         "fit": {
                           "type": "string",
                           "values": [
                             "contain",
                             "cover"
-                          ]
+                          ],
+                          "presentation": {
+                            "label": {
+                              "en": "Fit",
+                              "ru": "Размещение"
+                            },
+                            "group": "appearance"
+                          }
                         },
                         "expressiveness": {
                           "type": "string",
@@ -2753,10 +2782,24 @@
                             "medium",
                             "low"
                           ],
-                          "omitted_default": "low"
+                          "omitted_default": "low",
+                          "presentation": {
+                            "label": {
+                              "en": "Expressiveness",
+                              "ru": "Выразительность"
+                            },
+                            "group": "appearance"
+                          }
                         },
                         "remove_background": {
-                          "type": "boolean"
+                          "type": "boolean",
+                          "presentation": {
+                            "label": {
+                              "en": "Remove Background",
+                              "ru": "Удалить фон"
+                            },
+                            "group": "appearance"
+                          }
                         },
                         "background": {
                           "type": "object",
@@ -2766,16 +2809,44 @@
                               "values": [
                                 "color",
                                 "image"
-                              ]
+                              ],
+                              "presentation": {
+                                "label": {
+                                  "en": "Background",
+                                  "ru": "Фон"
+                                },
+                                "group": "appearance"
+                              }
                             },
                             "value": {
-                              "type": "string"
+                              "type": "string",
+                              "presentation": {
+                                "label": {
+                                  "en": "Background Color",
+                                  "ru": "Цвет фона"
+                                },
+                                "group": "appearance"
+                              }
                             },
                             "url": {
-                              "type": "string"
+                              "type": "string",
+                              "presentation": {
+                                "label": {
+                                  "en": "Background URL",
+                                  "ru": "URL фона"
+                                },
+                                "group": "appearance"
+                              }
                             },
                             "asset_id": {
-                              "type": "string"
+                              "type": "string",
+                              "presentation": {
+                                "label": {
+                                  "en": "Background Asset ID",
+                                  "ru": "ID фона"
+                                },
+                                "group": "appearance"
+                              }
                             }
                           },
                           "required_fields": [
@@ -2807,6 +2878,13 @@
                                 ]
                               }
                             }
+                          },
+                          "presentation": {
+                            "label": {
+                              "en": "Background",
+                              "ru": "Фон"
+                            },
+                            "group": "appearance"
                           }
                         },
                         "caption": {
@@ -2817,14 +2895,35 @@
                               "values": [
                                 "srt"
                               ],
-                              "omitted_default": "srt"
+                              "omitted_default": "srt",
+                              "presentation": {
+                                "label": {
+                                  "en": "Caption Format",
+                                  "ru": "Формат субтитров"
+                                },
+                                "group": "appearance"
+                              }
                             },
                             "style": {
                               "type": "string",
                               "values": [
                                 "default"
-                              ]
+                              ],
+                              "presentation": {
+                                "label": {
+                                  "en": "Caption Style",
+                                  "ru": "Стиль субтитров"
+                                },
+                                "group": "appearance"
+                              }
                             }
+                          },
+                          "presentation": {
+                            "label": {
+                              "en": "Captions",
+                              "ru": "Субтитры"
+                            },
+                            "group": "appearance"
                           }
                         },
                         "voice_settings": {
@@ -2834,22 +2933,50 @@
                               "type": "number",
                               "min": 0.5,
                               "max": 1.5,
-                              "omitted_default": 1
+                              "omitted_default": 1,
+                              "presentation": {
+                                "label": {
+                                  "en": "Voice Speed",
+                                  "ru": "Скорость голоса"
+                                },
+                                "group": "voice"
+                              }
                             },
                             "pitch": {
                               "type": "number",
                               "min": -50,
                               "max": 50,
-                              "omitted_default": 0
+                              "omitted_default": 0,
+                              "presentation": {
+                                "label": {
+                                  "en": "Voice Pitch",
+                                  "ru": "Высота голоса"
+                                },
+                                "group": "voice"
+                              }
                             },
                             "volume": {
                               "type": "number",
                               "min": 0,
                               "max": 1,
-                              "omitted_default": 1
+                              "omitted_default": 1,
+                              "presentation": {
+                                "label": {
+                                  "en": "Voice Volume",
+                                  "ru": "Громкость голоса"
+                                },
+                                "group": "voice"
+                              }
                             },
                             "locale": {
-                              "type": "string"
+                              "type": "string",
+                              "presentation": {
+                                "label": {
+                                  "en": "Voice Locale",
+                                  "ru": "Язык голоса"
+                                },
+                                "group": "voice"
+                              }
                             },
                             "engine_settings": {
                               "type": "object",
@@ -2862,33 +2989,82 @@
                                     "starfish",
                                     "heygen_voice",
                                     "orca"
-                                  ]
+                                  ],
+                                  "presentation": {
+                                    "label": {
+                                      "en": "Voice Engine",
+                                      "ru": "Движок голоса"
+                                    },
+                                    "group": "voice"
+                                  }
                                 },
                                 "model": {
-                                  "type": "string"
+                                  "type": "string",
+                                  "presentation": {
+                                    "label": {
+                                      "en": "Voice Model",
+                                      "ru": "Модель голоса"
+                                    },
+                                    "group": "voice"
+                                  }
                                 },
                                 "similarity_boost": {
                                   "type": "number",
                                   "min": 0,
-                                  "max": 1
+                                  "max": 1,
+                                  "presentation": {
+                                    "label": {
+                                      "en": "Similarity Boost",
+                                      "ru": "Усиление сходства"
+                                    },
+                                    "group": "voice"
+                                  }
                                 },
                                 "stability": {
                                   "type": "number",
                                   "min": 0,
-                                  "max": 1
+                                  "max": 1,
+                                  "presentation": {
+                                    "label": {
+                                      "en": "Stability",
+                                      "ru": "Стабильность"
+                                    },
+                                    "group": "voice"
+                                  }
                                 },
                                 "style": {
                                   "type": "number",
                                   "min": 0,
-                                  "max": 1
+                                  "max": 1,
+                                  "presentation": {
+                                    "label": {
+                                      "en": "Voice Style",
+                                      "ru": "Стиль голоса"
+                                    },
+                                    "group": "voice"
+                                  }
                                 },
                                 "use_speaker_boost": {
-                                  "type": "boolean"
+                                  "type": "boolean",
+                                  "presentation": {
+                                    "label": {
+                                      "en": "Speaker Boost",
+                                      "ru": "Усиление голоса"
+                                    },
+                                    "group": "voice"
+                                  }
                                 },
                                 "similarity": {
                                   "type": "number",
                                   "min": 0,
-                                  "max": 1
+                                  "max": 1,
+                                  "presentation": {
+                                    "label": {
+                                      "en": "Similarity",
+                                      "ru": "Сходство"
+                                    },
+                                    "group": "voice"
+                                  }
                                 }
                               },
                               "required_fields": [
@@ -2949,6 +3125,13 @@
                                 }
                               }
                             }
+                          },
+                          "presentation": {
+                            "label": {
+                              "en": "Voice",
+                              "ru": "Голос"
+                            },
+                            "group": "voice"
                           }
                         }
                       }
@@ -3050,17 +3233,39 @@
                     "providers": {
                       "heygen": {
                         "title": {
-                          "type": "string"
+                          "type": "string",
+                          "presentation": {
+                            "label": {
+                              "en": "Title",
+                              "ru": "Название"
+                            },
+                            "group": "advanced"
+                          }
                         },
                         "motion_prompt": {
-                          "type": "string"
+                          "type": "string",
+                          "presentation": {
+                            "label": {
+                              "en": "motion prompt",
+                              "ru": "motion prompt"
+                            },
+                            "group": "creative"
+                          },
+                          "text_semantic": "creative_prompt"
                         },
                         "fit": {
                           "type": "string",
                           "values": [
                             "contain",
                             "cover"
-                          ]
+                          ],
+                          "presentation": {
+                            "label": {
+                              "en": "Fit",
+                              "ru": "Размещение"
+                            },
+                            "group": "appearance"
+                          }
                         },
                         "expressiveness": {
                           "type": "string",
@@ -3069,10 +3274,24 @@
                             "medium",
                             "low"
                           ],
-                          "omitted_default": "low"
+                          "omitted_default": "low",
+                          "presentation": {
+                            "label": {
+                              "en": "Expressiveness",
+                              "ru": "Выразительность"
+                            },
+                            "group": "appearance"
+                          }
                         },
                         "remove_background": {
-                          "type": "boolean"
+                          "type": "boolean",
+                          "presentation": {
+                            "label": {
+                              "en": "Remove Background",
+                              "ru": "Удалить фон"
+                            },
+                            "group": "appearance"
+                          }
                         },
                         "background": {
                           "type": "object",
@@ -3082,16 +3301,44 @@
                               "values": [
                                 "color",
                                 "image"
-                              ]
+                              ],
+                              "presentation": {
+                                "label": {
+                                  "en": "Background",
+                                  "ru": "Фон"
+                                },
+                                "group": "appearance"
+                              }
                             },
                             "value": {
-                              "type": "string"
+                              "type": "string",
+                              "presentation": {
+                                "label": {
+                                  "en": "Background Color",
+                                  "ru": "Цвет фона"
+                                },
+                                "group": "appearance"
+                              }
                             },
                             "url": {
-                              "type": "string"
+                              "type": "string",
+                              "presentation": {
+                                "label": {
+                                  "en": "Background URL",
+                                  "ru": "URL фона"
+                                },
+                                "group": "appearance"
+                              }
                             },
                             "asset_id": {
-                              "type": "string"
+                              "type": "string",
+                              "presentation": {
+                                "label": {
+                                  "en": "Background Asset ID",
+                                  "ru": "ID фона"
+                                },
+                                "group": "appearance"
+                              }
                             }
                           },
                           "required_fields": [
@@ -3123,6 +3370,13 @@
                                 ]
                               }
                             }
+                          },
+                          "presentation": {
+                            "label": {
+                              "en": "Background",
+                              "ru": "Фон"
+                            },
+                            "group": "appearance"
                           }
                         },
                         "caption": {
@@ -3133,14 +3387,35 @@
                               "values": [
                                 "srt"
                               ],
-                              "omitted_default": "srt"
+                              "omitted_default": "srt",
+                              "presentation": {
+                                "label": {
+                                  "en": "Caption Format",
+                                  "ru": "Формат субтитров"
+                                },
+                                "group": "appearance"
+                              }
                             },
                             "style": {
                               "type": "string",
                               "values": [
                                 "default"
-                              ]
+                              ],
+                              "presentation": {
+                                "label": {
+                                  "en": "Caption Style",
+                                  "ru": "Стиль субтитров"
+                                },
+                                "group": "appearance"
+                              }
                             }
+                          },
+                          "presentation": {
+                            "label": {
+                              "en": "Captions",
+                              "ru": "Субтитры"
+                            },
+                            "group": "appearance"
                           }
                         }
                       }
@@ -13587,7 +13862,15 @@
                           "text_semantic": "negative_prompt"
                         },
                         "audio": {
-                          "type": "string"
+                          "type": "string",
+                          "presentation": {
+                            "label": {
+                              "en": "Audio URL",
+                              "ru": "URL аудио"
+                            },
+                            "group": "advanced",
+                            "input": "url"
+                          }
                         },
                         "enable_prompt_expansion": {
                           "type": "boolean",
@@ -13700,7 +13983,15 @@
                           "text_semantic": "negative_prompt"
                         },
                         "audio": {
-                          "type": "string"
+                          "type": "string",
+                          "presentation": {
+                            "label": {
+                              "en": "Audio URL",
+                              "ru": "URL аудио"
+                            },
+                            "group": "advanced",
+                            "input": "url"
+                          }
                         },
                         "enable_prompt_expansion": {
                           "type": "boolean",
@@ -15779,5 +16070,5 @@
       }
     }
   ],
-  "content_hash": "13c3598ff67674aaa964f5c07b00c4cacd2d140976fe8e5c7c6e47b7c57e8fb8"
+  "content_hash": "4317aab90d7439bc87fcaeb2403b25bd7d940be640a643aaeaaac1c1baf0c299"
 }

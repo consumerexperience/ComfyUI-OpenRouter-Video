@@ -1,0 +1,3559 @@
+{
+  "models": [
+    {
+      "model_id": "heygen/avatar-iv",
+      "display_name": "HeyGen: Avatar IV",
+      "supported_durations": null,
+      "supported_resolutions": [
+        "720p",
+        "1080p"
+      ],
+      "supported_aspect_ratios": [
+        "9:16",
+        "1:1",
+        "16:9"
+      ],
+      "supported_sizes": null,
+      "supported_frame_types": null,
+      "supports_seed": false,
+      "generate_audio": false,
+      "supported_reference_kinds": [
+        "audio",
+        "image"
+      ],
+      "max_reference_count": 2,
+      "mixed_reference_kinds": true,
+      "supports_edit": null,
+      "supports_extend": null,
+      "supported_inference_methods": [
+        "IR2V",
+        "AVATAR_AUDIO"
+      ],
+      "inference_method_statuses": [
+        {
+          "method": "T2V",
+          "status": "UNSUPPORTED"
+        },
+        {
+          "method": "I2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "FLF2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "IR2V",
+          "status": "READY"
+        },
+        {
+          "method": "MI2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "VR2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "AR2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "MMR2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "V2V_EDIT",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "V2V_EXTEND",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "V2V_UPSCALE",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "AVATAR_AUDIO",
+          "status": "READY"
+        }
+      ],
+      "preferred_inference_method": null,
+      "observed_at": "2026-11-14T11:44:50+00:00",
+      "capability_evidence": [
+        {
+          "key": "supported_resolutions",
+          "value": [
+            "720p",
+            "1080p"
+          ],
+          "state": "SUPPORTED",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.934191+00:00",
+          "scope": "exact model catalogue metadata",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "supported_aspect_ratios",
+          "value": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ],
+          "state": "SUPPORTED",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.934191+00:00",
+          "scope": "exact model catalogue metadata",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "supported_sizes",
+          "value": null,
+          "state": "UNKNOWN",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.934191+00:00",
+          "scope": "exact model catalogue metadata",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "supported_durations",
+          "value": null,
+          "state": "UNKNOWN",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.934191+00:00",
+          "scope": "exact model catalogue metadata",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "supported_frame_images",
+          "value": null,
+          "state": "UNKNOWN",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.934191+00:00",
+          "scope": "exact model catalogue metadata",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "upscale_factor",
+          "value": null,
+          "state": "UNKNOWN",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.934191+00:00",
+          "scope": "CAPABILITY_ONLY_CONFIRMED; wire unresolved",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "creativity",
+          "value": null,
+          "state": "UNKNOWN",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.934191+00:00",
+          "scope": "CAPABILITY_ONLY_CONFIRMED; wire unresolved",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "generate_audio",
+          "value": false,
+          "state": "UNSUPPORTED",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.934191+00:00",
+          "scope": "exact model catalogue metadata",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "seed",
+          "value": false,
+          "state": "UNSUPPORTED",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.934191+00:00",
+          "scope": "exact model catalogue metadata",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "allowed_passthrough_parameters",
+          "value": [
+            "voice_id",
+            "voice_settings",
+            "motion_prompt",
+            "expressiveness",
+            "fit",
+            "remove_background",
+            "background",
+            "caption",
+            "title"
+          ],
+          "state": "SUPPORTED",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.934191+00:00",
+          "scope": "CAPABILITY_ONLY_CONFIRMED; wire unresolved",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "__catalogue_observation__",
+          "value": {
+            "id": "heygen/avatar-iv",
+            "canonical_slug": "heygen/avatar-iv-20260625",
+            "hugging_face_id": null,
+            "name": "HeyGen: Avatar IV",
+            "created": 1787595728,
+            "description": "HeyGen: Avatar IV is an image-to-video model that animates a single photo into an expressive, lip-synced talking-head video. Rather than only matching mouth shapes to words, it interprets the vocal...",
+            "supported_resolutions": [
+              "720p",
+              "1080p"
+            ],
+            "supported_aspect_ratios": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "supported_sizes": null,
+            "supported_durations": null,
+            "supported_frame_images": null,
+            "upscale_factor": null,
+            "creativity": null,
+            "generate_audio": false,
+            "seed": false,
+            "pricing_skus": {
+              "duration_seconds": "0.05"
+            },
+            "allowed_passthrough_parameters": [
+              "voice_id",
+              "voice_settings",
+              "motion_prompt",
+              "expressiveness",
+              "fit",
+              "remove_background",
+              "background",
+              "caption",
+              "title"
+            ]
+          },
+          "state": "UNKNOWN",
+          "authority": "LIVE_CATALOGUE_EVIDENCE",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.934191+00:00",
+          "scope": "Bounded discovery evidence only; never request passthrough",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "supports_text_only",
+          "value": false,
+          "state": "UNSUPPORTED",
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/heygen/avatar-iv",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model",
+          "artifact_version": "capability-projection-reconciliation-v1+op07-bounded-google-20261108+full-parity-in-progress-20261109+gap-closure-20261110",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "source_required",
+          "value": true,
+          "state": "SUPPORTED",
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/heygen/avatar-iv",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model",
+          "artifact_version": "capability-projection-reconciliation-v1+op07-bounded-google-20261108+full-parity-in-progress-20261109+gap-closure-20261110",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "operation.avatar_lipsync",
+          "value": true,
+          "state": "SUPPORTED",
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/heygen/avatar-iv",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "CAPABILITY_ONLY_CONFIRMED",
+          "artifact_version": "capability-projection-reconciliation-v1+op07-bounded-google-20261108+full-parity-in-progress-20261109+gap-closure-20261110",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "request_shape_profiles",
+          "value": {
+            "schema_version": 1,
+            "methods": {
+              "T2V": {
+                "state": "UNKNOWN",
+                "controls": {},
+                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "evidence_class": "ABSENCE_ONLY"
+              },
+              "I2V": {
+                "state": "UNKNOWN",
+                "controls": {},
+                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "evidence_class": "ABSENCE_ONLY"
+              },
+              "FLF2V": {
+                "state": "UNKNOWN",
+                "controls": {},
+                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "evidence_class": "ABSENCE_ONLY"
+              },
+              "IR2V": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "required": true,
+                    "min_length": 1
+                  },
+                  "duration": {
+                    "state": "UNKNOWN"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "UNKNOWN"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "UNKNOWN"
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "heygen": {
+                        "voice_id": {
+                          "type": "string",
+                          "required": true,
+                          "presentation": {
+                            "label": {
+                              "en": "Voice ID",
+                              "ru": "ID голоса"
+                            },
+                            "group": "voice"
+                          }
+                        },
+                        "title": {
+                          "type": "string",
+                          "presentation": {
+                            "label": {
+                              "en": "Title",
+                              "ru": "Название"
+                            },
+                            "group": "advanced"
+                          }
+                        },
+                        "motion_prompt": {
+                          "type": "string",
+                          "presentation": {
+                            "label": {
+                              "en": "motion prompt",
+                              "ru": "motion prompt"
+                            },
+                            "group": "creative"
+                          },
+                          "text_semantic": "creative_prompt"
+                        },
+                        "fit": {
+                          "type": "string",
+                          "values": [
+                            "contain",
+                            "cover"
+                          ],
+                          "presentation": {
+                            "label": {
+                              "en": "Fit",
+                              "ru": "Размещение"
+                            },
+                            "group": "appearance"
+                          }
+                        },
+                        "expressiveness": {
+                          "type": "string",
+                          "values": [
+                            "high",
+                            "medium",
+                            "low"
+                          ],
+                          "omitted_default": "low",
+                          "presentation": {
+                            "label": {
+                              "en": "Expressiveness",
+                              "ru": "Выразительность"
+                            },
+                            "group": "appearance"
+                          }
+                        },
+                        "remove_background": {
+                          "type": "boolean",
+                          "presentation": {
+                            "label": {
+                              "en": "Remove Background",
+                              "ru": "Удалить фон"
+                            },
+                            "group": "appearance"
+                          }
+                        },
+                        "background": {
+                          "type": "object",
+                          "fields": {
+                            "type": {
+                              "type": "string",
+                              "values": [
+                                "color",
+                                "image"
+                              ],
+                              "presentation": {
+                                "label": {
+                                  "en": "Background",
+                                  "ru": "Фон"
+                                },
+                                "group": "appearance"
+                              }
+                            },
+                            "value": {
+                              "type": "string",
+                              "presentation": {
+                                "label": {
+                                  "en": "Background Color",
+                                  "ru": "Цвет фона"
+                                },
+                                "group": "appearance"
+                              }
+                            },
+                            "url": {
+                              "type": "string",
+                              "presentation": {
+                                "label": {
+                                  "en": "Background URL",
+                                  "ru": "URL фона"
+                                },
+                                "group": "appearance"
+                              }
+                            },
+                            "asset_id": {
+                              "type": "string",
+                              "presentation": {
+                                "label": {
+                                  "en": "Background Asset ID",
+                                  "ru": "ID фона"
+                                },
+                                "group": "appearance"
+                              }
+                            }
+                          },
+                          "required_fields": [
+                            "type"
+                          ],
+                          "variants": {
+                            "discriminator_field": "type",
+                            "cases": {
+                              "color": {
+                                "allowed_fields": [
+                                  "type",
+                                  "value"
+                                ],
+                                "required_fields": [
+                                  "value"
+                                ]
+                              },
+                              "image": {
+                                "allowed_fields": [
+                                  "type",
+                                  "url",
+                                  "asset_id"
+                                ],
+                                "one_of_required": [
+                                  [
+                                    "url",
+                                    "asset_id"
+                                  ]
+                                ]
+                              }
+                            }
+                          },
+                          "presentation": {
+                            "label": {
+                              "en": "Background",
+                              "ru": "Фон"
+                            },
+                            "group": "appearance"
+                          }
+                        },
+                        "caption": {
+                          "type": "object",
+                          "fields": {
+                            "file_format": {
+                              "type": "string",
+                              "values": [
+                                "srt"
+                              ],
+                              "omitted_default": "srt",
+                              "presentation": {
+                                "label": {
+                                  "en": "Caption Format",
+                                  "ru": "Формат субтитров"
+                                },
+                                "group": "appearance"
+                              }
+                            },
+                            "style": {
+                              "type": "string",
+                              "values": [
+                                "default"
+                              ],
+                              "presentation": {
+                                "label": {
+                                  "en": "Caption Style",
+                                  "ru": "Стиль субтитров"
+                                },
+                                "group": "appearance"
+                              }
+                            }
+                          },
+                          "presentation": {
+                            "label": {
+                              "en": "Captions",
+                              "ru": "Субтитры"
+                            },
+                            "group": "appearance"
+                          }
+                        },
+                        "voice_settings": {
+                          "type": "object",
+                          "fields": {
+                            "speed": {
+                              "type": "number",
+                              "min": 0.5,
+                              "max": 1.5,
+                              "omitted_default": 1,
+                              "presentation": {
+                                "label": {
+                                  "en": "Voice Speed",
+                                  "ru": "Скорость голоса"
+                                },
+                                "group": "voice"
+                              }
+                            },
+                            "pitch": {
+                              "type": "number",
+                              "min": -50,
+                              "max": 50,
+                              "omitted_default": 0,
+                              "presentation": {
+                                "label": {
+                                  "en": "Voice Pitch",
+                                  "ru": "Высота голоса"
+                                },
+                                "group": "voice"
+                              }
+                            },
+                            "volume": {
+                              "type": "number",
+                              "min": 0,
+                              "max": 1,
+                              "omitted_default": 1,
+                              "presentation": {
+                                "label": {
+                                  "en": "Voice Volume",
+                                  "ru": "Громкость голоса"
+                                },
+                                "group": "voice"
+                              }
+                            },
+                            "locale": {
+                              "type": "string",
+                              "presentation": {
+                                "label": {
+                                  "en": "Voice Locale",
+                                  "ru": "Язык голоса"
+                                },
+                                "group": "voice"
+                              }
+                            },
+                            "engine_settings": {
+                              "type": "object",
+                              "fields": {
+                                "engine_type": {
+                                  "type": "string",
+                                  "values": [
+                                    "elevenlabs",
+                                    "fish",
+                                    "starfish",
+                                    "heygen_voice",
+                                    "orca"
+                                  ],
+                                  "presentation": {
+                                    "label": {
+                                      "en": "Voice Engine",
+                                      "ru": "Движок голоса"
+                                    },
+                                    "group": "voice"
+                                  }
+                                },
+                                "model": {
+                                  "type": "string",
+                                  "presentation": {
+                                    "label": {
+                                      "en": "Voice Model",
+                                      "ru": "Модель голоса"
+                                    },
+                                    "group": "voice"
+                                  }
+                                },
+                                "similarity_boost": {
+                                  "type": "number",
+                                  "min": 0,
+                                  "max": 1,
+                                  "presentation": {
+                                    "label": {
+                                      "en": "Similarity Boost",
+                                      "ru": "Усиление сходства"
+                                    },
+                                    "group": "voice"
+                                  }
+                                },
+                                "stability": {
+                                  "type": "number",
+                                  "min": 0,
+                                  "max": 1,
+                                  "presentation": {
+                                    "label": {
+                                      "en": "Stability",
+                                      "ru": "Стабильность"
+                                    },
+                                    "group": "voice"
+                                  }
+                                },
+                                "style": {
+                                  "type": "number",
+                                  "min": 0,
+                                  "max": 1,
+                                  "presentation": {
+                                    "label": {
+                                      "en": "Voice Style",
+                                      "ru": "Стиль голоса"
+                                    },
+                                    "group": "voice"
+                                  }
+                                },
+                                "use_speaker_boost": {
+                                  "type": "boolean",
+                                  "presentation": {
+                                    "label": {
+                                      "en": "Speaker Boost",
+                                      "ru": "Усиление голоса"
+                                    },
+                                    "group": "voice"
+                                  }
+                                },
+                                "similarity": {
+                                  "type": "number",
+                                  "min": 0,
+                                  "max": 1,
+                                  "presentation": {
+                                    "label": {
+                                      "en": "Similarity",
+                                      "ru": "Сходство"
+                                    },
+                                    "group": "voice"
+                                  }
+                                }
+                              },
+                              "required_fields": [
+                                "engine_type"
+                              ],
+                              "variants": {
+                                "discriminator_field": "engine_type",
+                                "cases": {
+                                  "elevenlabs": {
+                                    "allowed_fields": [
+                                      "engine_type",
+                                      "model",
+                                      "similarity_boost",
+                                      "stability",
+                                      "style",
+                                      "use_speaker_boost"
+                                    ],
+                                    "field_values": {
+                                      "model": [
+                                        "eleven_multilingual_v2",
+                                        "eleven_turbo_v2_5",
+                                        "eleven_flash_v2_5",
+                                        "eleven_v3",
+                                        "eleven_v4"
+                                      ]
+                                    }
+                                  },
+                                  "fish": {
+                                    "allowed_fields": [
+                                      "engine_type",
+                                      "model",
+                                      "stability",
+                                      "similarity"
+                                    ],
+                                    "field_values": {
+                                      "model": [
+                                        "s1",
+                                        "s2-pro",
+                                        "s2.1-pro"
+                                      ]
+                                    }
+                                  },
+                                  "starfish": {
+                                    "allowed_fields": [
+                                      "engine_type"
+                                    ]
+                                  },
+                                  "heygen_voice": {
+                                    "allowed_fields": [
+                                      "engine_type"
+                                    ]
+                                  },
+                                  "orca": {
+                                    "allowed_fields": [
+                                      "engine_type"
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "presentation": {
+                            "label": {
+                              "en": "Voice",
+                              "ru": "Голос"
+                            },
+                            "group": "voice"
+                          }
+                        }
+                      }
+                    },
+                    "notes": "Exact OpenRouter-allowed native v3 photo-avatar keys; optional omission delegates to server; expressiveness omitted=low, fit chosen by server. Photo-avatar path only; no video-avatar claims."
+                  }
+                },
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [
+                    "image"
+                  ],
+                  "kind_sets": [
+                    [
+                      "image"
+                    ]
+                  ],
+                  "min": 1,
+                  "max": 1,
+                  "per_kind_max": {
+                    "image": 1
+                  }
+                },
+                "notes": "Reviewed photo-avatar image/script route requires voice_id. Audio-input method remains separately unverified.",
+                "review_sources": [
+                  "https://developers.heygen.com/reference/create-video"
+                ]
+              },
+              "MI2V": {
+                "state": "UNKNOWN",
+                "controls": {},
+                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "evidence_class": "ABSENCE_ONLY"
+              },
+              "VR2V": {
+                "state": "UNKNOWN",
+                "controls": {},
+                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "evidence_class": "ABSENCE_ONLY"
+              },
+              "AR2V": {
+                "state": "UNKNOWN",
+                "controls": {},
+                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "evidence_class": "ABSENCE_ONLY"
+              },
+              "MMR2V": {
+                "state": "UNKNOWN",
+                "controls": {},
+                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "evidence_class": "ABSENCE_ONLY"
+              },
+              "V2V_EDIT": {
+                "state": "UNKNOWN",
+                "controls": {},
+                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "evidence_class": "ABSENCE_ONLY"
+              },
+              "V2V_EXTEND": {
+                "state": "UNKNOWN",
+                "controls": {},
+                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "evidence_class": "ABSENCE_ONLY"
+              },
+              "AVATAR_AUDIO": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "UNSUPPORTED",
+                    "required": false,
+                    "notes": "Supplied audio and script are mutually exclusive; omit script in this mode."
+                  },
+                  "duration": {
+                    "state": "UNKNOWN"
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED"
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED"
+                  },
+                  "size": {
+                    "state": "UNKNOWN"
+                  },
+                  "seed": {
+                    "state": "UNKNOWN"
+                  },
+                  "generate_audio": {
+                    "state": "UNKNOWN"
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "heygen": {
+                        "title": {
+                          "type": "string",
+                          "presentation": {
+                            "label": {
+                              "en": "Title",
+                              "ru": "Название"
+                            },
+                            "group": "advanced"
+                          }
+                        },
+                        "motion_prompt": {
+                          "type": "string",
+                          "presentation": {
+                            "label": {
+                              "en": "motion prompt",
+                              "ru": "motion prompt"
+                            },
+                            "group": "creative"
+                          },
+                          "text_semantic": "creative_prompt"
+                        },
+                        "fit": {
+                          "type": "string",
+                          "values": [
+                            "contain",
+                            "cover"
+                          ],
+                          "presentation": {
+                            "label": {
+                              "en": "Fit",
+                              "ru": "Размещение"
+                            },
+                            "group": "appearance"
+                          }
+                        },
+                        "expressiveness": {
+                          "type": "string",
+                          "values": [
+                            "high",
+                            "medium",
+                            "low"
+                          ],
+                          "omitted_default": "low",
+                          "presentation": {
+                            "label": {
+                              "en": "Expressiveness",
+                              "ru": "Выразительность"
+                            },
+                            "group": "appearance"
+                          }
+                        },
+                        "remove_background": {
+                          "type": "boolean",
+                          "presentation": {
+                            "label": {
+                              "en": "Remove Background",
+                              "ru": "Удалить фон"
+                            },
+                            "group": "appearance"
+                          }
+                        },
+                        "background": {
+                          "type": "object",
+                          "fields": {
+                            "type": {
+                              "type": "string",
+                              "values": [
+                                "color",
+                                "image"
+                              ],
+                              "presentation": {
+                                "label": {
+                                  "en": "Background",
+                                  "ru": "Фон"
+                                },
+                                "group": "appearance"
+                              }
+                            },
+                            "value": {
+                              "type": "string",
+                              "presentation": {
+                                "label": {
+                                  "en": "Background Color",
+                                  "ru": "Цвет фона"
+                                },
+                                "group": "appearance"
+                              }
+                            },
+                            "url": {
+                              "type": "string",
+                              "presentation": {
+                                "label": {
+                                  "en": "Background URL",
+                                  "ru": "URL фона"
+                                },
+                                "group": "appearance"
+                              }
+                            },
+                            "asset_id": {
+                              "type": "string",
+                              "presentation": {
+                                "label": {
+                                  "en": "Background Asset ID",
+                                  "ru": "ID фона"
+                                },
+                                "group": "appearance"
+                              }
+                            }
+                          },
+                          "required_fields": [
+                            "type"
+                          ],
+                          "variants": {
+                            "discriminator_field": "type",
+                            "cases": {
+                              "color": {
+                                "allowed_fields": [
+                                  "type",
+                                  "value"
+                                ],
+                                "required_fields": [
+                                  "value"
+                                ]
+                              },
+                              "image": {
+                                "allowed_fields": [
+                                  "type",
+                                  "url",
+                                  "asset_id"
+                                ],
+                                "one_of_required": [
+                                  [
+                                    "url",
+                                    "asset_id"
+                                  ]
+                                ]
+                              }
+                            }
+                          },
+                          "presentation": {
+                            "label": {
+                              "en": "Background",
+                              "ru": "Фон"
+                            },
+                            "group": "appearance"
+                          }
+                        },
+                        "caption": {
+                          "type": "object",
+                          "fields": {
+                            "file_format": {
+                              "type": "string",
+                              "values": [
+                                "srt"
+                              ],
+                              "omitted_default": "srt",
+                              "presentation": {
+                                "label": {
+                                  "en": "Caption Format",
+                                  "ru": "Формат субтитров"
+                                },
+                                "group": "appearance"
+                              }
+                            },
+                            "style": {
+                              "type": "string",
+                              "values": [
+                                "default"
+                              ],
+                              "presentation": {
+                                "label": {
+                                  "en": "Caption Style",
+                                  "ru": "Стиль субтитров"
+                                },
+                                "group": "appearance"
+                              }
+                            }
+                          },
+                          "presentation": {
+                            "label": {
+                              "en": "Captions",
+                              "ru": "Субтитры"
+                            },
+                            "group": "appearance"
+                          }
+                        }
+                      }
+                    },
+                    "notes": "Exact OpenRouter-allowed native v3 photo-avatar keys; optional omission delegates to server; expressiveness omitted=low, fit chosen by server. Photo-avatar path only; no video-avatar claims."
+                  }
+                },
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [
+                    "image",
+                    "audio"
+                  ],
+                  "kind_sets": [
+                    [
+                      "image",
+                      "audio"
+                    ]
+                  ],
+                  "min": 2,
+                  "max": 2,
+                  "per_kind_max": {
+                    "image": 1,
+                    "audio": 1
+                  }
+                },
+                "notes": "Existing canonical input_references carries one photo and one supplied audio track. Exact OpenRouter model declares both script and supplied-audio paths; native image schema requires image and audio_url/audio_asset_id when script is omitted. TTS voice fields are deliberately absent for supplied audio. Live adapter acceptance remains separately gated.",
+                "review_sources": [
+                  "https://openrouter.ai/heygen/avatar-iv",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/create-videos",
+                  "https://developers.heygen.com/reference/create-video"
+                ]
+              }
+            }
+          },
+          "state": "SUPPORTED",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/heygen/avatar-iv",
+          "observed_at": "2026-11-09T16:00:00+00:00",
+          "scope": "Exact model documented operations using canonical OpenRouter fields; independent catalogue domains; explicit method constraints retained",
+          "artifact_version": "capability-projection-reconciliation-v1+op07-bounded-google-20261108+full-parity-in-progress-20261109+gap-closure-20261110",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "reference_kinds",
+          "value": [
+            "image",
+            "audio"
+          ],
+          "state": "SUPPORTED",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/heygen/avatar-iv",
+          "observed_at": "2026-11-10T19:38:09.411212+00:00",
+          "scope": "Exact model describes photo plus supplied audio track; native v3 image route confirms mutually exclusive script/audio paths. Per-kind limits stay method-scoped.",
+          "artifact_version": "capability-projection-reconciliation-v1+op07-bounded-google-20261108+full-parity-in-progress-20261109+gap-closure-20261110",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "max_reference_count",
+          "value": 2,
+          "state": "SUPPORTED",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/heygen/avatar-iv",
+          "observed_at": "2026-11-10T19:38:09.411212+00:00",
+          "scope": "Exact model describes photo plus supplied audio track; native v3 image route confirms mutually exclusive script/audio paths. Per-kind limits stay method-scoped.",
+          "artifact_version": "capability-projection-reconciliation-v1+op07-bounded-google-20261108+full-parity-in-progress-20261109+gap-closure-20261110",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "mixed_reference_kinds",
+          "value": true,
+          "state": "SUPPORTED",
+          "authority": "OFFICIAL_OPENROUTER_CONTRACT_REVIEW",
+          "source_reference": "https://openrouter.ai/heygen/avatar-iv",
+          "observed_at": "2026-11-10T19:38:09.411212+00:00",
+          "scope": "Exact model describes photo plus supplied audio track; native v3 image route confirms mutually exclusive script/audio paths. Per-kind limits stay method-scoped.",
+          "artifact_version": "capability-projection-reconciliation-v1+op07-bounded-google-20261108+full-parity-in-progress-20261109+gap-closure-20261110",
+          "conflicting_evidence": []
+        }
+      ],
+      "unmapped_upstream_capabilities": [
+        "allowed_passthrough_parameters",
+        "creativity",
+        "operation.avatar_lipsync",
+        "upscale_factor"
+      ],
+      "configuration_relations": [],
+      "method_profiles": {
+        "T2V": {
+          "state": "UNSUPPORTED",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "I2V": {
+          "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "FLF2V": {
+          "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "IR2V": {
+          "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
+          "controls": {
+            "prompt": {
+              "state": "SUPPORTED",
+              "required": true,
+              "min_length": 1
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "SUPPORTED",
+              "values": [
+                "720p",
+                "1080p"
+              ]
+            },
+            "aspect_ratio": {
+              "state": "SUPPORTED",
+              "values": [
+                "16:9",
+                "9:16",
+                "1:1"
+              ]
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "heygen": {
+                  "voice_id": {
+                    "type": "string",
+                    "required": true,
+                    "presentation": {
+                      "label": {
+                        "en": "Voice ID",
+                        "ru": "ID голоса"
+                      },
+                      "group": "voice"
+                    }
+                  },
+                  "title": {
+                    "type": "string",
+                    "presentation": {
+                      "label": {
+                        "en": "Title",
+                        "ru": "Название"
+                      },
+                      "group": "advanced"
+                    }
+                  },
+                  "motion_prompt": {
+                    "type": "string",
+                    "presentation": {
+                      "label": {
+                        "en": "motion prompt",
+                        "ru": "motion prompt"
+                      },
+                      "group": "creative"
+                    },
+                    "text_semantic": "creative_prompt"
+                  },
+                  "fit": {
+                    "type": "string",
+                    "values": [
+                      "contain",
+                      "cover"
+                    ],
+                    "presentation": {
+                      "label": {
+                        "en": "Fit",
+                        "ru": "Размещение"
+                      },
+                      "group": "appearance"
+                    }
+                  },
+                  "expressiveness": {
+                    "type": "string",
+                    "values": [
+                      "high",
+                      "medium",
+                      "low"
+                    ],
+                    "omitted_default": "low",
+                    "presentation": {
+                      "label": {
+                        "en": "Expressiveness",
+                        "ru": "Выразительность"
+                      },
+                      "group": "appearance"
+                    }
+                  },
+                  "remove_background": {
+                    "type": "boolean",
+                    "presentation": {
+                      "label": {
+                        "en": "Remove Background",
+                        "ru": "Удалить фон"
+                      },
+                      "group": "appearance"
+                    }
+                  },
+                  "background": {
+                    "type": "object",
+                    "fields": {
+                      "type": {
+                        "type": "string",
+                        "values": [
+                          "color",
+                          "image"
+                        ],
+                        "presentation": {
+                          "label": {
+                            "en": "Background",
+                            "ru": "Фон"
+                          },
+                          "group": "appearance"
+                        }
+                      },
+                      "value": {
+                        "type": "string",
+                        "presentation": {
+                          "label": {
+                            "en": "Background Color",
+                            "ru": "Цвет фона"
+                          },
+                          "group": "appearance"
+                        }
+                      },
+                      "url": {
+                        "type": "string",
+                        "presentation": {
+                          "label": {
+                            "en": "Background URL",
+                            "ru": "URL фона"
+                          },
+                          "group": "appearance"
+                        }
+                      },
+                      "asset_id": {
+                        "type": "string",
+                        "presentation": {
+                          "label": {
+                            "en": "Background Asset ID",
+                            "ru": "ID фона"
+                          },
+                          "group": "appearance"
+                        }
+                      }
+                    },
+                    "required_fields": [
+                      "type"
+                    ],
+                    "variants": {
+                      "discriminator_field": "type",
+                      "cases": {
+                        "color": {
+                          "allowed_fields": [
+                            "type",
+                            "value"
+                          ],
+                          "required_fields": [
+                            "value"
+                          ]
+                        },
+                        "image": {
+                          "allowed_fields": [
+                            "type",
+                            "url",
+                            "asset_id"
+                          ],
+                          "one_of_required": [
+                            [
+                              "url",
+                              "asset_id"
+                            ]
+                          ]
+                        }
+                      }
+                    },
+                    "presentation": {
+                      "label": {
+                        "en": "Background",
+                        "ru": "Фон"
+                      },
+                      "group": "appearance"
+                    }
+                  },
+                  "caption": {
+                    "type": "object",
+                    "fields": {
+                      "file_format": {
+                        "type": "string",
+                        "values": [
+                          "srt"
+                        ],
+                        "omitted_default": "srt",
+                        "presentation": {
+                          "label": {
+                            "en": "Caption Format",
+                            "ru": "Формат субтитров"
+                          },
+                          "group": "appearance"
+                        }
+                      },
+                      "style": {
+                        "type": "string",
+                        "values": [
+                          "default"
+                        ],
+                        "presentation": {
+                          "label": {
+                            "en": "Caption Style",
+                            "ru": "Стиль субтитров"
+                          },
+                          "group": "appearance"
+                        }
+                      }
+                    },
+                    "presentation": {
+                      "label": {
+                        "en": "Captions",
+                        "ru": "Субтитры"
+                      },
+                      "group": "appearance"
+                    }
+                  },
+                  "voice_settings": {
+                    "type": "object",
+                    "fields": {
+                      "speed": {
+                        "type": "number",
+                        "min": 0.5,
+                        "max": 1.5,
+                        "omitted_default": 1,
+                        "presentation": {
+                          "label": {
+                            "en": "Voice Speed",
+                            "ru": "Скорость голоса"
+                          },
+                          "group": "voice"
+                        }
+                      },
+                      "pitch": {
+                        "type": "number",
+                        "min": -50,
+                        "max": 50,
+                        "omitted_default": 0,
+                        "presentation": {
+                          "label": {
+                            "en": "Voice Pitch",
+                            "ru": "Высота голоса"
+                          },
+                          "group": "voice"
+                        }
+                      },
+                      "volume": {
+                        "type": "number",
+                        "min": 0,
+                        "max": 1,
+                        "omitted_default": 1,
+                        "presentation": {
+                          "label": {
+                            "en": "Voice Volume",
+                            "ru": "Громкость голоса"
+                          },
+                          "group": "voice"
+                        }
+                      },
+                      "locale": {
+                        "type": "string",
+                        "presentation": {
+                          "label": {
+                            "en": "Voice Locale",
+                            "ru": "Язык голоса"
+                          },
+                          "group": "voice"
+                        }
+                      },
+                      "engine_settings": {
+                        "type": "object",
+                        "fields": {
+                          "engine_type": {
+                            "type": "string",
+                            "values": [
+                              "elevenlabs",
+                              "fish",
+                              "starfish",
+                              "heygen_voice",
+                              "orca"
+                            ],
+                            "presentation": {
+                              "label": {
+                                "en": "Voice Engine",
+                                "ru": "Движок голоса"
+                              },
+                              "group": "voice"
+                            }
+                          },
+                          "model": {
+                            "type": "string",
+                            "presentation": {
+                              "label": {
+                                "en": "Voice Model",
+                                "ru": "Модель голоса"
+                              },
+                              "group": "voice"
+                            }
+                          },
+                          "similarity_boost": {
+                            "type": "number",
+                            "min": 0,
+                            "max": 1,
+                            "presentation": {
+                              "label": {
+                                "en": "Similarity Boost",
+                                "ru": "Усиление сходства"
+                              },
+                              "group": "voice"
+                            }
+                          },
+                          "stability": {
+                            "type": "number",
+                            "min": 0,
+                            "max": 1,
+                            "presentation": {
+                              "label": {
+                                "en": "Stability",
+                                "ru": "Стабильность"
+                              },
+                              "group": "voice"
+                            }
+                          },
+                          "style": {
+                            "type": "number",
+                            "min": 0,
+                            "max": 1,
+                            "presentation": {
+                              "label": {
+                                "en": "Voice Style",
+                                "ru": "Стиль голоса"
+                              },
+                              "group": "voice"
+                            }
+                          },
+                          "use_speaker_boost": {
+                            "type": "boolean",
+                            "presentation": {
+                              "label": {
+                                "en": "Speaker Boost",
+                                "ru": "Усиление голоса"
+                              },
+                              "group": "voice"
+                            }
+                          },
+                          "similarity": {
+                            "type": "number",
+                            "min": 0,
+                            "max": 1,
+                            "presentation": {
+                              "label": {
+                                "en": "Similarity",
+                                "ru": "Сходство"
+                              },
+                              "group": "voice"
+                            }
+                          }
+                        },
+                        "required_fields": [
+                          "engine_type"
+                        ],
+                        "variants": {
+                          "discriminator_field": "engine_type",
+                          "cases": {
+                            "elevenlabs": {
+                              "allowed_fields": [
+                                "engine_type",
+                                "model",
+                                "similarity_boost",
+                                "stability",
+                                "style",
+                                "use_speaker_boost"
+                              ],
+                              "field_values": {
+                                "model": [
+                                  "eleven_multilingual_v2",
+                                  "eleven_turbo_v2_5",
+                                  "eleven_flash_v2_5",
+                                  "eleven_v3",
+                                  "eleven_v4"
+                                ]
+                              }
+                            },
+                            "fish": {
+                              "allowed_fields": [
+                                "engine_type",
+                                "model",
+                                "stability",
+                                "similarity"
+                              ],
+                              "field_values": {
+                                "model": [
+                                  "s1",
+                                  "s2-pro",
+                                  "s2.1-pro"
+                                ]
+                              }
+                            },
+                            "starfish": {
+                              "allowed_fields": [
+                                "engine_type"
+                              ]
+                            },
+                            "heygen_voice": {
+                              "allowed_fields": [
+                                "engine_type"
+                              ]
+                            },
+                            "orca": {
+                              "allowed_fields": [
+                                "engine_type"
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "presentation": {
+                      "label": {
+                        "en": "Voice",
+                        "ru": "Голос"
+                      },
+                      "group": "voice"
+                    }
+                  }
+                }
+              },
+              "notes": "Exact OpenRouter-allowed native v3 photo-avatar keys; optional omission delegates to server; expressiveness omitted=low, fit chosen by server. Photo-avatar path only; no video-avatar claims."
+            }
+          },
+          "topology": {
+            "fixed": [],
+            "reference_kinds": [
+              "image"
+            ],
+            "kind_sets": [
+              [
+                "image"
+              ]
+            ],
+            "min": 1,
+            "max": 1,
+            "per_kind_max": {
+              "image": 1
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
+          },
+          "configuration_relations": []
+        },
+        "MI2V": {
+          "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "VR2V": {
+          "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "AR2V": {
+          "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "MMR2V": {
+          "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "V2V_EDIT": {
+          "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "V2V_EXTEND": {
+          "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "V2V_UPSCALE": {
+          "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "AVATAR_AUDIO": {
+          "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
+          "controls": {
+            "prompt": {
+              "state": "UNSUPPORTED",
+              "required": false,
+              "notes": "Supplied audio and script are mutually exclusive; omit script in this mode."
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "SUPPORTED",
+              "values": [
+                "720p",
+                "1080p"
+              ]
+            },
+            "aspect_ratio": {
+              "state": "SUPPORTED",
+              "values": [
+                "16:9",
+                "9:16",
+                "1:1"
+              ]
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "heygen": {
+                  "title": {
+                    "type": "string",
+                    "presentation": {
+                      "label": {
+                        "en": "Title",
+                        "ru": "Название"
+                      },
+                      "group": "advanced"
+                    }
+                  },
+                  "motion_prompt": {
+                    "type": "string",
+                    "presentation": {
+                      "label": {
+                        "en": "motion prompt",
+                        "ru": "motion prompt"
+                      },
+                      "group": "creative"
+                    },
+                    "text_semantic": "creative_prompt"
+                  },
+                  "fit": {
+                    "type": "string",
+                    "values": [
+                      "contain",
+                      "cover"
+                    ],
+                    "presentation": {
+                      "label": {
+                        "en": "Fit",
+                        "ru": "Размещение"
+                      },
+                      "group": "appearance"
+                    }
+                  },
+                  "expressiveness": {
+                    "type": "string",
+                    "values": [
+                      "high",
+                      "medium",
+                      "low"
+                    ],
+                    "omitted_default": "low",
+                    "presentation": {
+                      "label": {
+                        "en": "Expressiveness",
+                        "ru": "Выразительность"
+                      },
+                      "group": "appearance"
+                    }
+                  },
+                  "remove_background": {
+                    "type": "boolean",
+                    "presentation": {
+                      "label": {
+                        "en": "Remove Background",
+                        "ru": "Удалить фон"
+                      },
+                      "group": "appearance"
+                    }
+                  },
+                  "background": {
+                    "type": "object",
+                    "fields": {
+                      "type": {
+                        "type": "string",
+                        "values": [
+                          "color",
+                          "image"
+                        ],
+                        "presentation": {
+                          "label": {
+                            "en": "Background",
+                            "ru": "Фон"
+                          },
+                          "group": "appearance"
+                        }
+                      },
+                      "value": {
+                        "type": "string",
+                        "presentation": {
+                          "label": {
+                            "en": "Background Color",
+                            "ru": "Цвет фона"
+                          },
+                          "group": "appearance"
+                        }
+                      },
+                      "url": {
+                        "type": "string",
+                        "presentation": {
+                          "label": {
+                            "en": "Background URL",
+                            "ru": "URL фона"
+                          },
+                          "group": "appearance"
+                        }
+                      },
+                      "asset_id": {
+                        "type": "string",
+                        "presentation": {
+                          "label": {
+                            "en": "Background Asset ID",
+                            "ru": "ID фона"
+                          },
+                          "group": "appearance"
+                        }
+                      }
+                    },
+                    "required_fields": [
+                      "type"
+                    ],
+                    "variants": {
+                      "discriminator_field": "type",
+                      "cases": {
+                        "color": {
+                          "allowed_fields": [
+                            "type",
+                            "value"
+                          ],
+                          "required_fields": [
+                            "value"
+                          ]
+                        },
+                        "image": {
+                          "allowed_fields": [
+                            "type",
+                            "url",
+                            "asset_id"
+                          ],
+                          "one_of_required": [
+                            [
+                              "url",
+                              "asset_id"
+                            ]
+                          ]
+                        }
+                      }
+                    },
+                    "presentation": {
+                      "label": {
+                        "en": "Background",
+                        "ru": "Фон"
+                      },
+                      "group": "appearance"
+                    }
+                  },
+                  "caption": {
+                    "type": "object",
+                    "fields": {
+                      "file_format": {
+                        "type": "string",
+                        "values": [
+                          "srt"
+                        ],
+                        "omitted_default": "srt",
+                        "presentation": {
+                          "label": {
+                            "en": "Caption Format",
+                            "ru": "Формат субтитров"
+                          },
+                          "group": "appearance"
+                        }
+                      },
+                      "style": {
+                        "type": "string",
+                        "values": [
+                          "default"
+                        ],
+                        "presentation": {
+                          "label": {
+                            "en": "Caption Style",
+                            "ru": "Стиль субтитров"
+                          },
+                          "group": "appearance"
+                        }
+                      }
+                    },
+                    "presentation": {
+                      "label": {
+                        "en": "Captions",
+                        "ru": "Субтитры"
+                      },
+                      "group": "appearance"
+                    }
+                  }
+                }
+              },
+              "notes": "Exact OpenRouter-allowed native v3 photo-avatar keys; optional omission delegates to server; expressiveness omitted=low, fit chosen by server. Photo-avatar path only; no video-avatar claims."
+            }
+          },
+          "topology": {
+            "fixed": [],
+            "reference_kinds": [
+              "image",
+              "audio"
+            ],
+            "kind_sets": [
+              [
+                "image",
+                "audio"
+              ]
+            ],
+            "min": 2,
+            "max": 2,
+            "per_kind_max": {
+              "image": 1,
+              "audio": 1
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
+          },
+          "configuration_relations": []
+        }
+      },
+      "geometry_profile": {
+        "version": 1,
+        "tuples": []
+      }
+    },
+    {
+      "model_id": "alibaba/wan-2.6",
+      "display_name": "Alibaba: Wan 2.6",
+      "supported_durations": [
+        5,
+        10
+      ],
+      "supported_resolutions": [
+        "720p",
+        "1080p"
+      ],
+      "supported_aspect_ratios": [
+        "9:16",
+        "16:9"
+      ],
+      "supported_sizes": [
+        "720x1280",
+        "1280x720",
+        "1080x1920",
+        "1920x1080"
+      ],
+      "supported_frame_types": [
+        "first_frame"
+      ],
+      "supports_seed": true,
+      "generate_audio": true,
+      "supported_reference_kinds": [
+        "video"
+      ],
+      "max_reference_count": null,
+      "mixed_reference_kinds": null,
+      "supports_edit": null,
+      "supports_extend": null,
+      "supported_inference_methods": [
+        "T2V",
+        "I2V",
+        "VR2V"
+      ],
+      "inference_method_statuses": [
+        {
+          "method": "T2V",
+          "status": "READY"
+        },
+        {
+          "method": "I2V",
+          "status": "READY"
+        },
+        {
+          "method": "FLF2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "IR2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "MI2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "VR2V",
+          "status": "READY"
+        },
+        {
+          "method": "AR2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "MMR2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "V2V_EDIT",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "V2V_EXTEND",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "V2V_UPSCALE",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "AVATAR_AUDIO",
+          "status": "UNKNOWN"
+        }
+      ],
+      "preferred_inference_method": null,
+      "observed_at": "2026-11-14T11:44:50+00:00",
+      "capability_evidence": [
+        {
+          "key": "supported_resolutions",
+          "value": [
+            "720p",
+            "1080p"
+          ],
+          "state": "SUPPORTED",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.965448+00:00",
+          "scope": "exact model catalogue metadata",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "supported_aspect_ratios",
+          "value": [
+            "16:9",
+            "9:16"
+          ],
+          "state": "SUPPORTED",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.965448+00:00",
+          "scope": "exact model catalogue metadata",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "supported_sizes",
+          "value": [
+            "1280x720",
+            "1080x1920",
+            "720x1280",
+            "1920x1080"
+          ],
+          "state": "SUPPORTED",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.965448+00:00",
+          "scope": "exact model catalogue metadata",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "supported_durations",
+          "value": [
+            5,
+            10
+          ],
+          "state": "SUPPORTED",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.965448+00:00",
+          "scope": "exact model catalogue metadata",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "supported_frame_images",
+          "value": [
+            "first_frame"
+          ],
+          "state": "SUPPORTED",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.965448+00:00",
+          "scope": "exact model catalogue metadata",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "upscale_factor",
+          "value": null,
+          "state": "UNKNOWN",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.965448+00:00",
+          "scope": "CAPABILITY_ONLY_CONFIRMED; wire unresolved",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "creativity",
+          "value": null,
+          "state": "UNKNOWN",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.965448+00:00",
+          "scope": "CAPABILITY_ONLY_CONFIRMED; wire unresolved",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "generate_audio",
+          "value": true,
+          "state": "SUPPORTED",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.965448+00:00",
+          "scope": "exact model catalogue metadata",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "seed",
+          "value": true,
+          "state": "SUPPORTED",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.965448+00:00",
+          "scope": "exact model catalogue metadata",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "allowed_passthrough_parameters",
+          "value": [
+            "negative_prompt",
+            "enable_prompt_expansion",
+            "shot_type",
+            "audio",
+            "size"
+          ],
+          "state": "SUPPORTED",
+          "authority": "LIVE_STRUCTURED_API",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.965448+00:00",
+          "scope": "CAPABILITY_ONLY_CONFIRMED; wire unresolved",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "__catalogue_observation__",
+          "value": {
+            "id": "alibaba/wan-2.6",
+            "canonical_slug": "alibaba/wan-2.6-20260327",
+            "hugging_face_id": null,
+            "name": "Alibaba: Wan 2.6",
+            "created": 1774659190,
+            "description": "Alibaba's most advanced video generation model, supporting over 10 visual creation capabilities in a unified system. Wan 2.6 generates 1080p video at 24fps from text, images, reference videos, or audio,...",
+            "supported_resolutions": [
+              "720p",
+              "1080p"
+            ],
+            "supported_aspect_ratios": [
+              "16:9",
+              "9:16"
+            ],
+            "supported_sizes": [
+              "1280x720",
+              "1080x1920",
+              "720x1280",
+              "1920x1080"
+            ],
+            "supported_durations": [
+              5,
+              10
+            ],
+            "supported_frame_images": [
+              "first_frame"
+            ],
+            "upscale_factor": null,
+            "creativity": null,
+            "generate_audio": true,
+            "seed": true,
+            "pricing_skus": {
+              "text_to_video_duration_seconds_480p": "0.04",
+              "text_to_video_duration_seconds_720p": "0.08",
+              "image_to_video_duration_seconds_720p": "0.10",
+              "text_to_video_duration_seconds_1080p": "0.12",
+              "image_to_video_duration_seconds_1080p": "0.15"
+            },
+            "allowed_passthrough_parameters": [
+              "negative_prompt",
+              "enable_prompt_expansion",
+              "shot_type",
+              "audio",
+              "size"
+            ]
+          },
+          "state": "UNKNOWN",
+          "authority": "LIVE_CATALOGUE_EVIDENCE",
+          "source_reference": "https://openrouter.ai/api/v1/videos/models",
+          "observed_at": "2026-11-17T21:04:00.965448+00:00",
+          "scope": "Bounded discovery evidence only; never request passthrough",
+          "artifact_version": "live",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "supports_text_only",
+          "value": true,
+          "state": "SUPPORTED",
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/wan-2.6",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model",
+          "artifact_version": "capability-projection-reconciliation-v1+op07-bounded-google-20261108+full-parity-in-progress-20261109+gap-closure-20261110",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "source_required",
+          "value": false,
+          "state": "UNSUPPORTED",
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/wan-2.6",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "OpenRouter video model",
+          "artifact_version": "capability-projection-reconciliation-v1+op07-bounded-google-20261108+full-parity-in-progress-20261109+gap-closure-20261110",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "input_modalities_conflict",
+          "value": null,
+          "state": "CONFLICT",
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/wan-2.6",
+          "observed_at": "2026-10-10T16:37:05.412933+00:00",
+          "scope": "Conflicting description vs featureList; no executable enrichment",
+          "artifact_version": "capability-projection-reconciliation-v1+op07-bounded-google-20261108+full-parity-in-progress-20261109+gap-closure-20261110",
+          "conflicting_evidence": [
+            "Alibaba's most advanced video generation model, supporting over 10 visual creation capabilities in a unified system. Wan 2.6 generates 1080p video at 24fps from text, images, reference videos, or audio, with native audio-visual synchronization and precise lip-sync. Key features include reference-to-video (insert a character's appearance and voice into new scenes), multi-shot storytelling from simple prompts, synchronized sound effects and music, and support for 16:9, 9:16, and 1:1 aspect ratios with clips up to 15 seconds.",
+            [
+              "Input modalities: text, image",
+              "Output modalities: video"
+            ]
+          ]
+        },
+        {
+          "key": "request_shape_profiles",
+          "value": {
+            "schema_version": 1,
+            "methods": {
+              "T2V": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "notes": "Text prompt is part of this explicitly confirmed method input shape; optional empty prompt keeps accepted semantics. No fabricated text length bound."
+                  },
+                  "duration": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      5,
+                      10
+                    ],
+                    "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "720p",
+                      "1080p"
+                    ],
+                    "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "9:16",
+                      "16:9"
+                    ],
+                    "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+                  },
+                  "size": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "1280x720",
+                      "720x1280",
+                      "1920x1080",
+                      "1080x1920"
+                    ],
+                    "notes": "OR enum intersects actual AtlasCloud T2V exact size enum."
+                  },
+                  "seed": {
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED",
+                    "notes": "Explicit native generate_audio boolean and exact OpenRouter toggle signal; input AUDIO remains separate."
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "atlas-cloud": {
+                        "negative_prompt": {
+                          "type": "string",
+                          "text_semantic": "negative_prompt"
+                        },
+                        "audio": {
+                          "type": "string",
+                          "presentation": {
+                            "label": {
+                              "en": "Audio URL",
+                              "ru": "URL аудио"
+                            },
+                            "group": "advanced",
+                            "input": "url"
+                          }
+                        },
+                        "enable_prompt_expansion": {
+                          "type": "boolean",
+                          "omitted_default": true
+                        },
+                        "shot_type": {
+                          "type": "string",
+                          "values": [
+                            "multi",
+                            "single"
+                          ],
+                          "requires": {
+                            "enable_prompt_expansion": [
+                              true
+                            ]
+                          }
+                        },
+                        "size": {
+                          "type": "string",
+                          "values": [
+                            "1280*720",
+                            "720*1280",
+                            "960*960",
+                            "1088*832",
+                            "832*1088",
+                            "1920*1080",
+                            "1080*1920",
+                            "1440*1440",
+                            "1632*1248",
+                            "1248*1632"
+                          ],
+                          "omits_controls": [
+                            "resolution",
+                            "aspect_ratio",
+                            "size"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
+                "review_sources": [
+                  "https://openrouter.ai/alibaba/wan-2.6",
+                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request",
+                  "https://www.atlascloud.ai/docs/more-models/alibaba/wan-2.6-text-to-video/generateVideo",
+                  "https://www.atlascloud.ai/docs/en/more-models/alibaba/wan-2.6-text-to-video/generateVideo"
+                ]
+              },
+              "I2V": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "notes": "Text prompt is part of this explicitly confirmed method input shape; optional empty prompt keeps accepted semantics. No fabricated text length bound."
+                  },
+                  "duration": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      5,
+                      10
+                    ],
+                    "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "720p",
+                      "1080p"
+                    ],
+                    "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+                  },
+                  "aspect_ratio": {
+                    "state": "UNSUPPORTED",
+                    "notes": "Documented input-driven output aspect for this image-frame method; explicit aspect override is ignored/not offered. This is method-specific inapplicability, not a missing generation capability."
+                  },
+                  "size": {
+                    "state": "UNKNOWN",
+                    "notes": "No complete reviewed method-conditioned proof; omitted.",
+                    "evidence_class": "ABSENCE_ONLY"
+                  },
+                  "seed": {
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+                  },
+                  "generate_audio": {
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "atlas-cloud": {
+                        "negative_prompt": {
+                          "type": "string",
+                          "text_semantic": "negative_prompt"
+                        },
+                        "audio": {
+                          "type": "string",
+                          "presentation": {
+                            "label": {
+                              "en": "Audio URL",
+                              "ru": "URL аудио"
+                            },
+                            "group": "advanced",
+                            "input": "url"
+                          }
+                        },
+                        "enable_prompt_expansion": {
+                          "type": "boolean",
+                          "omitted_default": true
+                        },
+                        "shot_type": {
+                          "type": "string",
+                          "values": [
+                            "multi",
+                            "single"
+                          ],
+                          "requires": {
+                            "enable_prompt_expansion": [
+                              true
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "notes": "Method shape is documented; this does not certify every parameter/media tuple.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "topology": {
+                  "fixed": [
+                    "first_frame"
+                  ],
+                  "reference_kinds": [],
+                  "kind_sets": [
+                    []
+                  ],
+                  "min": 0,
+                  "max": 0,
+                  "per_kind_max": {}
+                },
+                "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
+                "review_sources": [
+                  "https://openrouter.ai/alibaba/wan-2.6",
+                  "https://help.aliyun.com/en/model-studio/video-generate-edit-model/",
+                  "https://openrouter.ai/api/v1/videos/models",
+                  "https://openrouter.ai/docs/api/api-reference/video-generation/submit-a-video-generation-request",
+                  "https://www.atlascloud.ai/docs/more-models/alibaba/wan-2.6-image-to-video/generateVideo",
+                  "https://help.aliyun.com/en/model-studio/legacy-image-to-video-api-reference/"
+                ]
+              },
+              "FLF2V": {
+                "state": "UNKNOWN",
+                "controls": {},
+                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "evidence_class": "ABSENCE_ONLY"
+              },
+              "IR2V": {
+                "state": "UNKNOWN",
+                "controls": {},
+                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "evidence_class": "ABSENCE_ONLY"
+              },
+              "MI2V": {
+                "state": "UNKNOWN",
+                "controls": {},
+                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "evidence_class": "ABSENCE_ONLY"
+              },
+              "VR2V": {
+                "state": "SUPPORTED",
+                "controls": {
+                  "prompt": {
+                    "state": "SUPPORTED",
+                    "notes": "Text prompt is part of this explicitly confirmed method input shape; optional empty prompt keeps accepted semantics. No fabricated text length bound."
+                  },
+                  "duration": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      5,
+                      10
+                    ],
+                    "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+                  },
+                  "resolution": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "720p",
+                      "1080p"
+                    ],
+                    "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+                  },
+                  "aspect_ratio": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "9:16",
+                      "16:9"
+                    ],
+                    "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+                  },
+                  "size": {
+                    "state": "SUPPORTED",
+                    "values": [
+                      "1280x720",
+                      "720x1280",
+                      "1920x1080",
+                      "1080x1920"
+                    ],
+                    "notes": "OR enum intersects actual AtlasCloud T2V exact size enum."
+                  },
+                  "seed": {
+                    "state": "SUPPORTED",
+                    "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+                  },
+                  "generate_audio": {
+                    "state": "UNKNOWN",
+                    "notes": "Explicit disable-audio control is not confirmed for this reference-video route; omit."
+                  },
+                  "provider_options": {
+                    "state": "SUPPORTED",
+                    "providers": {
+                      "atlas-cloud": {
+                        "negative_prompt": {
+                          "type": "string",
+                          "text_semantic": "negative_prompt"
+                        },
+                        "enable_prompt_expansion": {
+                          "type": "boolean",
+                          "omitted_default": true
+                        },
+                        "shot_type": {
+                          "type": "string",
+                          "values": [
+                            "multi",
+                            "single"
+                          ],
+                          "requires": {
+                            "enable_prompt_expansion": [
+                              true
+                            ]
+                          }
+                        },
+                        "size": {
+                          "type": "string",
+                          "values": [
+                            "1280*720",
+                            "720*1280",
+                            "960*960",
+                            "1088*832",
+                            "832*1088",
+                            "1920*1080",
+                            "1080*1920",
+                            "1440*1440",
+                            "1632*1248",
+                            "1248*1632"
+                          ],
+                          "omits_controls": [
+                            "resolution",
+                            "aspect_ratio",
+                            "size"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "notes": "Exact OpenRouter model supports reference-video generation; Atlas confirms 1вЂ“3 videos, 5/10 second output and prompt subject labels character1, character2, character3. Existing canonical video input_references preserve ordered subjects.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "topology": {
+                  "fixed": [],
+                  "reference_kinds": [
+                    "video"
+                  ],
+                  "kind_sets": [
+                    [
+                      "video"
+                    ]
+                  ],
+                  "min": 1,
+                  "max": 3,
+                  "per_kind_max": {
+                    "video": 3
+                  }
+                },
+                "topology_scope": "Confirmed bounded subset, not a claim about the full upstream maximum. Ordered occurrences retained; frame roles and references mutually exclusive.",
+                "review_sources": [
+                  "https://openrouter.ai/alibaba/wan-2.6",
+                  "https://openrouter.ai/provider/atlas-cloud",
+                  "https://www.atlascloud.ai/docs/zh/more-models/alibaba/wan-2.6-video-to-video/generateVideo"
+                ],
+                "media_limits": {
+                  "video": {
+                    "min_duration_seconds": 2,
+                    "max_duration_seconds": 30,
+                    "max_bytes": 104857600
+                  }
+                }
+              },
+              "AR2V": {
+                "state": "UNKNOWN",
+                "controls": {},
+                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "evidence_class": "ABSENCE_ONLY"
+              },
+              "MMR2V": {
+                "state": "UNKNOWN",
+                "controls": {},
+                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "evidence_class": "ABSENCE_ONLY"
+              },
+              "V2V_EDIT": {
+                "state": "UNKNOWN",
+                "controls": {},
+                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "evidence_class": "ABSENCE_ONLY"
+              },
+              "V2V_EXTEND": {
+                "state": "UNKNOWN",
+                "controls": {},
+                "notes": "No complete reviewed native + OpenRouter exact-shape proof. Absence is not UNSUPPORTED.",
+                "audit_scope": "CURRENT_MODEL_METHOD",
+                "evidence_class": "ABSENCE_ONLY"
+              }
+            }
+          },
+          "state": "SUPPORTED",
+          "authority": "REVIEWED_AUDIT_DISPOSITION",
+          "source_reference": "https://openrouter.ai/alibaba/wan-2.6",
+          "observed_at": "2026-10-13T13:37:34.589030+00:00",
+          "scope": "Exact model + method; native/OpenRouter intersection, confirmed subset and exact live exceptions. Audit observation remains immutable.",
+          "artifact_version": "capability-projection-reconciliation-v1+op07-bounded-google-20261108+full-parity-in-progress-20261109+gap-closure-20261110",
+          "conflicting_evidence": []
+        },
+        {
+          "key": "reference_kinds",
+          "value": [
+            "video"
+          ],
+          "state": "SUPPORTED",
+          "authority": "EXACT_OFFICIAL_MODEL_PAGE",
+          "source_reference": "https://openrouter.ai/alibaba/wan-2.6",
+          "observed_at": "2026-11-10T19:34:23.932485+00:00",
+          "scope": "Exact current model explicitly describes generation from reference videos; cardinality is method-scoped in reviewed Atlas schema.",
+          "artifact_version": "capability-projection-reconciliation-v1+op07-bounded-google-20261108+full-parity-in-progress-20261109+gap-closure-20261110",
+          "conflicting_evidence": []
+        }
+      ],
+      "unmapped_upstream_capabilities": [
+        "allowed_passthrough_parameters",
+        "creativity",
+        "input_modalities_conflict",
+        "upscale_factor"
+      ],
+      "configuration_relations": [],
+      "method_profiles": {
+        "T2V": {
+          "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
+          "controls": {
+            "prompt": {
+              "state": "SUPPORTED",
+              "notes": "Text prompt is part of this explicitly confirmed method input shape; optional empty prompt keeps accepted semantics. No fabricated text length bound."
+            },
+            "duration": {
+              "state": "SUPPORTED",
+              "values": [
+                5,
+                10
+              ],
+              "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+            },
+            "resolution": {
+              "state": "SUPPORTED",
+              "values": [
+                "720p",
+                "1080p"
+              ],
+              "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+            },
+            "aspect_ratio": {
+              "state": "SUPPORTED",
+              "values": [
+                "16:9",
+                "9:16"
+              ],
+              "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+            },
+            "size": {
+              "state": "SUPPORTED",
+              "values": [
+                "1280x720",
+                "1080x1920",
+                "720x1280",
+                "1920x1080"
+              ],
+              "notes": "OR enum intersects actual AtlasCloud T2V exact size enum."
+            },
+            "seed": {
+              "state": "SUPPORTED",
+              "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+            },
+            "generate_audio": {
+              "state": "SUPPORTED",
+              "notes": "Explicit native generate_audio boolean and exact OpenRouter toggle signal; input AUDIO remains separate."
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "atlas-cloud": {
+                  "negative_prompt": {
+                    "type": "string",
+                    "text_semantic": "negative_prompt"
+                  },
+                  "audio": {
+                    "type": "string",
+                    "presentation": {
+                      "label": {
+                        "en": "Audio URL",
+                        "ru": "URL аудио"
+                      },
+                      "group": "advanced",
+                      "input": "url"
+                    }
+                  },
+                  "enable_prompt_expansion": {
+                    "type": "boolean",
+                    "omitted_default": true
+                  },
+                  "shot_type": {
+                    "type": "string",
+                    "values": [
+                      "multi",
+                      "single"
+                    ],
+                    "requires": {
+                      "enable_prompt_expansion": [
+                        true
+                      ]
+                    }
+                  },
+                  "size": {
+                    "type": "string",
+                    "values": [
+                      "1280*720",
+                      "720*1280",
+                      "960*960",
+                      "1088*832",
+                      "832*1088",
+                      "1920*1080",
+                      "1080*1920",
+                      "1440*1440",
+                      "1632*1248",
+                      "1248*1632"
+                    ],
+                    "omits_controls": [
+                      "resolution",
+                      "aspect_ratio",
+                      "size"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "topology": {
+            "fixed": [],
+            "reference_kinds": [],
+            "kind_sets": [
+              []
+            ],
+            "min": 0,
+            "max": 0,
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
+          },
+          "configuration_relations": []
+        },
+        "I2V": {
+          "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
+          "controls": {
+            "prompt": {
+              "state": "SUPPORTED",
+              "notes": "Text prompt is part of this explicitly confirmed method input shape; optional empty prompt keeps accepted semantics. No fabricated text length bound."
+            },
+            "duration": {
+              "state": "SUPPORTED",
+              "values": [
+                5,
+                10
+              ],
+              "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+            },
+            "resolution": {
+              "state": "SUPPORTED",
+              "values": [
+                "720p",
+                "1080p"
+              ],
+              "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+            },
+            "aspect_ratio": {
+              "state": "UNSUPPORTED",
+              "notes": "Documented input-driven output aspect for this image-frame method; explicit aspect override is ignored/not offered. This is method-specific inapplicability, not a missing generation capability."
+            },
+            "size": {
+              "state": "SUPPORTED",
+              "notes": "No complete reviewed method-conditioned proof; omitted.",
+              "evidence_class": "ABSENCE_ONLY",
+              "domain_completeness": "PARTIAL",
+              "values": [
+                "1280x720",
+                "1080x1920",
+                "720x1280",
+                "1920x1080"
+              ]
+            },
+            "seed": {
+              "state": "SUPPORTED",
+              "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+            },
+            "generate_audio": {
+              "state": "SUPPORTED",
+              "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "atlas-cloud": {
+                  "negative_prompt": {
+                    "type": "string",
+                    "text_semantic": "negative_prompt"
+                  },
+                  "audio": {
+                    "type": "string",
+                    "presentation": {
+                      "label": {
+                        "en": "Audio URL",
+                        "ru": "URL аудио"
+                      },
+                      "group": "advanced",
+                      "input": "url"
+                    }
+                  },
+                  "enable_prompt_expansion": {
+                    "type": "boolean",
+                    "omitted_default": true
+                  },
+                  "shot_type": {
+                    "type": "string",
+                    "values": [
+                      "multi",
+                      "single"
+                    ],
+                    "requires": {
+                      "enable_prompt_expansion": [
+                        true
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "topology": {
+            "fixed": [
+              "first_frame"
+            ],
+            "reference_kinds": [],
+            "kind_sets": [
+              []
+            ],
+            "min": 0,
+            "max": 0,
+            "per_kind_max": {},
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
+          },
+          "configuration_relations": []
+        },
+        "FLF2V": {
+          "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "IR2V": {
+          "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "MI2V": {
+          "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "VR2V": {
+          "state": "SUPPORTED",
+          "method_support": "SUPPORTED",
+          "controls": {
+            "prompt": {
+              "state": "SUPPORTED",
+              "notes": "Text prompt is part of this explicitly confirmed method input shape; optional empty prompt keeps accepted semantics. No fabricated text length bound."
+            },
+            "duration": {
+              "state": "SUPPORTED",
+              "values": [
+                5,
+                10
+              ],
+              "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+            },
+            "resolution": {
+              "state": "SUPPORTED",
+              "values": [
+                "720p",
+                "1080p"
+              ],
+              "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+            },
+            "aspect_ratio": {
+              "state": "SUPPORTED",
+              "values": [
+                "16:9",
+                "9:16"
+              ],
+              "notes": "Reviewed native generation domain intersected with exact current OpenRouter endpoint/API domain; method restrictions below. No Size-to-Resolution inference."
+            },
+            "size": {
+              "state": "SUPPORTED",
+              "values": [
+                "1280x720",
+                "1080x1920",
+                "720x1280",
+                "1920x1080"
+              ],
+              "notes": "OR enum intersects actual AtlasCloud T2V exact size enum."
+            },
+            "seed": {
+              "state": "SUPPORTED",
+              "notes": "Exact current positive catalogue flag plus canonical Video API scalar contract; no invented numeric bound or per-provider determinism guarantee."
+            },
+            "generate_audio": {
+              "state": "UNKNOWN",
+              "notes": "Explicit disable-audio control is not confirmed for this reference-video route; omit."
+            },
+            "provider_options": {
+              "state": "SUPPORTED",
+              "providers": {
+                "atlas-cloud": {
+                  "negative_prompt": {
+                    "type": "string",
+                    "text_semantic": "negative_prompt"
+                  },
+                  "enable_prompt_expansion": {
+                    "type": "boolean",
+                    "omitted_default": true
+                  },
+                  "shot_type": {
+                    "type": "string",
+                    "values": [
+                      "multi",
+                      "single"
+                    ],
+                    "requires": {
+                      "enable_prompt_expansion": [
+                        true
+                      ]
+                    }
+                  },
+                  "size": {
+                    "type": "string",
+                    "values": [
+                      "1280*720",
+                      "720*1280",
+                      "960*960",
+                      "1088*832",
+                      "832*1088",
+                      "1920*1080",
+                      "1080*1920",
+                      "1440*1440",
+                      "1632*1248",
+                      "1248*1632"
+                    ],
+                    "omits_controls": [
+                      "resolution",
+                      "aspect_ratio",
+                      "size"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "topology": {
+            "fixed": [],
+            "reference_kinds": [
+              "video"
+            ],
+            "kind_sets": [
+              [
+                "video"
+              ]
+            ],
+            "min": 1,
+            "max": 3,
+            "per_kind_max": {
+              "video": 3
+            },
+            "execution_domain": "CONFIRMED_BOUNDS",
+            "limit_completeness": "COMPLETE"
+          },
+          "configuration_relations": [],
+          "media_limits": {
+            "video": {
+              "min_duration_seconds": 2,
+              "max_duration_seconds": 30,
+              "max_bytes": 104857600
+            }
+          }
+        },
+        "AR2V": {
+          "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "MMR2V": {
+          "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "V2V_EDIT": {
+          "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "V2V_EXTEND": {
+          "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "V2V_UPSCALE": {
+          "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "AVATAR_AUDIO": {
+          "state": "UNKNOWN",
+          "method_support": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        }
+      },
+      "geometry_profile": {
+        "version": 1,
+        "tuples": [
+          {
+            "resolution": null,
+            "aspect_ratio": "9:16",
+            "size": "720x1280",
+            "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+            "confidence": "SAFE_DERIVED"
+          },
+          {
+            "resolution": null,
+            "aspect_ratio": "16:9",
+            "size": "1280x720",
+            "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+            "confidence": "SAFE_DERIVED"
+          },
+          {
+            "resolution": null,
+            "aspect_ratio": "9:16",
+            "size": "1080x1920",
+            "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+            "confidence": "SAFE_DERIVED"
+          },
+          {
+            "resolution": null,
+            "aspect_ratio": "16:9",
+            "size": "1920x1080",
+            "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+            "confidence": "SAFE_DERIVED"
+          }
+        ]
+      }
+    }
+  ]
+}

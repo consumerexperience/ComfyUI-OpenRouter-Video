@@ -29,8 +29,8 @@ test('Classic trusted native capture keeps handle ownership and isolates deferre
  assert.equal(phases.pointerdown,true);assert.equal(phases.pointermove,true);handlers.pointerdown({isTrusted:true,button:0,pointerId:8});
  for(const [width,height] of [[610,900],[450,700],[320,300],[610,920]]){
   const e={isTrusted:true,pointerId:8};handlers.pointermove(e);c.app.canvas.pointer.eMove=e;n.size=[width,height];n.onResize(n.size);
-  assert.equal(n.__orvPreferredWidth,width);const budget=n.__orvPreferredTextBudget;
-  n.size=[999,1999];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,width);assert.equal(n.__orvPreferredTextBudget,budget);
+  assert.equal(n.__orvPreferredWidth,width);const budget=n.__orvMasterPromptHeight;
+  n.size=[999,1999];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,width);assert.equal(n.__orvMasterPromptHeight,budget);
   while(micro.length)micro.shift()();while(frames.length)frames.shift()();
  }
  handlers.pointerup();assert.equal(n.__orvUserResizeActive,false);assert.deepEqual(n.pos,[11,12]);assert.equal(n.widgets[0].value,'saved');
@@ -47,9 +47,9 @@ test('native cached badge is cloned: pack hidden, IDs/lifecycle and unrelated no
 
 test('compact multiline native padding does not consume elastic budget or values',()=>{
  const c=context(),fields=['prompt','provider_option:p:negative'].map((name,i)=>({name,label:name,value:'line\ntext',element:{style:{}},options:{margin:10},...(i?{__orvTextSemantic:'negative_prompt'}:{})}));
- const n={size:[400,800],widgets:fields,__orvPreferredTextBudget:304};c.sizePrimaryControls(n);const before=c.textRegionGeometry(n);c.stylePrompt(n);
+ const n={size:[400,800],widgets:fields,__orvMasterPromptHeight:304};c.sizePrimaryControls(n);const before=c.textRegionGeometry(n);c.stylePrompt(n);
  assert.equal(c.textRegionGeometry(n).budget,before.budget);assert.equal(fields[0].computeSize()[1],fields[1].computeSize()[1]);
- for(const w of fields){assert.equal(w.options.margin,0);assert.equal(w.element.style.padding,'4px 6px');assert.equal(w.element.style.boxSizing,'border-box');assert.equal(w.element.style.lineHeight,'normal');assert.equal(w.value,'line\ntext');}
+ for(const w of fields){assert.equal(w.options.margin,0);assert.equal(w.element.style.padding,'4px 6px');assert.equal(w.element.style.boxSizing,'border-box');assert.equal(w.element.style.lineHeight,'18px');assert.equal(w.value,'line\ntext');}
  for(const name of ['model','inference_method','resolution','aspect_ratio','duration']){const item={name,options:{}};c.sizePrimaryControls({widgets:[item]});assert.equal(item.computeSize()[1],20);}
 });
 

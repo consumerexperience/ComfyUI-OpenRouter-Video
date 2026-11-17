@@ -45,7 +45,7 @@ test('PUX03 advanced textareas never compete with Prompt for flexible height',()
 });
 
 test('PUX03 v1.1 shared column budget is bounded independently of labels and values',()=>{
- const {c,n,grid}=domFixture();n.size=[400,600];n.__orvPreferredTextBudget=224;
+ const {c,n,grid}=domFixture();n.size=[400,600];n.__orvMasterPromptHeight=224;
  for(const [width,label] of [[320,112],[400,128],[1000,160]]){
    n.size[0]=width;c.syncBetaPresentation(n);assert.equal(grid.style.gridTemplateColumns,`min-content ${label}px minmax(125px, 1fr)`);
    assert(grid.style.gridTemplateRows.includes('224px'));assert.equal(grid.style.flex,'0 0 auto');
@@ -55,13 +55,13 @@ test('PUX03 v1.1 shared column budget is bounded independently of labels and val
 test('PUX03 v1.1 native resize gesture is explicit; untrusted/layout events do not own geometry',()=>{
  const {c,n,grid}=domFixture(),root=c.document.querySelectorAll()[0],handlers={},frames=[],microtasks=[];
  root.style={getPropertyValue:key=>key==='--node-width'?'610px':'930px'};root.getBoundingClientRect=()=>({width:400,height:830});root.addEventListener=(name,fn)=>handlers[name]=fn;c.requestAnimationFrame=fn=>frames.push(fn);c.queueMicrotask=fn=>microtasks.push(fn);
- n.size=[400,800];n.computeSize=()=>[320,400];c.installResponsiveHeight(n);c.syncBetaPresentation(n);const initialBudget=n.__orvPreferredTextBudget;
+ n.size=[400,800];n.computeSize=()=>[320,400];c.installResponsiveHeight(n);c.syncBetaPresentation(n);const initialBudget=n.__orvMasterPromptHeight;
  handlers.pointerdown({isTrusted:false,button:0,target:{closest:()=>({})}});assert(!n.__orvUserResizeActive);
  handlers.pointerdown({isTrusted:true,button:0,target:{closest:()=>null}});assert(!n.__orvUserResizeActive);
  handlers.pointerdown({isTrusted:true,button:0,clientX:0,clientY:0,pointerId:1,target:{closest:()=>({dataset:{corner:'SE'}})}});assert.equal(n.__orvUserResizeActive,true);
  assert(grid.style.gridTemplateRows.includes('minmax(42px, 1fr)'));assert.equal(grid.style.flex,'1 1 auto');
- handlers.pointermove({isTrusted:true,pointerId:1});microtasks.shift()();n.size=[777,1777];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvPreferredTextBudget,initialBudget+100);n.size=[555,1400];handlers.lostpointercapture();while(frames.length)frames.shift()();
- assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvPreferredTextBudget,initialBudget+100);assert.equal(n.__orvUserResizeActive,false);
+ handlers.pointermove({isTrusted:true,pointerId:1});microtasks.shift()();n.size=[777,1777];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvMasterPromptHeight,initialBudget+100);n.size=[555,1400];handlers.lostpointercapture();while(frames.length)frames.shift()();
+ assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvMasterPromptHeight,initialBudget+100);assert.equal(n.__orvUserResizeActive,false);
  assert(grid.style.gridTemplateRows.includes(`${initialBudget+100}px`));assert.equal(grid.style.flex,'0 0 auto');
  assert.equal(root.style.minWidth,'320px');
  const replacement={...n,size:[400,700],__orvUserResizeActive:false};c.syncBetaPresentation(replacement);
@@ -133,11 +133,11 @@ test('Package02 live Vue resize coalesces trusted samples and updates native bou
  root.style={getPropertyValue:key=>key==='--node-width'?`${width}px`:`${height}px`};root.getBoundingClientRect=()=>({width:400,height:830});root.addEventListener=(name,fn)=>handlers[name]=fn;
  c.requestAnimationFrame=fn=>{frames.push(fn);return frames.length;};c.cancelAnimationFrame=()=>{};c.queueMicrotask=fn=>micro.push(fn);
  n.size=[400,800];n.computeSize=()=>[320,400];n.setDirtyCanvas=()=>{};n.setSize=size=>{writes++;n.size=size;n.onResize?.(size);};
- c.installResponsiveHeight(n);c.syncBetaPresentation(n);const before=n.__orvPreferredTextBudget;
+ c.installResponsiveHeight(n);c.syncBetaPresentation(n);const before=n.__orvMasterPromptHeight;
  handlers.pointerdown({isTrusted:true,button:0,clientX:0,clientY:0,pointerId:1,target:{closest:()=>({dataset:{corner:'SE'}})}});
  for(const pair of [[500,900],[610,970],[450,910]]){[width,height]=pair;handlers.pointermove({isTrusted:true,pointerId:1});micro.shift()();}
- assert.equal(frames.length,1);assert.equal(writes,0);frames.shift()();assert.equal(writes,1);assert.deepEqual(Array.from(n.size),[450,910]);assert.equal(n.__orvPreferredWidth,450);assert.equal(n.__orvPreferredTextBudget,before+80);
+ assert.equal(frames.length,1);assert.equal(writes,0);frames.shift()();assert.equal(writes,1);assert.deepEqual(Array.from(n.size),[450,910]);assert.equal(n.__orvPreferredWidth,450);assert.equal(n.__orvMasterPromptHeight,before+80);
  assert.equal(grid.style.gridTemplateColumns,'min-content 144.66666666666666px minmax(125px, 1fr)');
- n.size=[999,1999];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,450);assert.equal(n.__orvPreferredTextBudget,before+80);
+ n.size=[999,1999];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,450);assert.equal(n.__orvMasterPromptHeight,before+80);
  handlers.lostpointercapture();assert.equal(n.__orvUserResizeActive,false);assert.equal(n.size[0],450);assert.equal(n.__orvLiveSize,undefined);assert(grid.style.gridTemplateRows.includes(`${before+80}px`));
 });

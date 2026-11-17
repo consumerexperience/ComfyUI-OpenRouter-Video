@@ -386,6 +386,7 @@ def _validate_provider_spec(spec: Mapping[str, Any], depth: int = 0) -> None:
         "omits_controls",
         "omit_when",
         "text_semantic",
+        "presentation",
     }
     if depth > 4 or set(spec) - allowed or spec.get("container") not in {None, "parameters"}:
         raise ValueError("Invalid reviewed provider option schema")
@@ -395,6 +396,22 @@ def _validate_provider_spec(spec: Mapping[str, Any], depth: int = 0) -> None:
         or "values" in spec
     ):
         raise ValueError("Invalid reviewed creative text semantic")
+    if "presentation" in spec:
+        view = spec["presentation"]
+        if (
+            not isinstance(view, dict)
+            or set(view) - {"label", "group", "input"}
+            or not isinstance(view.get("label"), dict)
+            or set(view["label"]) != {"en", "ru"}
+            or any(
+                not isinstance(v, str) or not v.strip() or len(v) > 100
+                for v in view["label"].values()
+            )
+            or view.get("group") not in {"creative", "voice", "appearance", "advanced"}
+            or view.get("input") not in {None, "url", "identifier", "locale", "color"}
+            or (view.get("input") is not None and spec.get("type") != "string")
+        ):
+            raise ValueError("Invalid reviewed provider presentation")
     if "required" in spec and type(spec["required"]) is not bool:
         raise ValueError("Invalid required provider marker")
     if "omits_controls" in spec:
@@ -416,7 +433,16 @@ def _validate_provider_spec(spec: Mapping[str, Any], depth: int = 0) -> None:
             or not 1 <= low <= high <= 64
             or not isinstance(items, dict)
             or items.get("container")
-            or set(spec) - {"type", "items", "min_items", "max_items", "uniform_fields", "required"}
+            or set(spec)
+            - {
+                "type",
+                "items",
+                "min_items",
+                "max_items",
+                "uniform_fields",
+                "required",
+                "presentation",
+            }
         ):
             raise ValueError("Provider array needs bounded reviewed items")
         _validate_provider_spec(items, depth + 1)
@@ -439,6 +465,7 @@ def _validate_provider_spec(spec: Mapping[str, Any], depth: int = 0) -> None:
                 "required",
                 "container",
                 "time_range",
+                "presentation",
             }
         ):
             raise ValueError("Provider object needs reviewed fields")
