@@ -313,6 +313,15 @@ function nodeTypography(node = null) {
 
 function installNodeTypography(node) {
     const token=nodeTypography(node);
+    if(!node.__orvNativeFontsInstalled){
+        node.__orvNativeFontsInstalled=true;
+        for(const key of ["innerFontStyle","titleFontStyle"]){
+            const original=node[key];
+            if(typeof original!=="string")continue;
+            const prefix=original.match(/^(.*?\b[0-9.]+px)(?:\/[^\s]+)?\s+/)?.[1];
+            if(prefix)Object.defineProperty(node,key,{configurable:true,get:()=>`${prefix} ${token.family}`});
+        }
+    }
     for(const item of node.widgets || []){
         if(item.element?.style)Object.assign(item.element.style,{fontFamily:token.family,fontWeight:"400",lineHeight:"18px"});
         if(typeof item.draw!=="function" || item.__orvTypographyInstalled)continue;
@@ -336,7 +345,7 @@ function syncProviderGroupHeading(node,row) {
     if(!item)return;
     let title=row.querySelector('.orv-provider-heading');
     if(!title){title=document.createElement('span');title.className='orv-provider-heading';Object.assign(title.style,{gridColumn:'1 / -1',font:`600 11px/20px ${nodeTypography(node).family}`,color:'#999',padding:'0 15px'});row.append(title);}
-    title.textContent=item.label;input.style.display='none';
+    if(title.textContent!==item.label)title.textContent=item.label;input.style.display='none';
     const label=row.querySelector('[data-testid="widget-layout-field-label"]');if(label?.style)label.style.display='none';
 }
 
@@ -353,7 +362,7 @@ function syncProviderNumericState(node, row) {
     if(!state){state=document.createElement('button');state.type='button';state.className='orv-provider-state';
         Object.assign(state.style,{font:'inherit',fontSize:'11px',flex:'0 0 auto',padding:'0 4px',border:'0',background:'transparent',color:'inherit'});
         state.addEventListener('click',event=>{event.stopPropagation();state.__orvItem?.__orvResetProvider?.();});host.append(state);}
-    state.__orvItem=item;state.textContent=item.__orvProviderAuto?providerAutoLabel({}):'↺';
+    state.__orvItem=item;const text=item.__orvProviderAuto?providerAutoLabel({}):'↺';if(state.textContent!==text)state.textContent=text;
     state.title=costLocale()==='ru'?'Сбросить в Авто':'Reset to Auto';
     state.setAttribute('aria-label',`${item.label}: ${state.title}`);
 }
@@ -902,8 +911,8 @@ function syncCapacityMeter(node,row,input) {
     input.style.display="none";
     const data=referenceCapacity(node),parts=meter.__orvParts;
     if(!parts)return;
-    parts.name.textContent=costLocale()==="ru"?"Референсы":"References";
-    parts.count.textContent=`${data.active??"?"} / ${data.limit??"?"}`;
+    const name=costLocale()==="ru"?"Референсы":"References";if(parts.name.textContent!==name)parts.name.textContent=name;
+    const count=`${data.active??"?"} / ${data.limit??"?"}`;if(parts.count.textContent!==count)parts.count.textContent=count;
     parts.track.setAttribute("role",data.utilization==null?"status":"meter");
     if(data.utilization!=null){parts.track.setAttribute("aria-valuenow",String(data.active));parts.track.setAttribute("aria-valuemax",String(data.limit));}
     else {parts.track.removeAttribute?.("aria-valuenow");parts.track.removeAttribute?.("aria-valuemax");}
@@ -914,7 +923,7 @@ function syncCapacityMeter(node,row,input) {
         for(const item of data.modalities){const text=document.createElement("span");text.textContent=`${item.kind.toUpperCase()} ${item.active??"?"}/${item.limit??"?"}`;parts.kinds.append(text);}
         meter.__orvKinds=signature;
     }
-    parts.parked.textContent=data.parked?`${data.parked} ${costLocale()==="ru"?"вне режима":"parked"}`:"";
+    const parked=data.parked?`${data.parked} ${costLocale()==="ru"?"вне режима":"parked"}`:"";if(parts.parked.textContent!==parked)parts.parked.textContent=parked;
     parts.parked.style.display=data.parked?"":"none";
 }
 

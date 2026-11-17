@@ -112,7 +112,25 @@ test('native save names fixed values independently of added nonserialized contro
 test('Nodes2 numeric state uses one compact accessible reset and never edits the native binding',()=>{
  const {c,n}=harness();project(c,n);const item=get(n,'voice_settings:speed'),children=[];const host={append(x){children.push(x);},querySelector:()=>children[0]};
  const input={parentElement:host,getAttribute:()=>item.name,style:{}},label={textContent:item.label};const row={querySelector:s=>s==='input'?input:s.includes('widget-layout-field-label')?label:null};
- c.document.createElement=()=>({style:{},setAttribute(k,v){this[k]=v;},addEventListener(name,fn){this[name]=fn;}});
- c.syncProviderNumericState(n,row);c.syncProviderNumericState(n,row);assert.equal(children.length,1);assert.equal(children[0].textContent,'Auto');assert.equal(item.value,1);assert.equal(saved(n).length,0);
+ let writes=0,text='';c.document.createElement=()=>({style:{},get textContent(){return text;},set textContent(value){writes++;text=value;},setAttribute(k,v){this[k]=v;},addEventListener(name,fn){this[name]=fn;}});
+ c.syncProviderNumericState(n,row);c.syncProviderNumericState(n,row);assert.equal(writes,1,'unchanged text must not trigger the native subtree observer again');assert.equal(children.length,1);assert.equal(children[0].textContent,'Auto');assert.equal(item.value,1);assert.equal(saved(n).length,0);
  item.callback(1.2);c.syncProviderNumericState(n,row);assert.equal(children[0].textContent,'↺');children[0].click({stopPropagation(){}});assert.equal(saved(n).length,0);assert.equal(item.__orvProviderAuto,true);
+});
+
+
+test('capacity DOM reaches a stable text projection without rescheduling the subtree observer',()=>{
+ const {c,n}=harness(),nodes=[],children=[];
+ c.document.createElement=()=>{let text='';const e={style:{},children:[],writes:0,get textContent(){return text;},set textContent(value){this.writes++;text=value;},append(...items){this.children.push(...items);},replaceChildren(...items){this.children=items;},setAttribute(k,v){this[k]=v;},removeAttribute(k){delete this[k];}};nodes.push(e);return e;};
+ n.__orvCapability={__methodProfile:{topology:{reference_kinds:['image'],max:3,per_kind_max:{image:3}}}};
+ const row={querySelector:()=>children[0],append:e=>children.push(e)},input={style:{}};
+ c.syncCapacityMeter(n,row,input);const writes=nodes.reduce((sum,n)=>sum+n.writes,0);c.syncCapacityMeter(n,row,input);
+ assert.equal(nodes.reduce((sum,n)=>sum+n.writes,0),writes,'unchanged capacity text must not feed the native MutationObserver');
+});
+
+
+test('native Canvas body and title getters retain hierarchy with explicit sans fallbacks only on this node',()=>{
+ const {c,n}=harness(),other={innerFontStyle:'normal 12px Inter',titleFontStyle:'14px Inter'};
+ n.innerFontStyle='normal 12px Inter';n.titleFontStyle='14px Inter';c.installNodeTypography(n);
+ assert.equal(n.innerFontStyle,`normal 12px ${c.nodeTypography(n).family}`);assert.equal(n.titleFontStyle,`14px ${c.nodeTypography(n).family}`);assert.equal(other.innerFontStyle,'normal 12px Inter');assert.equal(other.titleFontStyle,'14px Inter');
+ const before=n.innerFontStyle;c.installNodeTypography(n);assert.equal(n.innerFontStyle,before);
 });
