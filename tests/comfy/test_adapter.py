@@ -185,6 +185,8 @@ def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
         "upscale_factor",
         "creativity",
         "provider_options",
+        "provider_option:atlas-cloud::negative_prompt",
+        "provider_option:google-vertex:parameters:negativePrompt",
     ]
     assert [item.name for item in resume.inputs] == ["job_id"]
     assert generate.hidden == resume.hidden == ["UNIQUE_ID"]

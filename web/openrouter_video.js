@@ -1,5 +1,6 @@
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
+import { ComfyWidgets } from "../../scripts/widgets.js";
 const EXTENSION = "openrouter-video.capability-driven-ui";
 const GENERATE_NODE = "OpenRouterVideoGenerate";
 const SELECT_MODEL = "SELECT MODEL";
@@ -337,27 +338,59 @@ function sizePrimaryControls(node) {
             setVisible(item, !item.hidden);
         }
     }
-    const prompt = widget(node, "prompt");
-    if (prompt) {
+    for (const prompt of creativeTextWidgets(node, true)) {
         prompt.__orvComputeSize = () => {
-            const minimum = COMPACT_LAYOUT.prompt + COMPACT_LAYOUT.domInset;
-            if (node.__orvMeasuringMinimum) return [0, minimum];
-            return [0, minimum + Math.max(0, node.__orvPreferredPromptExtra || 0)];
+            const region = textRegionGeometry(node);
+            if (node.__orvMeasuringMinimum) return [0, COMPACT_LAYOUT.prompt + COMPACT_LAYOUT.domInset];
+            return [0, region.field];
         };
         setVisible(prompt, !prompt.hidden);
     }
 }
 
+function creativeTextWidgets(node, includeHidden = false) {
+    return (node.widgets || []).filter(item => (item.name === "prompt" || item.__orvTextSemantic)
+        && (includeHidden || !item.hidden));
+}
+
+function textRegionGeometry(node, minimum = COMPACT_LAYOUT.prompt + COMPACT_LAYOUT.domInset) {
+    const count = creativeTextWidgets(node).length;
+    const gaps = Math.max(0, count - 1) * COMPACT_LAYOUT.gap;
+    const min = count * minimum + gaps;
+    const budget = count ? Math.max(min, node.__orvPreferredTextBudget ?? minimum) : 0;
+    return { count, min, budget, field: count ? (budget - gaps) / count : 0 };
+}
+
+function nativeFlowHeight(element, scale) {
+    // Measure normal-flow children instead of counting native flex slack as content.
+    // The returned number is applied through node.setSize, never independent CSS bounds.
+    if (typeof getComputedStyle !== "function" || !element?.getBoundingClientRect) return null;
+    const style = getComputedStyle(element);
+    if (style.display === "none" || ["absolute", "fixed"].includes(style.position)) return 0;
+    if (style.display !== "flex" || style.flexDirection !== "column") return element.getBoundingClientRect().height / scale;
+    const children = [...element.children].filter(child => {
+        const css = getComputedStyle(child);
+        return css.display !== "none" && !["absolute", "fixed"].includes(css.position);
+    });
+    const pixels = key => parseFloat(style[key]) || 0;
+    return children.reduce((sum,child) => sum + nativeFlowHeight(child,scale), 0)
+        + Math.max(0,children.length-1)*pixels("rowGap")
+        + pixels("paddingTop")+pixels("paddingBottom")+pixels("borderTopWidth")+pixels("borderBottomWidth");
+}
+
 function stylePrompt(node) {
-    const element = widget(node, "prompt")?.element;
-    if (!element?.style) return;
-    element.placeholder = "Prompt";
+    for (const item of creativeTextWidgets(node, true)) {
+    item.label = item.__orvTextSemantic === "negative_prompt" ? "negative prompt" : "prompt";
+    const element = item.element;
+    if (!element?.style) continue;
+    element.placeholder = item.label;
     element.style.background = "#20272a";
     element.style.border = "1px solid #354540";
     element.style.borderRadius = "4px";
     element.style.color = "#e4ece9";
     element.style.fontSize = "12px";
     element.style.padding = "4px 6px";
+    }
 }
 
 function orderPresentationWidgets(node) {
@@ -369,7 +402,7 @@ function orderPresentationWidgets(node) {
     );
     const leading = [
         node.__orvSummary,
-        widget(node, "model"), widget(node, "inference_method"), widget(node, "prompt"),
+        widget(node, "model"), widget(node, "inference_method"), ...creativeTextWidgets(node, true),
         widget(node, "resolution"), widget(node, "aspect_ratio"),
         widget(node, "duration"), widget(node, "seed"),
         widget(node, "generate_audio"), node.__orvAdvanced,
@@ -498,18 +531,18 @@ function installResponsiveHeight(node) {
     const previousResize = node.onResize;
     // Only a trusted pointer sample calls this writer. onResize is a notification,
     // including when a programmatic callback interleaves with a user gesture.
-    node.__orvCommitResizeIntent = (width,height) => {
+    node.__orvCommitResizeIntent = (width,height,textBudget) => {
         if (!Number.isFinite(width) || !Number.isFinite(height) || node.__orvAutomaticLayout || node.__orvConfiguringMedia) return;
         delete node.__orvRestoreGeometry;
         node.__orvPreferredWidth = Math.max(320,width);
         const minimum = node.computeSize?.()?.[1];
-        if (Number.isFinite(minimum)) node.__orvPreferredPromptExtra = Math.max(0,height-minimum);
+        if (Number.isFinite(minimum)) node.__orvPreferredTextBudget = Math.max(0, Number.isFinite(textBudget) ? textBudget : textRegionGeometry(node).min+height-minimum);
     };
     node.onResize = function (size, ...args) {
         const dispatch=this.__orvResizeDispatch;
         if (dispatch && !dispatch.used && app.canvas?.pointer?.eMove===dispatch.event && !this.__orvAutomaticLayout) {
             dispatch.used=true;
-            this.__orvCommitResizeIntent(size[0],size[1]);
+            this.__orvCommitResizeIntent(size[0],size[1],Math.abs(size[1]-dispatch.height)<0.01 ? dispatch.budget : undefined);
         }
         if (this.__orvRestoreGeometry) {
             previousResize?.call(this,size,...args);
@@ -519,7 +552,9 @@ function installResponsiveHeight(node) {
         if (Number.isFinite(minimum)) size[1] = Math.max(size[1], minimum);
         if (!this.__orvConfiguringMedia && Number.isFinite(this.__orvPreferredWidth) && Number.isFinite(minimum)) {
             size[0] = this.__orvPreferredWidth;
-            size[1] = minimum + (this.__orvPreferredPromptExtra || 0);
+            size[1] = Number.isFinite(this.__orvNativeFixedHeight)
+                ? this.__orvNativeFixedHeight + textRegionGeometry(this,this.__orvNativeTextMinimum).budget
+                : minimum + textRegionGeometry(this).budget - textRegionGeometry(this).min;
         }
         size[0] = Math.max(320,size[0]);
         previousResize?.call(this, size, ...args);
@@ -531,11 +566,11 @@ function installResponsiveHeight(node) {
             if (!event.isTrusted || event.button!==0 || app.canvas?.read_only || node.flags?.pinned || node.resizable===false || app.canvas?.graph?.getNodeById?.(node.id)!==node) return;
             const corner=node.findResizeDirection?.(event.canvasX,event.canvasY);
             if (!["SE","SW","NE","NW"].includes(corner) || !Number.isFinite(event.canvasX) || !Number.isFinite(event.canvasY)) return;
-            origin={x:event.canvasX,y:event.canvasY,width:node.size[0],height:node.size[1],corner,id:event.pointerId};
+            origin={x:event.canvasX,y:event.canvasY,width:node.size[0],height:node.size[1],corner,id:event.pointerId,budget:node.__orvPreferredTextBudget};
         };
         const move=event=>{
             if (!origin || !event.isTrusted || event.pointerId!==origin.id) return;
-            const dispatch={event,used:false};node.__orvResizeDispatch=dispatch;
+            const dispatch={event,used:false,height:origin.height,budget:origin.budget};node.__orvResizeDispatch=dispatch;
             // Capture runs before the native drag handler; clear before any
             // deferred callback, even if native propagation stops early.
             queueMicrotask(()=>{if(node.__orvResizeDispatch===dispatch)delete node.__orvResizeDispatch;});
@@ -553,13 +588,20 @@ function installResponsiveHeight(node) {
 }
 
 function fitPresentationWidth(node) {
+    if (app.ui?.settings?.getSettingValue && !app.ui.settings.getSettingValue("Comfy.VueNodes.Enabled")) {
+        delete node.__orvNativeFixedHeight;
+        delete node.__orvNativeTextMinimum;
+    }
     const measured = node.computeSize?.();
     if (!measured) return;
     if (node.__orvConfiguringMedia) return;
     if (node.__orvRestoreGeometry) {
         if (!node.__orvCapability?.__methodProfile) return; // Decode saved total height only against hydrated controls.
+        if (app.ui?.settings?.getSettingValue?.("Comfy.VueNodes.Enabled") && !Number.isFinite(node.__orvNativeFixedHeight)) return;
         node.__orvPreferredWidth = Math.max(320,node.__orvRestoreGeometry[0]);
-        node.__orvPreferredPromptExtra = Math.max(0,node.__orvRestoreGeometry[1]-measured[1]);
+        node.__orvPreferredTextBudget = Math.max(0, Number.isFinite(node.__orvNativeFixedHeight)
+            ? node.__orvRestoreGeometry[1]-node.__orvNativeFixedHeight
+            : textRegionGeometry(node).min+node.__orvRestoreGeometry[1]-measured[1]);
         delete node.__orvRestoreGeometry;
     }
     let width = node.__orvPreferredWidth ?? (Number.isFinite(node.size?.[0]) && node.size[0] > 0 ? node.size[0] : COMPACT_LAYOUT.width);
@@ -569,10 +611,12 @@ function fitPresentationWidth(node) {
     }
     width = Math.fround(Math.max(320,width));
     node.__orvPreferredWidth = width;
-    if (!Number.isFinite(node.__orvPreferredPromptExtra)) {
-        node.__orvPreferredPromptExtra = Math.max(0,(node.size?.[1] || 0)-measured[1]);
+    if (!Number.isFinite(node.__orvPreferredTextBudget)) {
+        node.__orvPreferredTextBudget = Math.max(0,textRegionGeometry(node).min+(node.size?.[1] || 0)-measured[1]);
     }
-    const height = Math.fround(measured[1] + node.__orvPreferredPromptExtra);
+    const region = textRegionGeometry(node, node.__orvNativeTextMinimum);
+    const height = Math.fround(Number.isFinite(node.__orvNativeFixedHeight)
+        ? node.__orvNativeFixedHeight+region.budget : measured[1]+region.budget-region.min);
     if (node.size?.[0] !== width || node.size?.[1] !== height) {
         node.__orvAutomaticLayout = true;
         try { node.setSize?.([width, height]); }
@@ -731,7 +775,9 @@ function syncBetaPresentation(node) {
                 const rect=root.getBoundingClientRect?.();
                 const scale=rect?.width/node.size?.[0];
                 if (!["SE","SW","NE","NW"].includes(corner) || !Number.isFinite(event.clientX) || !Number.isFinite(event.clientY) || !(scale>0)) return;
-                origin={height:node.size[1],totalHeight:rect.height/scale,id:event.pointerId};
+                const fields=[...(root.querySelectorAll?.(".orv-prompt-row") || [])];
+                const regionHeight=fields.length ? fields.reduce((sum,row)=>sum+row.getBoundingClientRect().height/scale,0)+Math.max(0,fields.length-1)*COMPACT_LAYOUT.gap : textRegionGeometry(node,node.__orvNativeTextMinimum).budget;
+                origin={height:node.size[1],totalHeight:rect.height/scale,regionHeight,budget:node.__orvPreferredTextBudget,id:event.pointerId};
                 node.__orvUserResizeActive = true;
                 syncBetaPresentation(node);
             }
@@ -746,7 +792,10 @@ function syncBetaPresentation(node) {
                 // onResize notifications and mutable node.size are not evidence.
                 const width=parseFloat(root.style?.getPropertyValue?.("--node-width"));
                 const height=parseFloat(root.style?.getPropertyValue?.("--node-height"));
-                if (Number.isFinite(width) && Number.isFinite(height)) node.__orvCommitResizeIntent?.(width,intent.height+height-intent.totalHeight);
+                if (Number.isFinite(width) && Number.isFinite(height)) {
+                    const delta=height-intent.totalHeight;
+                    node.__orvCommitResizeIntent?.(width,intent.height+delta,Math.abs(delta)<0.01 ? intent.budget : intent.regionHeight+delta);
+                }
             });
         };
         const finish = () => {
@@ -775,6 +824,9 @@ function syncBetaPresentation(node) {
                 Object.assign(element.style,previous.styles);
                 if (previous.title) element.title=previous.originalTitle;
             }
+            root.querySelectorAll?.(".orv-duration-readonly").forEach(element=>element.remove());
+            root.querySelectorAll?.(".orv-prompt-row").forEach(element=>element.classList.remove("orv-prompt-row"));
+            delete node.__orvNativeFixedHeight;delete node.__orvNativeTextMinimum;
             touched.clear();delete root.__orvRememberGeometry;
             root.removeEventListener?.("pointerdown",start,true);
             root.removeEventListener?.("pointermove",move,true);
@@ -822,28 +874,51 @@ function syncBetaPresentation(node) {
         const text = capacitySummaryText(node);
         if (summary.textContent !== text) summary.textContent = text;
     }
-    const prompt = widget(node,"prompt");
-    let hasPrompt = false;
-    const templates = rows.map((row) => {
+    const creative = creativeTextWidgets(node);
+    const bindings = rows.map(row => {
         const textarea = row.querySelector("textarea");
-        if (!textarea) return "max-content";
-        const label = row.querySelector('[data-testid="widget-layout-field-label"]')?.textContent?.trim();
-        const isPrompt = (prompt?.element && textarea === prompt.element) ||
-            textarea.getAttribute?.("name") === "prompt" ||
-            (label && label === (prompt?.label || prompt?.name || "prompt")) || textarea.placeholder === "Prompt";
-        if (!isPrompt) {
-            row.classList.remove?.("orv-prompt-row");
-            return "max-content";
-        }
-        hasPrompt = true;
+        if (!textarea) return null;
+        // Vue renders its own textarea, identified through its native associated
+        // label. It is not the Classic widget.element and has no name/placeholder.
+        const label = row.querySelector('label[for]') || row.querySelector('[data-testid="widget-layout-field-label"]');
+        const text = label?.textContent?.trim();
+        const item = creative.find(item => textarea === item.element || textarea.getAttribute?.("name") === item.name
+            || text === (item.label || item.name));
+        if (!item) { row.classList.remove?.("orv-prompt-row"); return null; }
         row.classList.add("orv-prompt-row");
+        const display = item.__orvTextSemantic === "negative_prompt" ? "negative prompt" : "prompt";
+        textarea.placeholder = display;
+        textarea.setAttribute?.("aria-label",display);
+        if (label) {
+            root.__orvRememberGeometry?.(label,["display"]);
+            label.style && (label.style.display = "none");
+        }
         if (textarea.rows !== 2) textarea.rows = 2;
-        return node.__orvUserResizeActive ? "minmax(42px, 1fr)" : `${42 + Math.max(0,node.__orvPreferredPromptExtra || 0)}px`;
+        return {row,textarea,item};
     });
-    const template = templates.join(" ");
+    let minimum = COMPACT_LAYOUT.prompt;
+    if (typeof getComputedStyle === "function") for (const binding of bindings.filter(Boolean)) {
+        minimum = Math.max(minimum,parseFloat(getComputedStyle(binding.textarea).minHeight) || 0);
+    }
+    node.__orvNativeTextMinimum = minimum;
+    const region = textRegionGeometry(node,minimum);
+    const template = bindings.map(binding => !binding ? "max-content" : node.__orvUserResizeActive
+        ? `minmax(${minimum}px, 1fr)` : `${region.field}px`).join(" ");
     if (grid.style.gridTemplateRows !== template) grid.style.gridTemplateRows = template;
-    const flex = hasPrompt ? (node.__orvUserResizeActive ? "1 1 auto" : "0 0 auto") : "";
+    const flex = bindings.some(Boolean) ? (node.__orvUserResizeActive ? "1 1 auto" : "0 0 auto") : "";
     if (grid.style.flex !== flex) grid.style.flex = flex;
+    for (const row of rows) syncReadOnlyDurationRow(node,root,row);
+    const rect = root.getBoundingClientRect?.();
+    const scale = rect?.width / node.size?.[0];
+    if (scale > 0 && bindings.filter(Boolean).length === region.count) {
+        const intrinsic = nativeFlowHeight(root,scale);
+        if (Number.isFinite(intrinsic) && intrinsic > 0 && !node.__orvUserResizeActive) {
+            node.__orvNativeFixedHeight = intrinsic-region.budget;
+            const restoring = Boolean(node.__orvRestoreGeometry);
+            fitPresentationWidth(node);
+            if (restoring && !node.__orvRestoreGeometry) syncBetaPresentation(node);
+        }
+    }
 }
 
 function canonicalModel(node) {
@@ -1258,10 +1333,71 @@ function durationValueAllowed(domain, value) {
 }
 
 function durationPresentationLabel(item) {
-    const state = item.__orvDurationPresentation;
-    if (state === "VARIABLE") return "Duration";
-    const name = costText(state === "FIXED" ? "fixedDuration" : state === "AUTOMATIC" ? "automatic" : "unverifiedDuration");
-    return `${costText("durationLabel")} · ${name}${state === "AUTOMATIC" ? "" : ` · ${item.value}${costText("seconds")}`}`;
+    return costText("durationLabel");
+}
+
+function readOnlyValueParts(item) {
+    const duration = item.__orvDurationAdapter;
+    const automatic = duration && item.__orvDurationPresentation === "AUTOMATIC";
+    if (duration && !["FIXED","AUTOMATIC"].includes(item.__orvDurationPresentation)) {
+        return {value:Number(item.value)>0 ? `${item.value}${costLocale()==="ru" ? " с" : " s"}` : "—",state:costText("unverifiedDuration")};
+    }
+    return {
+        value: automatic ? (costLocale() === "ru" ? "Авто" : "Auto")
+            : `${item.value}${duration ? (costLocale() === "ru" ? " с" : " s") : ""}`,
+        state: automatic ? costText("automatic") : costText("fixedDuration"),
+    };
+}
+
+function drawReadOnlyValue(node, item, ctx) {
+    ctx.save?.();
+    const width = item.width || node.size?.[0] || 400, y = item.y || 0;
+    const left = 15+Math.max(112,Math.min(160,128+(width-400)/3))+8;
+    const parts = readOnlyValueParts(item);
+    ctx.fillStyle = item.background_color || "#303435";
+    ctx.beginPath?.();ctx.roundRect?.(left,y,width-left-15,COMPACT_LAYOUT.row,6);ctx.fill?.();
+    ctx.fillStyle = item.text_color || "#ddd";ctx.textAlign="left";
+    ctx.fillText(item.__orvDurationAdapter ? durationPresentationLabel(item) : (item.label || item.name),15,y+14);
+    ctx.fillText(parts.value,left+8,y+14);
+    ctx.textAlign="right";ctx.fillStyle=item.secondary_text_color || "#aaa";
+    ctx.fillText(parts.state,width-23,y+14);
+    ctx.restore?.();
+}
+
+function syncReadOnlyDurationRow(node, root, row) {
+    const input = row.querySelector('input');
+    if (!input) return;
+    const name = input.getAttribute?.("aria-label") || input.name;
+    const item = widget(node,name);
+    if (!item || !(item.__orvDurationAdapter || item.__orvFixedValue)) return;
+    let display = row.querySelector(".orv-duration-readonly");
+    const cell = [...(row.children || [])].find(child => child.contains?.(input));
+    if (!cell) return;
+    if (!item.options?.read_only) {
+        if (cell.__orvOriginalDisplay !== undefined) cell.style.display = cell.__orvOriginalDisplay;
+        display?.remove();
+        return;
+    }
+    if (cell.__orvOriginalDisplay === undefined) cell.__orvOriginalDisplay = cell.style.display || "";
+    root.__orvRememberGeometry?.(cell,["display"]);
+    cell.style.display = "none";
+    if (!display) {
+        display = document.createElement("div"); display.className = "orv-duration-readonly";
+        display.setAttribute("role","status");
+        Object.assign(display.style,{gridColumn:"3 / -1",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"4px",minWidth:"0",minHeight:"28px",padding:"0 12px",borderRadius:"6px",background:"var(--component-node-widget-background, #303435)",color:"var(--component-node-foreground, #ddd)",font:"inherit"});
+        const value = document.createElement("span"), state = document.createElement("span");
+        Object.assign(state.style,{fontSize:"11px",padding:"1px 6px",borderRadius:"4px",background:"rgba(127,127,127,0.16)",whiteSpace:"nowrap"});
+        display.append(value,state); row.append(display);
+    }
+    if (typeof getComputedStyle === "function") {
+        const native = getComputedStyle(input);
+        display.style.font = native.font;
+        display.style.borderRadius = native.borderRadius;
+        if (parseFloat(native.height)>0) display.style.minHeight = native.height;
+    }
+    const parts = readOnlyValueParts(item);
+    if (display.children[0].textContent !== parts.value) display.children[0].textContent = parts.value;
+    if (display.children[1].textContent !== parts.state) display.children[1].textContent = parts.state;
 }
 
 function createDurationSlider(node, previous) {
@@ -1306,10 +1442,7 @@ function createDurationSlider(node, previous) {
     // Only its display coordinate differs from the product's semantic seconds.
     if (nativeDraw) item.drawWidget = function (ctx, options) {
         if (item.options.read_only) {
-            ctx.save?.();
-            ctx.fillStyle = item.text_color || "#C4C4C4";
-            ctx.fillText(durationPresentationLabel(item), 14, (item.y || 0) + COMPACT_LAYOUT.row * 0.7);
-            ctx.restore?.();
+            drawReadOnlyValue(node,item,ctx);
             return;
         }
         view.y = item.y;
@@ -1806,7 +1939,9 @@ function configureOperationControls(node, profile) {
     const storage = widget(node, "provider_options");
     setVisible(storage, false);
     if (!storage || !node.addWidget) return;
-    for (const item of node.widgets || []) if (item.__orvProviderOption) setVisible(item, false);
+    for (const item of node.widgets || []) if (item.__orvProviderOption || item.name?.startsWith("provider_option:")) {
+        item.__orvProviderOption = true; setVisible(item, false);
+    }
     let saved;
     try { saved = storage.value ? JSON.parse(storage.value) : []; }
     catch { saved = null; }
@@ -1819,6 +1954,16 @@ function configureOperationControls(node, profile) {
         !activeLeaf(v) || (activeLeaf(v).values && !activeLeaf(v).values.includes(v.value)) ||
         (providers[v.provider][v.key].container || null) !== (v.container || null))
         ? "Saved provider controls are no longer supported; choose an explicit replacement." : "";
+    node.__orvLinkedCreativeIssue = false;
+    for (const input of node.inputs || []) {
+        if (input.link == null || !input.name?.startsWith("provider_option:")) continue;
+        const [,provider,container,key] = input.name.split(":");
+        const spec = providers[provider]?.[key];
+        if (!spec || (spec.container || "") !== container || !spec.text_semantic) {
+            node.__orvLinkedCreativeIssue = true;
+            if (!issue) issue = "Linked creative text is not supported by this configuration; the connection is preserved.";
+        }
+    }
     for (const [provider, options] of Object.entries(providers)) for (const [key, spec] of Object.entries(options)) {
         const problem = providerObjectIssue(spec, saved.filter(v => v.provider === provider && v.key === key));
         if (!issue && problem) issue = `${key}: ${problem}`;
@@ -1857,7 +2002,7 @@ function configureOperationControls(node, profile) {
         const boolean = spec.type === "boolean";
         const enabled=Object.entries(root.requires || {}).every(([dependency,domain])=>domain.includes(
             saved.find(v=>v.provider===provider&&v.key===dependency)?.value ?? options[dependency]?.omitted_default));
-        const choices = !enabled ? [defaultLabel] : boolean ? [defaultLabel, "true", "false"]
+        const choices = boolean ? undefined : !enabled ? [defaultLabel]
             : spec.values ? [defaultLabel, ...spec.values] : undefined;
         const numeric = !choices && ["integer", "number"].includes(spec.type);
         const name = `provider_option:${provider}:${spec.container || ""}:${key}${path.length ? ":" + path.join(":") : ""}`;
@@ -1865,16 +2010,15 @@ function configureOperationControls(node, profile) {
             (v.container || null) === (spec.container || null) && JSON.stringify(v.path || []) === JSON.stringify(path);
         const old = saved.find(matches);
         let item = widget(node, name);
-        if (!item) {
-            const type = choices ? "combo" : ["integer", "number"].includes(spec.type) ? "number" : "text";
-            item = node.addWidget(type, name, old?.value ?? "", value => {
-                if (numeric && value !== defaultLabel && widget(node, name + ":override")?.value !== "SET") return;
+        const updateValue = value => {
+                if (item.__orvProjectingProviderValue) return;
+                if ((numeric || boolean) && value !== defaultLabel && widget(node, name + ":override")?.value !== "SET") return;
                 let values;
                 try { values = storage.value ? JSON.parse(storage.value) : []; } catch { return; }
                 if (!Array.isArray(values)) return;
                 const remaining = values.filter(v => !matches(v));
                 if (value !== "" && value !== defaultLabel) remaining.push({provider, key,
-                    value: boolean ? value === "true" : value, ...(spec.container ? {container:spec.container} : {}),
+                    value: boolean ? value === true || value === "true" : value, ...(spec.container ? {container:spec.container} : {}),
                     ...(path.length ? {path} : {})});
                 storage.value = JSON.stringify(remaining);
                 const issue = configureOperationControls(node, node.__orvProviderProfile);
@@ -1883,18 +2027,50 @@ function configureOperationControls(node, profile) {
                 publishSemanticProjection(node);
                 node.setDirtyCanvas?.(true, true);
                 void refreshEstimate(node);
-            }, {values:choices, min:spec.min, max:spec.max, step:spec.type === "integer" ? 1 : undefined});
-            item.__orvProviderOption = true;
-            item.serialize = false;
+            };
+        const creative = ["negative_prompt","creative_prompt"].includes(spec.text_semantic);
+        const bounded = numeric && Number.isFinite(spec.min) && Number.isFinite(spec.max) && spec.max>spec.min;
+        const type = creative ? "customtext" : boolean ? "toggle" : choices ? "combo" : bounded ? "slider" : numeric ? "number" : "text";
+        const previous = item && item.type !== type ? item : null;
+        const position = previous ? node.widgets.indexOf(previous) : -1;
+        if (previous) item = null;
+        if (!item) {
+            if (creative) item = ComfyWidgets.STRING(node,name,["STRING",{default:old?.value ?? "",multiline:true}],app).widget;
+            else {
+                item = node.addWidget(type,name,old?.value ?? (boolean ? false : ""),updateValue,
+                    {values:choices,min:spec.min,max:spec.max,step:spec.type === "integer" ? 1 : undefined});
+            }
         }
+        if (previous) {
+            node.widgets.splice(node.widgets.indexOf(item),1);
+            node.widgets.splice(position,1,item);
+            previous.onRemove?.();
+        }
+        item.callback = updateValue;
+        item.__orvProviderOption = true;
+        item.__orvTextSemantic = creative ? spec.text_semantic : undefined;
+        item.__orvFixedValue = numeric && spec.min === spec.max && Number.isFinite(spec.min);
+        item.serialize = false;
         item.label = [key, ...path].join(" · ") + (spec.required ? " (required)" : "");
         Object.assign(item.options ||= {}, {min:spec.min, max:spec.max});
         item.options.tooltip=[spec.max_length == null ? "" : `Maximum ${spec.max_length} characters`,
             ...Object.entries(root.requires || {}).map(([key,domain])=>`Requires ${key}: ${domain.join(" / ")}`)].filter(Boolean).join("; ");
         if (choices) (item.options ||= {}).values = choices;
-        item.value = old ? boolean ? String(old.value) : old.value : choices ? defaultLabel : numeric ? spec.omitted_default ?? spec.min ?? 0 : "";
+        item.__orvProjectingProviderValue = true;
+        try { item.value = old ? old.value : choices ? defaultLabel : boolean ? spec.omitted_default ?? false : numeric ? spec.omitted_default ?? spec.min ?? 0 : ""; }
+        finally { item.__orvProjectingProviderValue = false; }
+        if (item.__orvFixedValue) {
+            item.options.read_only = item.options.readOnly = item.options.disabled = true;
+            if (!item.__orvFixedDrawInstalled) {
+                const nativeDraw = item.drawWidget, nativeClick = item.onClick, nativeDrag = item.onDrag;
+                item.drawWidget = function(ctx,options) { return this.__orvFixedValue ? drawReadOnlyValue(node,this,ctx) : nativeDraw?.call(this,ctx,options); };
+                item.onClick = function(event) { if (!this.__orvFixedValue) return nativeClick?.call(this,event); };
+                item.onDrag = function(event) { if (!this.__orvFixedValue) return nativeDrag?.call(this,event); };
+                item.__orvFixedDrawInstalled = true;
+            }
+        }
         let mode = widget(node, name + ":override");
-        if (numeric && !mode) {
+        if ((numeric || boolean) && !mode) {
             mode = node.addWidget("combo", name + ":override", old ? "SET" : defaultLabel, value => {
                 mode.value = value;
                 item.callback(value === "SET" ? item.value : defaultLabel);
@@ -1908,9 +2084,9 @@ function configureOperationControls(node, profile) {
         if (mode) {
             mode.label = item.label;
             mode.value = old ? "SET" : defaultLabel;
-            setVisible(mode, numeric);
+            setVisible(mode, numeric || boolean);
         }
-        setVisible(item, !numeric || Boolean(old));
+        setVisible(item, enabled && (!(numeric || boolean) || Boolean(old)));
         }
     }
     const geometry=new Set(),omitted=new Set();
@@ -1920,6 +2096,7 @@ function configureOperationControls(node, profile) {
         if(selected&&(!spec.omit_when||spec.omit_when.includes(selected.value)))for(const name of spec.omits_controls || [])omitted.add(name);
     }
     for(const name of geometry)setVisible(widget(node,name),!omitted.has(name)&&controls[name]?.state==='SUPPORTED');
+    orderPresentationWidgets(node); sizePrimaryControls(node); stylePrompt(node);
     return issue;
 }
 
@@ -1946,7 +2123,7 @@ function reprojectNodeSemantics(node, capability, method, transition = {}) {
     }
     const prompt = widget(node, "prompt"), promptSpec = scoped.__methodProfile.controls?.prompt;
     if (prompt) {
-        prompt.label = promptSpec?.required === false ? "Prompt (optional)" : "Prompt";
+        prompt.label = "prompt";
         const bounds = [promptSpec?.min_length == null ? "" : `minimum ${promptSpec.min_length} characters`,
             promptSpec?.max_length == null ? "" : `maximum ${promptSpec.max_length} characters`].filter(Boolean);
         (prompt.options ||= {}).tooltip = bounds.join("; ");
@@ -3882,6 +4059,7 @@ function readNativeCostMetadata(node, occurrence) {
 }
 
 function projectProviderCostControls(node, options) {
+    if (node.__orvLinkedCreativeIssue) return {state:"INVALID",controls:[]};
     if (!Array.isArray(options) || options.length > 8) return { state: "UNKNOWN" };
     const providers = node.__orvCapability?.__methodProfile?.controls?.provider_options?.providers || {};
     const seen = new Set(), controls = [];
@@ -4330,6 +4508,7 @@ app.registerExtension({
         const previousCreated = nodeType.prototype.onNodeCreated;
         nodeType.prototype.onNodeCreated = function (...args) {
             const result = previousCreated?.apply(this, args);
+            for (const item of this.widgets || []) if (item.name?.startsWith("provider_option:")) setVisible(item,false);
             claimDirectReferenceTopology(this);
             createGeometryCombos(this);
             this.__orvIsNewNode = true;

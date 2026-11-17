@@ -9,6 +9,7 @@ from decimal import Decimal
 from openrouter_video.application import OperationInterrupted
 from openrouter_video.capabilities import infer_legacy_inference_method
 from openrouter_video.configuration import project_method, project_semantic_values
+from openrouter_video.evidence_registry import load_manifest
 from openrouter_video.execution_hooks import ExecutionPhase
 from openrouter_video.geometry import wire_geometry
 from openrouter_video.local_media import NativeMediaError
@@ -22,6 +23,7 @@ from openrouter_video.models import (
     InputReferenceCollection,
     InputReferenceKind,
     LocalLifecycleState,
+    ModelCapabilities,
     ProductErrorCode,
     ProviderOption,
 )
@@ -362,6 +364,53 @@ def _image_or_reference(value: InputReference | object) -> InputReference:
         raise AdapterExecutionError(str(exc)) from None
 
 
+def _creative_provider_inputs() -> dict[str, tuple[str, str | None, str]]:
+    """Native STRING schema from reviewed semantics; never infer from field spelling."""
+    result: dict[str, tuple[str, str | None, str]] = {}
+    for model in load_manifest()["models"]:
+        shapes = model["facts"].get("request_shape_profiles", {}).get("value", {})
+        for method in shapes.get("methods", {}).values():
+            control = method.get("controls", {}).get("provider_options", {})
+            for provider, options in control.get("providers", {}).items():
+                for key, spec in options.items():
+                    if spec.get("text_semantic") not in {"negative_prompt", "creative_prompt"}:
+                        continue
+                    container = spec.get("container")
+                    name = f"provider_option:{provider}:{container or ''}:{key}"
+                    result[name] = (provider, container, key)
+    return dict(sorted(result.items()))
+
+
+def _merge_linked_creative_text(
+    capability: ModelCapabilities,
+    method: str,
+    saved: tuple[ProviderOption, ...],
+    inputs: Mapping[str, object],
+) -> tuple[ProviderOption, ...]:
+    """Resolve native STRING inputs through the same current provider contract."""
+    identities = _creative_provider_inputs()
+    if set(inputs) - identities.keys():
+        raise ValueError("Unknown creative text input")
+    providers = project_method(capability, method)["controls"].get("provider_options", {})
+    active = providers.get("providers", {}) if providers.get("state") == "SUPPORTED" else {}
+    result = list(saved)
+    for name, value in inputs.items():
+        if not isinstance(value, str):
+            raise ValueError("Creative text input must be STRING")
+        provider, container, key = identities[name]
+        spec = active.get(provider, {}).get(key)
+        if not spec or spec.get("text_semantic") not in {"negative_prompt", "creative_prompt"}:
+            raise ValueError("Linked creative text is unsupported in the current method")
+        result = [
+            option
+            for option in result
+            if (option.provider, option.container, option.key) != (provider, container, key)
+        ]
+        if value:
+            result.append(ProviderOption(provider, key, value, container))
+    return tuple(result)
+
+
 class OpenRouterVideoGenerate(compat.IO.ComfyNode):
     """Map one intentional queue execution to one Core Generate operation."""
 
@@ -380,7 +429,7 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                     default=InferenceMethod.T2V.value,
                     tooltip="Local product intent. Never sent as an OpenRouter field.",
                 ),
-                compat.IO.String.Input("prompt", display_name="Prompt", default="", multiline=True),
+                compat.IO.String.Input("prompt", display_name="prompt", default="", multiline=True),
                 compat.IO.String.Input("resolution", default=""),
                 compat.IO.String.Input("aspect_ratio", default=""),
                 compat.IO.Int.Input("duration", default=0, min=-1, step=1),
@@ -454,6 +503,16 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                 compat.IO.String.Input(
                     "provider_options", default="", optional=True, advanced=True
                 ),
+                *[
+                    compat.IO.String.Input(
+                        name,
+                        display_name="negative prompt",
+                        default="",
+                        optional=True,
+                        multiline=True,
+                    )
+                    for name in _creative_provider_inputs()
+                ],
             ],
             outputs=_outputs(),
             hidden=[compat.IO.Hidden.unique_id],
@@ -508,6 +567,7 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
         upscale_factor: str | float | None = None,
         creativity: int | None = None,
         provider_options: str = "",
+        **provider_text_inputs: object,
     ) -> object:
         normalized_model = _model(model)
         if geometry_authority and geometry_authority not in {"NORMALIZED", "EXACT"}:
@@ -563,6 +623,9 @@ class OpenRouterVideoGenerate(compat.IO.ComfyNode):
                 references=legacy_references,
             )
         try:
+            options = _merge_linked_creative_text(
+                capability, method.value, options, provider_text_inputs
+            )
             projected = project_semantic_values(
                 capability,
                 method.value,

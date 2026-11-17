@@ -72,7 +72,9 @@ class _WithoutActualPresentation(ast.NodeTransformer):
 def test_r31_nodes_change_only_terminal_ui_and_explicit_operation_metadata() -> None:
     path = "src/openrouter_video/comfy/nodes.py"
     before = declarations(baseline(path))
-    after = declarations((ROOT / path).read_text(encoding="utf8"))
+    from tests.contract.acxs_visual_reviewed_patch import visual_baseline_source
+
+    after = declarations(visual_baseline_source(path, (ROOT / path).read_text(encoding="utf8")))
     allowed_terminal = {"_node_output", "_actual_ui_metadata"}
     assert set(after) - set(before) <= allowed_terminal
     for name in before:

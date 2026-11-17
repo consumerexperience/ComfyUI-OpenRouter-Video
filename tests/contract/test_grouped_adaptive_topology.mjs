@@ -41,6 +41,8 @@ function harness() {
     const timers=new Map();
     const graph = { links: {}, nodes: {}, getNodeById(id) { return this.nodes[id]; } };
     const c = { app: { graph, registerExtension(value) { extension=value; } }, api: {}, clearTimeout(id) { timers.delete(id); }, setTimeout(fn) { const id=++nextTimer;timers.set(id,fn);return id; } };
+    // Native STRING factory dependency; graph assertions remain unchanged.
+    c.ComfyWidgets={STRING(n,name,info){const w=n.addWidget('customtext',name,info[1].default,null,{multiline:true});w.element={style:{}};return {widget:w};}};
     vm.runInNewContext(source, c);
     function unlink(id) {
         const link = graph.links[id];

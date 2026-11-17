@@ -25,7 +25,7 @@ test('PUX01 fixed duration has no slider track, arrows or interactive change and
  assert.equal(item.type,'text');assert.equal(item.options.read_only,true);assert.equal(item.options.disabled,true);
  assert.equal(item.options.max,8);assert.equal(item.__orvDurationPresentation,'FIXED');
  item.drawWidget({fillRect(){calls.push('track')},fillText(text){calls.push(text)}},{});
- assert.deepEqual(calls,['Duration · Fixed · 8s']);
+ assert.deepEqual(calls,['Duration','8 s','Fixed']);
  item.onClick({position:0});item.onDrag({position:10});item.__orvSelectPosition(2);
  assert.equal(item.serializeValue(),8);const saved=JSON.parse(JSON.stringify({duration:item.serializeValue()}));
  assert.equal(fixture([8],saved.duration).item.serializeValue(),8);
@@ -39,7 +39,7 @@ test('PUX01 variable/fixed round trip restores native interaction without changi
 });
 test('PUX01 automatic singleton and mixed domains retain the -1 sentinel',()=>{
  const {node,item}=fixture([-1],-1);assert.equal(item.type,'text');assert.equal(item.serializeValue(),-1);
- assert.equal(item.label,'Duration · Automatic');context.configureDuration(node,[-1,4,8]);
+ assert.equal(item.label,'Duration');assert.equal(context.readOnlyValueParts(item).value,'Auto');assert.equal(context.readOnlyValueParts(item).state,'Automatic');context.configureDuration(node,[-1,4,8]);
  assert.equal(item.type,'slider');item.onClick({position:0});assert.equal(item.value,-1);
 });
 test('PUX01 linked incompatible duration preserves the link and upstream semantic value',()=>{
@@ -48,7 +48,7 @@ test('PUX01 linked incompatible duration preserves the link and upstream semanti
 });
 test('PUX01 fixed label follows Comfy locale without changing serialized seconds',()=>{
  let locale='ru';context.app.ui={settings:{getSettingValue(){return locale}}};const {item}=fixture([8],8);
- assert.equal(item.label,'Длительность · Фиксировано · 8 с');locale='en';assert.equal(context.durationPresentationLabel(item),'Duration · Fixed · 8s');
+ assert.equal(item.label,'Длительность');assert.equal(context.readOnlyValueParts(item).value,'8 с');assert.equal(context.readOnlyValueParts(item).state,'Фиксировано');locale='en';assert.equal(context.durationPresentationLabel(item),'Duration');
  assert.equal(item.serializeValue(),8);delete context.app.ui;
 });
 for(const [axis,values,expected] of [

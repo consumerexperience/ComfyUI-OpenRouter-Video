@@ -9068,7 +9068,8 @@
                           "omitted_default": 0.5
                         },
                         "negative_prompt": {
-                          "type": "string"
+                          "type": "string",
+                          "text_semantic": "negative_prompt"
                         }
                       }
                     },
@@ -9137,7 +9138,8 @@
                           "omitted_default": 0.5
                         },
                         "negative_prompt": {
-                          "type": "string"
+                          "type": "string",
+                          "text_semantic": "negative_prompt"
                         }
                       }
                     },
@@ -9200,7 +9202,8 @@
                           "omitted_default": 0.5
                         },
                         "negative_prompt": {
-                          "type": "string"
+                          "type": "string",
+                          "text_semantic": "negative_prompt"
                         }
                       }
                     },
@@ -9342,7 +9345,8 @@
                           "omitted_default": 0.5
                         },
                         "negative_prompt": {
-                          "type": "string"
+                          "type": "string",
+                          "text_semantic": "negative_prompt"
                         }
                       }
                     },
@@ -9404,7 +9408,8 @@
                           "omitted_default": 0.5
                         },
                         "negative_prompt": {
-                          "type": "string"
+                          "type": "string",
+                          "text_semantic": "negative_prompt"
                         }
                       }
                     },
@@ -9467,7 +9472,8 @@
                           "omitted_default": 0.5
                         },
                         "negative_prompt": {
-                          "type": "string"
+                          "type": "string",
+                          "text_semantic": "negative_prompt"
                         }
                       }
                     },
@@ -9625,7 +9631,8 @@
                       "google-vertex": {
                         "negativePrompt": {
                           "type": "string",
-                          "container": "parameters"
+                          "container": "parameters",
+                          "text_semantic": "negative_prompt"
                         },
                         "enhancePrompt": {
                           "type": "boolean",
@@ -9738,7 +9745,8 @@
                       "google-vertex": {
                         "negativePrompt": {
                           "type": "string",
-                          "container": "parameters"
+                          "container": "parameters",
+                          "text_semantic": "negative_prompt"
                         },
                         "enhancePrompt": {
                           "type": "boolean",
@@ -9851,7 +9859,8 @@
                       "google-vertex": {
                         "negativePrompt": {
                           "type": "string",
-                          "container": "parameters"
+                          "container": "parameters",
+                          "text_semantic": "negative_prompt"
                         },
                         "enhancePrompt": {
                           "type": "boolean",
@@ -10026,7 +10035,8 @@
                       "google-vertex": {
                         "negativePrompt": {
                           "type": "string",
-                          "container": "parameters"
+                          "container": "parameters",
+                          "text_semantic": "negative_prompt"
                         },
                         "enhancePrompt": {
                           "type": "boolean",
@@ -10153,7 +10163,8 @@
                       "google-vertex": {
                         "negativePrompt": {
                           "type": "string",
-                          "container": "parameters"
+                          "container": "parameters",
+                          "text_semantic": "negative_prompt"
                         },
                         "enhancePrompt": {
                           "type": "boolean",
@@ -10285,7 +10296,8 @@
                       "google-vertex": {
                         "negativePrompt": {
                           "type": "string",
-                          "container": "parameters"
+                          "container": "parameters",
+                          "text_semantic": "negative_prompt"
                         },
                         "enhancePrompt": {
                           "type": "boolean",
@@ -12061,7 +12073,8 @@
                       "atlas-cloud": {
                         "negative_prompt": {
                           "type": "string",
-                          "max_length": 500
+                          "max_length": 500,
+                          "text_semantic": "negative_prompt"
                         },
                         "audio": {
                           "type": "string"
@@ -12151,7 +12164,8 @@
                       "atlas-cloud": {
                         "negative_prompt": {
                           "type": "string",
-                          "max_length": 500
+                          "max_length": 500,
+                          "text_semantic": "negative_prompt"
                         },
                         "audio": {
                           "type": "string"
@@ -12242,7 +12256,8 @@
                       "atlas-cloud": {
                         "negative_prompt": {
                           "type": "string",
-                          "max_length": 500
+                          "max_length": 500,
+                          "text_semantic": "negative_prompt"
                         },
                         "audio": {
                           "type": "string"
@@ -12342,7 +12357,8 @@
                       "atlas-cloud": {
                         "negative_prompt": {
                           "type": "string",
-                          "max_length": 500
+                          "max_length": 500,
+                          "text_semantic": "negative_prompt"
                         },
                         "audio": {
                           "type": "string"
@@ -12443,7 +12459,8 @@
                       "atlas-cloud": {
                         "negative_prompt": {
                           "type": "string",
-                          "max_length": 500
+                          "max_length": 500,
+                          "text_semantic": "negative_prompt"
                         },
                         "audio": {
                           "type": "string"
@@ -13566,7 +13583,8 @@
                     "providers": {
                       "atlas-cloud": {
                         "negative_prompt": {
-                          "type": "string"
+                          "type": "string",
+                          "text_semantic": "negative_prompt"
                         },
                         "audio": {
                           "type": "string"
@@ -13678,7 +13696,8 @@
                     "providers": {
                       "atlas-cloud": {
                         "negative_prompt": {
-                          "type": "string"
+                          "type": "string",
+                          "text_semantic": "negative_prompt"
                         },
                         "audio": {
                           "type": "string"
@@ -13802,7 +13821,8 @@
                     "providers": {
                       "atlas-cloud": {
                         "negative_prompt": {
-                          "type": "string"
+                          "type": "string",
+                          "text_semantic": "negative_prompt"
                         },
                         "enable_prompt_expansion": {
                           "type": "boolean",
@@ -14362,7 +14382,8 @@
                       "google-vertex": {
                         "negativePrompt": {
                           "type": "string",
-                          "container": "parameters"
+                          "container": "parameters",
+                          "text_semantic": "negative_prompt"
                         },
                         "enhancePrompt": {
                           "type": "boolean",
@@ -14475,7 +14496,8 @@
                       "google-vertex": {
                         "negativePrompt": {
                           "type": "string",
-                          "container": "parameters"
+                          "container": "parameters",
+                          "text_semantic": "negative_prompt"
                         },
                         "enhancePrompt": {
                           "type": "boolean",
@@ -14588,7 +14610,8 @@
                       "google-vertex": {
                         "negativePrompt": {
                           "type": "string",
-                          "container": "parameters"
+                          "container": "parameters",
+                          "text_semantic": "negative_prompt"
                         },
                         "enhancePrompt": {
                           "type": "boolean",
@@ -15756,5 +15779,5 @@
       }
     }
   ],
-  "content_hash": "765c39ea67a8e364559265162fb351142bf6cf848fc383085a2aa56ac8ec5908"
+  "content_hash": "13c3598ff67674aaa964f5c07b00c4cacd2d140976fe8e5c7c6e47b7c57e8fb8"
 }

@@ -223,7 +223,26 @@ def test_google_frontend_fixture_matches_real_core_projection() -> None:
         )
         actual = project_selectable(model, datetime(2026, 11, 8, tzinfo=timezone.utc)).as_dict()
         actual.pop("capability_evidence")
-        assert json.loads(json.dumps(actual)) == view
+        # Compare historical semantics after verifying the exact additive visual annotation.
+        from tests.contract.acxs_visual_reviewed_patch import visual_baseline_source
+
+        evidence_path = "src/openrouter_video/data/capability-evidence.json"
+        visual_baseline_source(
+            evidence_path, (Path(__file__).parents[2] / evidence_path).read_text(encoding="utf8")
+        )
+
+        def historical(value: object) -> object:
+            if isinstance(value, dict):
+                if "text_semantic" in value:
+                    assert value["text_semantic"] == "negative_prompt"
+                return {
+                    key: historical(item) for key, item in value.items() if key != "text_semantic"
+                }
+            if isinstance(value, (list, tuple)):
+                return [historical(item) for item in value]
+            return value
+
+        assert historical(json.loads(json.dumps(actual))) == view
 
 
 def test_op07_evidence_delta_preserves_every_other_model_and_historical_conflict() -> None:
@@ -240,9 +259,15 @@ def test_op07_evidence_delta_preserves_every_other_model_and_historical_conflict
             encoding="utf-8",
         )
     )
-    from openrouter_video.evidence_registry import load_manifest
 
-    after = load_manifest()
+    from tests.contract.acxs_visual_reviewed_patch import visual_baseline_source
+
+    evidence_path = "src/openrouter_video/data/capability-evidence.json"
+    after = json.loads(
+        visual_baseline_source(
+            evidence_path, (Path(__file__).parents[2] / evidence_path).read_text(encoding="utf8")
+        )
+    )
     # F02-F06 is checked independently against the immediately preceding exact
     # candidate; restore only that explicit delta for this historical shield.
     import copy

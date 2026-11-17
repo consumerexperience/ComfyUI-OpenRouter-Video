@@ -1,0 +1,37 @@
+{
+  "baseline": "bd680c1ae2fdd86651162a744a4ecb42d350735b",
+  "status": "UNACCEPTED_OWNER_VISUAL_DELTA",
+  "files": {
+    "web/openrouter_video.js": "21f9407e8bb0c3ab614a23c606461dda0f539eda1e5351b3844e2838e07a59c1",
+    "src/openrouter_video/configuration.py": "9814bea63703e338c7f41b5fe17fce49affbec5d98ac6f784a74be6b2783750f",
+    "src/openrouter_video/comfy/nodes.py": "eedf99ba7373accd6ad5d88c12fac9b913f0222db223d38698d45ae0b191b6e5",
+    "src/openrouter_video/data/capability-evidence.json": "5b581ebe7f5c08342a8ced81680d7da2024c05f0f9a2fd3aa986be8a4e0db45c"
+  },
+  "baseline_files": {
+    "web/openrouter_video.js": "378db4cb1f66fef5574f844acb267ac9f599f65544ae85ccb7e0a0d0ca763a36",
+    "src/openrouter_video/configuration.py": "2480cffc6d9abd9f85df39f34cba58205b6ddf84955aca265c7aae1ae13a61f6",
+    "src/openrouter_video/comfy/nodes.py": "58e82e51fdead6444829207485090ad6f9b59dbc857c389b9d97cfb173fb5c26",
+    "src/openrouter_video/data/capability-evidence.json": "8f029442dd4b361c432fdcca2b682eedc44069a4ac57433b806e5a7eaa18a6cb"
+  },
+  "replacements": {
+    "sizePrimaryControls": "0a8cf818739c6f8326be460b5262f65cfeb31820257e5ebc8a87a204faf9d755",
+    "stylePrompt": "6b0e440ccf411ffb67dfbbaf7b9fdc9ab90ee513d616c69f2759f839f7b7d76a",
+    "orderPresentationWidgets": "4c892f328a387ff93a67067d6e866e32a246dcb020ba784013a60c188c84caf5",
+    "installResponsiveHeight": "c1bc33919fb7e23b2629092ddbdc947da4d37314d3e0a60abb7ca91fbe92913d",
+    "fitPresentationWidth": "f464fefea5022632f70aebc4ec839914b925ab39e1bc85e0925a88b8f839a851",
+    "syncBetaPresentation": "6170f02df91fab3c199aa62a560896c301d11a1d8c9d8ff9a8186fee4e86468a",
+    "durationPresentationLabel": "b8fdb4fa312450bee206364547a624145c0d7284036a0ece54856c6e90fae6e2",
+    "createDurationSlider": "3a7320cc1960e55339a93c68e2491bcc7cfbe556d3331bcf427dbeab41897742",
+    "configureOperationControls": "499db67fe95f3531b643fa2bc94bdb4940b8c980dfe8c7fd90c7e130d64253a8",
+    "reprojectNodeSemantics": "2234881a468cb6bdee1ab7c766065352ff7562a8475f8834b99db37595f172a9",
+    "projectProviderCostControls": "9bd8c384c182bc1602ff1f67daa197210b512c419d4b76af567cc77aaeafa1dc"
+  },
+  "added": {
+    "creativeTextWidgets": "9ab00f0bc0ba22b3057e2deee0fdb414c7335f9864f186cf5d95cfadb61ceb1d",
+    "textRegionGeometry": "124a5e86e8febd861885d44cd2999ace4ed49ae462d635e4ad1b47a3a78c05d2",
+    "nativeFlowHeight": "2b487b22075fac84977dce3480dcd76ba536529a5643372e5383f183a3cb2ca3",
+    "readOnlyValueParts": "dd15b7efc2e74179faae96c03c57f74a00da0fe2b64051515ba5bc1d3e44efcf",
+    "drawReadOnlyValue": "a7b81af0a1964c8589be88091fc2c1a79fc690e19e1452fc4485c45f01d709db",
+    "syncReadOnlyDurationRow": "d4bc3522c1a01284faea995cc7e588d27f66af67d018b8d62c746579bcb40104"
+  }
+}

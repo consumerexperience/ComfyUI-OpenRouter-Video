@@ -1,3 +1,4 @@
+import {visualBaselineSource,visualBackendPaths} from "./acxs_visual_reviewed_patch.mjs";
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
@@ -43,14 +44,14 @@ function normalizeLayoutCandidate(root,current) {
 // presentation functions may differ from the independently reviewed candidate.
 // All other JS bytes (including queue observation) and every backend byte stay exact.
 export function assertIntegratedCandidate(root, current) {
-    current=normalizeLayoutCandidate(root,current);
+    current=normalizeLayoutCandidate(root,visualBaselineSource(root,remediationFile,current));
     const pin = JSON.parse(readFileSync(new URL('tests/fixtures/integrated_prebeta_source_candidate.json',root),'utf8'));
     assert.equal(pin.status,'UNACCEPTED_FINAL_CORRECTION');
     assert.equal(pin.reviewed_baseline,integratedBase);
     const sha = text => createHash('sha256').update(normalized(String(text))).digest('hex');
     const tracked=execFileSync('git',['ls-files','src'],{cwd:root,encoding:'utf8'}).trim().split('\n').sort();
     assert.deepEqual(Object.keys(pin.reviewed_source_files).sort(),tracked);
-    const contents=tracked.map(path=>readFileSync(new URL(path,root),'utf8'));
+    const contents=tracked.map(path=>visualBaselineSource(root,path,readFileSync(new URL(path,root),'utf8')));
     const fingerprint=String(root)+sha(JSON.stringify(pin))+sha(current)+contents.map(sha).join('');
     if (fingerprint===verifiedIntegratedFingerprint) return;
     const base = normalized(execFileSync('git',['show',`${integratedBase}:${remediationFile}`],{cwd:root,encoding:'utf8'}));
@@ -71,7 +72,7 @@ export function assertIntegratedCandidate(root, current) {
     for (const path of paths) {
         const expected=execFileSync('git',['show',`${integratedBase}:${path}`],{cwd:root,encoding:'utf8'});
         assert.equal(sha(expected),pin.reviewed_source_files[path],path);
-        assert.equal(sha(readFileSync(new URL(path,root),'utf8')),pin.reviewed_source_files[path],path);
+        assert.equal(sha(visualBaselineSource(root,path,readFileSync(new URL(path,root),'utf8'))),pin.reviewed_source_files[path],path);
     }
     assert.equal(sha(current),pin.candidate_frontend_sha256);
     verifiedIntegratedFingerprint=fingerprint;
@@ -81,6 +82,7 @@ export function integratedHistoricalSource(root,file,current,revision) {
     assert(['4026c34',remediationBaseline].includes(revision),'Explicit historical stage only');
     try { assertIntegratedCandidate(root,file===remediationFile?current:readFileSync(new URL(remediationFile,root),'utf8')); }
     catch { return current; }
+    current=visualBaselineSource(root,file,current);
     if (file!==remediationFile) {
         const base=execFileSync('git',['show',`${integratedBase}:${file}`],{cwd:root,encoding:'utf8'});
         if (normalized(current)!==normalized(String(base))) return current;
@@ -91,14 +93,17 @@ export function integratedHistoricalSource(root,file,current,revision) {
 export function integratedAuthorizedBackendDelta(root,baseline,currentPaths) {
     assertIntegratedCandidate(root,readFileSync(new URL(remediationFile,root),'utf8'));
     const authorized=execFileSync('git',['diff','--name-only',baseline,integratedBase,'--','src'],{cwd:root,encoding:'utf8'}).trim().split('\n');
-    return currentPaths.split('\n').filter(path=>path && !authorized.includes(path)).join('\n');
+    return currentPaths.split('\n').filter(path=>path && !authorized.includes(path) && !visualBackendPaths(root).includes(path)).join('\n');
 }
 
 export function integratedBackendCandidateMatches(root,file,digest) {
     if (!file.startsWith('src/')) return false;
+    const raw=readFileSync(new URL(file,root),'utf8');
+    if (createHash('sha256').update(normalized(raw)).digest('hex')!==digest) return false;
+    digest=createHash('sha256').update(normalized(visualBaselineSource(root,file,raw))).digest('hex');
     const pin=JSON.parse(readFileSync(new URL('tests/fixtures/integrated_prebeta_source_candidate.json',root),'utf8'));
     if (pin.reviewed_source_files?.[file]!==digest) return false;
-    const actual=createHash('sha256').update(normalized(readFileSync(new URL(file,root),'utf8'))).digest('hex');
+    const actual=createHash('sha256').update(normalized(visualBaselineSource(root,file,readFileSync(new URL(file,root),'utf8')))).digest('hex');
     if (actual!==digest) return false;
     try { assertIntegratedCandidate(root,readFileSync(new URL(remediationFile,root),'utf8')); }
     catch { return false; }

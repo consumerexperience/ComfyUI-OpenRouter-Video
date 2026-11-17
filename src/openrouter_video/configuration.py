@@ -385,9 +385,16 @@ def _validate_provider_spec(spec: Mapping[str, Any], depth: int = 0) -> None:
         "time_range",
         "omits_controls",
         "omit_when",
+        "text_semantic",
     }
     if depth > 4 or set(spec) - allowed or spec.get("container") not in {None, "parameters"}:
         raise ValueError("Invalid reviewed provider option schema")
+    if "text_semantic" in spec and (
+        spec["text_semantic"] not in {"negative_prompt", "creative_prompt"}
+        or spec.get("type") != "string"
+        or "values" in spec
+    ):
+        raise ValueError("Invalid reviewed creative text semantic")
     if "required" in spec and type(spec["required"]) is not bool:
         raise ValueError("Invalid required provider marker")
     if "omits_controls" in spec:

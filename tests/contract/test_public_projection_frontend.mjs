@@ -354,16 +354,17 @@ test('optional provider boolean distinguishes default, true and false through wo
     const n=operationNode(capability.model_id,'T2V');apply(n,capability,'T2V');
     const option=widget(n,'provider_option:google-vertex:parameters:enhancePrompt');
     const storage=widget(n,'provider_options');
-    assert.equal(option.type,'combo');
-    assert.equal(option.value,'AUTO / PROVIDER DEFAULT');
+    assert.equal(option.type,'toggle');
+    const mode=widget(n,option.name+':override');
+    assert.equal(mode.value,'AUTO / PROVIDER DEFAULT');assert(option.hidden);
     assert.equal(storage.value,'');
-    option.callback('false');
+    mode.callback('SET');option.callback(false);
     assert.equal(JSON.parse(storage.value)[0].value,false);
     c.configureOperationControls(n,capability.method_profiles.T2V);
-    assert.equal(option.value,'false');
-    option.callback('true');
+    assert.equal(option.value,false);assert(!option.hidden);
+    option.callback(true);
     assert.equal(JSON.parse(storage.value)[0].value,true);
-    option.callback('AUTO / PROVIDER DEFAULT');
+    mode.callback('AUTO / PROVIDER DEFAULT');
     assert.deepEqual(JSON.parse(storage.value),[]);
 });
 
@@ -422,12 +423,12 @@ test('reviewed prompt constraints are visible without truncating saved text',()=
     const n=operationNode(capability.model_id,'I2V');
     widget(n,'prompt').value='x'.repeat(2001);
     apply(n,capability,'I2V');
-    assert.equal(widget(n,'prompt').label,'Prompt (optional)');
+    assert.equal(widget(n,'prompt').label,'prompt');
     assert.match(widget(n,'prompt').options.tooltip,/maximum 2000 characters/);
     assert.equal(widget(n,'prompt').value.length,2001);
     Object.assign(capability.method_profiles.I2V.controls.prompt,{required:true,max_length:4096,min_length:1});
     apply(n,capability,'I2V');
-    assert.equal(widget(n,'prompt').label,'Prompt');
+    assert.equal(widget(n,'prompt').label,'prompt');
     assert.match(widget(n,'prompt').options.tooltip,/minimum 1 characters/);
 });
 

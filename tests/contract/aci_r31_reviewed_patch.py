@@ -13,6 +13,9 @@ BASELINE = "15cc5aea7570fe43d2154b4e3b6f1efba8f4ac2d"
 
 
 def r31_historical_source(path: str, current: str) -> str:
+    from tests.contract.acxs_visual_reviewed_patch import visual_baseline_source
+
+    current = visual_baseline_source(path, current)
     # The reviewed integrated backend is unchanged by final UI corrections.
     # Exact hashes + immutable Git bytes, never a wildcard or new approval.
     declaration = ROOT / "tests/fixtures/integrated_prebeta_source_candidate.json"

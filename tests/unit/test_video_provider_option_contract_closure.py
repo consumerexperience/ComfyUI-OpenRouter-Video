@@ -55,7 +55,7 @@ def test_kling_documented_controls_reach_validator_and_current_route_wire(
     model = _model(model_id)
     options = _provider_contract(model_id, method, "atlas-cloud")
     assert options["cfg_scale"] == {"type": "number", "min": 0, "max": 1, "omitted_default": 0.5}
-    assert options["negative_prompt"] == {"type": "string"}
+    assert options["negative_prompt"] == {"type": "string", "text_semantic": "negative_prompt"}
     base = request_witness(model, InferenceMethod(method))
     assert base is not None
     for value in (0, 0.5, 1):
