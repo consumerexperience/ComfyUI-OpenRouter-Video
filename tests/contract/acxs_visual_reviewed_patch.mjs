@@ -1,3 +1,4 @@
+import {package02BaselineSource} from "./package02_source_delta.mjs";
 // Exact UNACCEPTED Owner visual delta. Historical shields keep their original
 // assertions; current behavior, raw hashes and protected remainder are tested too.
 import assert from 'node:assert/strict';
@@ -8,6 +9,7 @@ const base='bd680c1ae2fdd86651162a744a4ecb42d350735b';
 const normalized=t=>t.replace(/\r\n/g,'\n');
 const sha=t=>createHash('sha256').update(normalized(t)).digest('hex');
 export function visualBaselineSource(root,path,current) {
+ current=package02BaselineSource(root,path,current);
  const pin=JSON.parse(readFileSync(new URL('tests/fixtures/acxs_visual_source_candidate.json',root),'utf8'));
  if (!pin.files[path] || sha(current)!==pin.files[path]) return current;
  assert.equal(pin.baseline,base);assert.equal(pin.status,'UNACCEPTED_OWNER_VISUAL_DELTA');

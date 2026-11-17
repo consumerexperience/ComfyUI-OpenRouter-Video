@@ -118,11 +118,11 @@ test('legacy enums migrate, explicit valid values persist, Size stays optional',
  }
  const res=node.widgets[0];res.value='480p';context.configureEnum(node,res,['480p','720p'],'RESOLUTION');assert.equal(res.value,'480p');
 });
-test('compact layout, explicit Size/control visibility and real block gap',()=>{
+test('Package02 consistent native row rhythm and explicit Size/control visibility',()=>{
  const widgets=['model','inference_method','prompt','resolution','aspect_ratio','duration','seed','generate_audio','size','randomize'].map(name=>({name,hidden:false}));
  const node={widgets,computeSize(){return [900,500];},setSize(size){this.size=size;}};
  context.sizePrimaryControls(node);context.fitPresentationWidth(node);
- assert.equal(node.size[0],400);assert.equal(widgets[5].computeSize()[1],24);assert.equal(widgets[6].computeSize()[1],20);
+ assert.equal(node.size[0],400);assert.equal(widgets[5].computeSize()[1],20);assert.equal(widgets[6].computeSize()[1],20);
  assert.equal(widgets[2].computeSize()[1],58);
  widgets[8].hidden=true;widgets[9].hidden=true;widgets[9].label='control after generate';
  context.syncAdvancedControls(node);assert.equal(widgets[8].hidden,true);assert.equal(widgets[9].hidden,false);

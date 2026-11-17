@@ -60,7 +60,7 @@ test('PUX03 v1.1 native resize gesture is explicit; untrusted/layout events do n
  handlers.pointerdown({isTrusted:true,button:0,target:{closest:()=>null}});assert(!n.__orvUserResizeActive);
  handlers.pointerdown({isTrusted:true,button:0,clientX:0,clientY:0,pointerId:1,target:{closest:()=>({dataset:{corner:'SE'}})}});assert.equal(n.__orvUserResizeActive,true);
  assert(grid.style.gridTemplateRows.includes('minmax(42px, 1fr)'));assert.equal(grid.style.flex,'1 1 auto');
- handlers.pointermove({isTrusted:true,pointerId:1});microtasks.shift()();n.size=[777,1777];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvPreferredTextBudget,initialBudget+100);n.size=[555,1400];handlers.lostpointercapture();frames.shift()();frames.shift()();
+ handlers.pointermove({isTrusted:true,pointerId:1});microtasks.shift()();n.size=[777,1777];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvPreferredTextBudget,initialBudget+100);n.size=[555,1400];handlers.lostpointercapture();while(frames.length)frames.shift()();
  assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvPreferredTextBudget,initialBudget+100);assert.equal(n.__orvUserResizeActive,false);
  assert(grid.style.gridTemplateRows.includes(`${initialBudget+100}px`));assert.equal(grid.style.flex,'0 0 auto');
  assert.equal(root.style.minWidth,'320px');
@@ -74,7 +74,7 @@ test('PUX03 v1.1 Classic bounded cells retain native values, options and widget 
  const c=context(),options={values:['one','two']},item={name:'provider.long.parameter',type:'combo',label:'Long provider parameter',value:'two',options,y:20,height:20,labelBaseline:35,drawTruncatingText(){}};
  const node={size:[400,600],widgets:[item]};c.installParameterColumns(node);const rectangles=[],texts=[];
  const ctx={save(){},restore(){},beginPath(){},rect(...args){rectangles.push(args)},clip(){},fillText(...args){texts.push(args)}};
- item.drawTruncatingText({ctx,width:400});assert.equal(rectangles[0][2],100);assert.equal(rectangles[1][0],151);
+ item.drawTruncatingText({ctx,width:400});assert.equal(rectangles[0][0],35);assert.equal(rectangles[0][2],128);assert.equal(rectangles[1][0],171);assert.equal(rectangles[1][0]+rectangles[1][2],365);
  assert.equal(texts[0][0],'Long provider parameter');assert.equal(texts[1][0],'two');assert.equal(item.options,options);assert.equal(item.value,'two');assert.equal(node.widgets[0],item);
 });
 
@@ -90,25 +90,33 @@ test('final review Resume has cost disclosure without Generate geometry or liste
  n.__orvResumeActualInstalled=true;c.syncBetaPresentation(n);assert.equal(root.style.minWidth,'217px');assert.equal(Object.keys(handlers).length,0);
  assert.equal(label.style.maxWidth,'81px');assert.equal(label.title,'Native hint');assert.equal(row.style.gridColumn,'native');
 });
-test('PUX05 capacity presentation preserves every quantity and uncertainty across widths and locale',()=>{
- const c=context(),n={__orvReferenceSummary:'4 connected · image 2 · video 1 · audio 1 · 46 remaining · IMAGE 28 available · VIDEO 9 available · AUDIO 9 available · 2 parked'};
- const original=n.__orvReferenceSummary;
- const text=c.capacitySummaryText(n);assert(text.startsWith('4 connected · 46 remaining · 2 parked'));
- for(const width of [220,340,620,1000]){const lines=Array.from(c.capacitySummaryLines(n,width));assert.equal(lines.join(' '),text);assert(lines.every(line=>line.length<=Math.floor((width-24)/8)));}
- assert(c.capacitySummaryLines(n,1000).length<c.capacitySummaryLines(n,220).length);
- c.app.ui={settings:{getSettingValue:()=> 'ru'}};assert(c.capacitySummaryText(n).includes('2 сохранено вне режима'));
- n.__orvReferenceSummary='0 connected · verified subset boundary · upper bound unverified · VIDEO capacity unverified';
- assert(c.capacitySummaryText(n).includes('ёмкость не подтверждена'));assert(!c.capacitySummaryText(n).includes('доступно'));
- n.__orvReferenceSummary=original;assert.equal(n.__orvReferenceSummary,original);
+function capacityFixture(n,c){
+ c.app.graph={links:{},getNodeById:id=>({outputs:[{type:["IMAGE","IMAGE","VIDEO","AUDIO"][id-1]}]})};
+ n.__orvCapability={__methodProfile:{topology:{reference_kinds:['image','video','audio'],max:50,per_kind_max:{image:30,video:10,audio:10}}}};
+ n.inputs=['IMAGE','IMAGE','VIDEO','AUDIO'].map((type,i)=>({name:`direct_references.reference_${i}`,type,link:i+1}));
+ n.inputs.forEach((item,i)=>c.app.graph.links[item.link]={origin_id:i+1,origin_slot:0});
+ n.properties={orv_capability_intent:{media:[{active_name:null},{active_name:null}]}};
+}
+test('PUX05 structured capacity preserves active quantities, independent caps and unknowns',()=>{
+ const c=context(),n={__orvReferenceSummary:'deliberately stale prose'};capacityFixture(n,c);
+ const data=c.referenceCapacity(n);assert.equal(data.active,4);assert.equal(data.limit,50);assert.equal(data.parked,2);assert.equal(data.utilization,0.08);
+ assert.deepEqual(Array.from(data.modalities,v=>[v.kind,v.active,v.limit]),[['image',2,30],['video',1,10],['audio',1,10]]);
+ assert(c.capacitySummaryText(n).includes('References 4 / 50'));assert(c.capacitySummaryText(n).includes('2 parked'));
+ c.app.ui={settings:{getSettingValue:()=> 'ru'}};assert(c.capacitySummaryText(n).includes('2 вне режима'));
+ n.__orvCapability.__methodProfile.topology.constraint_state='UNKNOWN';assert.equal(c.referenceCapacity(n).limit,null);assert(c.capacitySummaryText(n).includes(' / ?'));
+ assert.equal(n.__orvReferenceSummary,'deliberately stale prose');
 });
 
-test('PUX05 Nodes2 wraps one nonserialized summary without replacing the native widget',()=>{
- const {c,n,grid}=domFixture(),input={style:{}},children=[];
- n.__orvReferenceSummary='4 connected · 46 remaining · 2 parked';n.__orvSummary={name:'REFERENCES',serialize:false,value:n.__orvReferenceSummary};const widget=n.__orvSummary;
+test('PUX05 Nodes2 meter retains one nonserialized native summary and a 3px neutral track',()=>{
+ const {c,n,grid}=domFixture(),input={style:{}},children=[];capacityFixture(n,c);
+ const element=()=>({style:{},children:[],textContent:'',addEventListener(){},append(...items){this.children.push(...items);},replaceChildren(...items){this.children=items;},setAttribute(k,v){this[k]=v;},removeAttribute(k){delete this[k];}});
+ c.document.createElement=element;
+ n.__orvSummary={name:'REFERENCES',serialize:false,value:'legacy'};const widget=n.__orvSummary;
  const row={querySelector(s){return s==='input[aria-label="REFERENCES"]'?input:s==='.orv-capacity-summary'?children[0]:null;},append(item){children.push(item);}};
  grid.querySelectorAll=()=>[row];c.syncBetaPresentation(n);c.syncBetaPresentation(n);
- assert.equal(children.length,1);assert.equal(children[0].textContent,c.capacitySummaryText(n));assert.equal(input.style.display,'none');
- assert.equal(children[0].style.whiteSpace,'normal');assert.equal(n.__orvSummary,widget);assert.equal(widget.serialize,false);
+ assert.equal(children.length,1);const parts=children[0].__orvParts;assert.equal(parts.count.textContent,'4 / 50');assert.equal(parts.kinds.children.length,3);assert.equal(parts.track.style.height,'3px');assert.equal(parts.fill.style.width,'8%');assert.equal(parts.track['aria-valuemax'],'50');
+ assert.equal(input.style.display,'none');assert.equal(n.__orvSummary,widget);assert.equal(widget.serialize,false);
+ n.__orvCapability.__methodProfile.topology.constraint_state='UNKNOWN';c.syncBetaPresentation(n);assert.equal(parts.track.role,'status');assert.equal(parts.track['aria-valuemax'],undefined);assert.equal(parts.count.textContent,'4 / ?');
 });
 
 test('renderer adapter cleans node ownership and shares one observer',()=>{
@@ -117,4 +125,19 @@ test('renderer adapter cleans node ownership and shares one observer',()=>{
 test('all semantic/frontend functions and Python source exactly match immediate baseline',()=>{
  const before=execFileSync('git',['show','e89b513:web/openrouter_video.js'],{cwd:root,encoding:'utf8'}).replace(/\r\n/g,'\n').replace(/^import .*;\n/gm,'');const functions=t=>Object.fromEntries(t.split(/(?=^function |^async function )/m).slice(1).map(p=>[p.match(/function (\w+)/)[1],p.slice(0,p.indexOf('\n}')+2)]));const a=functions(before),b=functions(reviewedRcText(new URL("../../",import.meta.url),"web/openrouter_video.js",source).replace(/^import .*;\r?\n/gm,""));for(const name of Object.keys(a))if(!['setVisible','addReadOnlyWidget','applyPresentation','syncAdvancedControls','configureGeometry','normalizedValue','configureGenerationConfiguration','restorePhase10NamedValues','bindEstimateRefresh','refreshEstimate'].includes(name))assert.equal(b[name],a[name],name);assert.equal(reviewedRcText(new URL('../../',import.meta.url),'web/openrouter_video.js',source).replace(/^import .*;\r?\n/gm,'').split('function widget')[0],before.split('function widget')[0]);
  for(const file of execFileSync('git',['ls-tree','-r','--name-only','e89b513','src'],{cwd:root,encoding:'utf8'}).trim().split('\n').filter(file=>!['src/openrouter_video/models.py','src/openrouter_video/comfy/nodes.py','src/openrouter_video/comfy/projection.py','src/openrouter_video/comfy/routes.py','src/openrouter_video/secrets.py','src/openrouter_video/oauth.py'].includes(file)))assert.equal(reviewedRcText(root,file,readFileSync(new URL(file,root),'utf8')).replace(/\r\n/g,'\n'),execFileSync('git',['show',`e89b513:${file}`],{cwd:root,encoding:'utf8'}).replace(/\r\n/g,'\n'),file);
+});
+
+
+test('Package02 live Vue resize coalesces trusted samples and updates native bounds before release',()=>{
+ const {c,n,grid}=domFixture(),root=c.document.querySelectorAll()[0],handlers={},frames=[],micro=[];let width=500,height=900,writes=0;
+ root.style={getPropertyValue:key=>key==='--node-width'?`${width}px`:`${height}px`};root.getBoundingClientRect=()=>({width:400,height:830});root.addEventListener=(name,fn)=>handlers[name]=fn;
+ c.requestAnimationFrame=fn=>{frames.push(fn);return frames.length;};c.cancelAnimationFrame=()=>{};c.queueMicrotask=fn=>micro.push(fn);
+ n.size=[400,800];n.computeSize=()=>[320,400];n.setDirtyCanvas=()=>{};n.setSize=size=>{writes++;n.size=size;n.onResize?.(size);};
+ c.installResponsiveHeight(n);c.syncBetaPresentation(n);const before=n.__orvPreferredTextBudget;
+ handlers.pointerdown({isTrusted:true,button:0,clientX:0,clientY:0,pointerId:1,target:{closest:()=>({dataset:{corner:'SE'}})}});
+ for(const pair of [[500,900],[610,970],[450,910]]){[width,height]=pair;handlers.pointermove({isTrusted:true,pointerId:1});micro.shift()();}
+ assert.equal(frames.length,1);assert.equal(writes,0);frames.shift()();assert.equal(writes,1);assert.deepEqual(Array.from(n.size),[450,910]);assert.equal(n.__orvPreferredWidth,450);assert.equal(n.__orvPreferredTextBudget,before+80);
+ assert.equal(grid.style.gridTemplateColumns,'min-content 144.66666666666666px minmax(125px, 1fr)');
+ n.size=[999,1999];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,450);assert.equal(n.__orvPreferredTextBudget,before+80);
+ handlers.lostpointercapture();assert.equal(n.__orvUserResizeActive,false);assert.equal(n.size[0],450);assert.equal(n.__orvLiveSize,undefined);assert(grid.style.gridTemplateRows.includes(`${before+80}px`));
 });

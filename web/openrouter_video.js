@@ -15,18 +15,18 @@ const METHODS = [
     "V2V_EDIT", "V2V_EXTEND", "V2V_UPSCALE", "AVATAR_AUDIO",
 ];
 const METHOD_LABELS = {
-    T2V: "T2V — Text → Video",
-    I2V: "I2V — First Frame → Video",
-    FLF2V: "FLF2V — First + Last Frame → Video",
-    IR2V: "IR2V — Single Image Reference → Video",
-    MI2V: "MI2V — Multiple Image References → Video",
-    VR2V: "VR2V — Video Reference → Video",
-    AR2V: "AR2V — Audio Reference → Video",
-    MMR2V: "MMR2V — Mixed Multimodal References → Video",
-    V2V_EDIT: "V2V_EDIT — Source Video → Edited Video",
-    V2V_EXTEND: "V2V_EXTEND — Source Video → Extended Video",
-    V2V_UPSCALE: "Upscale Video",
-    AVATAR_AUDIO: "Photo + Audio → Talking Avatar",
+    T2V: "T2V: Text → Video",
+    I2V: "I2V: First Frame → Video",
+    FLF2V: "FLF2V: First + Last Frame → Video",
+    IR2V: "IR2V: Single Image Reference → Video",
+    MI2V: "MI2V: Multiple Image References → Video",
+    VR2V: "VR2V: Video Reference → Video",
+    AR2V: "AR2V: Audio Reference → Video",
+    MMR2V: "MMR2V: Mixed Multimodal References → Video",
+    V2V_EDIT: "V2V_EDIT: Source Video → Edited Video",
+    V2V_EXTEND: "V2V_EXTEND: Source Video → Extended Video",
+    V2V_UPSCALE: "V2V_UPSCALE: Upscale Video",
+    AVATAR_AUDIO: "AVATAR_AUDIO: Photo + Audio → Talking Avatar",
 };
 let capabilityPromise;
 let capabilityInFlight;
@@ -304,27 +304,70 @@ function setMinimumWidgetHeight(item, minimum) {
     setVisible(item, !item.hidden);
 }
 
+function presentationSize(node) { return node.__orvLiveSize || node.size || [400,0]; }
+
+function classicContentBounds(item, width) {
+    // The pinned native BaseWidget exposes these inherited geometry tokens.
+    // Insets apply to all text and preserve native arrows/hit targets unchanged.
+    const base=item.constructor || {}, margin=Number(base.margin) || COMPACT_LAYOUT.inset;
+    const arrows=["combo","number"].includes(item.type);
+    const reserved=arrows ? (Number(base.arrowMargin) || 6)+(Number(base.arrowWidth) || 10) : 0;
+    const left=margin+reserved+COMPACT_LAYOUT.gap, right=width-left;
+    const labelWidth=Math.max(0,Math.min(160,Math.max(112,128+(width-400)/3),right-left-80));
+    return {left,right,labelWidth,valueLeft:left+labelWidth+COMPACT_LAYOUT.gap*2};
+}
+
+function fitWidgetText(ctx, text, width) {
+    if (!(width>0)) return "";
+    if (!ctx.measureText || ctx.measureText(text).width<=width) return text;
+    const points=Array.from(text), tail="…";let low=0,high=points.length;
+    while(low<high){const mid=Math.ceil((low+high)/2);if(ctx.measureText(points.slice(0,mid).join("")+tail).width<=width)low=mid;else high=mid-1;}
+    return ctx.measureText(tail).width>width ? "" : points.slice(0,low).join("")+tail;
+}
+
+function scheduleResizeLayout(node) {
+    if (node.__orvResizeFrame != null) return;
+    const run=()=>{node.__orvResizeFrame=null;if(node.__orvRemoved)return;syncBetaPresentation(node);node.setDirtyCanvas?.(true,true);};
+    node.__orvResizeFrame=typeof requestAnimationFrame==="function" ? requestAnimationFrame(run) : (queueMicrotask(run),0);
+}
+
+function suppressPackageBadge(node, root = null) {
+    // Clone the native badge projection, never mutate its cached identity/data.
+    for(let i=0;i<(node.badges || []).length;i++){
+        const source=node.badges[i];if(typeof source!=="function" || source.__orvPackFiltered)continue;
+        const wrapped=function(...args){const badge=source.apply(this,args);if(typeof badge?.text!=="string" || !badge.text.includes("OpenRouter-Video"))return badge;
+            return Object.assign(Object.create(Object.getPrototypeOf(badge)),badge,{text:badge.text.replaceAll("OpenRouter-Video","").trim()});};
+        wrapped.__orvPackFiltered=true;node.badges[i]=wrapped;
+    }
+    if (!root?.querySelectorAll) return;
+    for(const leaf of root.querySelectorAll("span")){
+        if(leaf.childElementCount || leaf.textContent?.trim()!=="OpenRouter-Video" || leaf.closest?.('[data-testid="node-widgets"], .lg-node-header'))continue;
+        let badge=leaf;
+        while(badge.parentElement && badge.parentElement!==root && badge.parentElement.textContent?.trim()==="OpenRouter-Video" && !badge.parentElement.querySelector?.("button,input,textarea"))badge=badge.parentElement;
+        if(badge.style)badge.style.display="none";
+    }
+}
+
 function installParameterColumns(node) {
     for (const item of node.widgets || []) {
         if (["prompt","REFERENCES","STATE","Advanced"].includes(item.name) || item.__orvColumnsInstalled) continue;
         if (!["text","combo","number","toggle","slider"].includes(item.type)) continue;
-        const original = item.drawTruncatingText;
-        const originalLabel = item.drawLabel;
-        if (typeof original !== "function" && typeof originalLabel !== "function") continue;
+        if (typeof item.drawTruncatingText !== "function" && typeof item.drawLabel !== "function") continue;
         item.__orvColumnsInstalled = true;
-        const drawLabel = (ctx) => {
-            const label = Math.max(112,Math.min(160,128+((node.size?.[0] || 400)-400)/3));
-            ctx.save();ctx.beginPath();ctx.rect(35,item.y || 0,label-28,item.height || 20);ctx.clip();
-            ctx.fillStyle = item.secondary_text_color || "#C4C4C4";ctx.textAlign = "left";
-            ctx.fillText(String(item.displayName ?? item.label ?? item.name),35,item.labelBaseline ?? ((item.y || 0)+15));ctx.restore();
-            return 15+label+8;
+        const bounds = width => classicContentBounds(item,width);
+        const label = (ctx,width) => {
+            const b=bounds(width), y=item.y || 0;
+            ctx.save();ctx.beginPath();ctx.rect(b.left,y,b.labelWidth,item.height || COMPACT_LAYOUT.row);ctx.clip();
+            ctx.textAlign="left";ctx.fillStyle=item.secondary_text_color || "#C4C4C4";
+            ctx.fillText(fitWidgetText(ctx,String(item.displayName ?? item.label ?? item.name),b.labelWidth),b.left,item.labelBaseline ?? y+15);ctx.restore();
+            return b;
         };
-        if (typeof originalLabel === "function") item.drawLabel = function(ctx) { drawLabel(ctx); };
-        if (typeof original === "function") item.drawTruncatingText = function(options) {
-            const {ctx,width} = options, left=drawLabel(ctx);
-            ctx.save();ctx.beginPath();ctx.rect(left,this.y || 0,Math.max(0,width-left-30),this.height || 20);ctx.clip();
+        if (typeof item.drawLabel === "function") item.drawLabel=function(ctx) { label(ctx,this.width || presentationSize(node)[0]); };
+        if (typeof item.drawTruncatingText === "function") item.drawTruncatingText=function({ctx,width}) {
+            const b=label(ctx,width), y=this.y || 0;
+            ctx.save();ctx.beginPath();ctx.rect(b.valueLeft,y,Math.max(0,b.right-b.valueLeft),this.height || COMPACT_LAYOUT.row);ctx.clip();
             ctx.textAlign="right";ctx.fillStyle=this.text_color || "#F9F9F9";
-            ctx.fillText(String(this._displayValue ?? this.value ?? ""),width-30,this.labelBaseline ?? ((this.y || 0)+15));ctx.restore();
+            ctx.fillText(fitWidgetText(ctx,String(this._displayValue ?? this.value ?? ""),Math.max(0,b.right-b.valueLeft)),b.right,this.labelBaseline ?? y+15);ctx.restore();
         };
     }
 }
@@ -333,8 +376,7 @@ function sizePrimaryControls(node) {
     installParameterColumns(node);
     for (const item of node.widgets || []) {
         if (["model", "inference_method", "resolution", "aspect_ratio", "duration", "seed", "generate_audio", "size", "randomize"].includes(item.name)) {
-            const section = ["inference_method", "duration"].includes(item.name);
-            item.__orvComputeSize = () => [0, COMPACT_LAYOUT.row + (section ? COMPACT_LAYOUT.section - COMPACT_LAYOUT.gap : 0)];
+            item.__orvComputeSize = () => [0, COMPACT_LAYOUT.row];
             setVisible(item, !item.hidden);
         }
     }
@@ -357,7 +399,8 @@ function textRegionGeometry(node, minimum = COMPACT_LAYOUT.prompt + COMPACT_LAYO
     const count = creativeTextWidgets(node).length;
     const gaps = Math.max(0, count - 1) * COMPACT_LAYOUT.gap;
     const min = count * minimum + gaps;
-    const budget = count ? Math.max(min, node.__orvPreferredTextBudget ?? minimum) : 0;
+    const preferred = node.__orvLiveTextBudget ?? node.__orvPreferredTextBudget;
+    const budget = count ? Math.max(min, preferred ?? minimum) : 0;
     return { count, min, budget, field: count ? (budget - gaps) / count : 0 };
 }
 
@@ -389,7 +432,16 @@ function stylePrompt(node) {
     element.style.borderRadius = "4px";
     element.style.color = "#e4ece9";
     element.style.fontSize = "12px";
+    // Native DOMWidget margin otherwise reserves vertical space in addition to
+    // the native row gap. Keep the accepted budget and reclaim that usable area.
+    (item.options ||= {}).margin = 0;
     element.style.padding = "4px 6px";
+    element.style.margin = "0";
+    element.style.boxSizing = "border-box";
+    element.style.width = `calc(100% - ${COMPACT_LAYOUT.inset*2}px)`;
+    element.style.marginInline = `${COMPACT_LAYOUT.inset}px`;
+    element.style.textIndent = "0";
+    element.style.lineHeight = "normal";
     }
 }
 
@@ -420,6 +472,8 @@ function orderPresentationWidgets(node) {
 }
 
 function applyPresentation(node) {
+    suppressPackageBadge(node);
+    if(node.__orvSummary && node.__orvCapability?.__methodProfile)setVisible(node.__orvSummary,referenceCapacity(node).visible);
     node.color = "#173c33";
     node.bgcolor = "#1b2024";
     node.boxcolor = "#45dca5";
@@ -444,6 +498,7 @@ function applyPresentation(node) {
     node.__orvPresentationDrawInstalled = true;
     const previousDraw = node.onDrawForeground;
     node.onDrawForeground = function (ctx, ...args) {
+        suppressPackageBadge(this);
         const reordered = orderPresentationWidgets(this);
         const advancedChanged = syncAdvancedControls(this);
         if (reordered || advancedChanged) {
@@ -539,10 +594,14 @@ function installResponsiveHeight(node) {
         if (Number.isFinite(minimum)) node.__orvPreferredTextBudget = Math.max(0, Number.isFinite(textBudget) ? textBudget : textRegionGeometry(node).min+height-minimum);
     };
     node.onResize = function (size, ...args) {
+        if(this.__orvApplyingLiveResize){previousResize?.call(this,size,...args);return;}
         const dispatch=this.__orvResizeDispatch;
         if (dispatch && !dispatch.used && app.canvas?.pointer?.eMove===dispatch.event && !this.__orvAutomaticLayout) {
             dispatch.used=true;
             this.__orvCommitResizeIntent(size[0],size[1],Math.abs(size[1]-dispatch.height)<0.01 ? dispatch.budget : undefined);
+            this.__orvLiveSize=Array.from(size);
+            this.__orvLiveTextBudget=this.__orvPreferredTextBudget;
+            scheduleResizeLayout(this);
         }
         if (this.__orvRestoreGeometry) {
             previousResize?.call(this,size,...args);
@@ -564,9 +623,12 @@ function installResponsiveHeight(node) {
         let origin=null;
         const start=event=>{
             if (!event.isTrusted || event.button!==0 || app.canvas?.read_only || node.flags?.pinned || node.resizable===false || app.canvas?.graph?.getNodeById?.(node.id)!==node) return;
-            const corner=node.findResizeDirection?.(event.canvasX,event.canvasY);
-            if (!["SE","SW","NE","NW"].includes(corner) || !Number.isFinite(event.canvasX) || !Number.isFinite(event.canvasY)) return;
-            origin={x:event.canvasX,y:event.canvasY,width:node.size[0],height:node.size[1],corner,id:event.pointerId,budget:node.__orvPreferredTextBudget};
+            const point=Number.isFinite(event.canvasX) && Number.isFinite(event.canvasY) ? [event.canvasX,event.canvasY] : app.canvas.convertEventToCanvasOffset?.(event);
+            if(!point)return;
+            const corner=node.findResizeDirection?.(point[0],point[1]);
+            if (!["SE","SW","NE","NW"].includes(corner) ) return;
+            origin={x:point[0],y:point[1],width:node.size[0],height:node.size[1],corner,id:event.pointerId,budget:node.__orvPreferredTextBudget};
+            node.__orvUserResizeActive=true;
         };
         const move=event=>{
             if (!origin || !event.isTrusted || event.pointerId!==origin.id) return;
@@ -575,12 +637,12 @@ function installResponsiveHeight(node) {
             // deferred callback, even if native propagation stops early.
             queueMicrotask(()=>{if(node.__orvResizeDispatch===dispatch)delete node.__orvResizeDispatch;});
         };
-        const end=()=>{origin=null;delete node.__orvResizeDispatch;};
-        canvas.addEventListener("pointerdown",start);canvas.addEventListener("pointermove",move,true);
+        const end=()=>{origin=null;delete node.__orvResizeDispatch;delete node.__orvLiveSize;delete node.__orvLiveTextBudget;node.__orvUserResizeActive=false;};
+        canvas.addEventListener("pointerdown",start,true);canvas.addEventListener("pointermove",move,true);
         canvas.addEventListener("pointerup",end);canvas.addEventListener("pointercancel",end);
         const removed=node.onRemoved;
         node.onRemoved=function(...args){
-            end();canvas.removeEventListener("pointerdown",start);canvas.removeEventListener("pointermove",move,true);
+            end();this.__orvRemoved=true;if(typeof cancelAnimationFrame==="function")cancelAnimationFrame(this.__orvResizeFrame);canvas.removeEventListener("pointerdown",start,true);canvas.removeEventListener("pointermove",move,true);
             canvas.removeEventListener("pointerup",end);canvas.removeEventListener("pointercancel",end);
             return removed?.apply(this,args);
         };
@@ -588,6 +650,7 @@ function installResponsiveHeight(node) {
 }
 
 function fitPresentationWidth(node) {
+    if (node.__orvUserResizeActive) return;
     if (app.ui?.settings?.getSettingValue && !app.ui.settings.getSettingValue("Comfy.VueNodes.Enabled")) {
         delete node.__orvNativeFixedHeight;
         delete node.__orvNativeTextMinimum;
@@ -664,7 +727,7 @@ function installBetaPresentation(node) {
             .orv-nodes2 .orv-estimate:focus-visible { outline:2px solid var(--input-text, #ddd); }
             .orv-nodes2 .orv-prompt-row { min-height:42px; }
             .orv-nodes2 .orv-prompt-row textarea { min-height:42px; height:100%;
-                padding:20px 6px 4px; font-size:12px; overflow:auto; }
+                padding:4px 6px; margin:0; box-sizing:border-box; font-size:12px; overflow:auto; }
         `;
         document.head.append(style);
         installBetaPresentation.observer = new MutationObserver(scheduleBetaPresentation);
@@ -681,19 +744,84 @@ function installBetaPresentation(node) {
     scheduleBetaPresentation();
 }
 
-function capacitySummaryText(node) {
-    const parts = String(node.__orvReferenceSummary || "").split(" · ");
-    const parked = parts.filter(part => /^\d+ parked$/.test(part));
-    const primary = parts.filter(part => /^\d+ (connected|remaining)$/.test(part));
-    const rest = parts.filter(part => !parked.includes(part) && !primary.includes(part));
-    let text = [...primary, ...parked, ...rest].join(" · ");
-    if (costLocale() === "ru") {
-        for (const [from,to] of [["capacity unverified","ёмкость не подтверждена"],["verified subset boundary","граница подтверждённого набора"],
-            ["upper bound unverified","верхний предел не подтверждён"],["maximum reached","достигнут максимум"],
-            ["limit not published","лимит не опубликован"],["limit unverified","лимит не подтверждён"],
-            ["connected","подключено"],["remaining","осталось"],["parked","сохранено вне режима"],["available","доступно"]]) text = text.replaceAll(from,to);
+function referenceCapacity(node) {
+    // Read the same authoritative active projection as topology and ACI. Never
+    // derive capacities by parsing prose or summing independent kind maxima.
+    const raw=node.__orvCapability?.__methodProfile?.topology;
+    const kinds=selectedReferenceKinds(node);
+    const topology=raw ? applyTransportInputConstraints(raw,inputByName(node,"source_video")?.link!=null) : null;
+    const verified=topology && !["UNKNOWN","CONFLICT"].includes(topology.constraint_state) && topology.execution_domain!=="UNVERIFIED";
+    const limit=verified && Number.isSafeInteger(topology.max) && topology.max>=0 ? topology.max : null;
+    const modalities=(topology?.reference_kinds || []).filter(kind=>["image","video","audio"].includes(kind)).map(kind=>({
+        kind,active:Array.isArray(kinds) ? kinds.filter(k=>k===kind).length : null,
+        limit:verified && Number.isSafeInteger(topology.per_kind_max?.[kind]) ? topology.per_kind_max[kind] : null
+    }));
+    const stored=node.properties?.orv_capability_intent?.media || [];
+    const parked=stored.filter(item=>item?.active_name===null).length;
+    const active=Array.isArray(kinds) ? kinds.length : null;
+    return {active,limit,modalities,parked,visible:modalities.length>0 || parked>0,
+        utilization:limit>0 && active!=null ? Math.max(0,Math.min(1,active/limit)) : null};
+}
+
+function capacityMeterHeight(node) {
+    const data=referenceCapacity(node);
+    return COMPACT_LAYOUT.row*2+COMPACT_LAYOUT.gap*2+3+(data.parked?COMPACT_LAYOUT.row:0);
+}
+
+function drawCapacityMeter(ctx,node,width,y) {
+    const data=referenceCapacity(node),left=COMPACT_LAYOUT.inset,right=width-left;
+    ctx.save();ctx.font="12px sans-serif";ctx.fillStyle="#C4C4C4";ctx.textAlign="left";
+    ctx.fillText(costLocale()==="ru"?"Референсы":"References",left,y+15);
+    ctx.textAlign="right";ctx.fillText(`${data.active??"?"} / ${data.limit??"?"}`,right,y+15);
+    const track=y+COMPACT_LAYOUT.row+COMPACT_LAYOUT.gap;
+    ctx.fillStyle="#44494b";ctx.fillRect(left,track,Math.max(0,right-left),3);
+    if(data.utilization!=null){ctx.fillStyle="#B6BBBD";ctx.fillRect(left,track,Math.max(0,right-left)*data.utilization,3);}
+    const top=track+3+COMPACT_LAYOUT.gap+14;
+    data.modalities.forEach((item,index)=>{
+        ctx.fillStyle="#B6BBBD";ctx.textAlign=index===0?"left":index===data.modalities.length-1?"right":"center";
+        const x=data.modalities.length===1?left:left+(right-left)*index/(data.modalities.length-1);
+        ctx.fillText(`${item.kind.toUpperCase()} ${item.active??"?"}/${item.limit??"?"}`,x,top);
+    });
+    if(data.parked){ctx.textAlign="right";ctx.fillStyle="#FFBB00";ctx.fillText(`${data.parked} ${costLocale()==="ru"?"вне режима":"parked"}`,right,top+COMPACT_LAYOUT.row);}
+    ctx.restore();
+}
+
+function syncCapacityMeter(node,row,input) {
+    let meter=row.querySelector(".orv-capacity-summary");
+    if(!meter){
+        meter=document.createElement("div");meter.className="orv-capacity-summary";
+        Object.assign(meter.style,{gridColumn:"1 / -1",minWidth:"0",font:"400 12px/20px Arial, Helvetica, sans-serif",padding:`0 ${COMPACT_LAYOUT.inset}px`,color:"#C4C4C4"});
+        const title=document.createElement("div"),name=document.createElement("span"),count=document.createElement("span");
+        Object.assign(title.style,{display:"flex",justifyContent:"space-between",gap:"8px"});title.append(name,count);
+        const track=document.createElement("div"),fill=document.createElement("div");Object.assign(track.style,{height:"3px",margin:"4px 0",background:"#44494b"});Object.assign(fill.style,{height:"3px",background:"#B6BBBD"});track.append(fill);
+        const kinds=document.createElement("div");Object.assign(kinds.style,{display:"flex",justifyContent:"space-between",gap:"8px",flexWrap:"wrap"});
+        const parked=document.createElement("div");Object.assign(parked.style,{textAlign:"right",color:"#FFBB00"});
+        meter.append(title,track,kinds,parked);meter.__orvParts={name,count,track,fill,kinds,parked};row.append(meter);
     }
-    return text;
+    input.style.display="none";
+    const data=referenceCapacity(node),parts=meter.__orvParts;
+    if(!parts)return;
+    parts.name.textContent=costLocale()==="ru"?"Референсы":"References";
+    parts.count.textContent=`${data.active??"?"} / ${data.limit??"?"}`;
+    parts.track.setAttribute("role",data.utilization==null?"status":"meter");
+    if(data.utilization!=null){parts.track.setAttribute("aria-valuenow",String(data.active));parts.track.setAttribute("aria-valuemax",String(data.limit));}
+    else {parts.track.removeAttribute?.("aria-valuenow");parts.track.removeAttribute?.("aria-valuemax");}
+    parts.fill.style.width=data.utilization==null?"0%":`${data.utilization*100}%`;
+    const signature=JSON.stringify(data.modalities);
+    if(meter.__orvKinds!==signature){
+        parts.kinds.replaceChildren?.();
+        for(const item of data.modalities){const text=document.createElement("span");text.textContent=`${item.kind.toUpperCase()} ${item.active??"?"}/${item.limit??"?"}`;parts.kinds.append(text);}
+        meter.__orvKinds=signature;
+    }
+    parts.parked.textContent=data.parked?`${data.parked} ${costLocale()==="ru"?"вне режима":"parked"}`:"";
+    parts.parked.style.display=data.parked?"":"none";
+}
+
+function capacitySummaryText(node) {
+    const data=referenceCapacity(node);
+    return `${costLocale()==="ru"?"Референсы":"References"} ${data.active??"?"} / ${data.limit??"?"}`+
+        (data.modalities.length?" · "+data.modalities.map(item=>`${item.kind.toUpperCase()} ${item.active??"?"}/${item.limit??"?"}`).join(" · "):"")+
+        (data.parked?` · ${data.parked} ${costLocale()==="ru"?"вне режима":"parked"}`:"");
 }
 
 function capacitySummaryLines(node, width) {
@@ -729,6 +857,7 @@ function syncBetaPresentation(node) {
         }
     }
     root.classList.add("orv-nodes2");
+    suppressPackageBadge(node,root);
     const header = root.querySelector(".lg-node-header > div");
     if (header && (!node.graph || (app.canvas?.graph || app.graph)?.getNodeById?.(node.id) === node)) {
         checkNativeCostMetadata(node);
@@ -795,21 +924,28 @@ function syncBetaPresentation(node) {
                 if (Number.isFinite(width) && Number.isFinite(height)) {
                     const delta=height-intent.totalHeight;
                     node.__orvCommitResizeIntent?.(width,intent.height+delta,Math.abs(delta)<0.01 ? intent.budget : intent.regionHeight+delta);
+                    node.__orvLiveSize=[width,height];
+                    node.__orvLiveTextBudget=Math.max(0,intent.regionHeight+delta);
+                    const apply=()=>{
+                        if(origin!==intent || root.__orvGeometryOwner!==node)return;
+                        node.__orvAutomaticLayout=true;node.__orvApplyingLiveResize=true;
+                        try { if(node.size?.[0]!==Math.fround(width) || node.size?.[1]!==Math.fround(height)) node.setSize?.([Math.fround(width),Math.fround(height)]); }
+                        finally { node.__orvAutomaticLayout=false;node.__orvApplyingLiveResize=false; }
+                        syncBetaPresentation(node);node.setDirtyCanvas?.(true,true);
+                    };
+                    node.__orvPendingLiveLayout=apply;
+                    if(node.__orvLiveFrame==null)node.__orvLiveFrame=requestAnimationFrame(()=>{node.__orvLiveFrame=null;node.__orvPendingLiveLayout?.();});
                 }
             });
         };
         const finish = () => {
             if (!node.__orvUserResizeActive) return;
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-                if (!node.__orvUserResizeActive || root.isConnected === false || root.__orvGeometryOwner !== node) {
-                    node.__orvUserResizeActive = false;
-                    return;
-                }
-                origin=null;
-                node.__orvUserResizeActive = false;
-                fitPresentationWidth(node);
-                syncBetaPresentation(node);
-            }));
+            node.__orvPendingLiveLayout?.();
+            if(node.__orvLiveFrame!=null && typeof cancelAnimationFrame==="function")cancelAnimationFrame(node.__orvLiveFrame);
+            node.__orvLiveFrame=null;node.__orvPendingLiveLayout=null;
+            origin=null;node.__orvUserResizeActive=false;
+            delete node.__orvLiveSize;delete node.__orvLiveTextBudget;
+            syncBetaPresentation(node);
         };
         root.addEventListener("pointerdown",start,true);
         root.addEventListener("pointermove",move,true);
@@ -818,6 +954,9 @@ function syncBetaPresentation(node) {
         root.__orvGeometryCleanup = () => {
             node.__orvUserResizeActive = false;
             origin=null;
+            if(typeof cancelAnimationFrame==="function")cancelAnimationFrame(node.__orvLiveFrame);
+            node.__orvPendingLiveLayout=null;node.__orvLiveFrame=null;
+            delete node.__orvLiveSize;delete node.__orvLiveTextBudget;
             if (root.style) root.style.minWidth=previousMinWidth;
             if (previousGrid) [nativeGrid.style.gridTemplateColumns,nativeGrid.style.gridTemplateRows,nativeGrid.style.flex]=previousGrid;
             for (const [element,previous] of touched) {
@@ -843,7 +982,7 @@ function syncBetaPresentation(node) {
     const grid = root.querySelector('[data-testid="node-widgets"]');
     if (!grid) return;
     const rows = [...grid.querySelectorAll(':scope > [data-testid="node-widget"]')];
-    const labelWidth = Math.max(112,Math.min(160,128+((node.size?.[0] || 400)-400)/3));
+    const labelWidth = Math.max(112,Math.min(160,128+((presentationSize(node)[0] || 400)-400)/3));
     // Native subgrid owns controls and hit testing. Only its column budget changes.
     grid.style.gridTemplateColumns = `min-content ${labelWidth}px minmax(125px, 1fr)`;
     for (const row of rows) {
@@ -864,15 +1003,7 @@ function syncBetaPresentation(node) {
     for (const row of rows) {
         const input = row.querySelector('input[aria-label="REFERENCES"]');
         if (!input || !node.__orvSummary) continue;
-        let summary = row.querySelector(".orv-capacity-summary");
-        if (!summary) {
-            summary = document.createElement("div"); summary.className = "orv-capacity-summary";
-            Object.assign(summary.style,{whiteSpace:"normal",overflowWrap:"anywhere",font:"400 12px/18px Arial, Helvetica, sans-serif",padding:"2px 12px",minWidth:"0",gridColumn:"1 / -1"});
-            row.append(summary);
-        }
-        input.style.display = "none";
-        const text = capacitySummaryText(node);
-        if (summary.textContent !== text) summary.textContent = text;
+        syncCapacityMeter(node,row,input);
     }
     const creative = creativeTextWidgets(node);
     const bindings = rows.map(row => {
@@ -909,7 +1040,7 @@ function syncBetaPresentation(node) {
     if (grid.style.flex !== flex) grid.style.flex = flex;
     for (const row of rows) syncReadOnlyDurationRow(node,root,row);
     const rect = root.getBoundingClientRect?.();
-    const scale = rect?.width / node.size?.[0];
+    const scale = rect?.width / presentationSize(node)[0];
     if (scale > 0 && bindings.filter(Boolean).length === region.count) {
         const intrinsic = nativeFlowHeight(root,scale);
         if (Number.isFinite(intrinsic) && intrinsic > 0 && !node.__orvUserResizeActive) {
@@ -927,6 +1058,8 @@ function canonicalModel(node) {
     return typeof value === "string" && value !== SELECT_MODEL ? value : null;
 }
 
+function modelDisplayLabel(value) { return String(value || "").replace(/\s+[—–]\s+/, ": "); }
+
 function configureModelPicker(node, projection) {
     const item = widget(node, "model");
     if (!item) return null;
@@ -937,11 +1070,11 @@ function configureModelPicker(node, projection) {
     );
     const nameCounts = new Map();
     for (const model of models) {
-        const name = String(model.display_name || model.model_id);
+        const name = String(modelDisplayLabel(model.display_name) || model.model_id);
         nameCounts.set(name, (nameCounts.get(name) || 0) + 1);
     }
     const entries = models.map((model) => {
-        const name = String(model.display_name || model.model_id);
+        const name = String(modelDisplayLabel(model.display_name) || model.model_id);
         return {
             id: model.model_id,
             label: nameCounts.get(name) > 1 ? `${name} — ${model.model_id}` : name,
@@ -2905,6 +3038,28 @@ function costCompactDecimal(value) {
 
 function costPrecompletionAdvisory(result) {
     const advisory = result?.precompletion_advisory, scenario = advisory?.scenario;
+    if (advisory?.version === "ACI-PRECOMPLETION-2") {
+        const roleKind={first_frame:"image",last_frame:"image",source_video:"video",audio:"audio"};
+        const missing=list=>Array.isArray(list) && list.every(item=>item && ["image","video","audio"].includes(item.kind) &&
+            (item.role==="reference" || roleKind[item.role]===item.kind) && Number.isSafeInteger(item.count) && item.count>0 && item.count<=64);
+        const scenarios=advisory.scenarios,rates=advisory.rates;
+        if(result?.state!=="INVALID" || result.availability!=="UNAVAILABLE" || result.reason!=="required_inputs_missing" ||
+            [result.amount_usd,result.estimated_cost_usd,result.lower_usd,result.upper_usd].some(v=>v!=null) ||
+            !Number.isSafeInteger(result.context_revision) || result.context_revision<0 || !(result.valid_for_ms>0) || !Number.isFinite(result.valid_for_ms) ||
+            advisory.currency!=="USD" || !["COMPARISON","COMPONENT"].includes(advisory.scope) ||
+            !["REFERENCE","SCENARIOS","RATE_ONLY","UNKNOWN"].includes(advisory.display) ||
+            !Array.isArray(advisory.actual_reference_kinds) || advisory.actual_reference_kinds.length>64 || !advisory.actual_reference_kinds.every(k=>["image","video","audio"].includes(k)) ||
+            !missing(advisory.missing_inputs) || !Array.isArray(advisory.alternatives) || !advisory.alternatives.length || !advisory.alternatives.every(a=>missing(a)&&a.length>0) ||
+            !Array.isArray(advisory.completion_assumptions) || !advisory.completion_assumptions.length || !advisory.completion_assumptions.every(a=>typeof a==="string"&&a.trim()) ||
+            !Array.isArray(scenarios) || !scenarios.every(row=>row && ["COMPARISON","COMPONENT"].includes(row.scope) && costMoney(row.amount_usd)!==null && typeof row.assumption==="string" && row.assumption.trim() && missing(row.missing_inputs || advisory.missing_inputs)) ||
+            !Array.isArray(rates) || !rates.every(row=>row && costRateLabel(row) && typeof row.assumption==="string" && row.assumption.trim()) ||
+            (advisory.display!=="UNKNOWN" && !/^[a-f0-9]{64}$/.test(result.rates_hash || "")))return null;
+        if(advisory.display==="REFERENCE" && (scenarios.length!==1 || advisory.scenario?.amount_usd!==advisory.amount_usd || advisory.amount_usd!==scenarios[0].amount_usd || advisory.scope!==advisory.scenario?.scope))return null;
+        if(advisory.display==="SCENARIOS" && (scenarios.length<2 || !costRangeUsd(advisory.lower_usd,advisory.upper_usd)))return null;
+        if(advisory.display==="RATE_ONLY" && (!rates.length || scenarios.length || advisory.amount_usd!=null))return null;
+        if(advisory.display==="UNKNOWN" && (rates.length || scenarios.length || advisory.amount_usd!=null))return null;
+        return advisory;
+    }
     if (result?.state !== "INVALID" || result.availability !== "UNAVAILABLE" ||
         result.reason !== "required_inputs_missing" ||
         [result.amount_usd, result.estimated_cost_usd, result.lower_usd, result.upper_usd].some(value => value != null) ||
@@ -2927,7 +3082,7 @@ function costPrecompletionAdvisory(result) {
 
 function costAdvisoryComparison(result) {
     const precompletion = costPrecompletionAdvisory(result);
-    if (precompletion) return precompletion.scenario;
+    if (precompletion) return precompletion.scenario || null;
     if (!["UNKNOWN", "RATE_ONLY", "PARTIAL"].includes(result?.state) ||
         result.planning?.version !== "ACI-PLANNING-1" || result.planning.display !== "DETAIL_ONLY") return null;
     if (result.state === "RATE_ONLY" && costMoney(result.rate_usd) !== null) return null;
@@ -2965,7 +3120,7 @@ function costText(key) {
             completionNote:"Reference for a completed input configuration, not a quote. Add the missing inputs before generation.",
             routeComparisonNote:"Comparison assumes no additional reference fees. OpenRouter billing equivalence and audio/reference charges are unconfirmed; not a total.",
             inputComponentNote:"Input VIDEO charges and tariff precedence are unconfirmed. Known components only; not a total or lower bound.",
-            missingInputs:"Missing inputs", imageReferences:"IMAGE references",
+            missingInputs:"Missing inputs", imageReferences:"IMAGE references", videoReferences:"VIDEO references", audioReferences:"AUDIO references", completionOptions:"Example valid completions", unknownInputQuantities:"Missing media duration, geometry and input charges are not assumed to be zero. Reference scenarios are not a spending cap.",
             durationLabel:"Duration", fixedDuration:"Fixed", unverifiedDuration:"Not verified",
             validationTitle:"Inputs to check", correction:"To correct", preview:"Preview", notKnown:"Not known",
             validation_configuration:"Configuration", validation_inference_method:"Method", validation_model:"Model",
@@ -3000,7 +3155,7 @@ function costText(key) {
             completionNote:"Ориентир для дополненной конфигурации, не итоговая стоимость. Перед генерацией подключите недостающие входы.",
             routeComparisonNote:"Сравнение предполагает отсутствие дополнительных сборов за референсы. Эквивалентность тарификации OpenRouter и начисления за аудио/референсы не подтверждены; это не итог.",
             inputComponentNote:"Тарификация входного VIDEO и приоритет тарифов не подтверждены. Только известные компоненты; не итог и не нижняя граница.",
-            missingInputs:"Не хватает входов", imageReferences:"IMAGE-референсы",
+            missingInputs:"Не хватает входов", imageReferences:"IMAGE-референсы", videoReferences:"VIDEO-референсы", audioReferences:"AUDIO-референсы", completionOptions:"Примеры допустимого дополнения", unknownInputQuantities:"Неизвестные параметры и начисления за вход не считаются нулевыми. Справочные сценарии — не лимит расходов.",
             durationLabel:"Длительность", fixedDuration:"Фиксировано", unverifiedDuration:"Не подтверждено",
             validationTitle:"Проверьте входы", correction:"Как исправить", preview:"Предпросмотр", notKnown:"Неизвестно",
             validation_configuration:"Конфигурация", validation_inference_method:"Метод", validation_model:"Модель",
@@ -3045,6 +3200,8 @@ function costRangeUsd(lower, upper) {
 }
 
 function costReferenceRows(result) {
+    const precompletion=costPrecompletionAdvisory(result);
+    if(precompletion?.version==="ACI-PRECOMPLETION-2")return precompletion.scenarios;
     if (!["UNKNOWN", "PARTIAL", "RATE_ONLY"].includes(result?.state) ||
         result.planning?.version !== "ACI-PLANNING-1" || result.planning.display !== "DETAIL_ONLY") return [];
     return (result.planning.scenarios || []).filter(row => ["COMPARISON", "COMPONENT"].includes(row.scope) && costMoney(row.amount_usd) !== null);
@@ -3155,8 +3312,11 @@ function costTooltipView(node) {
                 detail.kind === item.kind && detail.operator === "min" &&
                 Number.isFinite(detail.observed) && Number.isFinite(detail.bound) && detail.bound - detail.observed === item.count));
         if (missing.length) sections.push({ title:costText("missingInputs"), rows:
-            missing.map(item => [costText("imageReferences"), String(item.count)]) });
+            missing.map(item => [item.role==="reference" ? costText(`${item.kind}References`) : costText(`validation_${item.role}`), String(item.count)]) });
+        if(precompletion.alternatives?.length>1)sections.push({title:costText("completionOptions"),rows:precompletion.alternatives.slice(0,3).map((option,index)=>[
+            `${index+1}`,option.map(item=>`${item.count} ${item.role==="reference"?item.kind.toUpperCase():costText(`validation_${item.role}`)}`).join(" + ")])});
     }
+    if(precompletion?.rates?.length>1)sections.push({title:costText("details"),rows:precompletion.rates.map((row,index)=>[`${costText("rate")} ${index+1}`,costRateLabel(row)])});
     if (reference && silent) {
         const audio = widget(node,"generate_audio")?.value;
         sections.push({ title:costText("selected"), rows:[
@@ -3176,20 +3336,29 @@ function costTooltipView(node) {
     if (precompletion) {
         // Localize existing scenario limitations for presentation only. These
         // markers never select a tariff, change its amount or grant readiness.
-        if (/OpenRouter equivalence|route equivalence/i.test(reference.assumption)) note = costText("routeComparisonNote");
-        else if (/tariff precedence/i.test(reference.assumption)) note = costText("inputComponentNote");
-        note = `${costText("completionNote")} ${note}`;
+        const assumptions=[reference?.assumption,...(precompletion.scenarios || []).map(row=>row.assumption)].filter(Boolean).join(" ");
+        if (/OpenRouter equivalence|route equivalence/i.test(assumptions)) note = costText("routeComparisonNote");
+        else if (/tariff precedence/i.test(assumptions)) note = costText("inputComponentNote");
+        else if (/unestablished input charges/i.test(assumptions)) note = costText("componentNote");
+        note = `${costText("completionNote")} ${note} ${precompletion.version==="ACI-PRECOMPLETION-2"?costText("unknownInputQuantities"):""}`.trim();
     }
-    return { kind, title:costText(kind), identity:`${String(model).replace(/^[^:]+:\s*/, "")}${method ? ` · ${method}` : ""}`, context, sub, amount, note, sections, accent };
+    return { kind, title:costText(kind), identity:`${modelDisplayLabel(model).replace(/^[^:]+:\s*/, "")}${method ? ` · ${method}` : ""}`, context, sub, amount, note, sections, accent };
 }
 
 function costPriceView(result = {}) {
     const state = result.state || (result.availability === "AVAILABLE" ? "FORMULA" : "UNKNOWN");
+    const precompletion=costPrecompletionAdvisory(result);
     const plan = result.planning, planning = ["UNKNOWN", "PARTIAL", "RATE_ONLY"].includes(state) && plan?.version === "ACI-PLANNING-1";
     const reference = costAdvisoryComparison(result), rows = costReferenceRows(result);
     let kind = ({ FORMULA:"formula", RANGE:"range", RATE_ONLY:"rate", PARTIAL:"partial", INVALID:"invalid", STALE:"stale", CALCULATING:"calculating" })[state] || "unknown";
     let amount = null, badge = null;
-    if (state === "FORMULA") { amount = costUsd(result.amount_usd ?? result.estimated_cost_usd); if (amount) badge = `≈ ${amount} EST.`; }
+    if(precompletion?.display==="SCENARIOS"){
+        kind="reference";amount=costRangeUsd(precompletion.lower_usd,precompletion.upper_usd);badge=`≈ ${amount} REF.`;
+    } else if(precompletion?.display==="RATE_ONLY"){
+        kind="rate";const labels=[...new Set(precompletion.rates.map(costRateLabel))];amount=labels.length===1?labels[0]:null;badge=amount?`${amount} RATE`:costText("detailsBadge");
+    } else if(precompletion?.display==="UNKNOWN" || (state==="INVALID" && result.reason==="required_inputs_missing" && !precompletion)){
+        kind="unknown";
+    } else if (state === "FORMULA") { amount = costUsd(result.amount_usd ?? result.estimated_cost_usd); if (amount) badge = `≈ ${amount} EST.`; }
     else if (state === "RANGE") { amount = costRangeUsd(result.lower_usd, result.upper_usd); if (amount) badge = `${amount} EST.`; }
     else if (planning && plan.display === "MODELLED" && costUsd(plan.modelled_usd)) { kind = "model"; amount = costUsd(plan.modelled_usd); badge = `≈ ${amount} MODEL`; }
     else if (planning && plan.display === "SCENARIO_RANGE" && costRangeUsd(plan.scenario_min_usd, plan.scenario_max_usd)) { kind = "scenarios"; amount = costRangeUsd(plan.scenario_min_usd, plan.scenario_max_usd); badge = `≈ ${amount} MODEL`; }
@@ -3200,7 +3369,7 @@ function costPriceView(result = {}) {
         if (["formula", "range", "rate"].includes(kind)) kind = "unknown";
         badge = costText(`${kind}Badge`) || costText("unknownBadge");
     }
-    const accent = ["formula", "range"].includes(kind) ? ACI_INDICATOR_COLORS.green : ["model", "scenarios"].includes(kind) ? ACI_INDICATOR_COLORS.yellow : ["reference", "component", "details"].includes(kind) ? ACI_INDICATOR_COLORS.violet : "#C4C4C4";
+    const accent = ["formula", "range"].includes(kind) ? ACI_INDICATOR_COLORS.green : ["model", "scenarios"].includes(kind) ? ACI_INDICATOR_COLORS.yellow : ["reference", "component", "details"].includes(kind) ? ACI_INDICATOR_COLORS.violet : precompletion && kind==="rate" ? ACI_INDICATOR_COLORS.violet : "#C4C4C4";
     return { kind, amount, badge, accent };
 }
 
@@ -4432,6 +4601,7 @@ app.registerExtension({
             const created = nodeType.prototype.onNodeCreated;
             nodeType.prototype.onNodeCreated = function (...args) {
                 const result = created?.apply(this, args);
+                suppressPackageBadge(this);
                 installResumeActualPresentation(this);
                 return result;
             };
@@ -4518,15 +4688,8 @@ app.registerExtension({
             setVisible(this.__orvAdvanced, false);
             this.__orvSummary = addReadOnlyWidget(this, "REFERENCES", "");
             this.__orvSummary.label = " ";
-            this.__orvSummary.__orvComputeSize = (width) => [0, Math.max(22,capacitySummaryLines(this,this.__orvPreferredWidth || this.size?.[0] || width).length * 18 + 4)];
-            this.__orvSummary.draw = (ctx, node, width, y) => {
-                ctx.save();
-                ctx.font = "12px sans-serif";
-                ctx.fillStyle = "#b8c8c4";
-                ctx.textAlign = "left";
-                capacitySummaryLines(node,width).forEach((line,index) => ctx.fillText(line, 12, y + 15 + index * 18));
-                ctx.restore();
-            };
+            this.__orvSummary.__orvComputeSize = () => [0, capacityMeterHeight(this)];
+            this.__orvSummary.draw = (ctx, node, width, y) => drawCapacityMeter(ctx,node,width,y);
             setVisible(this.__orvSummary, false);
             this.__orvCapabilityStatus = addReadOnlyWidget(this, "STATE", "");
             setVisible(this.__orvCapabilityStatus, false);

@@ -1,0 +1,59 @@
+{
+  "status": "UNACCEPTED_PACKAGE02",
+  "baseline": "cdab03f03d218f6ac30129638d3ce0a9e9a3c50f",
+  "files": {
+    "web/openrouter_video.js": "faffe3a940a6a4e5c375cdbb11d480aa9f0043c21ffbfdfd750466cc1488a671",
+    "src/openrouter_video/pricing.py": "e5a2a9c7cc39c805c84c6f78372d2aa8447cb1f040617342672d1a948b44b48f",
+    "src/openrouter_video/comfy/runtime.py": "46a6f622175b9d1edb1e09a908110310b3c8fb5a7ef0bef57bf6bceea8553d99"
+  },
+  "baseline_files": {
+    "web/openrouter_video.js": "21f9407e8bb0c3ab614a23c606461dda0f539eda1e5351b3844e2838e07a59c1",
+    "src/openrouter_video/pricing.py": "bbc8be0ae59d24431a97acb905722c84a2af6098adf77ad9a36273f0298a4a18",
+    "src/openrouter_video/comfy/runtime.py": "ab7434f8a952b628ed99ceed5cea10cdefa1934e4ec3d99d66476fa80a46e2d7"
+  },
+  "functions": {
+    "applyPresentation": "f8708f72eea329a0a8fe3a91ee1a09b66a56a055fbc15278de218c22e17437c5",
+    "capacitySummaryText": "e938b50494f030e987ba94a0107566e31f887e94bdbca8d527bf042a46556afc",
+    "configureModelPicker": "a0813328761d8305fde4c099d109b0b111ecd1b1b2d8f447739c9b7cec34aab6",
+    "costAdvisoryComparison": "91fa24bd9c10cff3ce8076474d8885d76581b5c2f030e993650581c62708f0b1",
+    "costPrecompletionAdvisory": "b35eec8d665641459e68e0d147fa34a991fc65fa5dd239afd03289a11d062a88",
+    "costPriceView": "ee3876f9282e52053a0bdeed3d4659df9e1a21644e641db9d5a4480dad67c150",
+    "costReferenceRows": "b29e69fafc320fca1cf134006f6fcda77ac5818b6eb7893ee9b9d18109414324",
+    "costText": "0758b98a05b8748764c3ad173dbd51be2534f7d672d0dc4e0ee04d627dab8332",
+    "costTooltipView": "47e6980f296bda9ce41b7c3bfd22d3a3a369434929378032e792471049b83350",
+    "fitPresentationWidth": "c659374461e6b985b5834e4e08f2b88b0628776663b425c49f81f1277f90867a",
+    "installBetaPresentation": "66916de816b1cb7aa5c0ba36c724a2a4d11bcfbb1a1beca3417b2f820b507d1d",
+    "installParameterColumns": "3580cdb81ac7bced5a63d315973dd07aa70795fe8000268b7c4142a1b7d2274d",
+    "installResponsiveHeight": "5ffba38e173b72cf60afdab26892bc903f45419e046164288220485f3cbc2a6d",
+    "sizePrimaryControls": "258ef28b840be329d47bb0eb896c8a29dce25ed39e1f5e252002bb4c2635c69f",
+    "stylePrompt": "f6dd5e82837b0b13b0c2f01bcb448c6524825a36253cdcdf63545a20934ae186",
+    "syncBetaPresentation": "2ce4856b7db506d44f853c60ba0c6dadfdee66fedd17753706bf88bc3cfea6cd",
+    "textRegionGeometry": "2154a0f2d7cf4344ee3ef05f9994dcd230c6dab32b3c5c7f17ce26655535a3b7"
+  },
+  "added": {
+    "capacityMeterHeight": "66e4a02b29d485c7e1938fffcd089eacc76b9fe35c8c83a5fd7dadd389700ec3",
+    "classicContentBounds": "fad5eaf146244d1fe58dfb682d06f8b3d1df89b99da6e2b6b31810f5f343aabb",
+    "drawCapacityMeter": "eeb483a76688a003801a8f96ca90287e5314a1bb1b3b868d3956b188d8fe5a05",
+    "fitWidgetText": "dafd638c13d85ce3b574ae75b5f7e6fc87be5d97a53a50d7e2994e00a2579395",
+    "modelDisplayLabel": "4e38503019ba7b3242de11b83933e6ce10641368d5d9457676c093ea0600977d",
+    "presentationSize": "5f0f19bdd945865cb6e4a4556088d0020b17eccf7e1df65804ca5debef7755ce",
+    "referenceCapacity": "8e8e82e0fadd3ad6c1750549511c91613629e73993cb88fa8a15dadfa17618ce",
+    "scheduleResizeLayout": "63a357bdf2064045160a2fa944e03f16ef7a466566c27493ebccb8bb2459d9fe",
+    "suppressPackageBadge": "c217a19c9f3802fb489cda1c58244e3d31079a3b0e9f374f80fb5ababee9dbee",
+    "syncCapacityMeter": "2e36702df0ea24f243620bddcf1400f493ca90ee7f7005b5812cdd7ec09d926d"
+  },
+  "literal_deltas": [
+    {
+      "before": "const METHOD_LABELS = {\n    T2V: \"T2V — Text → Video\",\n    I2V: \"I2V — First Frame → Video\",\n    FLF2V: \"FLF2V — First + Last Frame → Video\",\n    IR2V: \"IR2V — Single Image Reference → Video\",\n    MI2V: \"MI2V — Multiple Image References → Video\",\n    VR2V: \"VR2V — Video Reference → Video\",\n    AR2V: \"AR2V — Audio Reference → Video\",\n    MMR2V: \"MMR2V — Mixed Multimodal References → Video\",\n    V2V_EDIT: \"V2V_EDIT — Source Video → Edited Video\",\n    V2V_EXTEND: \"V2V_EXTEND — Source Video → Extended Video\",\n    V2V_UPSCALE: \"Upscale Video\",\n    AVATAR_AUDIO: \"Photo + Audio → Talking Avatar\",\n};",
+      "after": "const METHOD_LABELS = {\n    T2V: \"T2V: Text → Video\",\n    I2V: \"I2V: First Frame → Video\",\n    FLF2V: \"FLF2V: First + Last Frame → Video\",\n    IR2V: \"IR2V: Single Image Reference → Video\",\n    MI2V: \"MI2V: Multiple Image References → Video\",\n    VR2V: \"VR2V: Video Reference → Video\",\n    AR2V: \"AR2V: Audio Reference → Video\",\n    MMR2V: \"MMR2V: Mixed Multimodal References → Video\",\n    V2V_EDIT: \"V2V_EDIT: Source Video → Edited Video\",\n    V2V_EXTEND: \"V2V_EXTEND: Source Video → Extended Video\",\n    V2V_UPSCALE: \"V2V_UPSCALE: Upscale Video\",\n    AVATAR_AUDIO: \"AVATAR_AUDIO: Photo + Audio → Talking Avatar\",\n};"
+    },
+    {
+      "before": "",
+      "after": "                suppressPackageBadge(this);\n"
+    },
+    {
+      "before": "            this.__orvSummary.__orvComputeSize = (width) => [0, Math.max(22,capacitySummaryLines(this,this.__orvPreferredWidth || this.size?.[0] || width).length * 18 + 4)];\n            this.__orvSummary.draw = (ctx, node, width, y) => {\n                ctx.save();\n                ctx.font = \"12px sans-serif\";\n                ctx.fillStyle = \"#b8c8c4\";\n                ctx.textAlign = \"left\";\n                capacitySummaryLines(node,width).forEach((line,index) => ctx.fillText(line, 12, y + 15 + index * 18));\n                ctx.restore();\n            };\n",
+      "after": "            this.__orvSummary.__orvComputeSize = () => [0, capacityMeterHeight(this)];\n            this.__orvSummary.draw = (ctx, node, width, y) => drawCapacityMeter(ctx,node,width,y);\n"
+    }
+  ]
+}

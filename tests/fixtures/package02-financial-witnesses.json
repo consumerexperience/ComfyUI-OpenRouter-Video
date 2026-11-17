@@ -1,0 +1,595 @@
+{
+  "fixed": {
+    "request": {
+      "schema_version": 2,
+      "context_revision": 1,
+      "model_id": "alibaba/wan-2.6",
+      "duration": 5,
+      "resolution": "720p",
+      "aspect_ratio": null,
+      "size": null,
+      "generate_audio": false,
+      "inference_method": "I2V",
+      "reference_kinds": [],
+      "reference_count": 0,
+      "source_video_present": false,
+      "media": [],
+      "creativity": null,
+      "upscale_factor": null
+    },
+    "result": {
+      "availability": "UNAVAILABLE",
+      "observed_at": "2026-11-14 11:44:50+00:00",
+      "estimated_cost_usd": null,
+      "provenance": null,
+      "applied_skus": [
+        "image_to_video_duration_seconds_720p"
+      ],
+      "reason": "required_inputs_missing",
+      "state": "INVALID",
+      "amount_usd": null,
+      "lower_usd": null,
+      "upper_usd": null,
+      "range_kind": null,
+      "rate_usd": null,
+      "rate_unit": null,
+      "breakdown": [],
+      "assumptions": [],
+      "reason_codes": [
+        "required_inputs_missing"
+      ],
+      "snapshot_hash": null,
+      "rates_hash": "c12a07bd8eb192176180814b724a01d25ce7939f73d24f8e94d33ccad78fed2a",
+      "rules_version": "ACI-1.0",
+      "context_revision": 1,
+      "planning": null,
+      "precompletion_advisory": {
+        "version": "ACI-PRECOMPLETION-2",
+        "currency": "USD",
+        "scope": "COMPARISON",
+        "display": "REFERENCE",
+        "amount_usd": "0.50",
+        "actual_reference_kinds": [],
+        "missing_inputs": [
+          {
+            "kind": "image",
+            "role": "first_frame",
+            "count": 1
+          }
+        ],
+        "alternatives": [
+          [
+            {
+              "kind": "image",
+              "role": "first_frame",
+              "count": 1
+            }
+          ]
+        ],
+        "completion_assumptions": [
+          "Hypothetical minimum completion: add 1 IMAGE first_frame; quantities remain unknown; not executable yet."
+        ],
+        "scenarios": [
+          {
+            "label": "Minimum completed configuration",
+            "scope": "COMPARISON",
+            "sku": "image_to_video_duration_seconds_720p",
+            "quantity": "1",
+            "quantity_unit": "configuration",
+            "amount_usd": "0.50",
+            "assumption": "Hypothetical minimum completion: add 1 IMAGE first_frame; quantities remain unknown; not executable yet.",
+            "charges": [
+              {
+                "sku": "image_to_video_duration_seconds_720p",
+                "unit": "USD",
+                "quantity_unit": "documented_quantity",
+                "quantity": "5",
+                "rate_usd": "0.10",
+                "amount_usd": "0.50",
+                "relation": "base"
+              }
+            ],
+            "missing_inputs": [
+              {
+                "kind": "image",
+                "role": "first_frame",
+                "count": 1
+              }
+            ]
+          }
+        ],
+        "rates": [],
+        "lower_usd": "0.50",
+        "upper_usd": "0.50",
+        "scenario": {
+          "label": "Minimum completed configuration",
+          "scope": "COMPARISON",
+          "sku": "image_to_video_duration_seconds_720p",
+          "quantity": "1",
+          "quantity_unit": "configuration",
+          "amount_usd": "0.50",
+          "assumption": "Hypothetical minimum completion: add 1 IMAGE first_frame; quantities remain unknown; not executable yet.",
+          "charges": [
+            {
+              "sku": "image_to_video_duration_seconds_720p",
+              "unit": "USD",
+              "quantity_unit": "documented_quantity",
+              "quantity": "5",
+              "rate_usd": "0.10",
+              "amount_usd": "0.50",
+              "relation": "base"
+            }
+          ],
+          "missing_inputs": [
+            {
+              "kind": "image",
+              "role": "first_frame",
+              "count": 1
+            }
+          ]
+        }
+      },
+      "validation_details": [
+        {
+          "code": "required_fixed_media_missing",
+          "scope": "selection",
+          "field": "first_frame",
+          "observed": 0,
+          "bound": 1,
+          "operator": "min",
+          "correction_key": "connect_input"
+        }
+      ],
+      "valid_for_ms": 900000
+    }
+  },
+  "mixed": {
+    "request": {
+      "schema_version": 2,
+      "context_revision": 1,
+      "model_id": "bytedance/seedance-2.0",
+      "duration": 4,
+      "resolution": "480p",
+      "aspect_ratio": "1:1",
+      "size": null,
+      "generate_audio": false,
+      "inference_method": "MMR2V",
+      "reference_kinds": [],
+      "reference_count": 0,
+      "source_video_present": false,
+      "media": [],
+      "creativity": null,
+      "upscale_factor": null
+    },
+    "result": {
+      "availability": "UNAVAILABLE",
+      "observed_at": "2026-11-14 11:44:50+00:00",
+      "estimated_cost_usd": null,
+      "provenance": null,
+      "applied_skus": [
+        "video_tokens_with_video_input",
+        "video_tokens_without_audio"
+      ],
+      "reason": "required_inputs_missing",
+      "state": "INVALID",
+      "amount_usd": null,
+      "lower_usd": null,
+      "upper_usd": null,
+      "range_kind": null,
+      "rate_usd": null,
+      "rate_unit": null,
+      "breakdown": [],
+      "assumptions": [],
+      "reason_codes": [
+        "required_inputs_missing"
+      ],
+      "snapshot_hash": null,
+      "rates_hash": "c937516c1321b0153e1f52cf398399f13813dba21fd4720c0e73ce586e2b4c53",
+      "rules_version": "ACI-1.0",
+      "context_revision": 1,
+      "planning": null,
+      "precompletion_advisory": {
+        "version": "ACI-PRECOMPLETION-2",
+        "currency": "USD",
+        "scope": "COMPARISON",
+        "display": "SCENARIOS",
+        "amount_usd": null,
+        "actual_reference_kinds": [],
+        "missing_inputs": [],
+        "alternatives": [
+          [
+            {
+              "kind": "audio",
+              "role": "reference",
+              "count": 1
+            },
+            {
+              "kind": "image",
+              "role": "reference",
+              "count": 1
+            }
+          ],
+          [
+            {
+              "kind": "audio",
+              "role": "reference",
+              "count": 1
+            },
+            {
+              "kind": "video",
+              "role": "reference",
+              "count": 1
+            }
+          ],
+          [
+            {
+              "kind": "image",
+              "role": "reference",
+              "count": 1
+            },
+            {
+              "kind": "video",
+              "role": "reference",
+              "count": 1
+            }
+          ],
+          [
+            {
+              "kind": "audio",
+              "role": "reference",
+              "count": 1
+            },
+            {
+              "kind": "image",
+              "role": "reference",
+              "count": 1
+            },
+            {
+              "kind": "video",
+              "role": "reference",
+              "count": 1
+            }
+          ]
+        ],
+        "completion_assumptions": [
+          "Hypothetical minimum completion: add 1 AUDIO reference, add 1 IMAGE reference; quantities remain unknown; not executable yet.",
+          "Hypothetical minimum completion: add 1 AUDIO reference, add 1 VIDEO reference; quantities remain unknown; not executable yet.",
+          "Hypothetical minimum completion: add 1 IMAGE reference, add 1 VIDEO reference; quantities remain unknown; not executable yet.",
+          "Hypothetical minimum completion: add 1 AUDIO reference, add 1 IMAGE reference, add 1 VIDEO reference; quantities remain unknown; not executable yet."
+        ],
+        "scenarios": [
+          {
+            "label": "native normalized geometry / continuous",
+            "scope": "COMPARISON",
+            "sku": "video_tokens_without_audio",
+            "quantity": "38400",
+            "quantity_unit": "token",
+            "amount_usd": "0.268800",
+            "assumption": "Native geometry / inferred video-token floor; route equivalence and rounding not established. 640x640; input seconds 0; requested output 4; assumes no other fees. EXTRAPOLATED_OTHER_REVISION Hypothetical minimum completion: add 1 AUDIO reference, add 1 IMAGE reference; quantities remain unknown; not executable yet.",
+            "charges": [
+              {
+                "sku": "video_tokens_without_audio",
+                "unit": "USD",
+                "quantity_unit": "token",
+                "quantity": "38400",
+                "rate_usd": "0.000007",
+                "amount_usd": "0.268800",
+                "relation": "base"
+              }
+            ],
+            "missing_inputs": [
+              {
+                "kind": "audio",
+                "role": "reference",
+                "count": 1
+              },
+              {
+                "kind": "image",
+                "role": "reference",
+                "count": 1
+              }
+            ]
+          },
+          {
+            "label": "catalogue geometry alternative / continuous",
+            "scope": "COMPARISON",
+            "sku": "video_tokens_without_audio",
+            "quantity": "21600",
+            "quantity_unit": "token",
+            "amount_usd": "0.151200",
+            "assumption": "Native geometry / inferred video-token floor; route equivalence and rounding not established. 480x480; input seconds 0; requested output 4; assumes no other fees. EXTRAPOLATED_OTHER_REVISION Hypothetical minimum completion: add 1 AUDIO reference, add 1 IMAGE reference; quantities remain unknown; not executable yet.",
+            "charges": [
+              {
+                "sku": "video_tokens_without_audio",
+                "unit": "USD",
+                "quantity_unit": "token",
+                "quantity": "21600",
+                "rate_usd": "0.000007",
+                "amount_usd": "0.151200",
+                "relation": "base"
+              }
+            ],
+            "missing_inputs": [
+              {
+                "kind": "audio",
+                "role": "reference",
+                "count": 1
+              },
+              {
+                "kind": "image",
+                "role": "reference",
+                "count": 1
+              }
+            ]
+          }
+        ],
+        "rates": [
+          {
+            "rate_usd": "0.000007",
+            "rate_unit": "token",
+            "assumption": "Hypothetical minimum completion: add 1 AUDIO reference, add 1 IMAGE reference; quantities remain unknown; not executable yet."
+          },
+          {
+            "rate_usd": "0.0000043",
+            "rate_unit": "token",
+            "assumption": "Hypothetical minimum completion: add 1 AUDIO reference, add 1 IMAGE reference, add 1 VIDEO reference; quantities remain unknown; not executable yet."
+          }
+        ],
+        "lower_usd": "0.151200",
+        "upper_usd": "0.268800"
+      },
+      "validation_details": [
+        {
+          "code": "reference_shape_not_projected",
+          "scope": "reference_group",
+          "field": "reference_count",
+          "kind": "",
+          "observed": 0,
+          "bound": 2,
+          "operator": "min",
+          "unit": "references",
+          "correction_key": "add_references"
+        },
+        {
+          "code": "reference_shape_not_projected",
+          "scope": "reference_group",
+          "field": "distinct_media_types",
+          "observed": 0,
+          "bound": 2,
+          "operator": "min",
+          "unit": "types",
+          "correction_key": "connect_distinct_types"
+        }
+      ],
+      "valid_for_ms": 900000
+    }
+  },
+  "video": {
+    "request": {
+      "schema_version": 2,
+      "context_revision": 1,
+      "model_id": "bytedance/seedance-2.5",
+      "duration": 4,
+      "resolution": "480p",
+      "aspect_ratio": "16:9",
+      "size": null,
+      "generate_audio": false,
+      "inference_method": "VR2V",
+      "reference_kinds": [],
+      "reference_count": 0,
+      "source_video_present": false,
+      "media": [],
+      "creativity": null,
+      "upscale_factor": null
+    },
+    "result": {
+      "availability": "UNAVAILABLE",
+      "observed_at": "2026-11-14 11:44:50+00:00",
+      "estimated_cost_usd": null,
+      "provenance": null,
+      "applied_skus": [
+        "video_tokens_with_video_input"
+      ],
+      "reason": "required_inputs_missing",
+      "state": "INVALID",
+      "amount_usd": null,
+      "lower_usd": null,
+      "upper_usd": null,
+      "range_kind": null,
+      "rate_usd": null,
+      "rate_unit": null,
+      "breakdown": [],
+      "assumptions": [],
+      "reason_codes": [
+        "required_inputs_missing"
+      ],
+      "snapshot_hash": null,
+      "rates_hash": "1f23afe2322d079431eeb64fdb7910fc827f286ce7f6351c9ba12e7b511965e1",
+      "rules_version": "ACI-1.0",
+      "context_revision": 1,
+      "planning": null,
+      "precompletion_advisory": {
+        "version": "ACI-PRECOMPLETION-2",
+        "currency": "USD",
+        "scope": "COMPARISON",
+        "display": "RATE_ONLY",
+        "amount_usd": null,
+        "actual_reference_kinds": [],
+        "missing_inputs": [
+          {
+            "kind": "video",
+            "role": "reference",
+            "count": 1
+          }
+        ],
+        "alternatives": [
+          [
+            {
+              "kind": "video",
+              "role": "reference",
+              "count": 1
+            }
+          ]
+        ],
+        "completion_assumptions": [
+          "Hypothetical minimum completion: add 1 VIDEO reference; quantities remain unknown; not executable yet."
+        ],
+        "scenarios": [],
+        "rates": [
+          {
+            "rate_usd": "0.0000064",
+            "rate_unit": "token",
+            "assumption": "Hypothetical minimum completion: add 1 VIDEO reference; quantities remain unknown; not executable yet."
+          }
+        ],
+        "lower_usd": null,
+        "upper_usd": null
+      },
+      "validation_details": [
+        {
+          "code": "reference_shape_not_projected",
+          "scope": "reference_group",
+          "field": "reference_count",
+          "kind": "video",
+          "observed": 0,
+          "bound": 1,
+          "operator": "min",
+          "unit": "references",
+          "correction_key": "add_references"
+        }
+      ],
+      "valid_for_ms": 900000
+    }
+  },
+  "source": {
+    "request": {
+      "schema_version": 2,
+      "context_revision": 1,
+      "model_id": "runway/aleph-2",
+      "duration": null,
+      "resolution": null,
+      "aspect_ratio": "16:9",
+      "size": null,
+      "generate_audio": null,
+      "inference_method": "V2V_EDIT",
+      "reference_kinds": [],
+      "reference_count": 0,
+      "source_video_present": false,
+      "media": [],
+      "creativity": null,
+      "upscale_factor": null
+    },
+    "result": {
+      "availability": "UNAVAILABLE",
+      "observed_at": "2026-11-14 11:44:50+00:00",
+      "estimated_cost_usd": null,
+      "provenance": null,
+      "applied_skus": [
+        "cents_per_second_output",
+        "minimum_cents_per_generation"
+      ],
+      "reason": "required_inputs_missing",
+      "state": "INVALID",
+      "amount_usd": null,
+      "lower_usd": null,
+      "upper_usd": null,
+      "range_kind": null,
+      "rate_usd": null,
+      "rate_unit": null,
+      "breakdown": [],
+      "assumptions": [],
+      "reason_codes": [
+        "required_inputs_missing"
+      ],
+      "snapshot_hash": null,
+      "rates_hash": "b7234dbf06c4c3a7eb83374fe38dc132be25c90d28e8a5481ac86adae7065458",
+      "rules_version": "ACI-1.0",
+      "context_revision": 1,
+      "planning": null,
+      "precompletion_advisory": {
+        "version": "ACI-PRECOMPLETION-2",
+        "currency": "USD",
+        "scope": "COMPONENT",
+        "display": "REFERENCE",
+        "amount_usd": "0.56",
+        "actual_reference_kinds": [],
+        "missing_inputs": [
+          {
+            "kind": "video",
+            "role": "source_video",
+            "count": 1
+          }
+        ],
+        "alternatives": [
+          [
+            {
+              "kind": "video",
+              "role": "source_video",
+              "count": 1
+            }
+          ]
+        ],
+        "completion_assumptions": [
+          "Hypothetical minimum completion: add 1 VIDEO source_video; quantities remain unknown; not executable yet."
+        ],
+        "scenarios": [
+          {
+            "label": "Known cost component",
+            "scope": "COMPONENT",
+            "sku": "minimum_cents_per_generation",
+            "quantity": "1",
+            "quantity_unit": "documented_quantity",
+            "amount_usd": "0.56",
+            "assumption": "Known component only; unestablished input charges are not zero. Hypothetical minimum completion: add 1 VIDEO source_video; quantities remain unknown; not executable yet.",
+            "charges": [],
+            "missing_inputs": [
+              {
+                "kind": "video",
+                "role": "source_video",
+                "count": 1
+              }
+            ]
+          }
+        ],
+        "rates": [
+          {
+            "rate_usd": "0.28",
+            "rate_unit": "s",
+            "assumption": "Hypothetical minimum completion: add 1 VIDEO source_video; quantities remain unknown; not executable yet."
+          }
+        ],
+        "lower_usd": "0.56",
+        "upper_usd": "0.56",
+        "scenario": {
+          "label": "Known cost component",
+          "scope": "COMPONENT",
+          "sku": "minimum_cents_per_generation",
+          "quantity": "1",
+          "quantity_unit": "documented_quantity",
+          "amount_usd": "0.56",
+          "assumption": "Known component only; unestablished input charges are not zero. Hypothetical minimum completion: add 1 VIDEO source_video; quantities remain unknown; not executable yet.",
+          "charges": [],
+          "missing_inputs": [
+            {
+              "kind": "video",
+              "role": "source_video",
+              "count": 1
+            }
+          ]
+        }
+      },
+      "validation_details": [
+        {
+          "code": "required_fixed_media_missing",
+          "scope": "selection",
+          "field": "source_video",
+          "observed": 0,
+          "bound": 1,
+          "operator": "min",
+          "correction_key": "connect_input"
+        }
+      ],
+      "valid_for_ms": 900000
+    }
+  }
+}

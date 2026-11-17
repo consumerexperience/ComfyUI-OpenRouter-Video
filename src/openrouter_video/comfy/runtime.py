@@ -257,17 +257,35 @@ class ProcessRuntime:
                             observation.observed_at,
                             "provider_configuration_pricing_unverified",
                         )
+                    advisory = precompletion_cost_estimate(
+                        model, inputs, observed_at=observation.observed_at
+                    )
+                    if advisory is not None:
+                        advisory_diagnostics: list[dict[str, object]] = []
+                        explicit_v2_cost_input_reason(
+                            model, inputs, diagnostics=advisory_diagnostics
+                        )
+                        missing = (advisory.precompletion_advisory or {}).get("missing_inputs", [])
+                        if isinstance(missing, list):
+                            for item in missing:
+                                if isinstance(item, dict) and item.get("role") != "reference":
+                                    advisory_diagnostics.append(
+                                        dict(
+                                            code="required_fixed_media_missing",
+                                            scope="selection",
+                                            field=item["role"],
+                                            observed=0,
+                                            bound=1,
+                                            operator="min",
+                                            correction_key="connect_input",
+                                        )
+                                    )
+                        return replace(advisory, validation_details=tuple(advisory_diagnostics))
                     diagnostics: list[dict[str, object]] = []
                     explicit_reason = explicit_v2_cost_input_reason(
                         model, inputs, diagnostics=diagnostics
                     )
                     if explicit_reason:
-                        if explicit_reason == "reference_shape_not_projected":
-                            advisory = precompletion_cost_estimate(
-                                model, inputs, observed_at=observation.observed_at
-                            )
-                            if advisory is not None:
-                                return replace(advisory, validation_details=tuple(diagnostics))
                         return replace(
                             EstimateResult.unavailable(
                                 observation.observed_at,

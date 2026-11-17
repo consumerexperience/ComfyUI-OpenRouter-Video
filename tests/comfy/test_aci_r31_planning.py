@@ -534,7 +534,10 @@ def test_incomplete_shape_cannot_mask_other_invalid_intent(change: dict[str, Any
 def test_no_advisory_for_stale_catalogue_or_missing_rates() -> None:
     assert run(seedance_images(1), fresh=False).precompletion_advisory is None
     cap = replace(model("bytedance/seedance-2.5"), pricing_evidence=None)
-    assert run(seedance_images(1), cap=cap).precompletion_advisory is None
+    unknown = run(seedance_images(1), cap=cap)
+    assert unknown.amount_usd is None
+    assert unknown.precompletion_advisory is not None
+    assert unknown.precompletion_advisory["display"] == "UNKNOWN"
 
 
 def test_incomplete_input_with_known_bad_geometry_gets_no_advisory() -> None:
@@ -556,7 +559,11 @@ def test_missing_fixed_frames_are_not_fabricated_for_advisory(method: InferenceM
     body = payload("bytedance/seedance-2.5", method)
     body["media"] = []
     result = run(body)
-    assert result.amount_usd is None and result.precompletion_advisory is None
+    assert result.amount_usd is None
+    assert result.precompletion_advisory is not None
+    assert result.precompletion_advisory["version"] == "ACI-PRECOMPLETION-2"
+    assert result.precompletion_advisory["actual_reference_kinds"] == []
+    assert body["media"] == []  # Hypothetical completion never materializes inputs.
 
 
 def test_accepted_seedance_mixed_witness_keeps_yellow_scenario_semantics() -> None:

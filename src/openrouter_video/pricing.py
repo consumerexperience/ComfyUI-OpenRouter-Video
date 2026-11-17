@@ -10,6 +10,8 @@ from dataclasses import dataclass, replace
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
+from itertools import product
+from typing import Any
 
 from openrouter_video.capabilities import CapabilityModeStatus, mode_enforcement_matrix
 from openrouter_video.local_media import LocalMedia
@@ -891,140 +893,345 @@ def _rate_unit(quantity: str, declared_unit: object) -> str | None:
     return units.get(quantity)
 
 
+def _completion_shapes(
+    profile: Mapping[str, Any], kinds: tuple[str, ...], source_present: bool
+) -> tuple[tuple[str, ...], ...]:
+    """Enumerate minimal documented completions; Core alone admits each shape."""
+    from openrouter_video.configuration import (
+        apply_transport_input_constraints,
+        projected_shape_valid,
+    )
+
+    topology = apply_transport_input_constraints(profile["topology"], source_present)
+    if topology.get("constraint_state", "SUPPORTED") != "SUPPORTED":
+        return ()
+    found: set[tuple[str, ...]] = set()
+    if topology.get("execution_domain") == "VERIFIED_CONFIGURATIONS":
+        for counts in topology.get("verified_configurations", []):
+            if any(kinds.count(k) > counts.get(k, 0) for k in set(kinds)):
+                continue
+            extra = tuple(
+                k
+                for k in ("image", "video", "audio")
+                for _ in range(counts.get(k, 0) - kinds.count(k))
+            )
+            candidate = kinds + extra
+            if projected_shape_valid(profile, candidate, source_present):
+                found.add(candidate)
+    else:
+        for group in topology.get("kind_sets", []):
+            group = tuple(sorted(set(group)))
+            if not set(kinds) <= set(group) or any(
+                k not in {"image", "video", "audio"} for k in group
+            ):
+                continue
+            base = kinds + tuple(
+                k
+                for k in group
+                for _ in range(
+                    max(0, max(1, topology.get("per_kind_min", {}).get(k, 0)) - kinds.count(k))
+                )
+            )
+            remainder = max(0, topology.get("min", 0) - len(base))
+            if len(base) + remainder > 64:
+                continue
+            # Three supported modalities and the existing 64-occurrence envelope
+            # bound this search. No model-specific completion or invented quantity.
+            splits = product(range(remainder + 1), repeat=max(0, len(group) - 1))
+            for head in splits:
+                tail = remainder - sum(head)
+                if tail < 0 or (not group and remainder):
+                    continue
+                counts = (*head, tail) if group else ()
+                candidate = base + tuple(
+                    k for k, count in zip(group, counts, strict=True) for _ in range(count)
+                )
+                if projected_shape_valid(profile, candidate, source_present):
+                    found.add(candidate)
+    # Each modality set retains its minimum completion, not a silently chosen set.
+    return tuple(sorted(found, key=lambda row: (len(row), row)))
+
+
+def _completion_prices(priced: EstimateResult, assumption: str) -> list[dict[str, Any]]:
+    """Adapt existing estimator evidence, preserving material billing caveats."""
+    if priced.state is EstimateState.FORMULA and priced.amount_usd is not None:
+        return [
+            dict(
+                label="Minimum completed configuration",
+                scope="COMPARISON",
+                sku=priced.applied_skus[0] if len(priced.applied_skus) == 1 else "combined_charges",
+                quantity="1",
+                quantity_unit="configuration",
+                amount_usd=format(priced.amount_usd, "f"),
+                assumption=assumption,
+                charges=[
+                    dict(
+                        sku=row.sku,
+                        unit=row.unit,
+                        quantity_unit="documented_quantity",
+                        quantity=format(row.quantity, "f") if row.quantity is not None else None,
+                        rate_usd=format(row.rate_usd, "f"),
+                        amount_usd=format(row.amount_usd, "f")
+                        if row.amount_usd is not None
+                        else None,
+                        relation=row.relation,
+                    )
+                    for row in priced.breakdown
+                ],
+            )
+        ]
+    rows = (priced.planning or {}).get("scenarios", [])
+    result = []
+    if isinstance(rows, list):
+        for row in rows:
+            if not isinstance(row, dict) or not isinstance(row.get("amount_usd"), str):
+                continue
+            if row.get("scope") not in {"COMPARISON", "COMPONENT", "CONDITIONAL_TOTAL"}:
+                continue
+            result.append(
+                dict(
+                    row,
+                    scope="COMPONENT" if row["scope"] == "COMPONENT" else "COMPARISON",
+                    assumption=f"{row.get('assumption', '')} {assumption}".strip(),
+                )
+            )
+    if not result:
+        for row in priced.breakdown:
+            if row.amount_usd is not None:
+                result.append(
+                    dict(
+                        label="Known cost component",
+                        scope="COMPONENT",
+                        sku=row.sku,
+                        quantity=str(row.quantity),
+                        quantity_unit="documented_quantity",
+                        amount_usd=format(row.amount_usd, "f"),
+                        assumption=(
+                            "Known component only; unestablished input charges are not zero. "
+                            f"{assumption}"
+                        ),
+                        charges=[],
+                    )
+                )
+    return result
+
+
 def precompletion_cost_estimate(
     capabilities: ModelCapabilities, inputs: CostEstimateInputs, *, observed_at: datetime
 ) -> EstimateResult | None:
-    """Price an explicitly hypothetical image completion, never executable intent.
+    """Financial-only completion across documented fixed/reference roles.
 
-    The same projected bounds and estimator validate the completion. Unknown
-    time/geometry is never invented; an unresolved total is not promoted to REF.
+    All hypothetical quantities remain UNKNOWN. Strict Core validation, tariff
+    applicability and generation readiness are never relaxed by this advisory.
     """
     from openrouter_video.configuration import (
         configuration_status,
         project_method,
         project_semantic_values,
-        projected_shape_valid,
     )
 
     inputs = canonicalize_cost_metadata(inputs)
-    if inputs.schema_version != 2 or media_inventory_status(inputs) is not None:
+    if inputs.schema_version != 2 or inputs.reference_count != len(inputs.reference_kinds):
         return None
     profile = project_method(capabilities, inputs.inference_method.value)
-    if profile["state"] != "SUPPORTED" or profile["topology"].get("fixed"):
+    if profile["state"] != "SUPPORTED":
         return None
     kinds = tuple(kind.value for kind in inputs.reference_kinds)
-    if projected_shape_valid(profile, kinds, inputs.source_video_present):
+    references = tuple(item for item in inputs.media if item.role == "reference")
+    if tuple(item.kind.value for item in references) != kinds:
         return None
-    maximum = profile["topology"].get("max")
-    ceiling = min(64, maximum) if maximum is not None else 64
-    added = next(
-        (
-            count
-            for count in range(1, max(0, ceiling - len(kinds)) + 1)
-            if projected_shape_valid(
-                profile, kinds + ("image",) * count, inputs.source_video_present
-            )
-        ),
-        None,
-    )
-    if added is None:
-        return None
-    hypothetical = replace(
-        inputs,
-        reference_count=inputs.reference_count + added,
-        reference_kinds=inputs.reference_kinds + (InputReferenceKind.IMAGE,) * added,
-        media=inputs.media
-        + tuple(MediaCostMetadata(kind=InputReferenceKind.IMAGE) for _ in range(added)),
-    )
-    if _invalid_reason(capabilities, hypothetical):
-        return None
-    names = (
-        "duration",
-        "resolution",
-        "aspect_ratio",
-        "size",
-        "generate_audio",
-        "upscale_factor",
-        "creativity",
-    )
-    raw = {name: getattr(hypothetical, name) for name in names}
-    raw["geometry_authority"] = "EXACT" if hypothetical.size else "NORMALIZED"
-    raw["provider_options"] = project_cost_provider_controls(capabilities, hypothetical)
-    try:
-        projected = project_semantic_values(capabilities, inputs.inference_method.value, raw)
-    except ValueError:
-        return None
-    context = dict(
-        raw,
-        inference_method=inputs.inference_method.value,
-        reference_count=hypothetical.reference_count,
-        reference_kinds=[kind.value for kind in hypothetical.reference_kinds],
-        source_video_present=hypothetical.source_video_present,
-    )
-    if (
-        configuration_status(tuple(profile["configuration_relations"]), projected, context)
-        != "READY"
-    ):
-        return None
-    priced = PreflightCostEstimator().estimate(capabilities, hypothetical, observed_at=observed_at)
-    assumption = f"Hypothetical completion: add {added} IMAGE reference(s); not executable yet."
-    amount = format(priced.amount_usd, "f") if priced.amount_usd is not None else None
-    scenario = {
-        "label": "Completed image-reference configuration",
-        "scope": "COMPARISON",
-        "sku": priced.applied_skus[0] if len(priced.applied_skus) == 1 else "combined_charges",
-        "quantity": "1",
-        "quantity_unit": "configuration",
-        "amount_usd": amount,
-        "assumption": assumption,
-        "charges": [
-            {
-                "sku": row.sku,
-                "unit": row.unit,
-                "quantity_unit": "documented_quantity",
-                "quantity": format(row.quantity, "f") if row.quantity is not None else None,
-                "rate_usd": format(row.rate_usd, "f"),
-                "amount_usd": format(row.amount_usd, "f") if row.amount_usd is not None else None,
-                "relation": row.relation,
-            }
-            for row in priced.breakdown
-        ],
+    role_kinds = {
+        "first_frame": InputReferenceKind.IMAGE,
+        "last_frame": InputReferenceKind.IMAGE,
+        "source_video": InputReferenceKind.VIDEO,
+        "audio": InputReferenceKind.AUDIO,
     }
-    if priced.state is not EstimateState.FORMULA or amount is None:
-        plan = priced.planning or {}
-        rows = plan.get("scenarios")
+    required = tuple(profile["topology"].get("fixed", []))
+    if any(role not in role_kinds for role in required):
+        return None
+    fixed = tuple(item for item in inputs.media if item.role != "reference")
+    if any(item.role not in required or item.kind is not role_kinds[item.role] for item in fixed):
+        return None
+    if any(sum(item.role == role for item in fixed) > 1 for role in required):
+        return None
+    # A source-presence flag without an occurrence is missing metadata, not a
+    # missing connection. Never replace it with an assumed financial quantity.
+    if inputs.source_video_present != any(item.role == "source_video" for item in fixed):
+        return None
+    missing_fixed = tuple(role for role in required if not any(item.role == role for item in fixed))
+    source = inputs.source_video_present or "source_video" in missing_fixed
+    shapes = _completion_shapes(profile, kinds, source)
+    if not shapes or (not missing_fixed and kinds in shapes):
+        return None
+    alternatives: list[list[dict[str, object]]] = []
+    scenarios: list[dict[str, Any]] = []
+    rates: list[dict[str, str]] = []
+    assumptions: list[str] = []
+    rates_hash = None
+    skus: set[str] = set()
+    for shape in shapes:
+        added = shape[len(kinds) :]
+        missing = [dict(kind=k, role="reference", count=added.count(k)) for k in sorted(set(added))]
+        missing.extend(
+            dict(kind=role_kinds[role].value, role=role, count=1) for role in missing_fixed
+        )
+        if not missing:
+            continue
+        hypothetical_media = references + tuple(
+            MediaCostMetadata(kind=InputReferenceKind(k)) for k in added
+        )
+        hypothetical_media += tuple(
+            next(
+                (item for item in fixed if item.role == role),
+                MediaCostMetadata(kind=role_kinds[role], role=role),
+            )
+            for role in required
+        )
+        hypothetical_media = tuple(
+            replace(item, occurrence_index=index) if item.status == "HINT" else item
+            for index, item in enumerate(hypothetical_media)
+        )
+        hypothetical = replace(
+            inputs,
+            reference_kinds=tuple(InputReferenceKind(k) for k in shape),
+            reference_count=len(shape),
+            source_video_present=source,
+            media=hypothetical_media,
+        )
+        if _invalid_reason(capabilities, hypothetical) or media_inventory_status(hypothetical):
+            continue
+        raw = {
+            name: getattr(hypothetical, name)
+            for name in (
+                "duration",
+                "resolution",
+                "aspect_ratio",
+                "size",
+                "generate_audio",
+                "upscale_factor",
+                "creativity",
+            )
+        }
+        raw["geometry_authority"] = "EXACT" if hypothetical.size else "NORMALIZED"
+        try:
+            raw["provider_options"] = project_cost_provider_controls(capabilities, hypothetical)
+            projected = project_semantic_values(capabilities, inputs.inference_method.value, raw)
+        except ValueError:
+            continue
+        context = dict(
+            raw,
+            inference_method=inputs.inference_method.value,
+            reference_count=len(shape),
+            reference_kinds=list(shape),
+            source_video_present=source,
+        )
         if (
-            plan.get("version") != "ACI-PLANNING-1"
-            or plan.get("display") != "DETAIL_ONLY"
-            or not isinstance(rows, list)
-            or len(rows) != 1
-            or not isinstance(rows[0], dict)
-            or rows[0].get("scope") not in {"COMPARISON", "COMPONENT"}
-            or not isinstance(rows[0].get("amount_usd"), str)
+            configuration_status(tuple(profile["configuration_relations"]), projected, context)
+            != "READY"
         ):
-            return None
-        scenario = dict(rows[0])
-        amount = rows[0]["amount_usd"]
-        scenario["assumption"] = f"{scenario.get('assumption', '')} {assumption}".strip()
+            continue
+        priced = PreflightCostEstimator().estimate(
+            capabilities, hypothetical, observed_at=observed_at
+        )
+        if priced.state is EstimateState.INVALID:
+            continue
+        if missing_fixed or set(added) != {"image"}:
+            assumption = (
+                "Hypothetical minimum completion: "
+                + ", ".join(
+                    f"add {item['count']} {str(item['kind']).upper()} {item['role']}"
+                    for item in missing
+                )
+                + "; quantities remain unknown; not executable yet."
+            )
+        else:
+            assumption = (
+                f"Hypothetical completion: add {len(added)} IMAGE reference(s); not executable yet."
+            )
+        alternatives.append(missing)
+        assumptions.append(assumption)
+        rows = _completion_prices(priced, assumption)
+        for row in rows:
+            row["missing_inputs"] = missing
+        scenarios.extend(rows)
+        rates_hash = priced.rates_hash or rates_hash
+        skus.update(priced.applied_skus)
+        if priced.rate_usd is not None and priced.rate_unit:
+            rates.append(
+                dict(
+                    rate_usd=format(priced.rate_usd, "f"),
+                    rate_unit=priced.rate_unit,
+                    assumption=assumption,
+                )
+            )
+    if not alternatives:
+        return None
+    result = EstimateResult.unavailable(
+        observed_at,
+        "required_inputs_missing",
+        state=EstimateState.INVALID,
+        context_revision=inputs.context_revision,
+    )
+    # Preserve the externally accepted v1 contract for the unchanged IMAGE-only
+    # case. New roles and alternative completions use an explicit additive v2.
+    legacy = len(alternatives) == len(scenarios) == 1 and all(
+        item["kind"] == "image" and item["role"] == "reference" for item in alternatives[0]
+    )
+    if legacy:
+        scenario = dict(scenarios[0])
+        scenario.pop("missing_inputs", None)
+        return replace(
+            result,
+            rates_hash=rates_hash,
+            applied_skus=tuple(sorted(skus)),
+            precompletion_advisory=dict(
+                version="ACI-PRECOMPLETION-1",
+                currency="USD",
+                scope=scenario["scope"],
+                amount_usd=scenario["amount_usd"],
+                actual_reference_kinds=list(kinds),
+                missing_inputs=alternatives[0],
+                completion_assumptions=assumptions,
+                scenario=scenario,
+            ),
+        )
+    unique_rates = list({(row["rate_usd"], row["rate_unit"]): row for row in rates}.values())
+    amounts = [decimal_value(row["amount_usd"]) for row in scenarios]
+    display = (
+        "REFERENCE"
+        if len(scenarios) == 1
+        else "SCENARIOS"
+        if scenarios
+        else "RATE_ONLY"
+        if unique_rates
+        else "UNKNOWN"
+    )
+    common = [
+        item for item in alternatives[0] if all(item in option for option in alternatives[1:])
+    ]
+    advisory = dict(
+        version="ACI-PRECOMPLETION-2",
+        currency="USD",
+        scope="COMPARISON",
+        display=display,
+        amount_usd=scenarios[0]["amount_usd"] if len(scenarios) == 1 else None,
+        actual_reference_kinds=list(kinds),
+        missing_inputs=common,
+        alternatives=alternatives,
+        completion_assumptions=assumptions,
+        scenarios=scenarios,
+        rates=unique_rates,
+        lower_usd=format(min(amounts), "f") if amounts else None,
+        upper_usd=format(max(amounts), "f") if amounts else None,
+    )
+    if len(scenarios) == 1:
+        advisory["scenario"] = scenarios[0]
+        advisory["scope"] = scenarios[0]["scope"]
     return replace(
-        EstimateResult.unavailable(
-            observed_at,
-            "required_inputs_missing",
-            state=EstimateState.INVALID,
-            context_revision=inputs.context_revision,
-        ),
-        rates_hash=priced.rates_hash,
-        applied_skus=priced.applied_skus,
-        precompletion_advisory={
-            "version": "ACI-PRECOMPLETION-1",
-            "currency": "USD",
-            "scope": scenario["scope"],
-            "amount_usd": amount,
-            "actual_reference_kinds": list(kinds),
-            "missing_inputs": [{"kind": "image", "role": "reference", "count": added}],
-            "completion_assumptions": [assumption],
-            "scenario": scenario,
-        },
+        result,
+        rates_hash=rates_hash,
+        applied_skus=tuple(sorted(skus)),
+        precompletion_advisory=advisory,
     )
 
 

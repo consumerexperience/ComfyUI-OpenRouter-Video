@@ -679,3 +679,13 @@ test("R2 tooltip placement uses measured bounds and closes when its anchor disap
     badge.isConnected=false;c.positionCostTooltip(n,badge);assert.equal(n.__orvCostPopover,null);
     badge.isConnected=true;badge.handlers.focus();assert(n.__orvCostPopover);badge.handlers.blur();assert.equal(n.__orvCostPopover,null);
 });
+
+
+for(const [modelId,method] of [['alibaba/wan-2.6','I2V'],['bytedance/seedance-2.5','FLF2V'],['bytedance/seedance-2.5','VR2V'],['bytedance/seedance-2.0','MMR2V']])test(`Package02 incomplete ${modelId} ${method} sends actual zero inputs`,async()=>{
+ const selected=fixture.models.find(m=>m.model_id===modelId);assert(selected);
+ const {c,n,requests}=harness(selected);n.widgets.find(w=>w.name==='inference_method').value=method;
+ c.reprojectNodeSemantics(n,selected,method,{cause:'method'});
+ const pending=c.refreshEstimate(n);assert.equal(requests.length,1);assert.equal(requests[0].body.inference_method,method);assert.equal(requests[0].body.reference_count,0);assert.deepEqual(requests[0].body.reference_kinds,[]);assert.equal(requests[0].body.source_video_present,false);assert.deepEqual(requests[0].body.media,[]);
+ respond(requests[0],{state:'INVALID',availability:'UNAVAILABLE',reason:'required_inputs_missing'});await pending;
+ assert.equal(n.__orvEstimate.result.state,'INVALID');assert.equal(n.inputs.filter(i=>i.link!=null).length,0);
+});

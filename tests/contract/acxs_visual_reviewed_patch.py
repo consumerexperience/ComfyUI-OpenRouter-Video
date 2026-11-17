@@ -15,6 +15,9 @@ BASE = "bd680c1ae2fdd86651162a744a4ecb42d350735b"
 
 
 def visual_baseline_source(path: str, current: str) -> str:
+    from tests.contract.package02_source_delta import package02_baseline_source
+
+    current = package02_baseline_source(path, current)
     pin = json.loads((ROOT / "tests/fixtures/acxs_visual_source_candidate.json").read_text())
     sha = hashlib.sha256(current.replace("\r\n", "\n").encode()).hexdigest()
     if pin["files"].get(path) != sha:
