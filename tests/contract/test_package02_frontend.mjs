@@ -95,3 +95,11 @@ test('Classic native drag survives the real capture-to-target microtask checkpoi
  assert.equal(n.__orvPreferredWidth,620);assert.equal(n.__orvMasterPromptHeight,height);
  handlers.pointerup();
 });
+
+
+test('Nodes2 native DIV pack badge is hidden with its empty footer, but widget content remains',()=>{
+ const c=context(),footer={textContent:'OpenRouter-Video ',style:{},querySelector:()=>null},leaf={childElementCount:0,textContent:'OpenRouter-Video ',style:{},closest:()=>null,parentElement:footer};
+ const root={querySelectorAll:selector=>selector.includes('div')?[leaf]:[]};footer.parentElement=root;
+ c.suppressPackageBadge({},root);assert.equal(footer.style.display,'none');
+ const inputLeaf={...leaf,closest:()=>({})};footer.style={};root.querySelectorAll=()=>[inputLeaf];c.suppressPackageBadge({},root);assert.equal(footer.style.display,undefined);
+});

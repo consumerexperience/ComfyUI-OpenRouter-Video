@@ -406,7 +406,7 @@ function suppressPackageBadge(node, root = null) {
         wrapped.__orvPackFiltered=true;node.badges[i]=wrapped;
     }
     if (!root?.querySelectorAll) return;
-    for(const leaf of root.querySelectorAll("span")){
+    for(const leaf of root.querySelectorAll("span,div")){
         if(leaf.childElementCount || leaf.textContent?.trim()!=="OpenRouter-Video" || leaf.closest?.('[data-testid="node-widgets"], .lg-node-header'))continue;
         let badge=leaf;
         while(badge.parentElement && badge.parentElement!==root && badge.parentElement.textContent?.trim()==="OpenRouter-Video" && !badge.parentElement.querySelector?.("button,input,textarea"))badge=badge.parentElement;
