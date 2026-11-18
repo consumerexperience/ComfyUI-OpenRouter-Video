@@ -5,7 +5,7 @@ import test from 'node:test';
 const source=readFileSync(new URL('../../web/openrouter_video.js',import.meta.url),'utf8').replace(/^import .*;\r?\n/gm,'');
 const plain=x=>JSON.parse(JSON.stringify(x));
 function context(locale='en') {
- const c={app:{registerExtension(){},ui:{settings:{getSettingValue:k=>k==='Comfy.Locale'?locale:false}}},api:{}};
+ const c={app:{registerExtension(){},ui:{settings:{getSettingValue:k=>k==='Comfy.Locale'?locale:false}}},api:{},document:{querySelectorAll:()=>[]}};
  c.ComfyWidgets={STRING(n,name,info){const w=n.addWidget('customtext',name,info[1].default,null,{multiline:true});w.element={style:{}};return {widget:w};}};
  vm.runInNewContext(source,c);return c;
 }
@@ -116,10 +116,10 @@ test('horizontal-only Classic gesture cannot promote a temporary N-field minimum
  const c=context(),handlers={};let n;c.app.canvas={canvas:{addEventListener:(key,fn)=>handlers[key]=fn},graph:{getNodeById:()=>n}};const microtasks=[];c.queueMicrotask=fn=>microtasks.push(fn);
  n=node(c);n.id=1;n.findResizeDirection=()=> 'SE';n.__orvMasterPromptHeight=70;
  project(c,n,profile({negative:{type:'string',text_semantic:'negative_prompt'}}));c.fitPresentationWidth(n);const originalHeight=n.size[1];
- handlers.pointerdown({isTrusted:true,button:0,canvasX:0,canvasY:0,pointerId:1});
- const e={isTrusted:true,pointerId:1};handlers.pointermove(e);c.app.canvas.pointer={eMove:e};n.size=[620,originalHeight];n.onResize(n.size);
+ c.app.canvas.pointer={onDrag:()=>n.onResize(n.size)};handlers.pointerdown({isTrusted:true,button:0,canvasX:0,canvasY:0,pointerId:1});
+ const e={isTrusted:true,pointerId:1};handlers.pointermove(e);c.app.canvas.pointer.eMove=e;n.size=[620,originalHeight];c.app.canvas.pointer.onDrag(e);
  assert.equal(n.__orvMasterPromptHeight,70);assert.equal(n.__orvPreferredWidth,620);
- project(c,n,{controls:{}});assert.equal(c.textRegionGeometry(n).budget,70);microtasks.shift()();
+ project(c,n,{controls:{}});assert.equal(c.textRegionGeometry(n).budget,70);while(microtasks.length)microtasks.shift()();
 });
 
 test('native multiline minima retain independent master height and release additive allocation on hide',()=>{

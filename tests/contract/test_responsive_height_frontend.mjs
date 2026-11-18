@@ -5,7 +5,7 @@ import {execFileSync} from 'node:child_process';
 import vm from 'node:vm';
 import test from 'node:test';
 const source=readFileSync(new URL('../../web/openrouter_video.js',import.meta.url),'utf8').replace(/^import .*;\r?\n/gm,'');
-const c={app:{registerExtension(){}},api:{}};vm.runInNewContext(source,c);
+const c={app:{registerExtension(){}},api:{},document:{querySelectorAll:()=>[]}};vm.runInNewContext(source,c);
 function fixture(savedHeight=400){
  const n={size:[400,savedHeight],socketHeight:148,widgets:['model','inference_method','prompt','resolution','aspect_ratio','duration','seed','generate_audio','size','randomize'].map(name=>({name,value:name==='prompt'?'line one\nline two':null,hidden:false})),computeSize(){return [400,this.socketHeight+this.widgets.reduce((sum,w)=>sum+w.computeSize()[1]+4,0)+8];},setSize(size){this.size=size;this.__orvUserResizeActive=true;this.__orvCommitResizeIntent?.(size[0],size[1]);this.onResize?.(size);this.__orvUserResizeActive=false;}};
  c.sizePrimaryControls(n);c.installResponsiveHeight(n);c.fitPresentationWidth(n);return n;
@@ -71,11 +71,11 @@ test('final review interleaved callbacks during a gesture cannot own persistent 
  c.queueMicrotask=fn=>microtasks.push(fn);
  c.app.canvas={canvas:{addEventListener:(name,fn)=>callbacks[name]=fn,removeEventListener(){}},graph:{getNodeById:()=>n}};
  n=fixture(800);n.id=1;n.findResizeDirection=()=> 'SE';n.__orvUserResizeActive=true;
- callbacks.pointerdown({isTrusted:true,button:0,canvasX:10,canvasY:20,pointerId:1});
- const event={isTrusted:true,canvasX:20,canvasY:30,pointerId:1};callbacks.pointermove(event);c.app.canvas.pointer={eMove:event};
- n.size=[610,900];n.onResize(n.size);const extra=n.__orvMasterPromptHeight;
+ c.app.canvas.pointer={onDrag:()=>n.onResize(n.size)};callbacks.pointerdown({isTrusted:true,button:0,canvasX:10,canvasY:20,pointerId:1});
+ const event={isTrusted:true,canvasX:20,canvasY:30,pointerId:1};callbacks.pointermove(event);c.app.canvas.pointer.eMove=event;
+ n.size=[610,900];c.app.canvas.pointer.onDrag(event);const extra=n.__orvMasterPromptHeight;
  n.size=[999,1900];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvMasterPromptHeight,extra);
- microtasks.shift()();n.size=[888,1800];n.onResize(n.size);
+ while(microtasks.length)microtasks.shift()();n.size=[888,1800];n.onResize(n.size);
  assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvMasterPromptHeight,extra);
  c.app.canvas=undefined;
 });

@@ -26,9 +26,9 @@ test('Classic trusted native capture keeps handle ownership and isolates deferre
  c.app.canvas={canvas,graph:{getNodeById:()=>n},convertEventToCanvasOffset:()=>[77,88],pointer:{}};
  n={id:3,pos:[11,12],size:[400,600],widgets:[{name:'prompt',value:'saved',options:{}}],findResizeDirection:(x,y)=>{assert.deepEqual([x,y],[77,88]);return 'SE';},computeSize:()=>[400,300],setDirtyCanvas(){}};
  c.sizePrimaryControls(n);c.installResponsiveHeight(n);c.fitPresentationWidth(n);
- assert.equal(phases.pointerdown,true);assert.equal(phases.pointermove,true);handlers.pointerdown({isTrusted:true,button:0,pointerId:8});
+ assert.equal(phases.pointerdown,true);assert.equal(phases.pointermove,true);c.app.canvas.pointer.onDrag=e=>n.onResize(n.size);handlers.pointerdown({isTrusted:true,button:0,pointerId:8});
  for(const [width,height] of [[610,900],[450,700],[320,300],[610,920]]){
-  const e={isTrusted:true,pointerId:8};handlers.pointermove(e);c.app.canvas.pointer.eMove=e;n.size=[width,height];n.onResize(n.size);
+  const e={isTrusted:true,pointerId:8};handlers.pointermove(e);c.app.canvas.pointer.eMove=e;n.size=[width,height];c.app.canvas.pointer.onDrag(e);
   assert.equal(n.__orvPreferredWidth,width);const budget=n.__orvMasterPromptHeight;
   n.size=[999,1999];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,width);assert.equal(n.__orvMasterPromptHeight,budget);
   while(micro.length)micro.shift()();while(frames.length)frames.shift()();
@@ -76,4 +76,22 @@ for(const mutation of ['null_missing','null_alternative','negative_rate','invali
  if(mutation==='negative_rate'){a.display='RATE_ONLY';a.scenarios=[];a.amount_usd=null;a.rates=[{rate_usd:'-1',rate_unit:'s',assumption:'invalid'}];}
  if(mutation==='invalid_scope')a.scope='TOTAL';if(mutation==='primary_total')r.amount_usd='1';if(mutation==='hard_invalid')r.reason='media_duration_exceeds_limit';if(mutation==='stale')r.valid_for_ms=0;if(mutation==='no_rates_hash')r.rates_hash=null;
  assert.doesNotThrow(()=>c.costPrecompletionAdvisory(r));assert.equal(c.costPrecompletionAdvisory(r),null);
+});
+
+
+test('Classic native drag survives the real capture-to-target microtask checkpoint and rejects deferred notifications',()=>{
+ const handlers={},micro=[];let n;
+ const c=context({queueMicrotask:fn=>micro.push(fn),requestAnimationFrame:()=>1});
+ c.app.canvas={canvas:{addEventListener:(name,fn)=>handlers[name]=fn,removeEventListener(){}},graph:{getNodeById:()=>n},convertEventToCanvasOffset:()=>[390,590],pointer:{}};
+ n={id:5,size:[400,600],widgets:[{name:'prompt',options:{}}],computeSize:()=>[400,300],findResizeDirection:()=> 'SE'};
+ c.sizePrimaryControls(n);c.installResponsiveHeight(n);c.fitPresentationWidth(n);
+ c.app.canvas.pointer.onDrag=e=>{n.size=[620,900];n.onResize(n.size);};
+ handlers.pointerdown({isTrusted:true,button:0,pointerId:9});
+ const e={isTrusted:true,pointerId:9};handlers.pointermove(e);
+ // Browsers run a microtask checkpoint after each listener, before the native bubble handler.
+ while(micro.length)micro.shift()();c.app.canvas.pointer.eMove=e;c.app.canvas.pointer.onDrag(e);
+ assert.equal(n.__orvPreferredWidth,620);
+ const height=n.__orvMasterPromptHeight;n.size=[999,1999];n.onResize(n.size);
+ assert.equal(n.__orvPreferredWidth,620);assert.equal(n.__orvMasterPromptHeight,height);
+ handlers.pointerup();
 });

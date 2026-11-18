@@ -724,7 +724,7 @@ function installResponsiveHeight(node) {
     };
     const canvas=app.canvas?.canvas;
     if (canvas?.addEventListener) {
-        let origin=null;
+        let origin=null, nativeDrag=null, ownedDrag=null;
         const start=event=>{
             if (!event.isTrusted || event.button!==0 || app.canvas?.read_only || node.flags?.pinned || node.resizable===false || app.canvas?.graph?.getNodeById?.(node.id)!==node) return;
             const point=Number.isFinite(event.canvasX) && Number.isFinite(event.canvasY) ? [event.canvasX,event.canvasY] : app.canvas.convertEventToCanvasOffset?.(event);
@@ -732,16 +732,28 @@ function installResponsiveHeight(node) {
             const corner=node.findResizeDirection?.(point[0],point[1]);
             if (!["SE","SW","NE","NW"].includes(corner) ) return;
             origin={x:point[0],y:point[1],width:node.size[0],height:node.size[1],corner,id:event.pointerId,budget:textRegionGeometry(node).budget};
+            const pointer=app.canvas?.pointer;
+            if (typeof pointer?.onDrag!=="function") { origin=null; return; }
+            nativeDrag=pointer.onDrag;
+            ownedDrag=function(event){
+                if (!origin || !event.isTrusted || event.pointerId!==origin.id) return nativeDrag?.call(this,event);
+                // Authority exists only on the synchronous native drag stack.
+                // A capture-listener microtask is too early: it runs before the
+                // native target listener. Deferred callbacks must stay excluded.
+                const dispatch={event,used:false,height:origin.height,budget:origin.budget};
+                node.__orvResizeDispatch=dispatch;
+                try { return nativeDrag.call(this,event); }
+                finally { if(node.__orvResizeDispatch===dispatch)delete node.__orvResizeDispatch; }
+            };
+            pointer.onDrag=ownedDrag;
             node.__orvUserResizeActive=true;
         };
-        const move=event=>{
-            if (!origin || !event.isTrusted || event.pointerId!==origin.id) return;
-            const dispatch={event,used:false,height:origin.height,budget:origin.budget};node.__orvResizeDispatch=dispatch;
-            // Capture runs before the native drag handler; clear before any
-            // deferred callback, even if native propagation stops early.
-            queueMicrotask(()=>{if(node.__orvResizeDispatch===dispatch)delete node.__orvResizeDispatch;});
+        const move=()=>{};
+        const end=()=>{
+            if(app.canvas?.pointer?.onDrag===ownedDrag)app.canvas.pointer.onDrag=nativeDrag;
+            origin=null;nativeDrag=null;ownedDrag=null;
+            delete node.__orvResizeDispatch;delete node.__orvLiveSize;delete node.__orvLivePromptHeight;node.__orvUserResizeActive=false;
         };
-        const end=()=>{origin=null;delete node.__orvResizeDispatch;delete node.__orvLiveSize;delete node.__orvLivePromptHeight;node.__orvUserResizeActive=false;};
         canvas.addEventListener("pointerdown",start,true);canvas.addEventListener("pointermove",move,true);
         canvas.addEventListener("pointerup",end);canvas.addEventListener("pointercancel",end);
         const removed=node.onRemoved;
