@@ -324,10 +324,13 @@ function installNodeTypography(node) {
     }
     for(const item of node.widgets || []){
         if(item.element?.style)Object.assign(item.element.style,{fontFamily:token.family,fontWeight:"400",lineHeight:"18px"});
-        if(typeof item.draw!=="function" || item.__orvTypographyInstalled)continue;
-        const draw=item.draw;item.__orvTypographyInstalled=true;
-        item.draw=function(ctx,...args){ctx.save();ctx.font=`${token.weight} ${token.size}px ${token.family}`;ctx.textBaseline="alphabetic";
-            try{return draw.call(this,ctx,...args);}finally{ctx.restore();}};
+        for(const method of ["draw","drawWidget"]){
+            const marker=`__orvTypography_${method}`;
+            if(typeof item[method]!=="function" || item[marker])continue;
+            const draw=item[method];item[marker]=true;
+            item[method]=function(ctx,...args){ctx.save();ctx.font=`${token.weight} ${token.size}px ${token.family}`;ctx.textBaseline="alphabetic";
+                try{return draw.call(this,ctx,...args);}finally{ctx.restore();}};
+        }
     }
 }
 

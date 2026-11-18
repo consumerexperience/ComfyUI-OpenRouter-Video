@@ -134,3 +134,13 @@ test('native Canvas body and title getters retain hierarchy with explicit sans f
  assert.equal(n.innerFontStyle,`normal 12px ${c.nodeTypography(n).family}`);assert.equal(n.titleFontStyle,`14px ${c.nodeTypography(n).family}`);assert.equal(other.innerFontStyle,'normal 12px Inter');assert.equal(other.titleFontStyle,'14px Inter');
  const before=n.innerFontStyle;c.installNodeTypography(n);assert.equal(n.innerFontStyle,before);
 });
+
+
+test('native drawWidget path receives scoped sans typography and restores inherited Canvas state',()=>{
+ const {c}=harness('ru');let observed;
+ const w={name:'native_slider',drawWidget(ctx){observed=ctx.font;},options:{}};
+ const n={widgets:[w],innerFontStyle:'normal 12px Inter',titleFontStyle:'14px Inter'};
+ const ctx={font:'10px serif',textBaseline:'top',save(){this.saved=[this.font,this.textBaseline];},restore(){[this.font,this.textBaseline]=this.saved;}};
+ c.installNodeTypography(n);const draw=w.drawWidget;c.installNodeTypography(n);assert.equal(w.drawWidget,draw);
+ w.drawWidget(ctx,{});assert.match(observed,/12px .*sans-serif/);assert.equal(ctx.font,'10px serif');assert.equal(ctx.textBaseline,'top');
+});
