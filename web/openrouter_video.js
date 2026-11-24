@@ -1034,7 +1034,8 @@ function syncBetaPresentation(node) {
                 const regionHeight=fields.length ? fields.reduce((sum,row)=>sum+row.getBoundingClientRect().height/scale,0)+Math.max(0,fields.length-1)*COMPACT_LAYOUT.gap : textRegionGeometry(node,node.__orvNativeTextMinimum).budget;
                 origin={height:node.size[1],totalHeight:rect.height/scale,regionHeight,budget:textRegionGeometry(node).budget,id:event.pointerId};
                 node.__orvUserResizeActive = true;
-                syncBetaPresentation(node);
+                // Native startResize must measure the unchanged start rectangle.
+                // Switching the grid to flex here would move its drag origin.
             }
         };
         const move = event => {
@@ -1073,6 +1074,7 @@ function syncBetaPresentation(node) {
             moveTarget?.removeEventListener?.("pointermove",move);
             moveTarget=root.ownerDocument?.defaultView || root;
             moveTarget.addEventListener("pointermove",move);
+            syncBetaPresentation(node);
         };
         const finish = () => {
             moveTarget?.removeEventListener?.("pointermove",move);moveTarget=null;

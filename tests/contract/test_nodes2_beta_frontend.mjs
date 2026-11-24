@@ -58,7 +58,7 @@ test('PUX03 v1.1 native resize gesture is explicit; untrusted/layout events do n
  n.size=[400,800];n.computeSize=()=>[320,400];c.installResponsiveHeight(n);c.syncBetaPresentation(n);const initialBudget=n.__orvMasterPromptHeight;
  handlers.pointerdown({isTrusted:false,button:0,target:{closest:()=>({})}});assert(!n.__orvUserResizeActive);
  handlers.pointerdown({isTrusted:true,button:0,target:{closest:()=>null}});assert(!n.__orvUserResizeActive);
- handlers.pointerdown({isTrusted:true,button:0,clientX:0,clientY:0,pointerId:1,target:{closest:()=>({dataset:{corner:'SE'}})}});assert.equal(n.__orvUserResizeActive,true);
+ handlers.pointerdown({isTrusted:true,button:0,clientX:0,clientY:0,pointerId:1,target:{closest:()=>({dataset:{corner:'SE'}})}});assert.equal(n.__orvUserResizeActive,true);handlers.gotpointercapture({isTrusted:true,pointerId:1});
  assert(grid.style.gridTemplateRows.includes('minmax(42px, 1fr)'));assert.equal(grid.style.flex,'1 1 auto');
  handlers.gotpointercapture({isTrusted:true,pointerId:1});handlers.pointermove({isTrusted:true,pointerId:1});microtasks.shift()();n.size=[777,1777];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvMasterPromptHeight,initialBudget+100);n.size=[555,1400];handlers.lostpointercapture();while(frames.length)frames.shift()();
  assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvMasterPromptHeight,initialBudget+100);assert.equal(n.__orvUserResizeActive,false);
@@ -162,4 +162,16 @@ test('Vue native window drag is observed after its write, not the root capture m
  assert.equal(n.__orvPreferredWidth,620);assert.equal(n.__orvMasterPromptHeight,before+200);
  const saved=n.__orvMasterPromptHeight;width=999;height=1999;n.onResize([999,1999]);assert.equal(n.__orvMasterPromptHeight,saved);
  handlers.lostpointercapture();assert.equal(windowHandlers.pointermove,undefined);assert.equal(n.__orvUserResizeActive,false);
+});
+
+
+test('Vue pointerdown preserves the native starting rectangle until capture',()=>{
+ const {c,n,grid}=domFixture(),root=c.document.querySelectorAll()[0],handlers={};
+ root.style={};root.getBoundingClientRect=()=>({width:400,height:grid.style.flex==='1 1 auto'?600:830});
+ root.addEventListener=(name,fn)=>handlers[name]=fn;root.removeEventListener=()=>{};
+ n.size=[400,800];n.computeSize=()=>[320,400];c.installResponsiveHeight(n);c.syncBetaPresentation(n);
+ handlers.pointerdown({isTrusted:true,button:0,clientX:0,clientY:0,pointerId:1,target:{closest:()=>({dataset:{corner:'SE'}})}});
+ // Native startResize records getBoundingClientRect after root capture.
+ assert.equal(root.getBoundingClientRect().height,830);
+ handlers.gotpointercapture({isTrusted:true,pointerId:1});assert.equal(grid.style.flex,'1 1 auto');
 });
