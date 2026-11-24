@@ -3543,10 +3543,10 @@ function costTooltipView(node) {
     const chosenMethod = widget(node, "inference_method")?.value;
     const method = METHODS.includes(chosenMethod) ? chosenMethod : "";
     const selectedDuration = widget(node, "duration")?.value;
-    const duration = reference && !precompletion ? (reference.quantity_unit === "s" ? reference.quantity : null) : selectedDuration;
+    const duration = reference && !precompletion && reference.source!=="APPLICABLE_BREAKDOWN" ? (reference.quantity_unit === "s" ? reference.quantity : null) : selectedDuration;
     const resolution = widget(node, "resolution")?.value;
     const referenceTier = reference && reference.sku?.endsWith(`_${resolution}`);
-    const geometry = reference && !precompletion ? (referenceTier ? resolution : null) :
+    const geometry = reference && !precompletion && reference.source!=="APPLICABLE_BREAKDOWN" ? (referenceTier ? resolution : null) :
         geometryAuthority(node) === "EXACT" ? widget(node, "size")?.value : [resolution, widget(node, "aspect_ratio")?.value].filter(Boolean).join(" · ");
     const context = [geometry, duration === -1 ? costText("automatic") : duration != null && /^\d+(\.\d+)?$/.test(String(duration)) ? `${String(duration).replace(".", costLocale() === "ru" ? "," : ".")}${costText("seconds")}` : null].filter(Boolean).join(" · ");
     const withAudio = reference && /^duration_seconds_with_audio_/.test(reference.sku || "");
