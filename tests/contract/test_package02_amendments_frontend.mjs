@@ -144,3 +144,20 @@ test('native drawWidget path receives scoped sans typography and restores inheri
  c.installNodeTypography(n);const draw=w.drawWidget;c.installNodeTypography(n);assert.equal(w.drawWidget,draw);
  w.drawWidget(ctx,{});assert.match(observed,/12px .*sans-serif/);assert.equal(ctx.font,'10px serif');assert.equal(ctx.textBaseline,'top');
 });
+
+
+for(const locale of ['en','ru'])test(`named restore wins over stale active provider bank after native recreation ${locale}`,()=>{
+ const {c,n}=harness(locale);const key='heygen/avatar-iv|IR2V',other='heygen/avatar-iv|AVATAR_AUDIO';
+ const provider=JSON.stringify([{provider:'heygen',key:'voice_id',value:'saved-voice'},{provider:'heygen',key:'motion_prompt',value:'saved motion'},{provider:'heygen',key:'remove_background',value:false},{provider:'heygen',key:'voice_settings',path:['pitch'],value:0}]);
+ n.widgets.push({name:'model',value:'heygen/avatar-iv'},{name:'inference_method',value:'IR2V'});
+ n.properties.orv_capability_intent={controls:{[key]:{provider_options:''},[other]:{provider_options:'preserve-other-method'}},media:[],methods:{}};
+ delete n.__orvProjectedKey;
+ assert(c.restorePhase10NamedValues(n,{model:'heygen/avatar-iv',inference_method:'IR2V',provider_options:provider,prompt:'saved speech'}));
+ c.scopedCapability=()=>({supported_sizes:[],supports_seed:false,__methodProfile:avatar.method_profiles.IR2V});
+ c.configureReferenceTopology=()=>{};c.configureGenerationConfiguration=()=>{};
+ c.reprojectNodeSemantics(n,{model_id:'heygen/avatar-iv'},'IR2V',{cause:'catalogue'});
+ assert.equal(n.widgets.find(w=>w.name==='provider_options').value,provider);
+ assert.equal(get(n,'motion_prompt').value,'saved motion');assert.equal(get(n,'voice_id').value,'saved-voice');
+ assert.equal(get(n,'remove_background').__orvProviderAuto,false);assert.equal(get(n,'voice_settings:pitch').value,0);
+ assert.equal(n.properties.orv_capability_intent.controls[other].provider_options,'preserve-other-method');
+});

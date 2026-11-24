@@ -1350,6 +1350,19 @@ function restorePhase10NamedValues(node, namedValues) {
     if (control && Object.hasOwn(namedValues, control.name)) {
         control.value = namedValues[control.name];
     }
+    if (typeof namedValues.model === "string" && namedValues.model !== SELECT_MODEL && METHODS.includes(namedValues.inference_method)) {
+        // The serialized active values are newer than the parked method bank.
+        // Native node recreation must not reapply that stale bank over them.
+        const key=`${namedValues.model}|${namedValues.inference_method}`;
+        const intent=capabilityIntent(node);
+        intent.controls ||= {};
+        const current={...(intent.controls[key] || {})};
+        for (const name of ["resolution","aspect_ratio","duration","size","seed","generate_audio","geometry_authority","previous_job_id","upscale_factor","creativity","provider_options"]) {
+            if (Object.hasOwn(namedValues,name)) current[name]=namedValues[name];
+        }
+        intent.controls[key]=current;
+        node.__orvProjectedKey=key;
+    }
     return true;
 }
 
