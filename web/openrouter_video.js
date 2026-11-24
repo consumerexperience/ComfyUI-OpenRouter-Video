@@ -530,7 +530,7 @@ function orderPresentationWidgets(node) {
     // sockets and place advanced-only controls below their disclosure. Saved
     // positional values from the prior order are restored by name on configure.
     const control = (node.widgets || []).find((item) =>
-        /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`),
+        (item.name === "randomize" || /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`)),
     );
     const leading = [
         node.__orvSummary,
@@ -568,7 +568,7 @@ function installSemanticSerialization(node) {
         const names=["model","inference_method","prompt","resolution","aspect_ratio","duration","size","seed","generate_audio","first_frame_url","last_frame_url","geometry_authority","previous_job_id","upscale_factor","creativity","provider_options"];
         const named={...(data.widgets_values_named || {})};
         for(const name of names){const item=widget(this,name);if(item)named[name]=item.value;}
-        const control=(this.widgets || []).find(item=>/control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`));
+        const control=(this.widgets || []).find(item=>(item.name === "randomize" || /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`)));
         if(control)named[control.name]=control.value;
         data.widgets_values_named=named;
         return result;
@@ -653,7 +653,7 @@ function syncAdvancedControls(node) {
     setVisible(widget(node, "geometry_authority"), false);
     let changed = false;
     for (const item of node.widgets || []) {
-        if (/control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`)) {
+        if ((item.name === "randomize" || /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`))) {
             item.options ||= {};
             Object.assign(item.options, { advanced: false });
             // Native Beta normally embeds this local control in the Seed row.
@@ -1271,7 +1271,7 @@ function restorePhase8RemoteOptionsValues(node, serializedValues) {
         }
     }
     const seedMode = (node.widgets || []).find((item) =>
-        /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`),
+        (item.name === "randomize" || /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`)),
     );
     if (seedMode && typeof serializedValues[9] === "string") {
         seedMode.value = serializedValues[9];
@@ -1321,7 +1321,7 @@ function restorePhase10Values(node, serializedValues) {
         if (item && index < serializedValues.length) item.value = serializedValues[index];
     }
     const control = (node.widgets || []).find((item) =>
-        /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`),
+        (item.name === "randomize" || /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`)),
     );
     const controlIndex = previousOrder ? 8 : 11;
     if (control && controlIndex < serializedValues.length) {
@@ -1345,7 +1345,7 @@ function restorePhase10NamedValues(node, namedValues) {
         }
     }
     const control = (node.widgets || []).find((item) =>
-        /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`),
+        (item.name === "randomize" || /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`)),
     );
     if (control && Object.hasOwn(namedValues, control.name)) {
         control.value = namedValues[control.name];

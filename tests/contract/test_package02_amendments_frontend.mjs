@@ -161,3 +161,12 @@ for(const locale of ['en','ru'])test(`named restore wins over stale active provi
  assert.equal(get(n,'remove_background').__orvProviderAuto,false);assert.equal(get(n,'voice_settings:pitch').value,0);
  assert.equal(n.properties.orv_capability_intent.controls[other].provider_options,'preserve-other-method');
 });
+
+
+test('native randomize identity survives translated labels and positional false',()=>{
+ const {c,n}=harness('ru');const mode={name:'randomize',label:'управление после генерации',value:'increment',options:{}};
+ n.widgets.push({name:'model',value:'heygen/avatar-iv'},{name:'inference_method',value:'IR2V'},mode);
+ c.installSemanticSerialization(n);const data={};n.onSerialize(data);assert.equal(data.widgets_values_named.randomize,'increment');
+ mode.value=false;c.restorePhase10NamedValues(n,data.widgets_values_named);assert.equal(mode.value,'increment');
+ const before=n.widgets;c.orderPresentationWidgets(n);assert.equal(n.widgets,before);assert.equal(mode.value,'increment');
+});
