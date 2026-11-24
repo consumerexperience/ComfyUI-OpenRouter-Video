@@ -116,3 +116,16 @@ for(const locale of ['en','ru'])test(`known partial component remains visible wi
   assert.equal(c.costAdvisoryComparison(bad),null,change);
  }
 });
+
+for(const nested of [false,true])test(`Nodes2 readonly duration preserves native label and restores input layout nested=${nested}`,()=>{
+ const el=(kind='')=>({kind,style:{},children:[],setAttribute(){},append(...nodes){for(const n of nodes){n.parentElement=this;this.children.push(n);}},contains(n){return this===n||this.children.some(c=>c.contains(n));},remove(){this.parentElement.children=this.parentElement.children.filter(c=>c!==this);},querySelector(selector){const all=[];const walk=n=>{all.push(n);n.children.forEach(walk);};this.children.forEach(walk);return all.find(n=>selector==='input'?n.kind==='input':selector==='.orv-duration-readonly'?n.className==='orv-duration-readonly':selector==='[data-testid="widget-layout-field-label"]'?n.kind==='label':false)||null;}});
+ const input=el('input');input.getAttribute=()=> 'duration';const label=el('label');label.textContent='Длительность';
+ const field=el(),cell=el(),row=el();field.append(input);
+ if(nested){cell.append(label,field);row.append(cell);}else{cell.append(input);row.append(label,cell);}
+ const c=context({document:{createElement:()=>el()}}),item={name:'duration',value:8,options:{read_only:true},__orvDurationAdapter:true,__orvDurationPresentation:'FIXED'},node={widgets:[item]},root={};
+ c.syncReadOnlyDurationRow(node,root,row);const display=row.querySelector('.orv-duration-readonly');
+ assert(display);assert.notEqual(label.style.display,'none');assert.notEqual((nested?cell:row).style.display,'none');
+ assert.equal((nested?field:cell).style.display,'none');assert.equal(display.parentElement,nested?cell:row);assert.equal(display.style.gridColumn,nested?'2 / -1':'3 / -1');
+ assert.equal(display.children[0].textContent,'8 s');c.syncReadOnlyDurationRow(node,root,row);assert.equal(row.querySelector('.orv-duration-readonly'),display);
+ item.options.read_only=false;c.syncReadOnlyDurationRow(node,root,row);assert.equal((nested?field:cell).style.display,'');assert.equal(row.querySelector('.orv-duration-readonly'),null);assert.equal(input.value,undefined);assert.equal(item.value,8);
+});

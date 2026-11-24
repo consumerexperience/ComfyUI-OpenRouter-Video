@@ -1670,7 +1670,11 @@ function syncReadOnlyDurationRow(node, root, row) {
     const item = widget(node,name);
     if (!item || !(item.__orvDurationAdapter || item.__orvFixedValue)) return;
     let display = row.querySelector(".orv-duration-readonly");
-    const cell = [...(row.children || [])].find(child => child.contains?.(input));
+    const container = [...(row.children || [])].find(child => child.contains?.(input));
+    // Native Vue widgets can group the label and input in one subgrid.
+    // Hide only the input region so the native label keeps its own column.
+    const nestedLabel = container?.querySelector('[data-testid="widget-layout-field-label"]');
+    const cell = nestedLabel ? [...(container.children || [])].find(child => child.contains?.(input)) : container;
     if (!cell) return;
     if (!item.options?.read_only) {
         if (cell.__orvOriginalDisplay !== undefined) cell.style.display = cell.__orvOriginalDisplay;
@@ -1683,10 +1687,10 @@ function syncReadOnlyDurationRow(node, root, row) {
     if (!display) {
         display = document.createElement("div"); display.className = "orv-duration-readonly";
         display.setAttribute("role","status");
-        Object.assign(display.style,{gridColumn:"3 / -1",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"4px",minWidth:"0",minHeight:"28px",padding:"0 12px",borderRadius:"6px",background:"var(--component-node-widget-background, #303435)",color:"var(--component-node-foreground, #ddd)",font:"inherit"});
+        Object.assign(display.style,{gridColumn:nestedLabel?"2 / -1":"3 / -1",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"4px",minWidth:"0",minHeight:"28px",padding:"0 12px",borderRadius:"6px",background:"var(--component-node-widget-background, #303435)",color:"var(--component-node-foreground, #ddd)",font:"inherit"});
         const value = document.createElement("span"), state = document.createElement("span");
         Object.assign(state.style,{fontSize:"11px",padding:"1px 6px",borderRadius:"4px",background:"rgba(127,127,127,0.16)",whiteSpace:"nowrap"});
-        display.append(value,state); row.append(display);
+        display.append(value,state); (nestedLabel?container:row).append(display);
     }
     if (typeof getComputedStyle === "function") {
         const native = getComputedStyle(input);
