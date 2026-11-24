@@ -1023,7 +1023,7 @@ function syncBetaPresentation(node) {
         };
         root.style && (root.style.minWidth = "320px");
         root.__orvGeometryOwner = node;
-        let origin=null;
+        let origin=null, moveTarget=null;
         const start = event => {
             if (event.isTrusted && event.button === 0 && event.target?.closest?.('[data-corner]')) {
                 const corner=event.target.closest('[data-corner]').dataset?.corner;
@@ -1040,13 +1040,15 @@ function syncBetaPresentation(node) {
         const move = event => {
             if (!origin || !event.isTrusted || event.pointerId!==origin.id || root.__orvGeometryOwner!==node) return;
             const intent=origin;
+            // useNodeResize writes on window bubble. Sample synchronously after
+            // that native listener, before unrelated deferred notifications.
+            const width=parseFloat(root.style?.getPropertyValue?.("--node-width"));
+            const height=parseFloat(root.style?.getPropertyValue?.("--node-height"));
             queueMicrotask(()=>{
                 if (origin!==intent || root.__orvGeometryOwner!==node) return;
                 // Native pointer handler writes these CSS dimensions in this
                 // trusted dispatch (including its snapping/minimum rules).
                 // onResize notifications and mutable node.size are not evidence.
-                const width=parseFloat(root.style?.getPropertyValue?.("--node-width"));
-                const height=parseFloat(root.style?.getPropertyValue?.("--node-height"));
                 if (Number.isFinite(width) && Number.isFinite(height)) {
                     const delta=height-intent.totalHeight;
                     node.__orvCommitResizeIntent?.(width,intent.height+delta,Math.abs(delta)<0.01 ? intent.budget : intent.regionHeight+delta);
@@ -1064,7 +1066,16 @@ function syncBetaPresentation(node) {
                 }
             });
         };
+        const captured = event => {
+            if (!origin || !event.isTrusted || event.pointerId!==origin.id) return;
+            // Capture is delivered after the native pointerdown has registered
+            // its window drag handler. Observe that same native dispatch last.
+            moveTarget?.removeEventListener?.("pointermove",move);
+            moveTarget=root.ownerDocument?.defaultView || root;
+            moveTarget.addEventListener("pointermove",move);
+        };
         const finish = () => {
+            moveTarget?.removeEventListener?.("pointermove",move);moveTarget=null;
             if (!node.__orvUserResizeActive) return;
             node.__orvPendingLiveLayout?.();
             if(node.__orvLiveFrame!=null && typeof cancelAnimationFrame==="function")cancelAnimationFrame(node.__orvLiveFrame);
@@ -1074,11 +1085,12 @@ function syncBetaPresentation(node) {
             syncBetaPresentation(node);
         };
         root.addEventListener("pointerdown",start,true);
-        root.addEventListener("pointermove",move,true);
+        root.addEventListener("gotpointercapture",captured,true);
         root.addEventListener("lostpointercapture",finish,true);
         root.addEventListener("pointercancel",finish,true);
         root.__orvGeometryCleanup = () => {
             node.__orvUserResizeActive = false;
+            moveTarget?.removeEventListener?.("pointermove",move);moveTarget=null;
             origin=null;
             if(typeof cancelAnimationFrame==="function")cancelAnimationFrame(node.__orvLiveFrame);
             node.__orvPendingLiveLayout=null;node.__orvLiveFrame=null;
@@ -1094,7 +1106,7 @@ function syncBetaPresentation(node) {
             delete node.__orvNativeFixedHeight;delete node.__orvNativeTextMinimum;
             touched.clear();delete root.__orvRememberGeometry;
             root.removeEventListener?.("pointerdown",start,true);
-            root.removeEventListener?.("pointermove",move,true);
+            root.removeEventListener?.("gotpointercapture",captured,true);
             root.removeEventListener?.("lostpointercapture",finish,true);
             root.removeEventListener?.("pointercancel",finish,true);
         };
