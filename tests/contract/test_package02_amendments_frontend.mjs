@@ -170,3 +170,14 @@ test('native randomize identity survives translated labels and positional false'
  mode.value=false;c.restorePhase10NamedValues(n,data.widgets_values_named);assert.equal(mode.value,'increment');
  const before=n.widgets;c.orderPresentationWidgets(n);assert.equal(n.widgets,before);assert.equal(mode.value,'increment');
 });
+
+
+test('immediate native clone serialization retains explicit seed intent across transient null only',()=>{
+ const {c,n}=harness('ru'),mode={name:'randomize',label:'управление после генерации',value:'fixed',options:{}};
+ n.widgets.push({name:'model',value:'heygen/avatar-iv'},{name:'inference_method',value:'IR2V'},mode);c.installSemanticSerialization(n);
+ c.restorePhase10NamedValues(n,{model:'heygen/avatar-iv',inference_method:'IR2V',randomize:'increment'});
+ mode.value=undefined;let data={widgets_values:n.widgets.map(w=>w.value??null)};n.onSerialize(data);
+ assert.equal(data.widgets_values_named.randomize,'increment');assert.equal(data.widgets_values[n.widgets.indexOf(mode)],'increment');assert.equal(mode.value,'increment');
+ mode.value='decrement';data={};n.onSerialize(data);assert.equal(data.widgets_values_named.randomize,'decrement');
+ mode.value=false;data={};n.onSerialize(data);assert.equal(data.widgets_values_named.randomize,false,'malformed nonnull historical values are preserved, not guessed');
+});

@@ -569,7 +569,17 @@ function installSemanticSerialization(node) {
         const named={...(data.widgets_values_named || {})};
         for(const name of names){const item=widget(this,name);if(item)named[name]=item.value;}
         const control=(this.widgets || []).find(item=>(item.name === "randomize" || /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`)));
-        if(control)named[control.name]=control.value;
+        if(control) {
+            const modes=["fixed","increment","decrement","randomize"];
+            if (control.value==null && modes.includes(this.__orvRestoredSeedMode)) {
+                // Native copy serializes a temporary, not-yet-attached clone.
+                // A transient empty binding must not erase explicit saved intent.
+                control.value=this.__orvRestoredSeedMode;
+                if(Array.isArray(data.widgets_values))data.widgets_values[this.widgets.indexOf(control)]=control.value;
+            }
+            if(modes.includes(control.value))this.__orvRestoredSeedMode=control.value;
+            named[control.name]=control.value;
+        }
         data.widgets_values_named=named;
         return result;
     };
@@ -1349,6 +1359,8 @@ function restorePhase10NamedValues(node, namedValues) {
     );
     if (control && Object.hasOwn(namedValues, control.name)) {
         control.value = namedValues[control.name];
+        if (["fixed","increment","decrement","randomize"].includes(control.value)) node.__orvRestoredSeedMode=control.value;
+        else delete node.__orvRestoredSeedMode;
     }
     if (typeof namedValues.model === "string" && namedValues.model !== SELECT_MODEL && METHODS.includes(namedValues.inference_method)) {
         // The serialized active values are newer than the parked method bank.
