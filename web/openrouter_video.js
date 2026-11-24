@@ -3324,6 +3324,18 @@ function costPrecompletionAdvisory(result) {
 function costAdvisoryComparison(result) {
     const precompletion = costPrecompletionAdvisory(result);
     if (precompletion) return precompletion.scenario || null;
+    if (result?.state === "PARTIAL" && result.availability === "UNAVAILABLE" && result.planning == null &&
+        [result.amount_usd,result.estimated_cost_usd,result.lower_usd,result.upper_usd].every(value=>value==null) &&
+        Number.isSafeInteger(result.context_revision) && result.context_revision>=0 &&
+        Number.isFinite(result.valid_for_ms) && result.valid_for_ms>0 && /^[a-f0-9]{64}$/.test(result.rates_hash || "")) {
+        const components=(Array.isArray(result.breakdown) ? result.breakdown : []).filter(row=>row && costMoney(row.amount_usd)!==null);
+        if(components.length===1 && components[0].unit==="USD" && components[0].applicability==="APPLICABLE" &&
+            ["base","additive"].includes(components[0].relation)) {
+            // Present one Core-provided component verbatim, never sum fees or
+            // promote an incomplete bill to an executable/modelled total.
+            return {...components[0],scope:"COMPONENT",source:"APPLICABLE_BREAKDOWN"};
+        }
+    }
     if (!["UNKNOWN", "RATE_ONLY", "PARTIAL"].includes(result?.state) ||
         result.planning?.version !== "ACI-PLANNING-1" || result.planning.display !== "DETAIL_ONLY") return null;
     if (result.state === "RATE_ONLY" && costMoney(result.rate_usd) !== null) return null;
@@ -3574,6 +3586,7 @@ function costTooltipView(node) {
         sections.push({ title:costText("lastJob"), rows:actualRows });
     } else if (["MISSING", "CONFLICT", "INVALID_ACTUAL"].includes(actual?.status) || node.__orvActualBindingUnavailable) sections.push({ title:costText("lastJob"), rows:[[costText("actual"), costText("actualUnavailable")]] });
     let note = costText(notes[kind]);
+    if(reference?.source==="APPLICABLE_BREAKDOWN")note=`${note} ${costText("modelNote")}`;
     if (precompletion) {
         // Localize existing scenario limitations for presentation only. These
         // markers never select a tariff, change its amount or grant readiness.

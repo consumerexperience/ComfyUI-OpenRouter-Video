@@ -2,7 +2,7 @@
   "status": "UNACCEPTED_PACKAGE02_FINAL_12",
   "baseline": "0e55e984471ad8a8aecc91d8bd580ea3856520d8",
   "files": {
-    "web/openrouter_video.js": "a8c63ae0a8f7d1a9409ab50eea08902f6599b3b54d7c63b5d143324bdcbf0c49",
+    "web/openrouter_video.js": "edb52bac2c72cc765617da4d2f71e96d7fd8d91af84a3cd9af54c09f6f95f822",
     "src/openrouter_video/configuration.py": "a28fdaafbc359e49e6a5fd29e207d56bccfd8d2c9f80696195023b8cbe35170e",
     "src/openrouter_video/comfy/nodes.py": "6cef718eb567515ece6308daac3701549ba10b75d4d3a45bb3e1e80328ef56ad",
     "src/openrouter_video/data/capability-evidence.json": "9765ef6966ec6674efd594940c7e2fbfb636209a07d30849b27c0fc2e3222137"
@@ -36,7 +36,9 @@
     "restorePhase10NamedValues": "7d1d279a1bc6306a84e9c102dafd2b5ea841e655e1417226e68040c5590efc92",
     "syncAdvancedControls": "11609989e7ffaeeddaa2462676cfc027e4135df85bdda065d2ccf0f9e66a2638",
     "restorePhase8RemoteOptionsValues": "a6070a306402c64c709897adc1d3b680c0d86d8eee6e164abcde2ea6870a99aa",
-    "restorePhase10Values": "fb74379730dd430af8e331bc6425207ff03fb0b373a1d0510a1711effc6984e1"
+    "restorePhase10Values": "fb74379730dd430af8e331bc6425207ff03fb0b373a1d0510a1711effc6984e1",
+    "costAdvisoryComparison": "b63a21c29351e1ba22a22583cbab94b9176cf6891febaa03d09ed7e26de6bf8e",
+    "costTooltipView": "21456671105a1e7db46e3c27058c800a6e85709dce983537b7e066cf4133f775"
   },
   "added": {
     "creativeTextLabel": "f407c8a58821e9ae5f608675653a9ccda2de1ac0a5b050e4f668aebaba46b494",

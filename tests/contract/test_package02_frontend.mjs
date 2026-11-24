@@ -103,3 +103,16 @@ test('Nodes2 native DIV pack badge is hidden with its empty footer, but widget c
  c.suppressPackageBadge({},root);assert.equal(footer.style.display,'none');
  const inputLeaf={...leaf,closest:()=>({})};footer.style={};root.querySelectorAll=()=>[inputLeaf];c.suppressPackageBadge({},root);assert.equal(footer.style.display,undefined);
 });
+
+const nativePartialComponent={"availability":"UNAVAILABLE","state":"PARTIAL","observed_at":"2026-11-24T17:40:40.960593+00:00","applied_skus":["video_tokens_without_audio"],"amount_usd":null,"lower_usd":null,"upper_usd":null,"range_kind":null,"planning":null,"precompletion_advisory":null,"validation_details":[],"valid_for_ms":283766,"rate_usd":null,"rate_unit":null,"breakdown":[{"sku":"video_tokens_without_audio","unit":"USD","quantity":"86400","rate_usd":"0.0000107","amount_usd":"0.9244800","relation":"base","evidence":"https://openrouter.ai/blog/insights/seedance-2-5-review/","applicability":"APPLICABLE"}],"assumptions":["Advisory continuous formula; provider billing may differ."],"reason_codes":["unclassified_pricing_sku"],"snapshot_hash":null,"rates_hash":"1b1c8d71c10f103eb46aa2af8ba16319340b96e645baf8a31076b899cb746e33","rules_version":"ACI-1.0","context_revision":1,"reason":"unclassified_pricing_sku"};
+
+for(const locale of ['en','ru'])test(`known partial component remains visible without claiming a total ${locale}`,()=>{
+ const c=context();c.app.ui={settings:{getSettingValue:()=>locale}};const r=plain(nativePartialComponent),n={widgets:[{name:'model',value:'bytedance/seedance-2.5'},{name:'inference_method',value:'MI2V'}],__orvEstimate:{result:r}};
+ const view=c.costPriceView(r);assert.equal(view.kind,'component');assert.equal(view.accent,'#9E6BFF');assert.match(view.badge,locale==='ru'?/0,92 REF/:/0\.92 REF/);assert.equal(r.amount_usd,null);assert.equal(r.state,'PARTIAL');
+ const tip=c.costTooltipView(n);assert(tip.note.includes(c.costText('componentNote')));assert(tip.note.includes(c.costText('modelNote')));
+ for(const change of ['stale','invalid','unknown','no_hash','ambiguous','unsupported','discount','negative']){
+  const bad=plain(r);if(change==='stale')bad.valid_for_ms=0;if(change==='invalid')bad.state='INVALID';if(change==='unknown')bad.state='UNKNOWN';if(change==='no_hash')bad.rates_hash=null;
+  if(change==='ambiguous')bad.breakdown.push({...bad.breakdown[0]});if(change==='unsupported')bad.breakdown[0].applicability='UNVERIFIED';if(change==='discount')bad.breakdown[0].relation='discount';if(change==='negative')bad.breakdown[0].amount_usd='-1';
+  assert.equal(c.costAdvisoryComparison(bad),null,change);
+ }
+});
