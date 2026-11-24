@@ -24,6 +24,21 @@ function domFixture(){
  const document={querySelectorAll(){return [element];},createElement(){return {style:{},textContent:'',title:'',setAttribute(name,value){this[name]=value;},addEventListener(){}};}};
  const c=context({document});const n={id:22,widgets:[{name:'prompt',label:'prompt'}],__orvEstimate:{value:'≈ $1.60 EST.'}};return {c,n,header,grid,textarea,marks};
 }
+
+test('absolute native Vue root measures intrinsic flow, negative footer margin and Canvas title offset',()=>{
+ const {c,n}=domFixture(),root=c.document.querySelectorAll()[0],grid=root.querySelector('[data-testid="node-widgets"]');
+ const block=height=>({children:[],css:{display:'block',position:'static'},getBoundingClientRect:()=>({height,width:400})});
+ const header=block(30),footer=block(40),overlay=block(900);footer.css.marginTop='-20px';overlay.css.position='absolute';
+ grid.css={display:'grid',position:'static'};grid.getBoundingClientRect=()=>({height:200,width:400});
+ const wrapper={children:[header,grid,footer],css:{display:'flex',flexDirection:'column',position:'static'},getBoundingClientRect:()=>({width:400,height:999})};
+ root.children=[overlay,wrapper];root.css={display:'flex',flexDirection:'column',position:'absolute'};root.getBoundingClientRect=()=>({width:400,height:999});
+ c.getComputedStyle=e=>({display:'block',position:'static',minHeight:'0px',...e.css});
+ n.size=[400,800];n.pos=[11,12];n.boundingOffset=[0,30];n.__orvMasterPromptHeight=100;n.computeSize=()=>[400,400];n.setSize=size=>{n.size=size;};
+ assert.equal(c.nativeFlowHeight(root,1),250);c.syncBetaPresentation(n);
+ assert.equal(n.__orvNativeFixedHeight,120);assert.equal(n.size[1],220);assert.equal(n.__orvMasterPromptHeight,100);assert.deepEqual(n.pos,[11,12]);
+ grid.getBoundingClientRect=()=>({height:300,width:400});c.syncBetaPresentation(n);assert.equal(n.size[1],320);assert.equal(n.__orvMasterPromptHeight,100);
+ grid.getBoundingClientRect=()=>({height:200,width:400});c.syncBetaPresentation(n);assert.equal(n.size[1],220);
+});
 test('Beta estimate is one header child, updates unavailable, never body overlay',()=>{
  const {c,n,header}=domFixture();c.syncBetaPresentation(n);c.syncBetaPresentation(n);assert.equal(header.children.length,1);assert.equal(header.children[0].textContent,'≈ $1.60 EST.');n.__orvEstimate.value='ESTIMATE UNAVAILABLE';c.syncBetaPresentation(n);assert.equal(header.children.length,1);assert.equal(header.children[0].title,'');assert.ok(header.children[0]['aria-label']);assert.equal(header.children[0].role,'button');assert.equal(header.children[0].tabIndex,0);assert.ok(!source.includes('position:absolute'));
 });

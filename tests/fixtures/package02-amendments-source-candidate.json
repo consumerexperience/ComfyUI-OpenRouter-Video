@@ -2,7 +2,7 @@
   "status": "UNACCEPTED_PACKAGE02_FINAL_12",
   "baseline": "0e55e984471ad8a8aecc91d8bd580ea3856520d8",
   "files": {
-    "web/openrouter_video.js": "52a2f9e7610dbe2b8434fc4e7c27a60e09851585012c29dd431d602e6d143978",
+    "web/openrouter_video.js": "7013310de1980a318f6cdaccab846d62a16d3f86e291114c1a4462f959c9ac40",
     "src/openrouter_video/configuration.py": "a28fdaafbc359e49e6a5fd29e207d56bccfd8d2c9f80696195023b8cbe35170e",
     "src/openrouter_video/comfy/nodes.py": "6cef718eb567515ece6308daac3701549ba10b75d4d3a45bb3e1e80328ef56ad",
     "src/openrouter_video/data/capability-evidence.json": "9765ef6966ec6674efd594940c7e2fbfb636209a07d30849b27c0fc2e3222137"
@@ -24,7 +24,7 @@
     "installBetaPresentation": "83570f1eeb3efc2550ce5fb036ec3f8e95ab636423dde8e1c8cba3f6cb37e437",
     "drawCapacityMeter": "03b6bce14e46aa7566a1b4b952f880ff409ad89572a8517bf281363df549a8ff",
     "syncCapacityMeter": "26cebc0468a976493cc180297410a35bef74907c3b4a5437a5007d3eace2ac3f",
-    "syncBetaPresentation": "a7ce3e8a68c294930dbd2df1384e7ca311a34dc27946f95c000de1d2912310eb",
+    "syncBetaPresentation": "4243adf6393361ca174000e410a1db4f9af83559092da3c2efde1f0590d218fc",
     "drawReadOnlyValue": "d5f23a31a7a475ce06bbf18162235ecde3dfcef58a1b441a090bab54dcfaab17",
     "syncReadOnlyDurationRow": "7df443de4bffe132b8ad0f5934c40f7a58702336dc0c118fbf4c80c26ecff63e",
     "providerObjectIssue": "35a67027b18b0de8ef1dade33ce3a3cb256113227245487dee5811f5d0f0c563",
@@ -38,7 +38,8 @@
     "restorePhase8RemoteOptionsValues": "a6070a306402c64c709897adc1d3b680c0d86d8eee6e164abcde2ea6870a99aa",
     "restorePhase10Values": "fb74379730dd430af8e331bc6425207ff03fb0b373a1d0510a1711effc6984e1",
     "costAdvisoryComparison": "b63a21c29351e1ba22a22583cbab94b9176cf6891febaa03d09ed7e26de6bf8e",
-    "costTooltipView": "906413ed8b2baca43007e88a0d2a4f785e537319ec072d5a607249a172591b95"
+    "costTooltipView": "906413ed8b2baca43007e88a0d2a4f785e537319ec072d5a607249a172591b95",
+    "nativeFlowHeight": "ff07f07dde77946ebb9c226b2aea4a400cd31b57cb9613df3de00f2069a9d542"
   },
   "added": {
     "creativeTextLabel": "f407c8a58821e9ae5f608675653a9ccda2de1ac0a5b050e4f668aebaba46b494",

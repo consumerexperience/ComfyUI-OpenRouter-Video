@@ -487,14 +487,17 @@ function nativeFlowHeight(element, scale) {
     // The returned number is applied through node.setSize, never independent CSS bounds.
     if (typeof getComputedStyle !== "function" || !element?.getBoundingClientRect) return null;
     const style = getComputedStyle(element);
-    if (style.display === "none" || ["absolute", "fixed"].includes(style.position)) return 0;
+    if (style.display === "none") return 0;
     if (style.display !== "flex" || style.flexDirection !== "column") return element.getBoundingClientRect().height / scale;
     const children = [...element.children].filter(child => {
         const css = getComputedStyle(child);
         return css.display !== "none" && !["absolute", "fixed"].includes(css.position);
     });
     const pixels = key => parseFloat(style[key]) || 0;
-    return children.reduce((sum,child) => sum + nativeFlowHeight(child,scale), 0)
+    return children.reduce((sum,child) => {
+        const css = getComputedStyle(child);
+        return sum + nativeFlowHeight(child,scale) + (parseFloat(css.marginTop)||0) + (parseFloat(css.marginBottom)||0);
+    }, 0)
         + Math.max(0,children.length-1)*pixels("rowGap")
         + pixels("paddingTop")+pixels("paddingBottom")+pixels("borderTopWidth")+pixels("borderBottomWidth");
 }
@@ -1194,7 +1197,10 @@ function syncBetaPresentation(node) {
     if (scale > 0 && bindings.filter(Boolean).length === region.count) {
         const intrinsic = nativeFlowHeight(root,scale);
         if (Number.isFinite(intrinsic) && intrinsic > 0 && !node.__orvUserResizeActive) {
-            node.__orvNativeFixedHeight = intrinsic-region.budget;
+            // Vue's measured perimeter includes the native title; Canvas size
+            // excludes its bounding offset. Keep one authoritative node size.
+            const titleOffset = Math.max(0,Number(node.boundingOffset?.[1]) || 0);
+            node.__orvNativeFixedHeight = intrinsic-titleOffset-region.budget;
             const restoring = Boolean(node.__orvRestoreGeometry);
             fitPresentationWidth(node);
             if (restoring && !node.__orvRestoreGeometry) syncBetaPresentation(node);
