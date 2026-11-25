@@ -39,3 +39,26 @@ test("future explicitly confirmed range fixtures remain UI architecture only", (
     assert.equal(context.durationAtPosition(continuous,31),30);
     assert.equal(context.durationDomain(Array.from({length:30},(_,i)=>i+1)).kind,"DISCRETE");
 });
+
+test("mixed Auto uses a semantic choice and restores the positive-only native slider", () => {
+    const slider = {name:"duration", type:"slider", value:-1, options:{}, __orvDurationAdapter:true};
+    const node = {widgets:[{name:"model"},slider,{name:"seed"}], addWidget(type,name,value,callback,options) {
+        const widget={type,name,value,callback,options};
+        this.widgets.push(widget);
+        return widget;
+    }};
+    context.configureDuration(node,[-1,4,5,6]);
+    const menu=node.widgets[1];
+    assert.equal(menu.type,"combo");
+    assert.equal(menu.options.getOptionLabel(-1),"Auto");
+    assert.equal(menu.serializeValue(),-1);
+    menu.value=5;
+    assert.equal(menu.serializeValue(),5);
+    context.configureDuration(node,[-1,4,5,6]);
+    assert.equal(node.widgets[1],menu);
+    context.configureDuration(node,[4,5,6]);
+    assert.equal(node.widgets[1],slider);
+    assert.equal(slider.value,5);
+    assert.equal(slider.type,"slider");
+    assert.deepEqual(node.widgets.map(w=>w.name),["model","duration","seed"]);
+});

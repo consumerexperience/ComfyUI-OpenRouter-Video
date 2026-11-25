@@ -1825,14 +1825,41 @@ function createDurationSlider(node, previous) {
 }
 
 function configureDuration(node, supported) {
-    const item = widget(node, "duration");
+    let item = widget(node, "duration");
     if (!item) return;
     node.__orvDurationValues = supported;
-    item.options = item.options || {};
     const domain = durationDomain(supported);
+    const values = domain.allowed_values || [];
+    const mixedAuto = values.length > 1 && values.includes(-1);
+    if (mixedAuto && item.__orvDurationAdapter && !item.__orvDurationSlider && node.addWidget) {
+        // A mixed domain contains a mode and a set of seconds, not a single
+        // numeric interval. Use native choice geometry in both renderers.
+        const slider = item;
+        const index = node.widgets.indexOf(slider);
+        item = node.addWidget("combo", "duration", slider.value, slider.callback, {
+            ...slider.options,
+            values,
+            getOptionLabel: value => Number(value) === -1
+                ? (costLocale() === "ru" ? "Авто" : "Auto")
+                : `${value}${costText("seconds")}`,
+        });
+        item.__orvDurationAdapter = true;
+        item.__orvDurationSlider = slider;
+        item.serializeValue = function () { return Number(this.value); };
+        node.widgets.splice(node.widgets.indexOf(item), 1);
+        node.widgets[index] = item;
+        sizePrimaryControls(node);
+        installNodeTypography(node);
+    } else if (!mixedAuto && item.__orvDurationSlider) {
+        const menu = item;
+        item = menu.__orvDurationSlider;
+        item.__orvDomain = domain;
+        item.value = Number(menu.value);
+        node.widgets[node.widgets.indexOf(menu)] = item;
+    }
+    item.options ||= {};
     item.__orvDomain = domain;
     setVisible(item, true);
-    const values = domain.allowed_values || [];
     const current = Number(item.value || 0);
     const valid = durationValueAllowed(domain, current);
     const linked = inputByName(node, "duration")?.link != null;
@@ -1842,7 +1869,7 @@ function configureDuration(node, supported) {
         domain.min === -1 ? "AUTOMATIC" : "FIXED" : "VARIABLE";
     item.__orvDurationPresentation = presentation;
     const readOnly = presentation !== "VARIABLE";
-    item.type = readOnly ? "text" : "slider";
+    item.type = readOnly ? "text" : item.__orvDurationSlider ? "combo" : "slider";
     item.label = durationPresentationLabel(item);
     item.options.values = values;
     item.options.min = domain.min ?? 0;
@@ -2517,6 +2544,9 @@ function configureOperationControls(node, profile) {
             const step = spec.type === "integer" ? 1 : 0.01;
             item.options.step = step;
             item.options.step2 = step;
+            // Fractional fields have no provider-imposed decimal scale.
+            // Avoid the native input's default three-decimal quantization.
+            item.options.precision = spec.type === "integer" ? 0 : 15;
         }
         item.options.placeholder=spec.required ? (costLocale()==="ru"?"Обязательное поле":"Required") : defaultLabel;
         item.options.tooltip=[numeric ? (costLocale()==="ru"?"Измените значение для ручной настройки. Сброс в Авто — в меню ноды.":"Edit to override. Reset to Auto from the node menu.") : "",spec.max_length == null ? "" : `Maximum ${spec.max_length} characters`,
@@ -4702,7 +4732,7 @@ function bindEstimateRefresh(node) {
                 projectSelectedModel(node);
                 return;
             }
-            if (item.name === "duration" && Number(item.value) !== 0) {
+            if (item.name === "duration" && Number(widget(node, "duration")?.value) !== 0) {
                 configureDuration(node, node.__orvDurationValues);
             }
             if (["resolution", "aspect_ratio", "size"].includes(item.name)) scheduleCostRefresh(node);
