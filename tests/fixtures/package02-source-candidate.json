@@ -3,7 +3,7 @@
   "baseline": "cdab03f03d218f6ac30129638d3ce0a9e9a3c50f",
   "files": {
     "web/openrouter_video.js": "faffe3a940a6a4e5c375cdbb11d480aa9f0043c21ffbfdfd750466cc1488a671",
-    "src/openrouter_video/pricing.py": "e5a2a9c7cc39c805c84c6f78372d2aa8447cb1f040617342672d1a948b44b48f",
+    "src/openrouter_video/pricing.py": "1dfeb90a9e0cbf0ce3c462c7b2bc23f08529718808241b50dbad1fbe8e49c75c",
     "src/openrouter_video/comfy/runtime.py": "46a6f622175b9d1edb1e09a908110310b3c8fb5a7ef0bef57bf6bceea8553d99"
   },
   "baseline_files": {

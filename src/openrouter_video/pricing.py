@@ -1156,11 +1156,41 @@ def precompletion_cost_estimate(
         scenarios.extend(rows)
         rates_hash = priced.rates_hash or rates_hash
         skus.update(priced.applied_skus)
-        if priced.rate_usd is not None and priced.rate_unit:
+        rate, rate_unit = priced.rate_usd, priced.rate_unit
+        if (
+            rate is None
+            and inputs.duration == -1
+            and priced.reason == "unclassified_pricing_sku"
+            and len(priced.breakdown) == 1
+        ):
+            # An extra unclassified charge suppresses the total. The estimator
+            # still returns the applicable reviewed base charge for this shape.
+            row = priced.breakdown[0]
+            if (
+                row.relation == "base"
+                and row.applicability == "APPLICABLE"
+                and row.quantity is None
+                and row.amount_usd is None
+                and row.evidence
+            ):
+                units = {
+                    _rate_unit(str(charge["quantity"]), charge.get("rate_unit"))
+                    for tariff in load_profiles()
+                    if tariff.model_id == capabilities.model_id
+                    and tariff.canonical_slug == capabilities.canonical_slug
+                    for rule in tariff.rules
+                    if rule.active
+                    for charge in rule.charges
+                    if charge["sku"] == row.sku and charge["unit"] == row.unit
+                }
+                if len(units) == 1 and None not in units:
+                    rate, rate_unit = row.rate_usd, next(iter(units))
+                    assumption += " Base rate only; additional charges are unknown."
+        if rate is not None and rate_unit:
             rates.append(
                 dict(
-                    rate_usd=format(priced.rate_usd, "f"),
-                    rate_unit=priced.rate_unit,
+                    rate_usd=format(rate, "f"),
+                    rate_unit=rate_unit,
                     assumption=assumption,
                 )
             )

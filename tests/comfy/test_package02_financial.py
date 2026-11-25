@@ -239,3 +239,28 @@ def test_recorded_frontend_completion_witnesses_equal_actual_backend() -> None:
         result["availability"] = result["availability"].value
         result["valid_for_ms"] = 900000
         assert json.loads(json.dumps(result, default=str)) == record["result"]
+
+
+def test_auto_mixed_completion_retains_only_documented_rates_with_unknown_extra_sku() -> None:
+    body = empty("bytedance/seedance-2.5", "MMR2V")
+    body["duration"] = -1
+    cap = model(body["model_id"])
+    assert cap.pricing_evidence is not None
+    cap = replace(
+        cap,
+        supported_durations=(-1, *(cap.supported_durations or ())),
+        pricing_evidence=PricingEvidence(
+            (*cap.pricing_evidence.skus, PricingSku("unknown_extra_charge", Decimal("1")))
+        ),
+    )
+    result = run(body, cap=cap)
+    assert result.state is EstimateState.INVALID
+    assert result.reason == "required_inputs_missing", (body, cap.supported_durations)
+    assert result.amount_usd is None
+    advisory = result.precompletion_advisory
+    assert advisory is not None and advisory["display"] == "RATE_ONLY"
+    assert advisory["amount_usd"] is None and not advisory["scenarios"]
+    assert advisory["rates"]
+    assert all(rate["rate_unit"] == "token" for rate in advisory["rates"])
+    assert all("additional charges" in rate["assumption"] for rate in advisory["rates"])
+    assert body["duration"] == -1 and body["media"] == []
