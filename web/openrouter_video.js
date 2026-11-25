@@ -328,16 +328,41 @@ function installNodeTypography(node) {
             const marker=`__orvTypography_${method}`;
             if(typeof item[method]!=="function" || item[marker])continue;
             const draw=item[method];item[marker]=true;
+            let numericContext, numericView;
             item[method]=function(ctx,...args){ctx.save();ctx.font=`${token.weight} ${token.size}px ${token.family}`;ctx.textBaseline="alphabetic";
-                try{return draw.call(this,ctx,...args);}finally{ctx.restore();}};
+                const numericSlider = method === "drawWidget" && this.__orvProviderOption
+                    && this.type === "slider" && typeof this.value === "number";
+                if (numericSlider && numericContext !== ctx) {
+                    numericContext = ctx;
+                    numericView = new Proxy(ctx, {
+                    get(target,key) {
+                        if (key === "fillText") return (_text,...position) =>
+                            target.fillText(`${item.label}  ${providerDisplayValue(item)}`,...position);
+                        const value = Reflect.get(target,key,target);
+                        return typeof value === "function" ? value.bind(target) : value;
+                    },
+                    set(target,key,value) { return Reflect.set(target,key,value,target); },
+                    });
+                }
+                try{return draw.call(this,numericSlider ? numericView : ctx,...args);}finally{ctx.restore();}};
         }
     }
 }
 
-function providerDisplayValue(item) {
-    if(item.__orvProviderAuto && ["slider","number"].includes(item.type)){
-        const auto=costLocale()==="ru"?"Авто":"Auto";
-        return item.__orvProviderKnownDefault ? `${item._displayValue ?? item.value} ${auto}` : auto;
+function providerDisplayValue(item, includeAuto = true) {
+    if (item.__orvProviderOption && ["slider","number"].includes(item.type)) {
+        const locale = costLocale();
+        const auto = locale === "ru" ? "Авто" : "Auto";
+        const raw = item.value;
+        let cached = item.__orvNumericDisplay;
+        if (!cached || cached.locale !== locale || !Object.is(cached.raw, raw)) {
+            const text = typeof raw === "number" ? new Intl.NumberFormat(locale, {
+                useGrouping: false, maximumFractionDigits: 15,
+            }).format(raw) : "";
+            cached = item.__orvNumericDisplay = {locale, raw, text};
+        }
+        if (includeAuto && item.__orvProviderAuto) return item.__orvProviderKnownDefault ? `${cached.text} ${auto}` : auto;
+        return cached.text;
     }
     return String(item._displayValue ?? item.value ?? "");
 }
@@ -359,6 +384,12 @@ function syncProviderNumericState(node, row) {
         ["number","slider"].includes(item.type) && (input?.getAttribute?.("aria-label")===item.name || label?.textContent?.trim()===(item.displayName || item.label)));
     if(!item)return;
     const unknownAuto=item.__orvProviderAuto && !item.__orvProviderKnownDefault;
+    if (input && !unknownAuto && item.type === "slider" && input.style) {
+        const decimal = providerDisplayValue(item, false);
+        if (input.ownerDocument?.activeElement !== input && input.value !== decimal) input.value = decimal;
+        input.style.minWidth = `${Math.max(4, decimal.length + 1)}ch`;
+        input.style.textOverflow = "clip";
+    }
     if(input && unknownAuto){
         input.placeholder=providerAutoLabel({});
         // Native numeric presentation coerces null to zero. Omission is not zero;
@@ -684,6 +715,11 @@ function syncAdvancedControls(node) {
         if ((item.name === "randomize" || /control[ _]?after[ _]?generate/i.test(`${item.name || ""} ${item.label || ""}`))) {
             item.options ||= {};
             Object.assign(item.options, { advanced: false });
+            item.options.getOptionLabel ||= value => ({
+                fixed:"Fixed", increment:"Increment", decrement:"Decrement", randomize:"Randomize",
+            })[value] ?? String(value ?? "");
+            const label = costLocale() === "ru" ? "Управление после генерации" : "Control After Generate";
+            if (item.label !== label) item.label = label;
             // Native Beta normally embeds this local control in the Seed row.
             // When Seed is omitted, expose the same public widget independently.
             item.options.canvasOnly = Boolean(seed && !seed.hidden);
@@ -2367,7 +2403,7 @@ function providerControlGroups(node) {
     const groups=["voice","appearance","advanced"];
     for(const name of groups){
         const items=(node.widgets || []).filter(w=>w.__orvProviderOption && !w.hidden && w.__orvProviderGroup===name && !w.__orvTextSemantic);
-        const labels={voice:["Voice","Голос"],appearance:["Appearance","Внешний вид"],advanced:["Other controls","Другие параметры"]};
+        const labels={voice:["Voice","Голос"],appearance:["Appearance","Внешний вид"],advanced:["Other Controls","Другие параметры"]};
         let heading=widget(node,`provider_group:${name}`);
         if(items.length>=3 && !heading){heading=addReadOnlyWidget(node,`provider_group:${name}`,"");heading.__orvProviderOption=true;heading.__orvProviderGroup=name;heading.__orvProviderHeading=true;
             heading.draw=(ctx,n,width,y)=>{ctx.save();ctx.font=`600 11px ${nodeTypography(n).family}`;ctx.fillStyle="#999";ctx.textAlign="left";ctx.fillText(heading.label,15,y+14);ctx.restore();};}
@@ -2551,7 +2587,16 @@ function configureOperationControls(node, profile) {
         item.options.placeholder=spec.required ? (costLocale()==="ru"?"Обязательное поле":"Required") : defaultLabel;
         item.options.tooltip=[numeric ? (costLocale()==="ru"?"Измените значение для ручной настройки. Сброс в Авто — в меню ноды.":"Edit to override. Reset to Auto from the node menu.") : "",spec.max_length == null ? "" : `Maximum ${spec.max_length} characters`,
             ...Object.entries(root.requires || {}).map(([key,domain])=>`Requires ${key}: ${domain.join(" / ")}`)].filter(Boolean).join("; ");
-        if (choices) (item.options ||= {}).values = choices;
+        if (choices) {
+            item.options.values = choices;
+            // Format reviewed ordinary enum values; leave literal values and
+            // provider identifiers outside this display mapping untouched.
+            item.options.getOptionLabel = value => ({
+                high:"High", medium:"Medium", low:"Low", fixed:"Fixed", contain:"Contain",
+                cover:"Cover", color:"Color", image:"Image", elevenlabs:"ElevenLabs",
+                fish:"Fish", starfish:"Starfish", orca:"Orca", heygen_voice:"HeyGen Voice",
+            })[value] ?? String(value ?? "");
+        }
         item.__orvProjectingProviderValue = true;
         try { item.value = old ? (boolean ? old.value ? on : off : old.value) : choices ? defaultLabel : numeric ? knownDefault ?? null : ""; }
         finally { item.__orvProjectingProviderValue = false; }
