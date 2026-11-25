@@ -2,7 +2,7 @@
   "status": "UNACCEPTED_PACKAGE02_FINAL_12",
   "baseline": "0e55e984471ad8a8aecc91d8bd580ea3856520d8",
   "files": {
-    "web/openrouter_video.js": "d6c2cb4c1732089bf118e4f9ae39dc0618ba70913dd14db9100ea260f3160e14",
+    "web/openrouter_video.js": "8dfc8fdfe5c86add3dfc76692031d92d11275a5ba2a1d7af4274ef105a64c912",
     "src/openrouter_video/configuration.py": "a28fdaafbc359e49e6a5fd29e207d56bccfd8d2c9f80696195023b8cbe35170e",
     "src/openrouter_video/comfy/nodes.py": "6cef718eb567515ece6308daac3701549ba10b75d4d3a45bb3e1e80328ef56ad",
     "src/openrouter_video/data/capability-evidence.json": "9765ef6966ec6674efd594940c7e2fbfb636209a07d30849b27c0fc2e3222137"
@@ -58,7 +58,7 @@
     "providerControlLabel": "00a903e84d50faf02ef8fce859f8efdbfd4cd6724441de2aa85740d19b75f005",
     "providerDisplayValue": "6a4689f47d555ab811846e85a6145f16be3579e4cb4358ff70bf673efa2cb2d2",
     "syncProviderGroupHeading": "e96469372e1d34312497b02ffc4d37f136096fd9ac7a6c6b8928822e8563a608",
-    "syncProviderNumericState": "34264c8261011a288810128cc442341b21bdaf8e01a4884172cfa47dfd791a3f",
+    "syncProviderNumericState": "f5ed267ab853e32e181f4c1387c830e2b0a0149d73c6c5ff276b6b6d9a3829e8",
     "updateProviderIntent": "d37731ad36de7e97fed90f170e3be4a79ad17c4143774af86fba2c1a1da6d964",
     "installSemanticSerialization": "254357136ae588a9a6ce300d8f56e0de7130146c3535a4328a88c099649705bc"
   },

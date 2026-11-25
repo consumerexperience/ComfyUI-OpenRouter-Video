@@ -387,8 +387,18 @@ function syncProviderNumericState(node, row) {
     if (input && !unknownAuto && item.type === "slider" && input.style) {
         const decimal = providerDisplayValue(item, false);
         if (input.ownerDocument?.activeElement !== input && input.value !== decimal) input.value = decimal;
-        input.style.minWidth = `${Math.max(4, decimal.length + 1)}ch`;
+        const style = typeof getComputedStyle === "function" ? getComputedStyle(input) : null;
+        const padding = (parseFloat(style?.paddingLeft) || 0) + (parseFloat(style?.paddingRight) || 0);
+        const width = `calc(${Math.max(4, decimal.length + 1)}ch + ${padding}px)`;
+        if (input.style.width !== width) input.style.width = width;
+        if (input.style.minWidth !== width) input.style.minWidth = width;
         input.style.textOverflow = "clip";
+        // PrimeVue's fixed-width wrapper also contains the Auto/Reset control.
+        const wrapper = input.parentElement;
+        if (wrapper?.classList?.contains("p-inputnumber")) {
+            wrapper.style.width = "max-content";
+            wrapper.style.flexShrink = "0";
+        }
     }
     if(input && unknownAuto){
         input.placeholder=providerAutoLabel({});
