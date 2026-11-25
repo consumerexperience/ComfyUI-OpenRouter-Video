@@ -129,3 +129,14 @@ for(const nested of [false,true])test(`Nodes2 readonly duration preserves native
  assert.equal(display.children[0].textContent,'8 s');c.syncReadOnlyDurationRow(node,root,row);assert.equal(row.querySelector('.orv-duration-readonly'),display);
  item.options.read_only=false;c.syncReadOnlyDurationRow(node,root,row);assert.equal((nested?field:cell).style.display,'');assert.equal(row.querySelector('.orv-duration-readonly'),null);assert.equal(input.value,undefined);assert.equal(item.value,8);
 });
+
+for(const locale of ['en','ru'])for(const selectedDuration of [4,-1])test(`reference billing seconds do not replace selected output duration ${locale} ${selectedDuration}`,()=>{
+ const c=context();c.app.ui={settings:{getSettingValue:()=>locale}};
+ // Presentation witness matching the native Wan mixed-input shape; not a tariff fixture.
+ const result={state:'UNKNOWN',planning:{version:'ACI-PLANNING-1',display:'DETAIL_ONLY',scenarios:[{scope:'COMPARISON',sku:'duration_seconds',quantity:'16.066016',quantity_unit:'s',amount_usd:'1.6066016',assumption:'Reference billing quantity includes input and output seconds.'}]}};
+ const n={widgets:[{name:'model',value:'alibaba/wan-3.0'},{name:'inference_method',value:'MMR2V'},{name:'resolution',value:'720p'},{name:'aspect_ratio',value:'16:9'},{name:'duration',value:selectedDuration}],__orvEstimate:{result}};
+ const before=JSON.stringify(result),tip=c.costTooltipView(n);assert(tip.context.includes('720p'));assert(!tip.context.includes('16.066016'));assert(!tip.context.includes('16,066016'));
+ assert(tip.context.includes(selectedDuration===-1?c.costText('automatic'):'4'));
+ const basis=tip.sections.find(s=>s.title===c.costText('referenceScope'));assert(basis);assert.equal(basis.rows[0][0],c.costText('billableQuantity'));assert.equal(basis.rows[0][1],locale==='ru'?'16,066016 с':'16.066016s');
+ assert.equal(tip.amount,locale==='ru'?'$1,61':'$1.61');assert.equal(JSON.stringify(result),before);assert.equal(n.widgets[4].value,selectedDuration);
+});

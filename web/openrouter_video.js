@@ -3376,7 +3376,7 @@ function costText(key) {
             unknownNote:"Pricing for this configuration is not established.", invalidNote:"Check the required inputs and selected settings.",
             staleNote:"Refresh pricing before relying on an estimate.", calculatingNote:"No current estimate yet.",
             output:"Output video", withAudioOutput:"With audio · Output only", knownComponent:"Known component only",
-            conditional:"Conditional total", alternative:"Alternative conditional totals", referenceScope:"Reference scenario",
+            conditional:"Conditional total", alternative:"Alternative conditional totals", referenceScope:"Reference scenario", billableQuantity:"Scenario billing quantity",
             selected:"Selected configuration", audio:"Generate audio", on:"On", off:"Off", inputCharges:"Input charges", notEstablished:"Not established",
             lastJob:"Last completed job", actual:"Actual cost", job:"Job", modelLabel:"Model", actualUnavailable:"Unavailable",
             referenceRow:"Reference", componentRow:"Component", seconds:"s", automatic:"Automatic", perSecond:"s", millionTokens:"M tok", modelUnavailable:"Model not selected",
@@ -3411,7 +3411,7 @@ function costText(key) {
             unknownNote:"Тарификация этой конфигурации не установлена.", invalidNote:"Проверьте обязательные входы и выбранные настройки.",
             staleNote:"Обновите тарифы перед использованием оценки.", calculatingNote:"Актуальной оценки пока нет.",
             output:"Выходное видео", withAudioOutput:"Со звуком · Только выход", knownComponent:"Только известный компонент",
-            conditional:"Условная сумма", alternative:"Условные суммы по сценариям", referenceScope:"Справочный сценарий",
+            conditional:"Условная сумма", alternative:"Условные суммы по сценариям", referenceScope:"Справочный сценарий", billableQuantity:"Оплачиваемый объём сценария",
             selected:"Выбранная конфигурация", audio:"Генерация звука", on:"Вкл.", off:"Выкл.", inputCharges:"Стоимость входа", notEstablished:"Не установлена",
             lastJob:"Последняя завершённая операция", actual:"Фактическая стоимость", job:"Задание", modelLabel:"Модель", actualUnavailable:"Недоступна",
             referenceRow:"Ориентир", componentRow:"Компонент", seconds:" с", automatic:"Автоматически", perSecond:"с", millionTokens:"млн ток.", modelUnavailable:"Модель не выбрана",
@@ -3553,10 +3553,15 @@ function costTooltipView(node) {
     const chosenMethod = widget(node, "inference_method")?.value;
     const method = METHODS.includes(chosenMethod) ? chosenMethod : "";
     const selectedDuration = widget(node, "duration")?.value;
-    const duration = reference && !precompletion && reference.source!=="APPLICABLE_BREAKDOWN" ? (reference.quantity_unit === "s" ? reference.quantity : null) : selectedDuration;
+    const referenceSeconds = reference && !precompletion && reference.source!=="APPLICABLE_BREAKDOWN" && reference.quantity_unit==="s" ? reference.quantity : null;
+    // A scenario quantity can include input VIDEO seconds. It is not evidence
+    // that the selected output duration changed.
+    const separateQuantity = referenceSeconds!=null && /^\d+(\.\d+)?$/.test(String(referenceSeconds)) &&
+        (selectedDuration===-1 || Number.isFinite(Number(selectedDuration)) && Number(selectedDuration)>0) && Number(referenceSeconds)!==Number(selectedDuration);
+    const duration = separateQuantity ? selectedDuration : reference && !precompletion && reference.source!=="APPLICABLE_BREAKDOWN" ? referenceSeconds : selectedDuration;
     const resolution = widget(node, "resolution")?.value;
     const referenceTier = reference && reference.sku?.endsWith(`_${resolution}`);
-    const geometry = reference && !precompletion && reference.source!=="APPLICABLE_BREAKDOWN" ? (referenceTier ? resolution : null) :
+    const geometry = reference && !precompletion && reference.source!=="APPLICABLE_BREAKDOWN" && !separateQuantity ? (referenceTier ? resolution : null) :
         geometryAuthority(node) === "EXACT" ? widget(node, "size")?.value : [resolution, widget(node, "aspect_ratio")?.value].filter(Boolean).join(" · ");
     const context = [geometry, duration === -1 ? costText("automatic") : duration != null && /^\d+(\.\d+)?$/.test(String(duration)) ? `${String(duration).replace(".", costLocale() === "ru" ? "," : ".")}${costText("seconds")}` : null].filter(Boolean).join(" · ");
     const withAudio = reference && /^duration_seconds_with_audio_/.test(reference.sku || "");
@@ -3585,6 +3590,8 @@ function costTooltipView(node) {
         sections.push({ title:costText("selected"), rows:[
             [costText("audio"), costText(audio === true ? "on" : audio === false ? "off" : "notEstablished")], [costText("inputCharges"), costText("notEstablished")] ] });
     }
+    if (separateQuantity) sections.push({title:costText("referenceScope"),rows:[[costText("billableQuantity"),
+        `${String(referenceSeconds).replace(".",costLocale()==="ru"?",":".")}${costText("seconds")}`]]});
     if (rows.length && !reference) sections.push({ title:costText("details"), rows:rows.map((row,index)=>[`${costText(row.scope === "COMPONENT" ? "componentRow" : "referenceRow")} ${index+1}`, costUsd(row.amount_usd)]) });
     const components = (result.breakdown || []).filter(row => costMoney(row.amount_usd) !== null);
     if (result.state === "PARTIAL" && components.length > 1) sections.push({ title:costText("partial"), rows:components.map((row,index)=>[`${costText("componentRow")} ${index+1}`,costUsd(row.amount_usd)]) });
