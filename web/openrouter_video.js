@@ -2372,13 +2372,21 @@ function configureOperationControls(node, profile) {
     const storage = widget(node, "provider_options");
     setVisible(storage, false);
     if (!storage || !node.addWidget) return;
-    for (const item of node.widgets || []) if (item.__orvProviderOption || item.name?.startsWith("provider_option:")) {
-        item.__orvProviderOption = true; setVisible(item, false);
-    }
+    const inactive = new Set((node.widgets || []).filter(item =>
+        item.__orvProviderOption || item.name?.startsWith("provider_option:")));
+    const hideInactive = () => {
+        for (const item of inactive) {
+            item.__orvProviderOption = true;
+            setVisible(item, false);
+        }
+    };
     let saved;
     try { saved = storage.value ? JSON.parse(storage.value) : []; }
     catch { saved = null; }
-    if (!Array.isArray(saved) || saved.some(v => !v || typeof v !== "object")) return "Invalid saved provider controls; repair before Generate.";
+    if (!Array.isArray(saved) || saved.some(v => !v || typeof v !== "object")) {
+        hideInactive();
+        return "Invalid saved provider controls; repair before Generate.";
+    }
     const providers = controls.provider_options?.state === "SUPPORTED" ? controls.provider_options.providers || {} : {};
     const activeLeaf = v => providerOptionLeaves(providers[v.provider]?.[v.key], [], saved.filter(other =>
         other.provider === v.provider && other.key === v.key && (other.container || null) === (v.container || null)))
@@ -2426,7 +2434,7 @@ function configureOperationControls(node, profile) {
             count.label=`${providerControlLabel(root,key)} ${costLocale()==="ru"?"— количество":"Count"}`;
             count.value=Math.max(Number(count.value)||0,storedCount);
             if(count.value>storedCount&&!issue)issue=`${key}: Complete each provider array item before Generate.`;
-            counts['[]']=count.value;setVisible(count,true);
+            counts['[]']=count.value;inactive.delete(count);setVisible(count,true);
         }
         for (const leaf of providerOptionLeaves(root, [], values, counts)) {
         const path = leaf.path, spec = {...leaf.spec, container:root.container};
@@ -2479,8 +2487,10 @@ function configureOperationControls(node, profile) {
         if (previous) {
             node.widgets.splice(node.widgets.indexOf(item),1);
             node.widgets.splice(position,1,item);
+            inactive.delete(previous);
             previous.onRemove?.();
         }
+        inactive.delete(item);
         item.callback = updateValue;
         item.__orvProviderOption = true;
         item.__orvTextSemantic = creative ? spec.text_semantic : undefined;
@@ -2521,6 +2531,10 @@ function configureOperationControls(node, profile) {
         if(selected&&(!spec.omit_when||spec.omit_when.includes(selected.value)))for(const name of spec.omits_controls || [])omitted.add(name);
     }
     for(const name of geometry)setVisible(widget(node,name),!omitted.has(name)&&controls[name]?.state==='SUPPORTED');
+    // Determine the new projection before retiring controls from the old one.
+    // Retained native widgets never make a hidden-to-visible round trip.
+    for (const item of inactive) if (item.__orvProviderHeading) inactive.delete(item);
+    hideInactive();
     providerControlGroups(node); orderPresentationWidgets(node); sizePrimaryControls(node); stylePrompt(node); installNodeTypography(node);
     return issue;
 }

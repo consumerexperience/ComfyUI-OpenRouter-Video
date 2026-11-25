@@ -181,3 +181,18 @@ test('immediate native clone serialization retains explicit seed intent across t
  mode.value='decrement';data={};n.onSerialize(data);assert.equal(data.widgets_values_named.randomize,'decrement');
  mode.value=false;data={};n.onSerialize(data);assert.equal(data.widgets_values_named.randomize,false,'malformed nonnull historical values are preserved, not guessed');
 });
+
+test('provider dropdown projection keeps unchanged controls visible throughout a variant selection',()=>{
+ const {c,n}=harness();
+ project(c,n);
+ const fit=n.widgets.find(w=>w.name==='provider_option:heygen::fit');
+ const background=n.widgets.find(w=>w.name==='provider_option:heygen::background:type');
+ assert(fit && background);
+ const writes=[];
+ let hidden=fit.hidden;
+ Object.defineProperty(fit,'hidden',{configurable:true,get:()=>hidden,set:value=>{writes.push(value);hidden=value;}});
+ background.callback('color');
+ assert.equal(fit.hidden,false);
+ assert(!writes.includes(true),'a still-valid control must never be hidden during projection');
+ assert.equal(n.widgets.find(w=>w.name===fit.name),fit);
+});
