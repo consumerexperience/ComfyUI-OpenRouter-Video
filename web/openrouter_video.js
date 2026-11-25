@@ -358,13 +358,21 @@ function syncProviderNumericState(node, row) {
     const item=(node.widgets || []).find(item=>item.__orvProviderOption && !item.hidden &&
         ["number","slider"].includes(item.type) && (input?.getAttribute?.("aria-label")===item.name || label?.textContent?.trim()===(item.displayName || item.label)));
     if(!item)return;
-    if(input && item.__orvProviderAuto && !item.__orvProviderKnownDefault)input.placeholder=providerAutoLabel({});
-    const host=input?.parentElement;
+    const unknownAuto=item.__orvProviderAuto && !item.__orvProviderKnownDefault;
+    if(input && unknownAuto){
+        input.placeholder=providerAutoLabel({});
+        // Native numeric presentation coerces null to zero. Omission is not zero;
+        // leave focused drafts to the native editor and never change widget intent.
+        if(input.ownerDocument?.activeElement!==input && input.value!=="")input.value="";
+    }
+    const absolute=input && typeof getComputedStyle==="function" && getComputedStyle(input).position==="absolute";
+    const host=absolute ? input.parentElement?.parentElement : input?.parentElement;
     if(!host?.append)return;
     let state=host.querySelector?.('.orv-provider-state');
     if(!state){state=document.createElement('button');state.type='button';state.className='orv-provider-state';
         Object.assign(state.style,{font:'inherit',fontSize:'11px',flex:'0 0 auto',padding:'0 4px',border:'0',background:'transparent',color:'inherit'});
         state.addEventListener('click',event=>{event.stopPropagation();state.__orvItem?.__orvResetProvider?.();});host.append(state);}
+    state.hidden=Boolean(unknownAuto);
     state.__orvItem=item;const text=item.__orvProviderAuto?providerAutoLabel({}):'↺';if(state.textContent!==text)state.textContent=text;
     state.title=costLocale()==='ru'?'Сбросить в Авто':'Reset to Auto';
     state.setAttribute('aria-label',`${item.label}: ${state.title}`);

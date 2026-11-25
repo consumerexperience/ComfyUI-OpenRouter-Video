@@ -155,3 +155,17 @@ for(const completion of ['pointerup','pointercancel'])test(`Classic completion s
  assert.equal(n.__orvUserResizeActive,false);assert.equal(c.app.canvas.pointer.onDrag,native);assert.equal(n.__orvLiveSize,undefined);assert.equal(n.__orvMasterPromptHeight,master);assert.equal(n.widgets[0].value,'preserved');
  n.onRemoved();assert.equal(listeners.size,0);
 });
+
+test('unknown numeric Auto never displays native coerced zero or overlaps the absolute input',()=>{
+ const state={style:{},setAttribute(){},addEventListener(){}},outer={append(e){this.state=e;},querySelector(){return this.state||null;}},inner={parentElement:outer,append(){throw new Error('state must not overlap absolute input');}},doc={activeElement:null};
+ const input={value:'0',ownerDocument:doc,parentElement:inner,getAttribute:()=> 'provider_option:test::stability'};
+ const item={name:'provider_option:test::stability',type:'number',label:'Stability',value:null,__orvProviderOption:true,__orvProviderAuto:true,__orvProviderKnownDefault:false};
+ const c=context({document:{createElement:()=>state},getComputedStyle:()=>({position:'absolute'})}),row={querySelector:s=>s==='input'?input:null},n={widgets:[item]};
+ c.syncProviderNumericState(n,row);assert.equal(input.value,'');assert.equal(input.placeholder,'Auto');assert.equal(state.hidden,true);assert.equal(outer.state,state);assert.equal(item.value,null);
+ // A focused native editor owns its uncommitted draft.
+ doc.activeElement=input;input.value='0.4';c.syncProviderNumericState(n,row);assert.equal(input.value,'0.4');assert.equal(item.value,null);
+ // Explicit zero stays visible, with a reset; it never becomes omission.
+ item.__orvProviderAuto=false;item.value=0;input.value='0';c.syncProviderNumericState(n,row);assert.equal(input.value,'0');assert.equal(state.hidden,false);assert.equal(state.textContent,'↺');assert.equal(item.value,0);
+ // A documented default remains a value plus one compact Auto state.
+ doc.activeElement=null;item.__orvProviderAuto=true;item.__orvProviderKnownDefault=true;item.value=1;input.value='1';c.syncProviderNumericState(n,row);assert.equal(input.value,'1');assert.equal(state.hidden,false);assert.equal(state.textContent,'Auto');assert.equal(item.value,1);
+});
