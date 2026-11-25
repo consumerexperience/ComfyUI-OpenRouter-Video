@@ -2,7 +2,7 @@
   "status": "UNACCEPTED_PACKAGE02_FINAL_12",
   "baseline": "0e55e984471ad8a8aecc91d8bd580ea3856520d8",
   "files": {
-    "web/openrouter_video.js": "af4f33102c76ece990b3e5b22f61860da906f3f9b5fc5041503b2c68ee45a8e8",
+    "web/openrouter_video.js": "fcac308f15aaad32de83a40afa98959f30471aa526223d3bcfc1ce28be79575a",
     "src/openrouter_video/configuration.py": "a28fdaafbc359e49e6a5fd29e207d56bccfd8d2c9f80696195023b8cbe35170e",
     "src/openrouter_video/comfy/nodes.py": "6cef718eb567515ece6308daac3701549ba10b75d4d3a45bb3e1e80328ef56ad",
     "src/openrouter_video/data/capability-evidence.json": "9765ef6966ec6674efd594940c7e2fbfb636209a07d30849b27c0fc2e3222137"
@@ -19,7 +19,7 @@
     "stylePrompt": "aa1c19ba3b5fc1f448a3f4e30f4c5278c0184798953a7cacb3a9586bc3009ef0",
     "orderPresentationWidgets": "a2909c600bb464a0c67e4e811d076ae1232f12dcf708046e5c6c3f958d1b6cf6",
     "applyPresentation": "c4abcb1beb3805c31f25878f6b8e0efbccd1008731e835b61e95529041416d50",
-    "installResponsiveHeight": "bef32581d1bc84c213295ccd680a6448822f4f7b65724f59b0a58b4c9df26828",
+    "installResponsiveHeight": "25a84245d26bf3286933db23a7818509c4b9a61468676d1e171e6670f55d2eb3",
     "fitPresentationWidth": "6f3ec83fa564e94efe581a7eab68d0ff495fe28de5ba82a3be6e0b9f8169f46b",
     "installBetaPresentation": "83570f1eeb3efc2550ce5fb036ec3f8e95ab636423dde8e1c8cba3f6cb37e437",
     "drawCapacityMeter": "03b6bce14e46aa7566a1b4b952f880ff409ad89572a8517bf281363df549a8ff",

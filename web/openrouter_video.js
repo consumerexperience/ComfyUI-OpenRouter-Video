@@ -771,11 +771,13 @@ function installResponsiveHeight(node) {
             delete node.__orvResizeDispatch;delete node.__orvLiveSize;delete node.__orvLivePromptHeight;node.__orvUserResizeActive=false;
         };
         canvas.addEventListener("pointerdown",start,true);canvas.addEventListener("pointermove",move,true);
-        canvas.addEventListener("pointerup",end);canvas.addEventListener("pointercancel",end);
+        // Observe completion before native target handlers can stop propagation.
+        // Otherwise a finished Classic drag can leave Vue in live-flex mode.
+        canvas.addEventListener("pointerup",end,true);canvas.addEventListener("pointercancel",end,true);
         const removed=node.onRemoved;
         node.onRemoved=function(...args){
             end();this.__orvRemoved=true;if(typeof cancelAnimationFrame==="function")cancelAnimationFrame(this.__orvResizeFrame);canvas.removeEventListener("pointerdown",start,true);canvas.removeEventListener("pointermove",move,true);
-            canvas.removeEventListener("pointerup",end);canvas.removeEventListener("pointercancel",end);
+            canvas.removeEventListener("pointerup",end,true);canvas.removeEventListener("pointercancel",end,true);
             return removed?.apply(this,args);
         };
     }

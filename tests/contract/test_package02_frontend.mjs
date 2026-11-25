@@ -140,3 +140,18 @@ for(const locale of ['en','ru'])for(const selectedDuration of [4,-1])test(`refer
  const basis=tip.sections.find(s=>s.title===c.costText('referenceScope'));assert(basis);assert.equal(basis.rows[0][0],c.costText('billableQuantity'));assert.equal(basis.rows[0][1],locale==='ru'?'16,066016 с':'16.066016s');
  assert.equal(tip.amount,locale==='ru'?'$1,61':'$1.61');assert.equal(JSON.stringify(result),before);assert.equal(n.widgets[4].value,selectedDuration);
 });
+
+for(const completion of ['pointerup','pointercancel'])test(`Classic completion survives native bubble suppression: ${completion}`,()=>{
+ const listeners=new Map();let n;
+ const canvas={addEventListener:(name,fn,capture=false)=>listeners.set(name,{fn,capture}),removeEventListener:(name,fn,capture=false)=>{const prior=listeners.get(name);assert.equal(prior.fn,fn);assert.equal(prior.capture,capture);listeners.delete(name);}};
+ const c=context();c.app.canvas={canvas,graph:{getNodeById:()=>n},pointer:{},convertEventToCanvasOffset:()=>[0,0]};
+ n={id:4,size:[400,600],widgets:[{name:'prompt',value:'preserved',options:{}}],findResizeDirection:()=> 'SE',computeSize:()=>[400,300],setDirtyCanvas(){}};
+ c.sizePrimaryControls(n);c.installResponsiveHeight(n);c.fitPresentationWidth(n);
+ const native=e=>n.onResize(n.size);c.app.canvas.pointer.onDrag=native;
+ listeners.get('pointerdown').fn({isTrusted:true,button:0,pointerId:1});const e={isTrusted:true,pointerId:1};c.app.canvas.pointer.eMove=e;n.size=[620,800];c.app.canvas.pointer.onDrag(e);
+ const master=n.__orvMasterPromptHeight;assert.equal(n.__orvUserResizeActive,true);
+ // Native target handling can suppress later bubble listeners. Capture still runs.
+ const end=listeners.get(completion);if(end.capture)end.fn(e);
+ assert.equal(n.__orvUserResizeActive,false);assert.equal(c.app.canvas.pointer.onDrag,native);assert.equal(n.__orvLiveSize,undefined);assert.equal(n.__orvMasterPromptHeight,master);assert.equal(n.widgets[0].value,'preserved');
+ n.onRemoved();assert.equal(listeners.size,0);
+});
