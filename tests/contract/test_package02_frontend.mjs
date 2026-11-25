@@ -169,3 +169,31 @@ test('unknown numeric Auto never displays native coerced zero or overlaps the ab
  // A documented default remains a value plus one compact Auto state.
  doc.activeElement=null;item.__orvProviderAuto=true;item.__orvProviderKnownDefault=true;item.value=1;input.value='1';c.syncProviderNumericState(n,row);assert.equal(input.value,'1');assert.equal(state.hidden,false);assert.equal(state.textContent,'Auto');assert.equal(item.value,1);
 });
+
+test('Vue observer ignores unrelated DOM and batches only affected nodes per frame',()=>{
+ const frames=[], synced=[];
+ let notify;
+ const first={id:1},second={id:2};
+ const c=context({
+  document:{head:{append(){}},body:{},createElement:()=>({})},
+  MutationObserver:class {constructor(callback){notify=callback;}observe(){}},
+  requestAnimationFrame:callback=>frames.push(callback),
+ });
+ c.app.graph={getNodeById:id=>String(id)==='1'?first:second};
+ c.syncBetaPresentation=node=>synced.push(node.id);
+ c.installBetaPresentation(first);c.installBetaPresentation(second);
+ assert.equal(frames.length,1);
+ frames.shift()();
+ assert.deepEqual(synced.splice(0),[1,2]);
+ const outside={target:{},addedNodes:[{matches:()=>false,querySelector:()=>null}],removedNodes:[]};
+ notify([outside]);
+ assert.equal(frames.length,0);
+ const inside={target:{closest:()=>({dataset:{nodeId:'1'}})},addedNodes:[],removedNodes:[]};
+ notify([inside]);notify([inside,outside]);
+ assert.equal(frames.length,1);
+ frames.shift()();
+ assert.deepEqual(synced.splice(0),[1]);
+ notify([{...outside,addedNodes:[{matches:()=>true}]}]);
+ frames.shift()();
+ assert.deepEqual(synced,[1,2]);
+});

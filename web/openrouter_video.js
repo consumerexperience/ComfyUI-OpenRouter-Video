@@ -848,13 +848,22 @@ function createEstimateState() {
     });
 }
 
-function scheduleBetaPresentation() {
-    if (!installBetaPresentation.nodes || installBetaPresentation.pending) return;
+function scheduleBetaPresentation(nodes = installBetaPresentation.nodes) {
+    if (!nodes) return;
+    const dirty = installBetaPresentation.dirty ||= new Set();
+    for (const node of nodes) dirty.add(node);
+    if (!dirty.size || installBetaPresentation.pending) return;
     installBetaPresentation.pending = true;
-    queueMicrotask(() => {
+    const flush = () => {
         installBetaPresentation.pending = false;
-        for (const node of installBetaPresentation.nodes) syncBetaPresentation(node);
-    });
+        const batch = [...dirty];
+        dirty.clear();
+        for (const node of batch) {
+            if (installBetaPresentation.nodes.has(node)) syncBetaPresentation(node);
+        }
+    };
+    if (typeof requestAnimationFrame === "function") requestAnimationFrame(flush);
+    else queueMicrotask(flush);
 }
 
 function installBetaPresentation(node) {
@@ -878,7 +887,29 @@ function installBetaPresentation(node) {
                 padding:4px 6px; margin:0; box-sizing:border-box; font:400 12px/18px ${nodeTypography().family}; overflow:auto; }
         `;
         document.head.append(style);
-        installBetaPresentation.observer = new MutationObserver(scheduleBetaPresentation);
+        installBetaPresentation.observer = new MutationObserver(records => {
+            const selector = ".lg-node[data-node-id]";
+            const dirty = new Set();
+            const graph = app.canvas?.graph || app.graph;
+            for (const record of records) {
+                const root = record.target.closest?.(selector);
+                if (root) {
+                    const changed = graph?.getNodeById?.(root.dataset.nodeId);
+                    if (installBetaPresentation.nodes.has(changed)) dirty.add(changed);
+                    continue;
+                }
+                // Renderer or graph replacement can mount/unmount several nodes
+                // together. Ordinary menus, tooltips and sidebars cannot.
+                const changedRoots = [...record.addedNodes, ...record.removedNodes].some(
+                    element => element.matches?.(selector) || element.querySelector?.(selector),
+                );
+                if (changedRoots) {
+                    scheduleBetaPresentation();
+                    return;
+                }
+            }
+            scheduleBetaPresentation(dirty);
+        });
         installBetaPresentation.observer.observe(document.body, { childList: true, subtree: true });
     }
     if (!installBetaPresentation.nodes.has(node)) {
@@ -889,7 +920,7 @@ function installBetaPresentation(node) {
             return previousRemoved?.apply(this, args);
         };
     }
-    scheduleBetaPresentation();
+    scheduleBetaPresentation([node]);
 }
 
 function referenceCapacity(node) {
