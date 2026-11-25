@@ -2,7 +2,7 @@
   "status": "UNACCEPTED_PACKAGE02_FINAL_12",
   "baseline": "0e55e984471ad8a8aecc91d8bd580ea3856520d8",
   "files": {
-    "web/openrouter_video.js": "bfa451f2b6dc35e4f7a69f8b76b0335915018c3bd353dd75191681b603ff92b4",
+    "web/openrouter_video.js": "79298e50aafd961ffb5c78741f225f5ddec80167a7057259d5ece9b5f1fa57a5",
     "src/openrouter_video/configuration.py": "a28fdaafbc359e49e6a5fd29e207d56bccfd8d2c9f80696195023b8cbe35170e",
     "src/openrouter_video/comfy/nodes.py": "6cef718eb567515ece6308daac3701549ba10b75d4d3a45bb3e1e80328ef56ad",
     "src/openrouter_video/data/capability-evidence.json": "9765ef6966ec6674efd594940c7e2fbfb636209a07d30849b27c0fc2e3222137"
@@ -16,7 +16,7 @@
   "functions": {
     "installParameterColumns": "f99b37a2eb04c37d474bd0cb215679555ce103bc5c708c98731da08ff59291a2",
     "textRegionGeometry": "46b3c84ea812f8549cb421103010a311fe1c716b91bec37f42c7dffad5c89221",
-    "stylePrompt": "aa1c19ba3b5fc1f448a3f4e30f4c5278c0184798953a7cacb3a9586bc3009ef0",
+    "stylePrompt": "dfeba3cfae563a7bc741c8e153fae928b4430d86b1a0f934ff3cd194399e1ecb",
     "orderPresentationWidgets": "a2909c600bb464a0c67e4e811d076ae1232f12dcf708046e5c6c3f958d1b6cf6",
     "applyPresentation": "b604d12f405fe79b97c06a5fd4eeb52142902c273fb1f9c4ab6e839fd3e3f1e9",
     "installResponsiveHeight": "25a84245d26bf3286933db23a7818509c4b9a61468676d1e171e6670f55d2eb3",
@@ -41,7 +41,8 @@
     "costTooltipView": "a3658dc60158668fd2bea70c4bf90dd6857f00edd63e6855129f7a3591be5dec",
     "nativeFlowHeight": "ff07f07dde77946ebb9c226b2aea4a400cd31b57cb9613df3de00f2069a9d542",
     "costText": "cdd66dc156d3ab1726763ffba9a1cc4917163b83729a18c86cebd8547444a739",
-    "scheduleBetaPresentation": "816c781989e55e10093856556e6fca6ec9f23b4c43828e2c1a727acaec4ebdb2"
+    "scheduleBetaPresentation": "816c781989e55e10093856556e6fca6ec9f23b4c43828e2c1a727acaec4ebdb2",
+    "sizePrimaryControls": "95f5b57dc84320c4fdaedad0e721b9c3149d76b4dfaaf7083b2ddc970d20c45f"
   },
   "added": {
     "creativeTextLabel": "f407c8a58821e9ae5f608675653a9ccda2de1ac0a5b050e4f668aebaba46b494",

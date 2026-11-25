@@ -457,8 +457,12 @@ function sizePrimaryControls(node) {
     for (const prompt of creativeTextWidgets(node, true)) {
         prompt.__orvComputeSize = () => {
             const region = textRegionGeometry(node);
-            if (node.__orvMeasuringMinimum) return [0, COMPACT_LAYOUT.prompt + COMPACT_LAYOUT.domInset];
-            return [0, region.field];
+            // Classic DOMWidget subtracts its two margins instead of the
+            // ordinary row gap. Reserve only the extra amount it subtracts.
+            const domGap = typeof prompt.margin === "number" ? COMPACT_LAYOUT.gap : 0;
+            const height = node.__orvMeasuringMinimum
+                ? COMPACT_LAYOUT.prompt + COMPACT_LAYOUT.domInset : region.field;
+            return [0, height + domGap];
         };
         setVisible(prompt, !prompt.hidden);
     }
@@ -521,14 +525,15 @@ function stylePrompt(node) {
     element.style.borderRadius = "4px";
     element.style.color = "#e4ece9";
     element.style.fontSize = "12px";
-    // Native DOMWidget margin otherwise reserves vertical space in addition to
-    // the native row gap. Keep the accepted budget and reclaim that usable area.
-    (item.options ||= {}).margin = 0;
+    const margin = typeof item.margin === "number" ? COMPACT_LAYOUT.gap : 0;
+    // Native DOMWidget owns the vertical offset. Its horizontal margin is part
+    // of the same inset used by the other full-width Classic rows.
+    (item.options ||= {}).margin = margin;
     element.style.padding = "4px 6px";
     element.style.margin = "0";
     element.style.boxSizing = "border-box";
-    element.style.width = `calc(100% - ${COMPACT_LAYOUT.inset*2}px)`;
-    element.style.marginInline = `${COMPACT_LAYOUT.inset}px`;
+    element.style.width = `calc(100% - ${(COMPACT_LAYOUT.inset-margin)*2}px)`;
+    element.style.marginInline = `${COMPACT_LAYOUT.inset-margin}px`;
     element.style.textIndent = "0";
     element.style.lineHeight = "18px";
     element.style.fontFamily=nodeTypography(node).family;
