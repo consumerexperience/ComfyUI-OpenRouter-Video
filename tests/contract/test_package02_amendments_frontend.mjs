@@ -196,3 +196,19 @@ test('provider dropdown projection keeps unchanged controls visible throughout a
  assert(!writes.includes(true),'a still-valid control must never be hidden during projection');
  assert.equal(n.widgets.find(w=>w.name===fit.name),fit);
 });
+
+test('HeyGen speed retains its full domain with a sub-unit native increment',()=>{
+ const {c,n}=harness();
+ project(c,n);
+ const speed=n.widgets.find(w=>w.name==='provider_option:heygen::voice_settings:speed');
+ assert.equal(speed.options.min,0.5);
+ assert.equal(speed.options.max,1.5);
+ assert.equal(speed.value,1);
+ assert.equal(speed.options.step2,0.01);
+ for(const value of [0.5,0.5434,1.5]){
+  speed.callback(value);
+  assert.equal(saved(n).find(v=>v.path?.includes('speed')).value,value);
+ }
+ speed.__orvResetProvider();
+ assert(!saved(n).some(v=>v.path?.includes('speed')));
+});

@@ -2,7 +2,7 @@
   "status": "UNACCEPTED_PACKAGE02_FINAL_12",
   "baseline": "0e55e984471ad8a8aecc91d8bd580ea3856520d8",
   "files": {
-    "web/openrouter_video.js": "79298e50aafd961ffb5c78741f225f5ddec80167a7057259d5ece9b5f1fa57a5",
+    "web/openrouter_video.js": "4c9e896a5d0932b0d8aa0c877b12486770ffba51cbe6bc6a13dcb2e7103e8843",
     "src/openrouter_video/configuration.py": "a28fdaafbc359e49e6a5fd29e207d56bccfd8d2c9f80696195023b8cbe35170e",
     "src/openrouter_video/comfy/nodes.py": "6cef718eb567515ece6308daac3701549ba10b75d4d3a45bb3e1e80328ef56ad",
     "src/openrouter_video/data/capability-evidence.json": "9765ef6966ec6674efd594940c7e2fbfb636209a07d30849b27c0fc2e3222137"
@@ -28,7 +28,7 @@
     "drawReadOnlyValue": "d5f23a31a7a475ce06bbf18162235ecde3dfcef58a1b441a090bab54dcfaab17",
     "syncReadOnlyDurationRow": "7df443de4bffe132b8ad0f5934c40f7a58702336dc0c118fbf4c80c26ecff63e",
     "providerObjectIssue": "35a67027b18b0de8ef1dade33ce3a3cb256113227245487dee5811f5d0f0c563",
-    "configureOperationControls": "4c5ae9ad4119fc331630a44bac26e63421a327da7745efe942bdc8247daed1a8",
+    "configureOperationControls": "a2d06ce6c531aeecdc66a7646bc851020231be921548973111ba6a9c66e5dad0",
     "renderCostDetails": "aea5020f99a2f55472c5c9e391a655950ab92c3ceaf76d5017d23a3423ef4cf1",
     "drawCollapsedCostBadge": "f115d5d5ddc0ee6e5ed3fe861eef4683cab3bb317625f2fc85638b1567cc8b29",
     "syncClassicCostBadge": "07362ac7dc1d090530ac2a9cea20658a5305e5f5d83b1998d798d2de0d002c26",

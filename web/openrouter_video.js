@@ -2511,6 +2511,13 @@ function configureOperationControls(node, profile) {
         item.serialize = false;
         item.label = providerControlLabel(spec,key,path) + (spec.required ? " *" : "");
         Object.assign(item.options ||= {}, {min:spec.min, max:spec.max});
+        if (numeric) {
+            // The native slider defaults to a whole unit without an explicit
+            // step. This is an interaction increment, not a provider constraint.
+            const step = spec.type === "integer" ? 1 : 0.01;
+            item.options.step = step;
+            item.options.step2 = step;
+        }
         item.options.placeholder=spec.required ? (costLocale()==="ru"?"Обязательное поле":"Required") : defaultLabel;
         item.options.tooltip=[numeric ? (costLocale()==="ru"?"Измените значение для ручной настройки. Сброс в Авто — в меню ноды.":"Edit to override. Reset to Auto from the node menu.") : "",spec.max_length == null ? "" : `Maximum ${spec.max_length} characters`,
             ...Object.entries(root.requires || {}).map(([key,domain])=>`Requires ${key}: ${domain.join(" / ")}`)].filter(Boolean).join("; ");
