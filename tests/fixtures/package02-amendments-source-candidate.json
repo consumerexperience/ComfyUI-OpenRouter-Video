@@ -2,7 +2,7 @@
   "status": "UNACCEPTED_PACKAGE02_FINAL_12",
   "baseline": "0e55e984471ad8a8aecc91d8bd580ea3856520d8",
   "files": {
-    "web/openrouter_video.js": "3ab5549ed08061e8646c24b4681044a27db78f0d57a3e4c1164d19f5d0927edc",
+    "web/openrouter_video.js": "bfa451f2b6dc35e4f7a69f8b76b0335915018c3bd353dd75191681b603ff92b4",
     "src/openrouter_video/configuration.py": "a28fdaafbc359e49e6a5fd29e207d56bccfd8d2c9f80696195023b8cbe35170e",
     "src/openrouter_video/comfy/nodes.py": "6cef718eb567515ece6308daac3701549ba10b75d4d3a45bb3e1e80328ef56ad",
     "src/openrouter_video/data/capability-evidence.json": "9765ef6966ec6674efd594940c7e2fbfb636209a07d30849b27c0fc2e3222137"
@@ -18,12 +18,12 @@
     "textRegionGeometry": "46b3c84ea812f8549cb421103010a311fe1c716b91bec37f42c7dffad5c89221",
     "stylePrompt": "aa1c19ba3b5fc1f448a3f4e30f4c5278c0184798953a7cacb3a9586bc3009ef0",
     "orderPresentationWidgets": "a2909c600bb464a0c67e4e811d076ae1232f12dcf708046e5c6c3f958d1b6cf6",
-    "applyPresentation": "c4abcb1beb3805c31f25878f6b8e0efbccd1008731e835b61e95529041416d50",
+    "applyPresentation": "b604d12f405fe79b97c06a5fd4eeb52142902c273fb1f9c4ab6e839fd3e3f1e9",
     "installResponsiveHeight": "25a84245d26bf3286933db23a7818509c4b9a61468676d1e171e6670f55d2eb3",
     "fitPresentationWidth": "6f3ec83fa564e94efe581a7eab68d0ff495fe28de5ba82a3be6e0b9f8169f46b",
     "installBetaPresentation": "b7d626073e10a3d7ffb335e026311a23b61fd755905b449a59f80613b80fbc84",
     "drawCapacityMeter": "03b6bce14e46aa7566a1b4b952f880ff409ad89572a8517bf281363df549a8ff",
-    "syncCapacityMeter": "26cebc0468a976493cc180297410a35bef74907c3b4a5437a5007d3eace2ac3f",
+    "syncCapacityMeter": "a5ccb60858fa73ab68245613322f0ec6dc961be8ccacb154c5436575ec6c47db",
     "syncBetaPresentation": "4243adf6393361ca174000e410a1db4f9af83559092da3c2efde1f0590d218fc",
     "drawReadOnlyValue": "d5f23a31a7a475ce06bbf18162235ecde3dfcef58a1b441a090bab54dcfaab17",
     "syncReadOnlyDurationRow": "7df443de4bffe132b8ad0f5934c40f7a58702336dc0c118fbf4c80c26ecff63e",

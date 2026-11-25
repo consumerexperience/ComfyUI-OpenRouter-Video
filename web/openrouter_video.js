@@ -629,7 +629,9 @@ function applyPresentation(node) {
         if(this.__orvProviderProfile && this.__orvProviderLocale!==costLocale())configureOperationControls(this,this.__orvProviderProfile);
         const reordered = orderPresentationWidgets(this);
         const advancedChanged = syncAdvancedControls(this);
-        if (reordered || advancedChanged) {
+        const returningToClassic = Number.isFinite(this.__orvNativeFixedHeight)
+            && app.ui?.settings?.getSettingValue?.("Comfy.VueNodes.Enabled") === false;
+        if (reordered || advancedChanged || returningToClassic) {
             fitPresentationWidth(this);
         }
         previousDraw?.call(this, ctx, ...args);
@@ -969,7 +971,8 @@ function syncCapacityMeter(node,row,input) {
     let meter=row.querySelector(".orv-capacity-summary");
     if(!meter){
         meter=document.createElement("div");meter.className="orv-capacity-summary";
-        Object.assign(meter.style,{gridColumn:"1 / -1",minWidth:"0",font:`400 12px/20px ${nodeTypography(node).family}`,padding:`0 ${COMPACT_LAYOUT.inset}px`,color:"#C4C4C4"});
+        // Share the native full-width widget columns, including their gutter.
+        Object.assign(meter.style,{gridColumn:"2 / -1",minWidth:"0",font:`400 12px/20px ${nodeTypography(node).family}`,color:"#C4C4C4"});
         const title=document.createElement("div"),name=document.createElement("span"),count=document.createElement("span");
         Object.assign(title.style,{display:"flex",justifyContent:"space-between",gap:"8px"});title.append(name,count);
         const track=document.createElement("div"),fill=document.createElement("div");Object.assign(track.style,{height:"3px",margin:"4px 0",background:"#44494b"});Object.assign(fill.style,{height:"3px",background:"#B6BBBD"});track.append(fill);
