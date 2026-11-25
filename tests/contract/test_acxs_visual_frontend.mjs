@@ -134,7 +134,7 @@ test('native multiline minima retain independent master height and release addit
 test('read-only native Duration replaces only its value cell and restores native editing without duplicates',()=>{
  const c=context(),n=node(c),duration={name:'duration',value:8,__orvDurationAdapter:true,__orvDurationPresentation:'FIXED',options:{read_only:true}};n.widgets.push(duration);
  const make=()=>({style:{},children:[],setAttribute(k,v){this[k]=v;},append(...values){this.children.push(...values);},remove(){this.removed=true;}});
- c.document={createElement:make};const input={getAttribute:()=> 'duration'},cell={style:{display:'inline-flex'},contains:e=>e===input};
+ c.document={createElement:make};const input={getAttribute:()=> 'duration'},cell={style:{display:'inline-flex'},contains:e=>e===input,querySelector:()=>null};
  const row={children:[cell],querySelector:s=>s==='input'?input:s==='.orv-duration-readonly'?row.children.find(e=>e.className==='orv-duration-readonly'&&!e.removed):null,append:e=>row.children.push(e)};
  c.syncReadOnlyDurationRow(n,{},row);c.syncReadOnlyDurationRow(n,{},row);const display=row.children[1];assert.equal(row.children.length,2);assert.equal(cell.style.display,'none');assert.equal(display.children[0].textContent,'8 s');assert.equal(display.children[1].textContent,'Fixed');assert.equal(display.role,'status');assert.equal(display.style.opacity,undefined);
  duration.options.read_only=false;c.syncReadOnlyDurationRow(n,{},row);assert.equal(cell.style.display,'inline-flex');assert(display.removed);assert.equal(duration.value,8);
