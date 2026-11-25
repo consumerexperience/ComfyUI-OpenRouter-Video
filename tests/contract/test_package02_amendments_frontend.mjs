@@ -111,10 +111,13 @@ test('native save names fixed values independently of added nonserialized contro
 
 test('Nodes2 numeric state uses one compact accessible reset and never edits the native binding',()=>{
  const {c,n}=harness();project(c,n);const item=get(n,'voice_settings:speed'),children=[];const host={append(x){children.push(x);},querySelector:()=>children[0]};
- const input={parentElement:host,getAttribute:()=>item.name,style:{}},label={textContent:item.label};const row={querySelector:s=>s==='input'?input:s.includes('widget-layout-field-label')?label:null};
+ let blur,binds=0;
+ const input={parentElement:host,getAttribute:()=>item.name,style:{},addEventListener(type,fn){assert.equal(type,'blur');binds++;blur=fn;}},label={textContent:item.label};
+ const row={isConnected:true,querySelector:s=>s==='input'?input:s.includes('widget-layout-field-label')?label:null};
+ c.requestAnimationFrame=callback=>callback();
  let writes=0,text='';c.document.createElement=()=>({style:{},get textContent(){return text;},set textContent(value){writes++;text=value;},setAttribute(k,v){this[k]=v;},addEventListener(name,fn){this[name]=fn;}});
  c.syncProviderNumericState(n,row);c.syncProviderNumericState(n,row);assert.equal(writes,1,'unchanged text must not trigger the native subtree observer again');assert.equal(children.length,1);assert.equal(children[0].textContent,'Auto');assert.equal(item.value,1);assert.equal(saved(n).length,0);
- item.callback(1.2);c.syncProviderNumericState(n,row);assert.equal(children[0].textContent,'↺');children[0].click({stopPropagation(){}});assert.equal(saved(n).length,0);assert.equal(item.__orvProviderAuto,true);
+ assert.equal(binds,1);item.callback(1.2);c.syncProviderNumericState(n,row);input.value='1.200000000000000';blur();assert.equal(input.value,'1.2');assert.equal(children[0].textContent,'↺');children[0].click({stopPropagation(){}});assert.equal(saved(n).length,0);assert.equal(item.__orvProviderAuto,true);
 });
 
 

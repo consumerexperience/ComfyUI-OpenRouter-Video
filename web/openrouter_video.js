@@ -385,6 +385,16 @@ function syncProviderNumericState(node, row) {
     if(!item)return;
     const unknownAuto=item.__orvProviderAuto && !item.__orvProviderKnownDefault;
     if (input && !unknownAuto && item.type === "slider" && input.style) {
+        if (!input.__orvCompactNumberOnBlur) {
+            input.__orvCompactNumberOnBlur = true;
+            input.addEventListener("blur", () => {
+                // The host reapplies its fixed-precision string on blur.
+                // Reformat the settled value without touching the editor draft.
+                requestAnimationFrame(() => {
+                    if (row.isConnected) syncProviderNumericState(node, row);
+                });
+            });
+        }
         const decimal = providerDisplayValue(item, false);
         if (input.ownerDocument?.activeElement !== input && input.value !== decimal) input.value = decimal;
         const style = typeof getComputedStyle === "function" ? getComputedStyle(input) : null;
