@@ -130,9 +130,14 @@ test('PUX05 structured capacity preserves active quantities, independent caps an
  const c=context(),n={__orvReferenceSummary:'deliberately stale prose'};capacityFixture(n,c);
  const data=c.referenceCapacity(n);assert.equal(data.active,4);assert.equal(data.limit,50);assert.equal(data.parked,2);assert.equal(data.utilization,0.08);
  assert.deepEqual(Array.from(data.modalities,v=>[v.kind,v.active,v.limit]),[['image',2,30],['video',1,10],['audio',1,10]]);
- assert(c.capacitySummaryText(n).includes('References 4 / 50'));assert(c.capacitySummaryText(n).includes('2 parked'));
- c.app.ui={settings:{getSettingValue:()=> 'ru'}};assert(c.capacitySummaryText(n).includes('2 вне режима'));
+ assert(c.capacitySummaryText(n).includes('References 4 / 50'));assert(c.capacitySummaryText(n).includes('2 Parked'));
+ c.app.ui={settings:{getSettingValue:()=> 'ru'}};assert(c.capacitySummaryText(n).includes('2 отложено'));
  n.__orvCapability.__methodProfile.topology.constraint_state='UNKNOWN';assert.equal(c.referenceCapacity(n).limit,null);assert(c.capacitySummaryText(n).includes(' / ?'));
+ assert.match(c.parkedReferenceTooltip(), /сохраняются.*исключаются.*восстанавливаются/);
+ n.properties.orv_capability_intent.media.pop();
+ assert.match(c.capacitySummaryText(n), /1 отложено/);
+ n.properties.orv_capability_intent.media[0].active_name=n.inputs[0].name;
+ assert.equal(c.referenceCapacity(n).parked,0);
  assert.equal(n.__orvReferenceSummary,'deliberately stale prose');
 });
 

@@ -48,7 +48,7 @@ def test_frontend_helper_keeps_unresolved_and_auto_semantics_local() -> None:
     assert "return type.toLowerCase()" in text
     assert "switchWouldOrphan" in text
     assert "mixed_image_video_references" not in text
-    # Exact-decimal display comment does not implement validation semantics.
-    assert "Core" not in text.replace(
-        "// Money strings from Core are exact decimals; do not round via binary float.", ""
-    )
+    # Core references in standalone comments describe the boundary. Enforce
+    # the original token constraint on the executable frontend source.
+    executable = "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("//"))
+    assert "Core" not in executable

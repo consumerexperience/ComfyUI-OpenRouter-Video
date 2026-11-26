@@ -1105,6 +1105,16 @@ function installBetaPresentation(node) {
     scheduleBetaPresentation([node]);
 }
 
+function parkedReferenceLabel(count) {
+    return `${count} ${costLocale()==="ru"?"отложено":"Parked"}`;
+}
+
+function parkedReferenceTooltip() {
+    return costLocale()==="ru"
+        ? "Отложенные связи сохраняются, исключаются из текущей конфигурации и восстанавливаются, когда снова становятся совместимыми."
+        : "Parked connections are preserved, excluded from the current configuration, and restored when compatible again.";
+}
+
 function referenceCapacity(node) {
     // Read the same authoritative active projection as topology and ACI. Never
     // derive capacities by parsing prose or summing independent kind maxima.
@@ -1143,7 +1153,7 @@ function drawCapacityMeter(ctx,node,width,y) {
         const x=data.modalities.length===1?left:left+(right-left)*index/(data.modalities.length-1);
         ctx.fillText(`${item.kind.toUpperCase()} ${item.active??"?"}/${item.limit??"?"}`,x,top);
     });
-    if(data.parked){ctx.textAlign="right";ctx.fillStyle="#FFBB00";ctx.fillText(`${data.parked} ${costLocale()==="ru"?"вне режима":"parked"}`,right,top+COMPACT_LAYOUT.row);}
+    if(data.parked){ctx.textAlign="right";ctx.fillStyle="#FFBB00";ctx.fillText(parkedReferenceLabel(data.parked),right,top+COMPACT_LAYOUT.row);}
     ctx.restore();
 }
 
@@ -1175,15 +1185,17 @@ function syncCapacityMeter(node,row,input) {
         for(const item of data.modalities){const text=document.createElement("span");text.textContent=`${item.kind.toUpperCase()} ${item.active??"?"}/${item.limit??"?"}`;parts.kinds.append(text);}
         meter.__orvKinds=signature;
     }
-    const parked=data.parked?`${data.parked} ${costLocale()==="ru"?"вне режима":"parked"}`:"";if(parts.parked.textContent!==parked)parts.parked.textContent=parked;
+    const parked=data.parked?parkedReferenceLabel(data.parked):"";if(parts.parked.textContent!==parked)parts.parked.textContent=parked;
     parts.parked.style.display=data.parked?"":"none";
+    const hint = data.parked ? parkedReferenceTooltip() : "";
+    if (parts.parked.title !== hint) parts.parked.title = hint;
 }
 
 function capacitySummaryText(node) {
     const data=referenceCapacity(node);
     return `${costLocale()==="ru"?"Референсы":"References"} ${data.active??"?"} / ${data.limit??"?"}`+
         (data.modalities.length?" · "+data.modalities.map(item=>`${item.kind.toUpperCase()} ${item.active??"?"}/${item.limit??"?"}`).join(" · "):"")+
-        (data.parked?` · ${data.parked} ${costLocale()==="ru"?"вне режима":"parked"}`:"");
+        (data.parked?` · ${parkedReferenceLabel(data.parked)}`:"");
 }
 
 function capacitySummaryLines(node, width) {
@@ -3306,10 +3318,11 @@ function reconcileReferenceTopology(node, capability, method, transition) {
             ? "Reference limit unverified · existing links preserved" : "";
     const storedMedia = capabilityIntent(node).media;
     const parkedCount = Array.isArray(storedMedia) ? storedMedia.filter(entry => entry?.active_name === null).length : 0;
-    if (parkedCount) node.__orvReferenceSummary = `${node.__orvReferenceSummary || `${currentCount} connected`} · ${parkedCount} parked`;
+    if (parkedCount) node.__orvReferenceSummary = `${node.__orvReferenceSummary || `${currentCount} connected`} · ${parkedReferenceLabel(parkedCount)}`;
     if (node.__orvSummary) {
         node.__orvSummary.value = node.__orvReferenceSummary;
-        (node.__orvSummary.options ||= {}).tooltip = node.__orvReferenceSummary;
+        (node.__orvSummary.options ||= {}).tooltip = parkedCount
+            ? `${node.__orvReferenceSummary} · ${parkedReferenceTooltip()}` : node.__orvReferenceSummary;
         setVisible(node.__orvSummary, Boolean(node.__orvReferenceSummary));
     }
     const expectedKind = {

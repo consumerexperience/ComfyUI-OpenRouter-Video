@@ -73,7 +73,20 @@ export function finalAciBackendPaths(root) {
   return finalAciPredecessor(root,path,raw)!==raw;
  });
 }
+function parkedCopyPredecessor(root,path,current) {
+ if(path!=='web/openrouter_video.js' || sha(current)!=='ed09a62c12e94ff5a69e1790d52a00d50aa2b2dbc36c21b082eec09671089930')return current;
+ const before=normalize(execFileSync('git',['show','416c8d55b99133c5e448c91c5753c200630fa8c9:'+path],{cwd:root,encoding:'utf8'}));
+ assert.equal(sha(before),'1912d066ab889a8b0dc8224461cdeecf58ae3c714bde6ba976ec24d5209258c6');
+ let restored=normalize(current);
+ for(const name of ['drawCapacityMeter','syncCapacityMeter','capacitySummaryText','reconcileReferenceTopology'])
+  restored=restored.replace(body(restored,name),()=>body(before,name));
+ for(const name of ['parkedReferenceLabel','parkedReferenceTooltip'])
+  restored=restored.replace(body(restored,name)+'\n','');
+ assert.equal(restored,before,'Only Parked labels and existing tooltip text may differ');
+ return before;
+}
 export function package02AmendmentBaselineSource(root,path,current){
+ current=parkedCopyPredecessor(root,path,current);
  current=finalAciPredecessor(root,path,current);
  current=nativeShrinkPredecessor(root,path,current);
  current=stableVuePredecessor(root,path,current);
