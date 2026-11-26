@@ -3846,7 +3846,7 @@ function costTooltipView(node) {
     const referenceTier = reference && reference.sku?.endsWith(`_${resolution}`);
     const geometry = reference && !precompletion && reference.source!=="APPLICABLE_BREAKDOWN" && !separateQuantity ? (referenceTier ? resolution : null) :
         geometryAuthority(node) === "EXACT" ? widget(node, "size")?.value : [resolution, widget(node, "aspect_ratio")?.value].filter(Boolean).join(" · ");
-    const context = [geometry, duration === -1 ? costText("automatic") : duration != null && /^\d+(\.\d+)?$/.test(String(duration)) ? `${String(duration).replace(".", costLocale() === "ru" ? "," : ".")}${costText("seconds")}` : null].filter(Boolean).join(" · ");
+    const context = [geometry, duration === -1 ? costText("automatic") : Number(duration) > 0 && /^\d+(\.\d+)?$/.test(String(duration)) ? `${String(duration).replace(".", costLocale() === "ru" ? "," : ".")}${costText("seconds")}` : null].filter(Boolean).join(" · ");
     const withAudio = reference && /^duration_seconds_with_audio_/.test(reference.sku || "");
     const silent = (result.reason_codes || [result.reason]).includes("AUDIO_EFFECTIVE_SEMANTICS_UNRESOLVED") ||
         Boolean(precompletion && withAudio && widget(node,"generate_audio")?.value === false);

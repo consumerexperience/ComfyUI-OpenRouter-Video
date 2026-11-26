@@ -109,7 +109,7 @@ const nativePartialComponent={"availability":"UNAVAILABLE","state":"PARTIAL","ob
 for(const locale of ['en','ru'])test(`known partial component remains visible without claiming a total ${locale}`,()=>{
  const c=context();c.app.ui={settings:{getSettingValue:()=>locale}};const r=plain(nativePartialComponent),n={widgets:[{name:'model',value:'bytedance/seedance-2.5'},{name:'inference_method',value:'MI2V'},{name:'resolution',value:'720p'},{name:'aspect_ratio',value:'16:9'},{name:'duration',value:4}],__orvEstimate:{result:r}};
  const view=c.costPriceView(r);assert.equal(view.kind,'component');assert.equal(view.accent,'#9E6BFF');assert.match(view.badge,locale==='ru'?/0,92 REF/:/0\.92 REF/);assert.equal(r.amount_usd,null);assert.equal(r.state,'PARTIAL');
- const tip=c.costTooltipView(n);assert(tip.context.includes('720p'));assert(tip.context.includes('4'));assert(tip.note.includes(c.costText('componentNote')));assert(tip.note.includes(c.costText('modelNote')));
+ const tip=c.costTooltipView(n);assert(tip.context.includes('720p'));assert(tip.context.includes('4'));assert(tip.note.includes(c.costText('componentNote')));assert(!tip.note.includes(c.costText('modelNote')));
  for(const change of ['stale','invalid','unknown','no_hash','ambiguous','unsupported','discount','negative']){
   const bad=plain(r);if(change==='stale')bad.valid_for_ms=0;if(change==='invalid')bad.state='INVALID';if(change==='unknown')bad.state='UNKNOWN';if(change==='no_hash')bad.rates_hash=null;
   if(change==='ambiguous')bad.breakdown.push({...bad.breakdown[0]});if(change==='unsupported')bad.breakdown[0].applicability='UNVERIFIED';if(change==='discount')bad.breakdown[0].relation='discount';if(change==='negative')bad.breakdown[0].amount_usd='-1';
