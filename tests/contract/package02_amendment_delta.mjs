@@ -86,14 +86,14 @@ function parkedCopyPredecessor(root,path,current) {
  return before;
 }
 function tooltipRefinementPredecessor(root,path,current) {
- if(path!=='web/openrouter_video.js' || sha(current)!=='b01effa14ec1e21185a1e167bdf42c43f46ca346704feb5ec5dd8031c917dfd0')return current;
+ if(path!=='web/openrouter_video.js' || sha(current)!=='7e8fd8899f359e8b06fadcfb8c229abd18d20b1998c3b70ee73f81fc03b81654')return current;
  const parent='c54b8ffd902cef1d5efce7e36a14062c1847fc86';
  const before=normalize(execFileSync('git',['show',parent+':'+path],{cwd:root,encoding:'utf8'}));
  assert.equal(sha(before),'ed09a62c12e94ff5a69e1790d52a00d50aa2b2dbc36c21b082eec09671089930');
  let restored=normalize(current);
  for(const name of ['costText','costValidationSection','costTooltipView','renderCostDetails','costDetailsText'])
   restored=restored.replace(body(restored,name),()=>body(before,name));
- restored=restored.replace(body(restored,'costRateCondition')+'\n','');
+ for(const name of ['costUnknownOutputTokenQuantity','costRateCondition'])restored=restored.replace(body(restored,name)+'\n','');
  assert.equal(restored,before,'Only tooltip copy, diagnostics and existing tooltip layout may differ');
  return before;
 }

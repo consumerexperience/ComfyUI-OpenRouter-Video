@@ -716,7 +716,7 @@ test("mixed validation retains two measured bounds and consolidates one actionab
 
 test("financial uncertainty alone does not suggest correcting a valid input",()=>{
     const {c,n}=harness({...model,model_id:"bytedance/seedance-2.5-flash"});
-    c.setCostPresentation(n,{state:"RATE_ONLY",reason:"billing_quantity_unavailable",rate_usd:"0.000007",rate_unit:"token",
+    c.setCostPresentation(n,{state:"RATE_ONLY",reason:"billing_quantity_unavailable",rate_usd:"0.000007",rate_unit:"token",applied_skus:["video_tokens_without_audio"],
         validation_details:[{code:"billing_quantity_unavailable",field:"media_metadata",correction_key:"check_metadata"}]});
     assert.match(c.costTooltipView(n).note,/billable token count is unknown/);
     assert.equal(c.costTooltipView(n).sections.length,0);
@@ -734,7 +734,7 @@ test("Seedance rate labels are bound to exact completion identity and verified S
     const advisory={actual_reference_kinds:[],completion_assumptions:["photo option","video option"],
         alternatives:[[{kind:"image"}],[{kind:"video"}]]};
     const result={applied_skus:["video_tokens_with_video_input","video_tokens_without_audio"]};
-    const classify=(assumption, facts=result)=>c.costRateCondition("bytedance/seedance-2.5",facts,advisory,{rate_unit:"token",assumption});
+    const classify=(assumption, facts=result)=>c.costRateCondition(facts,advisory,{rate_unit:"token",assumption});
     assert.equal(classify("video option Base rate only; additional charges are unknown."),"With video input");
     assert.equal(classify("photo option"),"Without video input");
     assert.equal(classify("unmapped option"),"Applicable rate");

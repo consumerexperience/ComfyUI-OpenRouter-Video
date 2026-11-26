@@ -3805,8 +3805,7 @@ function costValidationSection(node, result) {
     let details = Array.isArray(result?.validation_details) ? result.validation_details : [];
     if (result?.state === "STALE") details = localCostValidationDetails(node,"pricing_evidence_stale");
     const knownFields = ["configuration","inference_method","model","source_video","first_frame","last_frame","reference_shape","reference_count","distinct_media_types","duration","duration_seconds","combined_duration","input_output_duration","resolution","aspect_ratio","size","width","height","pixels","provider_controls","geometry","catalogue","media_metadata"];
-    const tokenBilling = result?.state === "RATE_ONLY" && result.reason === "billing_quantity_unavailable" &&
-        canonicalModel(node) === "bytedance/seedance-2.5-flash" && result.rate_unit === "token";
+    const tokenBilling = costUnknownOutputTokenQuantity(result);
     details = details.filter(item=>item && typeof item === "object" && knownFields.includes(item.field) &&
         item.code !== "provider_configuration_pricing_unverified" &&
         !(tokenBilling && item.field === "media_metadata" && ["billing_quantity_unavailable","media_metadata_unknown"].includes(item.code)));
@@ -3866,8 +3865,15 @@ function costValidationSection(node, result) {
     return {title:`${costText("validationTitle")}${details.length>3?` (3/${details.length})`:""}`,rows};
 }
 
-function costRateCondition(model, result, advisory, rate) {
-    if (model !== "bytedance/seedance-2.5" || rate.rate_unit !== "token") return costText("anotherRate");
+function costUnknownOutputTokenQuantity(result) {
+    const skus = result?.applied_skus;
+    return result?.state === "RATE_ONLY" && result.reason === "billing_quantity_unavailable" &&
+        result.rate_unit === "token" && Array.isArray(skus) && skus.length === 1 &&
+        ["video_tokens","video_tokens_without_audio"].includes(skus[0]);
+}
+
+function costRateCondition(result, advisory, rate) {
+    if (rate.rate_unit !== "token") return costText("anotherRate");
     // Rates retain the backend completion identity even when equal rates are deduplicated.
     const assumption = rate.assumption.replace(/ Base rate only; additional charges are unknown\.$/, "");
     const matches = advisory.completion_assumptions.flatMap((value,index)=>value===assumption?[index]:[]);
@@ -3912,7 +3918,7 @@ function costTooltipView(node) {
     const sections = [];
     const validation = costValidationSection(node,result);
     if (precompletion?.rates?.length>1) {
-        const conditions = precompletion.rates.map(rate=>[costRateCondition(id,result,precompletion,rate),costRateLabel(rate)]);
+        const conditions = precompletion.rates.map(rate=>[costRateCondition(result,precompletion,rate),costRateLabel(rate)]);
         sections.push({title:costText("ratesTitle"),rows:conditions,financialRates:true});
     }
     if (reference && silent) {
@@ -3937,9 +3943,7 @@ function costTooltipView(node) {
         .filter(Boolean).join(" ");
     const missingInputs = Boolean(precompletion?.missing_inputs?.length);
     let noteKey = notes[kind];
-    if (kind==="rate" && id==="bytedance/seedance-2.5-flash" &&
-        (result.rate_unit==="token" || precompletion?.rates?.some(rate=>rate.rate_unit==="token")))
-        noteKey = "unknownOutputTokens";
+    if (kind==="rate" && costUnknownOutputTokenQuantity(result)) noteKey = "unknownOutputTokens";
     if (kind === "reference" && !silent && !missingInputs) noteKey = "comparisonNote";
     if (/OpenRouter equivalence|route equivalence/i.test(assumptions)) noteKey = "routeComparisonNote";
     if (/tariff precedence/i.test(assumptions)) noteKey = "inputComponentNote";
