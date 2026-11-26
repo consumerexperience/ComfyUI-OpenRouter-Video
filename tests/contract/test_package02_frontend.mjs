@@ -193,7 +193,9 @@ test('Vue observer ignores unrelated DOM and batches only affected nodes per fra
  assert.equal(frames.length,1);
  frames.shift()();
  assert.deepEqual(synced.splice(0),[1]);
- notify([{...outside,addedNodes:[{matches:()=>true}]}]);
+ const mounted={dataset:{nodeId:'2'},matches:()=>true,classList:{contains:()=>false}};
+ notify([{...outside,addedNodes:[mounted]}]);
+ assert.deepEqual(synced.splice(0),[2],'a newly mounted node is styled before the next paint');
  frames.shift()();
  assert.deepEqual(synced,[1,2]);
 });

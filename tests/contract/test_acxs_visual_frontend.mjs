@@ -94,9 +94,9 @@ for(const locale of ['en','ru']) test(`Read-only Duration has separate localized
 test('actual Vue Prompt DOM with empty placeholder and native associated label is recognized',()=>{
  const c=context(),n=node(c),area={placeholder:'',rows:5,style:{},getAttribute:()=>null,setAttribute(k,v){this[k]=v;}},label={textContent:'prompt',style:{}},marks=[];
  const row={style:{},querySelector:s=>s==='textarea'?area:s==='label[for]'?label:null,classList:{add:x=>marks.push(x),remove(){}}};
- const grid={style:{},querySelectorAll:()=>[row]},header={querySelector:()=>null,append(){}},root={dataset:{nodeId:'1'},classList:{add(){}},querySelector:s=>s.startsWith('.lg-node-header')?null:grid};
+ const grid={style:{},querySelectorAll:()=>[row]},header={querySelector:()=>null,append(){}},root={dataset:{nodeId:'1'},style:{getPropertyValue(k){return this[k]},setProperty(k,v){this[k]=v}},classList:{add(){}},querySelector:s=>s.startsWith('.lg-node-header')?null:grid};
  c.document={querySelectorAll:()=>[root]};n.id=1;n.__orvMasterPromptHeight=224;c.syncBetaPresentation(n);
- assert(marks.includes('orv-prompt-row'));assert.equal(grid.style.gridTemplateRows,'224px');assert.equal(area.placeholder,'prompt');assert.equal(label.style.display,'none');assert.equal(area['aria-label'],'prompt');
+ assert(marks.includes('orv-prompt-row'));assert.equal(root.style['--orv-prompt-height'],'224px');assert.equal(area.placeholder,'prompt');assert.equal(label.style.display,undefined);assert.equal(area['aria-label'],'prompt');
 });
 
 test('intrinsic native flow excludes blank flex slack and counts structural spacing exactly once',()=>{
@@ -125,10 +125,10 @@ test('horizontal-only Classic gesture cannot promote a temporary N-field minimum
 test('native multiline minima retain independent master height and release additive allocation on hide',()=>{
  const c=context(),n=node(c);project(c,n,profile({neg:{type:'string',text_semantic:'negative_prompt'}}));n.__orvMasterPromptHeight=224;n.id=1;
  const areas=[{placeholder:'',rows:4},{placeholder:'',rows:4}];const rows=areas.map((area,i)=>({style:{},classList:{add(){},remove(){}},querySelector:s=>s==='textarea'?area:s==='label[for]'?{textContent:i?'negative prompt':'prompt',style:{}}:null}));
- const grid={style:{},querySelectorAll:()=>rows};const root={dataset:{nodeId:'1'},classList:{add(){}},querySelector:s=>s.startsWith('.lg-node-header')?null:grid};c.document={querySelectorAll:()=>[root]};c.getComputedStyle=()=>({minHeight:'64px'});
- c.syncBetaPresentation(n);assert.equal(grid.style.gridTemplateRows,'224px 224px');assert.equal(areas[0].placeholder,'prompt');assert.equal(areas[1].placeholder,'negative prompt');
- n.__orvMasterPromptHeight=70;c.syncBetaPresentation(n);assert.equal(grid.style.gridTemplateRows,'70px 70px');assert.equal(n.__orvMasterPromptHeight,70);
- n.widgets.find(w=>w.__orvTextSemantic).hidden=true;rows.pop();c.syncBetaPresentation(n);assert.equal(grid.style.gridTemplateRows,'70px');assert.equal(n.__orvMasterPromptHeight,70);
+ const grid={style:{},querySelectorAll:()=>rows};const root={dataset:{nodeId:'1'},style:{getPropertyValue(k){return this[k]},setProperty(k,v){this[k]=v}},classList:{add(){}},querySelector:s=>s.startsWith('.lg-node-header')?null:grid};c.document={querySelectorAll:()=>[root]};c.getComputedStyle=()=>({minHeight:'64px'});
+ c.syncBetaPresentation(n);assert.equal(root.style['--orv-prompt-height'],'224px');assert.equal(areas[0].placeholder,'prompt');assert.equal(areas[1].placeholder,'negative prompt');
+ n.__orvMasterPromptHeight=70;c.syncBetaPresentation(n);assert.equal(root.style['--orv-prompt-height'],'70px');assert.equal(n.__orvMasterPromptHeight,70);
+ n.widgets.find(w=>w.__orvTextSemantic).hidden=true;rows.pop();c.syncBetaPresentation(n);assert.equal(root.style['--orv-prompt-height'],'70px');assert.equal(c.textRegionGeometry(n).count,1);assert.equal(n.__orvMasterPromptHeight,70);
 });
 
 test('read-only native Duration replaces only its value cell and restores native editing without duplicates',()=>{

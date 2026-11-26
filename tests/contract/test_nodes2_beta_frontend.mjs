@@ -16,13 +16,18 @@ test('geometry owns Size visibility while workflow control remains primary',()=>
 test('estimate is plain presentation state, no COST widget or serializer slot',()=>{
  const c=context();const state=c.createEstimateState();state.value='≈ $1.60 EST.';assert.equal(state.value,'≈ $1.60 EST.');assert.equal(state.type,undefined);assert.equal(state.serializeValue,undefined);assert.ok(!source.includes('addReadOnlyWidget(\n                this,\n                "COST"'));assert.ok(source.includes('this.__orvEstimate = createEstimateState()'));
 });
+function geometryStyle(native={}) {
+ const tokens=new Map();
+ return {...native,getPropertyValue(key){return tokens.get(key) ?? native.getPropertyValue?.(key) ?? '';},
+  setProperty(key,value){tokens.set(key,value);},removeProperty:key=>tokens.delete(key)};
+}
 function domFixture(){
  const marks=[];const textarea={rows:5,placeholder:''};const plain={querySelector(){return null;},classList:{add(){}}};const prompt={querySelector(s){return s==='textarea'?textarea:s==='label[for]'?{textContent:'prompt',style:{}}:null;},classList:{add(s){marks.push(s);}}};
  const grid={style:{},querySelectorAll(){return [plain,plain,prompt,plain,plain,plain,plain,plain,plain];}};
  const header={children:[],querySelector(){return this.children[0];},append(x){this.children.push(x);}};
- const element={dataset:{nodeId:'22'},classList:{add(s){marks.push(s);}},querySelector(s){return s.startsWith('.lg-node-header')?header:grid;}};
+ const element={dataset:{nodeId:'22'},style:geometryStyle(),classList:{add(s){marks.push(s);},remove(s){const i=marks.indexOf(s);if(i>=0)marks.splice(i,1);}},querySelector(s){return s.startsWith('.lg-node-header')?header:grid;}};
  const document={querySelectorAll(){return [element];},createElement(){return {style:{},textContent:'',title:'',setAttribute(name,value){this[name]=value;},addEventListener(){}};}};
- const c=context({document});const n={id:22,widgets:[{name:'prompt',label:'prompt'}],__orvEstimate:{value:'≈ $1.60 EST.'}};return {c,n,header,grid,textarea,marks};
+ const c=context({document});const n={id:22,widgets:[{name:'prompt',label:'prompt'}],__orvEstimate:{value:'≈ $1.60 EST.'}};return {c,n,header,grid,textarea,marks,element};
 }
 
 test('absolute native Vue root measures intrinsic flow, negative footer margin and Canvas title offset',()=>{
@@ -42,8 +47,15 @@ test('absolute native Vue root measures intrinsic flow, negative footer margin a
 test('Beta estimate is one header child, updates unavailable, never body overlay',()=>{
  const {c,n,header}=domFixture();c.syncBetaPresentation(n);c.syncBetaPresentation(n);assert.equal(header.children.length,1);assert.equal(header.children[0].textContent,'≈ $1.60 EST.');n.__orvEstimate.value='ESTIMATE UNAVAILABLE';c.syncBetaPresentation(n);assert.equal(header.children.length,1);assert.equal(header.children[0].title,'');assert.ok(header.children[0]['aria-label']);assert.equal(header.children[0].role,'button');assert.equal(header.children[0].tabIndex,0);assert.ok(!source.includes('position:absolute'));
 });
-test('native Beta grid reserves only Prompt as flex; rows are not stretched',()=>{
- const {c,n,grid,textarea}=domFixture();c.syncBetaPresentation(n);assert.equal(grid.style.flex,'0 0 auto');assert.equal(grid.style.gridTemplateRows.split('42px').length,2);assert.equal(grid.style.gridTemplateRows.split('max-content').length,9);assert.equal(textarea.rows,2);c.syncBetaPresentation(n);assert.equal(textarea.rows,2);
+test('native Vue grid rewrites cannot replace OpenRouter prompt or column geometry',()=>{
+ const {c,n,grid,textarea,element}=domFixture();c.syncBetaPresentation(n);
+ assert.equal(element.style.getPropertyValue('--orv-prompt-height'),'42px');
+ grid.style.gridTemplateRows='min-content auto';grid.style.flex='1';
+ c.syncBetaPresentation(n);
+ assert.equal(grid.style.gridTemplateRows,'min-content auto');assert.equal(grid.style.flex,'1');
+ assert.equal(element.style.getPropertyValue('--orv-prompt-height'),'42px');assert.equal(textarea.rows,2);
+ assert(source.includes('grid-template-rows:none !important'));
+ assert(source.includes('height:var(--orv-prompt-height,42px)'));
 });
 test('Classic canvas remains untouched when Vue DOM is absent',()=>{
  const c=context({document:{querySelectorAll:()=>[]}});assert.doesNotThrow(()=>c.syncBetaPresentation({id:22}));
@@ -54,31 +66,30 @@ test('PUX03 advanced textareas never compete with Prompt for flexible height',()
  const advanced={rows:5,placeholder:'negative_prompt'},promptArea={rows:2,placeholder:'Prompt'};
  const row=(area)=>({querySelector(s){return s==='textarea'?area:s==='label[for]'&&area===promptArea?{textContent:'prompt',style:{}}:null;},classList:{add(v){marks.push([area.placeholder,v])},remove(){}}});
  grid.querySelectorAll=()=>[row(advanced),row(promptArea),row({rows:3,placeholder:'provider notes'})];
- c.syncBetaPresentation(n);assert.equal(grid.style.gridTemplateRows,'max-content 42px max-content');
+ c.syncBetaPresentation(n);assert.equal(c.document.querySelectorAll()[0].style.getPropertyValue('--orv-prompt-height'),'42px');
  assert.equal(advanced.rows,5);assert.deepEqual(marks,[['Prompt','orv-prompt-row']]);
- grid.querySelectorAll=()=>[row(advanced)];c.syncBetaPresentation(n);assert.equal(grid.style.flex,'');
+ grid.querySelectorAll=()=>[row(advanced)];c.syncBetaPresentation(n);assert.equal(grid.style.flex,undefined);
 });
 
 test('PUX03 v1.1 shared column budget is bounded independently of labels and values',()=>{
  const {c,n,grid}=domFixture();n.size=[400,600];n.__orvMasterPromptHeight=224;
  for(const [width,label] of [[320,112],[400,128],[1000,160]]){
-   n.size[0]=width;c.syncBetaPresentation(n);assert.equal(grid.style.gridTemplateColumns,`min-content ${label}px minmax(125px, 1fr)`);
-   assert(grid.style.gridTemplateRows.includes('224px'));assert.equal(grid.style.flex,'0 0 auto');
+   n.size[0]=width;c.syncBetaPresentation(n);assert.equal(c.document.querySelectorAll()[0].style.getPropertyValue('--orv-label-width'),`${label}px`);
+   assert.equal(c.document.querySelectorAll()[0].style.getPropertyValue('--orv-prompt-height'),'224px');
  }
 });
 
 test('PUX03 v1.1 native resize gesture is explicit; untrusted/layout events do not own geometry',()=>{
  const {c,n,grid}=domFixture(),root=c.document.querySelectorAll()[0],handlers={},frames=[],microtasks=[];
- root.style={getPropertyValue:key=>key==='--node-width'?'610px':'930px'};root.getBoundingClientRect=()=>({width:400,height:830});root.addEventListener=(name,fn)=>handlers[name]=fn;c.requestAnimationFrame=fn=>frames.push(fn);c.queueMicrotask=fn=>microtasks.push(fn);
- n.size=[400,800];n.computeSize=()=>[320,400];c.installResponsiveHeight(n);c.syncBetaPresentation(n);const initialBudget=n.__orvMasterPromptHeight;
+ root.style=geometryStyle({getPropertyValue:key=>key==='--node-width'?'610px':'930px'});root.getBoundingClientRect=()=>({width:400,height:830});root.addEventListener=(name,fn)=>handlers[name]=fn;c.requestAnimationFrame=fn=>frames.push(fn);c.queueMicrotask=fn=>microtasks.push(fn);
+ n.size=[400,800];n.__orvMasterPromptHeight=120;n.computeSize=()=>[320,400];c.installResponsiveHeight(n);c.syncBetaPresentation(n);const initialBudget=n.__orvMasterPromptHeight;
  handlers.pointerdown({isTrusted:false,button:0,target:{closest:()=>({})}});assert(!n.__orvUserResizeActive);
  handlers.pointerdown({isTrusted:true,button:0,target:{closest:()=>null}});assert(!n.__orvUserResizeActive);
  handlers.pointerdown({isTrusted:true,button:0,clientX:0,clientY:0,pointerId:1,target:{closest:()=>({dataset:{corner:'SE'}})}});assert.equal(n.__orvUserResizeActive,true);handlers.gotpointercapture({isTrusted:true,pointerId:1});
- assert(grid.style.gridTemplateRows.includes('minmax(42px, 1fr)'));assert.equal(grid.style.flex,'1 1 auto');
+ assert.equal(root.style.getPropertyValue('--orv-prompt-height'),`${initialBudget}px`);
  handlers.gotpointercapture({isTrusted:true,pointerId:1});handlers.pointermove({isTrusted:true,pointerId:1});microtasks.shift()();n.size=[777,1777];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvMasterPromptHeight,initialBudget+100);n.size=[555,1400];handlers.lostpointercapture();while(frames.length)frames.shift()();
  assert.equal(n.__orvPreferredWidth,610);assert.equal(n.__orvMasterPromptHeight,initialBudget+100);assert.equal(n.__orvUserResizeActive,false);
- assert(grid.style.gridTemplateRows.includes(`${initialBudget+100}px`));assert.equal(grid.style.flex,'0 0 auto');
- assert.equal(root.style.minWidth,'320px');
+ assert.equal(root.style.getPropertyValue('--orv-prompt-height'),`${initialBudget+100}px`);
  const replacement={...n,size:[400,700],__orvUserResizeActive:false};c.syncBetaPresentation(replacement);
  assert.equal(root.__orvGeometryOwner,replacement);assert.equal(n.__orvUserResizeActive,false);
  handlers.pointerdown({isTrusted:true,button:0,clientX:0,clientY:0,pointerId:1,target:{closest:()=>({dataset:{corner:'SE'}})}});
@@ -95,15 +106,15 @@ test('PUX03 v1.1 Classic bounded cells retain native values, options and widget 
 
 test('final review Resume has cost disclosure without Generate geometry or listeners',()=>{
  const {c,n,header,grid}=domFixture(),root=c.document.querySelectorAll()[0],handlers={};
- root.style={minWidth:'217px'};root.addEventListener=(name,fn)=>handlers[name]=fn;root.removeEventListener=name=>delete handlers[name];
+ root.style=geometryStyle({minWidth:'217px'});root.addEventListener=(name,fn)=>handlers[name]=fn;root.removeEventListener=name=>delete handlers[name];
  const label={style:{maxWidth:'81px'},textContent:'Native label',title:'Native hint'},row={style:{gridColumn:'native'},querySelector:s=>s==='[data-testid="widget-layout-field-label"]'?label:null};
  grid.querySelectorAll=()=>[row];
  n.__orvResumeActualInstalled=true;c.syncBetaPresentation(n);
  assert.equal(root.style.minWidth,'217px');assert.equal(Object.keys(handlers).length,0);assert.equal(root.__orvGeometryOwner,undefined);
  assert.equal(header.children.length,1);assert.equal(grid.style.gridTemplateColumns,undefined);
- n.__orvResumeActualInstalled=false;c.syncBetaPresentation(n);assert.equal(root.style.minWidth,'320px');
+ n.__orvResumeActualInstalled=false;c.syncBetaPresentation(n);assert(root.style.getPropertyValue('--orv-label-width'));
  n.__orvResumeActualInstalled=true;c.syncBetaPresentation(n);assert.equal(root.style.minWidth,'217px');assert.equal(Object.keys(handlers).length,0);
- assert.equal(label.style.maxWidth,'81px');assert.equal(label.title,'Native hint');assert.equal(row.style.gridColumn,'native');
+ assert.equal(root.style.getPropertyValue('--orv-label-width'),'');assert.equal(label.style.maxWidth,'81px');assert.equal(label.title,'Native hint');assert.equal(row.style.gridColumn,'native');
 });
 function capacityFixture(n,c){
  c.app.graph={links:{},getNodeById:id=>({outputs:[{type:["IMAGE","IMAGE","VIDEO","AUDIO"][id-1]}]})};
@@ -145,16 +156,16 @@ test('all semantic/frontend functions and Python source exactly match immediate 
 
 test('Package02 live Vue resize coalesces trusted samples and updates native bounds before release',()=>{
  const {c,n,grid}=domFixture(),root=c.document.querySelectorAll()[0],handlers={},frames=[],micro=[];let width=500,height=900,writes=0;
- root.style={getPropertyValue:key=>key==='--node-width'?`${width}px`:`${height}px`};root.getBoundingClientRect=()=>({width:400,height:830});root.addEventListener=(name,fn)=>handlers[name]=fn;
+ root.style=geometryStyle({getPropertyValue:key=>key==='--node-width'?`${width}px`:key==='--node-height'?`${height}px`:''});root.getBoundingClientRect=()=>({width:400,height:830});root.addEventListener=(name,fn)=>handlers[name]=fn;
  c.requestAnimationFrame=fn=>{frames.push(fn);return frames.length;};c.cancelAnimationFrame=()=>{};c.queueMicrotask=fn=>micro.push(fn);
- n.size=[400,800];n.computeSize=()=>[320,400];n.setDirtyCanvas=()=>{};n.setSize=size=>{writes++;n.size=size;n.onResize?.(size);};
+ n.size=[400,800];n.__orvMasterPromptHeight=120;n.computeSize=()=>[320,400];n.setDirtyCanvas=()=>{};n.setSize=size=>{writes++;n.size=size;n.onResize?.(size);};
  c.installResponsiveHeight(n);c.syncBetaPresentation(n);const before=n.__orvMasterPromptHeight;
  handlers.pointerdown({isTrusted:true,button:0,clientX:0,clientY:0,pointerId:1,target:{closest:()=>({dataset:{corner:'SE'}})}});
  for(const pair of [[500,900],[610,970],[450,910]]){[width,height]=pair;handlers.gotpointercapture({isTrusted:true,pointerId:1});handlers.pointermove({isTrusted:true,pointerId:1});micro.shift()();}
  assert.equal(frames.length,1);assert.equal(writes,0);frames.shift()();assert.equal(writes,1);assert.deepEqual(Array.from(n.size),[450,910]);assert.equal(n.__orvPreferredWidth,450);assert.equal(n.__orvMasterPromptHeight,before+80);
- assert.equal(grid.style.gridTemplateColumns,'min-content 144.66666666666666px minmax(125px, 1fr)');
+ assert.equal(root.style.getPropertyValue('--orv-label-width'),'144.66666666666666px');
  n.size=[999,1999];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,450);assert.equal(n.__orvMasterPromptHeight,before+80);
- handlers.lostpointercapture();assert.equal(n.__orvUserResizeActive,false);assert.equal(n.size[0],450);assert.equal(n.__orvLiveSize,undefined);assert(grid.style.gridTemplateRows.includes(`${before+80}px`));
+ handlers.lostpointercapture();assert.equal(n.__orvUserResizeActive,false);assert.equal(n.size[0],450);assert.equal(n.__orvLiveSize,undefined);assert.equal(root.style.getPropertyValue('--orv-prompt-height'),`${before+80}px`);
 });
 
 
@@ -163,11 +174,11 @@ test('Vue native window drag is observed after its write, not the root capture m
  let width=400,height=830;
  const win={addEventListener:(name,fn)=>windowHandlers[name]=fn,removeEventListener:name=>delete windowHandlers[name]};
  root.ownerDocument={defaultView:win};
- root.style={getPropertyValue:key=>key==='--node-width'?`${width}px`:`${height}px`};
+ root.style=geometryStyle({getPropertyValue:key=>key==='--node-width'?`${width}px`:key==='--node-height'?`${height}px`:''});
  root.getBoundingClientRect=()=>({width:400,height:830});
  root.addEventListener=(name,fn)=>handlers[name]=fn;root.removeEventListener=name=>delete handlers[name];
  c.queueMicrotask=fn=>micro.push(fn);c.requestAnimationFrame=fn=>{frames.push(fn);return frames.length;};c.cancelAnimationFrame=()=>{};
- n.size=[400,800];n.computeSize=()=>[320,400];n.setSize=size=>{n.size=size;n.onResize?.(size);};n.setDirtyCanvas=()=>{};
+ n.size=[400,800];n.__orvMasterPromptHeight=120;n.computeSize=()=>[320,400];n.setSize=size=>{n.size=size;n.onResize?.(size);};n.setDirtyCanvas=()=>{};
  c.installResponsiveHeight(n);c.syncBetaPresentation(n);const before=n.__orvMasterPromptHeight;
  handlers.pointerdown({isTrusted:true,button:0,clientX:0,clientY:0,pointerId:3,target:{closest:()=>({dataset:{corner:'SE'}})}});
  handlers.gotpointercapture?.({isTrusted:true,pointerId:3});
@@ -184,9 +195,9 @@ test('Vue pointerdown preserves the native starting rectangle until capture',()=
  const {c,n,grid}=domFixture(),root=c.document.querySelectorAll()[0],handlers={};
  root.style={};root.getBoundingClientRect=()=>({width:400,height:grid.style.flex==='1 1 auto'?600:830});
  root.addEventListener=(name,fn)=>handlers[name]=fn;root.removeEventListener=()=>{};
- n.size=[400,800];n.computeSize=()=>[320,400];c.installResponsiveHeight(n);c.syncBetaPresentation(n);
+ n.size=[400,800];n.__orvMasterPromptHeight=120;n.computeSize=()=>[320,400];c.installResponsiveHeight(n);c.syncBetaPresentation(n);
  handlers.pointerdown({isTrusted:true,button:0,clientX:0,clientY:0,pointerId:1,target:{closest:()=>({dataset:{corner:'SE'}})}});
  // Native startResize records getBoundingClientRect after root capture.
  assert.equal(root.getBoundingClientRect().height,830);
- handlers.gotpointercapture({isTrusted:true,pointerId:1});assert.equal(grid.style.flex,'1 1 auto');
+ handlers.gotpointercapture({isTrusted:true,pointerId:1});assert.equal(grid.style.flex,undefined);
 });

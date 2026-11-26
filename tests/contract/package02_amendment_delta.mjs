@@ -30,7 +30,18 @@ function finalOwnerPredecessor(root,path,current){
  assert.equal(restored,before,'Only final Owner numeric, spacing and adaptive Duration functions may differ');
  return before;
 }
+// Extend the scope gate without changing historical baseline fixtures.
+function stableVuePredecessor(root,path,current){
+ if(path!=='web/openrouter_video.js' || sha(current)!=='2c08c5bb8e482175d1657329d20c966a6d666007b7a15610106f2a0d37d60b54')return current;
+ const before=normalize(execFileSync('git',['show','a720d1d2cfb5fa29360daf3760374ad4d4720058:'+path],{cwd:root,encoding:'utf8'}));
+ assert.equal(sha(before),'694be0598cfdbe3edf7b40c9ce5e4b87063a7f945fd01e27a94e67ca2685765a');
+ let restored=normalize(current);
+ for(const name of ['fitPresentationWidth','installBetaPresentation','syncBetaPresentation'])restored=restored.replace(body(restored,name),()=>body(before,name));
+ assert.equal(restored,before,'Only Vue layout ownership and sizing may differ');
+ return before;
+}
 export function package02AmendmentBaselineSource(root,path,current){
+ current=stableVuePredecessor(root,path,current);
  current=finalOwnerPredecessor(root,path,current);
  const pin=JSON.parse(readFileSync(new URL('tests/fixtures/package02-amendments-source-candidate.json',root),'utf8'));
  if(!pin.files[path] || sha(current)!==pin.files[path])return current;

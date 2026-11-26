@@ -931,8 +931,13 @@ function installResponsiveHeight(node) {
     }
 }
 
-function fitPresentationWidth(node) {
+function fitPresentationWidth(node, nativeMeasurement = false) {
     if (node.__orvUserResizeActive) return;
+    if (!nativeMeasurement && installBetaPresentation.nodes?.has(node)
+        && app.ui?.settings?.getSettingValue?.("Comfy.VueNodes.Enabled") === true) {
+        scheduleBetaPresentation([node]);
+        return;
+    }
     if (app.ui?.settings?.getSettingValue && !app.ui.settings.getSettingValue("Comfy.VueNodes.Enabled")) {
         delete node.__orvNativeFixedHeight;
         delete node.__orvNativeTextMinimum;
@@ -961,7 +966,9 @@ function fitPresentationWidth(node) {
     node.__orvPreferredWidth = width;
     if (!Number.isFinite(node.__orvMasterPromptHeight)) {
         const stored=node.properties?.orv_prompt_geometry;
-        persistMasterPromptHeight(node,stored?.version===2 && Number.isFinite(stored.height) ? stored.height : masterHeightFromRegion(node,textRegionGeometry(node).min+(node.size?.[1] || 0)-measured[1]));
+        const initial = nativeMeasurement ? textRegionGeometry(node,node.__orvNativeTextMinimum).field
+            : masterHeightFromRegion(node,textRegionGeometry(node).min+(node.size?.[1] || 0)-measured[1]);
+        persistMasterPromptHeight(node,stored?.version===2 && Number.isFinite(stored.height) ? stored.height : initial);
     }
     const region = textRegionGeometry(node, node.__orvNativeTextMinimum);
     const height = Math.fround(Number.isFinite(node.__orvNativeFixedHeight)
@@ -1022,7 +1029,23 @@ function installBetaPresentation(node) {
                 border-radius:6px; padding:1px 7px; color:var(--input-text, #ddd); font:600 11px/16px ${nodeTypography().family};
                 cursor:pointer; font-variant-numeric:tabular-nums; }
             .orv-nodes2 .orv-estimate:focus-visible { outline:2px solid var(--input-text, #ddd); }
-            .orv-nodes2 .orv-prompt-row { min-height:42px; }
+            .orv-generate-layout { min-width:320px; }
+            .orv-generate-layout [data-testid="node-widgets"] {
+                grid-template-columns:min-content var(--orv-label-width,128px) minmax(125px,1fr);
+                /* Vue owns its inline template. Keep ORV tracks independent of
+                   Vue rerenders and let rows follow their actual widget elements. */
+                grid-template-rows:none !important;
+                grid-auto-rows:max-content;
+                flex:0 0 auto !important;
+            }
+            .orv-generate-layout [data-testid="node-widget"] { min-width:0; }
+            .orv-generate-layout [data-testid="widget-layout-field-label"] {
+                max-width:var(--orv-label-width,128px); overflow:hidden; text-overflow:ellipsis;
+            }
+            .orv-generate-layout .orv-prompt-row {
+                min-height:42px; height:var(--orv-prompt-height,42px);
+            }
+            .orv-generate-layout .orv-prompt-row label[for] { display:none; }
             .orv-nodes2 .orv-prompt-row textarea { min-height:42px; height:100%;
                 padding:4px 6px; margin:0; box-sizing:border-box; font:400 12px/18px ${nodeTypography().family}; overflow:auto; }
         `;
@@ -1044,6 +1067,19 @@ function installBetaPresentation(node) {
                     element => element.matches?.(selector) || element.querySelector?.(selector),
                 );
                 if (changedRoots) {
+                    // Mode switches can mount Vue nodes in a host animation
+                    // frame. Initialize new extension roots in this observer
+                    // delivery so native default spacing cannot paint first.
+                    for (const element of record.addedNodes) {
+                        const roots = element.matches?.(selector) ? [element] : element.querySelectorAll?.(selector) || [];
+                        for (const mounted of roots) {
+                            if (mounted.classList?.contains("orv-nodes2")) continue;
+                            const id = mounted.dataset?.nodeId;
+                            if (id == null) continue;
+                            const node = graph?.getNodeById?.(id);
+                            if (installBetaPresentation.nodes.has(node)) syncBetaPresentation(node);
+                        }
+                    }
                     scheduleBetaPresentation();
                     return;
                 }
@@ -1207,16 +1243,13 @@ function syncBetaPresentation(node) {
     } // Resume adds cost disclosure only, no Generate geometry treatment.
     if (root.__orvGeometryOwner !== node && root.addEventListener) {
         root.__orvGeometryCleanup?.();
-        const previousMinWidth=root.style?.minWidth || "";
-        const nativeGrid=root.querySelector('[data-testid="node-widgets"]');
-        const previousGrid=nativeGrid?.style ? [nativeGrid.style.gridTemplateColumns || "",nativeGrid.style.gridTemplateRows || "",nativeGrid.style.flex || ""] : null;
         const touched=new Map();
         root.__orvRememberGeometry=(element,keys,title=false)=>{
             for (const prior of touched.keys()) if (prior.isConnected===false) touched.delete(prior);
             if (!element?.style || touched.has(element)) return;
             touched.set(element,{styles:Object.fromEntries(keys.map(key=>[key,element.style[key] || ""])),title,originalTitle:element.title || ""});
         };
-        root.style && (root.style.minWidth = "320px");
+        root.classList.add("orv-generate-layout");
         root.__orvGeometryOwner = node;
         let origin=null, moveTarget=null;
         const start = event => {
@@ -1292,8 +1325,9 @@ function syncBetaPresentation(node) {
             if(typeof cancelAnimationFrame==="function")cancelAnimationFrame(node.__orvLiveFrame);
             node.__orvPendingLiveLayout=null;node.__orvLiveFrame=null;
             delete node.__orvLiveSize;delete node.__orvLivePromptHeight;
-            if (root.style) root.style.minWidth=previousMinWidth;
-            if (previousGrid) [nativeGrid.style.gridTemplateColumns,nativeGrid.style.gridTemplateRows,nativeGrid.style.flex]=previousGrid;
+            root.classList.remove?.("orv-generate-layout");
+            root.style?.removeProperty?.("--orv-label-width");
+            root.style?.removeProperty?.("--orv-prompt-height");
             for (const [element,previous] of touched) {
                 Object.assign(element.style,previous.styles);
                 if (previous.title) element.title=previous.originalTitle;
@@ -1308,7 +1342,6 @@ function syncBetaPresentation(node) {
             root.removeEventListener?.("pointercancel",finish,true);
         };
     }
-    if (!node.__orvUserResizeActive && !node.__orvRestoreGeometry) fitPresentationWidth(node);
     const duration = widget(node, "duration");
     if (duration?.__orvDurationAdapter && duration.options?.read_only) {
         const label = durationPresentationLabel(duration);
@@ -1318,22 +1351,16 @@ function syncBetaPresentation(node) {
     if (!grid) return;
     const rows = [...grid.querySelectorAll(':scope > [data-testid="node-widget"]')];
     const labelWidth = Math.max(112,Math.min(160,128+((presentationSize(node)[0] || 400)-400)/3));
-    // Native subgrid owns controls and hit testing. Only its column budget changes.
-    grid.style.gridTemplateColumns = `min-content ${labelWidth}px minmax(125px, 1fr)`;
+    const setGeometryToken = (key,value) => {
+        if (root.style?.getPropertyValue?.(key) !== value) root.style?.setProperty?.(key,value);
+    };
+    setGeometryToken("--orv-label-width",`${labelWidth}px`);
     for (const row of rows) {
-        if (row.style) {
-            root.__orvRememberGeometry?.(row,["minWidth","gridColumn"]);
-            row.style.minWidth = "0";
-            row.style.gridColumn = "1 / -1";
-        }
         const label = row.querySelector('[data-testid="widget-layout-field-label"]');
-        if (label?.style) {
-            root.__orvRememberGeometry?.(label,["maxWidth","overflow","textOverflow"],true);
-            label.style.maxWidth = `${labelWidth}px`;
-            label.style.overflow = "hidden";
-            label.style.textOverflow = "ellipsis";
-            label.title = label.textContent || "";
-        }
+        if (!label) continue;
+        root.__orvRememberGeometry?.(label,[],true);
+        const title = label.textContent || "";
+        if (label.title !== title) label.title = title;
     }
     for (const row of rows) {
         const input = row.querySelector('input[aria-label="REFERENCES"]');
@@ -1349,16 +1376,13 @@ function syncBetaPresentation(node) {
         const label = row.querySelector('label[for]') || row.querySelector('[data-testid="widget-layout-field-label"]');
         const text = label?.textContent?.trim();
         const item = creative.find(item => textarea === item.element || textarea.getAttribute?.("name") === item.name
-            || text === (item.label || item.name));
+            || textarea.__orvCreativeWidget === item || text === (item.label || item.name));
         if (!item) { row.classList.remove?.("orv-prompt-row"); return null; }
+        textarea.__orvCreativeWidget = item;
         row.classList.add("orv-prompt-row");
         const display = creativeTextLabel(item);
-        textarea.placeholder = display;
-        textarea.setAttribute?.("aria-label",display);
-        if (label) {
-            root.__orvRememberGeometry?.(label,["display"]);
-            label.style && (label.style.display = "none");
-        }
+        if (textarea.placeholder !== display) textarea.placeholder = display;
+        if (textarea.getAttribute?.("aria-label") !== display) textarea.setAttribute?.("aria-label",display);
         if (textarea.rows !== 2) textarea.rows = 2;
         return {row,textarea,item};
     });
@@ -1368,15 +1392,13 @@ function syncBetaPresentation(node) {
     }
     node.__orvNativeTextMinimum = minimum;
     const region = textRegionGeometry(node,minimum);
-    const template = bindings.map(binding => !binding ? "max-content" : node.__orvUserResizeActive
-        ? `minmax(${minimum}px, 1fr)` : `${region.field}px`).join(" ");
-    if (grid.style.gridTemplateRows !== template) grid.style.gridTemplateRows = template;
-    const flex = bindings.some(Boolean) ? (node.__orvUserResizeActive ? "1 1 auto" : "0 0 auto") : "";
-    if (grid.style.flex !== flex) grid.style.flex = flex;
+    setGeometryToken("--orv-prompt-height",`${region.field}px`);
     for (const row of rows) {syncReadOnlyDurationRow(node,root,row);syncDurationSliderState(node,row);syncProviderNumericState(node,row);syncProviderGroupHeading(node,row);}
     const rect = root.getBoundingClientRect?.();
-    const scale = rect?.width / presentationSize(node)[0];
-    if (scale > 0 && bindings.filter(Boolean).length === region.count) {
+    const scale = rect?.width / (root.offsetWidth || presentationSize(node)[0]);
+    const content = grid.closest?.(".lg-node-content");
+    if (scale > 0 && content?.checkVisibility?.({contentVisibilityAuto:true}) !== false
+        && bindings.filter(Boolean).length === region.count) {
         const intrinsic = nativeFlowHeight(root,scale);
         if (Number.isFinite(intrinsic) && intrinsic > 0 && !node.__orvUserResizeActive) {
             // Vue's measured perimeter includes the native title; Canvas size
@@ -1384,7 +1406,7 @@ function syncBetaPresentation(node) {
             const titleOffset = Math.max(0,Number(node.boundingOffset?.[1]) || 0);
             node.__orvNativeFixedHeight = intrinsic-titleOffset-region.budget;
             const restoring = Boolean(node.__orvRestoreGeometry);
-            fitPresentationWidth(node);
+            fitPresentationWidth(node, true);
             if (restoring && !node.__orvRestoreGeometry) syncBetaPresentation(node);
         }
     }
