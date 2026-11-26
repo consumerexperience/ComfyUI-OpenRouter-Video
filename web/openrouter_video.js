@@ -3677,7 +3677,7 @@ function costText(key) {
             conditional:"Conditional total", alternative:"Alternative conditional totals", referenceScope:"Reference scenario", billableQuantity:"Scenario billing quantity",
             selected:"Selected configuration", audio:"Generate audio", on:"On", off:"Off", inputCharges:"Input charges", notEstablished:"Not established",
             baseRateNote:"The base rate is confirmed. Additional charges remain unverified.", actualNote:"Amount charged for the completed generation.", comparisonNote:"Illustrative cost for the scenario shown. Charges depend on the applicable billing rules.", caveat:"Excludes unverified charges and does not set a spending limit.", lastJob:"Last completed job", actual:"Actual cost", job:"Job", modelLabel:"Model", actualUnavailable:"Unavailable",
-            referenceRow:"Reference", componentRow:"Component", seconds:"s", automatic:"Automatic", perSecond:"s", millionTokens:"M tok", modelUnavailable:"Model not selected",
+            ratesTitle:"Alternative rates", withVideoInput:"With video input", withoutVideoInput:"Without video input", anotherRate:"Applicable rate", mixedMinimum:"Connect at least {limit} compatible references of different media types.", mixedTwo:"Connect at least two compatible references of different media types.", unknownOutputTokens:"The rate is confirmed. The billable token count is unknown in advance, so the total cannot be calculated.", referenceRow:"Reference", componentRow:"Component", seconds:"s", automatic:"Automatic", perSecond:"s", millionTokens:"M tok", modelUnavailable:"Model not selected",
             routeComparisonNote:"Assumes no additional reference fees. OpenRouter billing equivalence and audio or reference charges remain unconfirmed.",
             inputComponentNote:"Only confirmed charges are shown. Input video charges and tariff precedence remain unconfirmed.",
             missingInputs:"Missing inputs", imageReferences:"IMAGE references", videoReferences:"VIDEO references", audioReferences:"AUDIO references", completionOptions:"Example valid completions",
@@ -3685,7 +3685,7 @@ function costText(key) {
             validationTitle:"Inputs to check", correction:"To correct", preview:"Preview", notKnown:"Not known",
             validation_configuration:"Configuration", validation_inference_method:"Method", validation_model:"Model",
             validation_first_frame:"First frame", validation_last_frame:"Last frame", validation_source_video:"Source video",
-            validation_reference_shape:"Reference types", validation_reference_count:"References", validation_distinct_media_types:"Distinct media types",
+            validation_reference_shape:"Reference types", validation_reference_count:"References", validation_distinct_media_types:"Media Types",
             validation_duration:"Duration", validation_combined_duration:"Combined input duration", validation_input_output_duration:"Input + output duration",
             validation_resolution:"Resolution", validation_aspect_ratio:"Aspect ratio", validation_size:"Exact size", validation_width:"Width", validation_height:"Height", validation_pixels:"Pixels",
             validation_provider_controls:"Provider controls", validation_geometry:"Geometry", validation_catalogue:"Prices", validation_media_metadata:"Media metadata",
@@ -3711,7 +3711,7 @@ function costText(key) {
             conditional:"Условная сумма", alternative:"Условные суммы по сценариям", referenceScope:"Справочный сценарий", billableQuantity:"Оплачиваемый объём сценария",
             selected:"Выбранная конфигурация", audio:"Генерация звука", on:"Вкл.", off:"Выкл.", inputCharges:"Стоимость входа", notEstablished:"Не установлена",
             baseRateNote:"Базовый тариф подтверждён. Дополнительные начисления пока неизвестны.", actualNote:"Фактическое списание за выполненную генерацию.", comparisonNote:"Ориентир для показанного сценария. Начисления зависят от применимых правил тарификации.", caveat:"Не включает неподтверждённые начисления и не является пределом расходов.", lastJob:"Последняя завершённая операция", actual:"Фактическая стоимость", job:"Задание", modelLabel:"Модель", actualUnavailable:"Недоступна",
-            referenceRow:"Ориентир", componentRow:"Компонент", seconds:" с", automatic:"Автоматически", perSecond:"с", millionTokens:"млн ток.", modelUnavailable:"Модель не выбрана",
+            ratesTitle:"Варианты тарифа", withVideoInput:"С входным видео", withoutVideoInput:"Без входного видео", anotherRate:"Применимый тариф", mixedMinimum:"Подключите не менее {limit} подходящих референсов разных типов.", mixedTwo:"Подключите не менее двух подходящих референсов разных типов.", unknownOutputTokens:"Тариф подтверждён. Оплачиваемый объём токенов заранее неизвестен, поэтому итоговая стоимость не рассчитана.", referenceRow:"Ориентир", componentRow:"Компонент", seconds:" с", automatic:"Автоматически", perSecond:"с", millionTokens:"млн ток.", modelUnavailable:"Модель не выбрана",
             routeComparisonNote:"Оценка предполагает отсутствие дополнительных сборов за референсы. Эквивалентность тарификации OpenRouter и начисления за аудио или референсы не подтверждены.",
             inputComponentNote:"Показаны подтверждённые начисления. Тарификация входного видео и приоритет тарифов пока не подтверждены.",
             missingInputs:"Не хватает входов", imageReferences:"IMAGE-референсы", videoReferences:"VIDEO-референсы", audioReferences:"AUDIO-референсы", completionOptions:"Примеры допустимого дополнения",
@@ -3719,7 +3719,7 @@ function costText(key) {
             validationTitle:"Проверьте входы", correction:"Как исправить", preview:"Предпросмотр", notKnown:"Неизвестно",
             validation_configuration:"Конфигурация", validation_inference_method:"Метод", validation_model:"Модель",
             validation_first_frame:"Первый кадр", validation_last_frame:"Последний кадр", validation_source_video:"Исходное видео",
-            validation_reference_shape:"Типы референсов", validation_reference_count:"Референсы", validation_distinct_media_types:"Различные типы медиа",
+            validation_reference_shape:"Типы референсов", validation_reference_count:"Референсы", validation_distinct_media_types:"Типы медиа",
             validation_duration:"Длительность", validation_combined_duration:"Суммарная длительность входа", validation_input_output_duration:"Длительность входа + выхода",
             validation_resolution:"Разрешение", validation_aspect_ratio:"Пропорции", validation_size:"Точный размер", validation_width:"Ширина", validation_height:"Высота", validation_pixels:"Пиксели",
             validation_provider_controls:"Параметры провайдера", validation_geometry:"Геометрия", validation_catalogue:"Тарифы", validation_media_metadata:"Метаданные медиа",
@@ -3805,8 +3805,17 @@ function costValidationSection(node, result) {
     let details = Array.isArray(result?.validation_details) ? result.validation_details : [];
     if (result?.state === "STALE") details = localCostValidationDetails(node,"pricing_evidence_stale");
     const knownFields = ["configuration","inference_method","model","source_video","first_frame","last_frame","reference_shape","reference_count","distinct_media_types","duration","duration_seconds","combined_duration","input_output_duration","resolution","aspect_ratio","size","width","height","pixels","provider_controls","geometry","catalogue","media_metadata"];
-    details = details.filter(item=>item && typeof item === "object" && knownFields.includes(item.field));
-    if (!details.length) return null;
+    const tokenBilling = result?.state === "RATE_ONLY" && result.reason === "billing_quantity_unavailable" &&
+        canonicalModel(node) === "bytedance/seedance-2.5-flash" && result.rate_unit === "token";
+    details = details.filter(item=>item && typeof item === "object" && knownFields.includes(item.field) &&
+        item.code !== "provider_configuration_pricing_unverified" &&
+        !(tokenBilling && item.field === "media_metadata" && ["billing_quantity_unavailable","media_metadata_unknown"].includes(item.code)));
+    const missing = (costPrecompletionAdvisory(result)?.missing_inputs || []).filter(item =>
+        !details.some(detail=>detail.operator==="min" && Number.isFinite(detail.observed) &&
+            detail.bound - detail.observed === item.count &&
+            (item.role==="reference" ? detail.field==="reference_count" && detail.kind===item.kind :
+                detail.field===item.role && detail.correction_key==="connect_input")));
+    if (!details.length && !missing.length) return null;
     const quantity = (value,field) => {
         if (value == null) return costText("notKnown");
         if (!["string","number","boolean"].includes(typeof value)) return costText("notKnown");
@@ -3820,7 +3829,15 @@ function costValidationSection(node, result) {
         return costText("notKnown");
     };
     const rows = [];
-    for (const detail of details.slice(0,3)) {
+    const shown = details.slice(0,3);
+    const actionsToShow = new Set();
+    const references = shown.find(detail=>detail.field==="reference_count" && !detail.kind &&
+        detail.operator==="min" && detail.correction_key==="add_references");
+    const mediaTypes = shown.find(detail=>detail.field==="distinct_media_types" &&
+        detail.operator==="min" && detail.correction_key==="connect_distinct_types");
+    const mixedMinimum = references && mediaTypes && Number.isSafeInteger(references.bound) &&
+        references.bound > 1 && references.bound === mediaTypes.bound;
+    for (const detail of shown) {
         const kind = ["image","video","audio"].includes(detail.kind) ? detail.kind.toUpperCase() : "";
         const occurrence = Number.isSafeInteger(detail.kind_index) && detail.kind_index>0 ? ` ${detail.kind_index}` : "";
         const field = ["duration_seconds"].includes(detail.field)?"duration":detail.field;
@@ -3834,9 +3851,34 @@ function costValidationSection(node, result) {
         let actionKey = actions.includes(detail.correction_key) ? detail.correction_key : "check_inputs";
         if (detail.field === "duration_seconds") actionKey = detail.operator === "max"?"shorten_media":"lengthen_media";
         const action = costText(actionKey) || costText("check_inputs");
-        rows.push([costText("correction"),action.replace("{limit}",bound || "")]);
+        const correction = mixedMinimum && (detail===references || detail===mediaTypes)
+            ? costText(references.bound===2 ? "mixedTwo" : "mixedMinimum")
+            : action;
+        actionsToShow.add(correction.replace("{limit}",bound || ""));
     }
+    for (const item of missing) {
+        const isReference = item.role==="reference";
+        const label = costText(isReference ? `${item.kind}References` : `validation_${item.role}`);
+        rows.push([label,String(item.count)]);
+        actionsToShow.add(costText(isReference ? "add_references" : "connect_input").replace("{limit}",String(item.count)));
+    }
+    rows.push(...Array.from(actionsToShow,action=>["",action]));
     return {title:`${costText("validationTitle")}${details.length>3?` (3/${details.length})`:""}`,rows};
+}
+
+function costRateCondition(model, result, advisory, rate) {
+    if (model !== "bytedance/seedance-2.5" || rate.rate_unit !== "token") return costText("anotherRate");
+    // Rates retain the backend completion identity even when equal rates are deduplicated.
+    const assumption = rate.assumption.replace(/ Base rate only; additional charges are unknown\.$/, "");
+    const matches = advisory.completion_assumptions.flatMap((value,index)=>value===assumption?[index]:[]);
+    if (matches.length!==1 || advisory.completion_assumptions.length!==advisory.alternatives.length)
+        return costText("anotherRate");
+    const withVideo = advisory.actual_reference_kinds.includes("video") ||
+        advisory.alternatives[matches[0]].some(item=>item.kind==="video");
+    const skus = result.applied_skus || [];
+    const evidenced = withVideo ? skus.includes("video_tokens_with_video_input") :
+        skus.some(sku=>["video_tokens","video_tokens_without_audio"].includes(sku));
+    return costText(evidenced ? (withVideo ? "withVideoInput" : "withoutVideoInput") : "anotherRate");
 }
 
 function costTooltipView(node) {
@@ -3869,19 +3911,10 @@ function costTooltipView(node) {
         details:"detailsNote", rate:"rateNote", partial:"partialNote", unknown:"unknownNote", invalid:"invalidNote", stale:"staleNote", calculating:"calculatingNote" };
     const sections = [];
     const validation = costValidationSection(node,result);
-    if (validation) sections.push(validation);
-    if (precompletion) {
-        const missing = precompletion.missing_inputs.filter(item => !validation ||
-            !(result.validation_details || []).slice(0,3).some(detail => detail?.operator === "min" &&
-                (item.role === "reference" ? detail.field === "reference_count" && detail.kind === item.kind :
-                    detail.field === item.role && detail.correction_key === "connect_input") &&
-                Number.isFinite(detail.observed) && Number.isFinite(detail.bound) && detail.bound - detail.observed === item.count));
-        if (missing.length) sections.push({ title:costText("missingInputs"), rows:
-            missing.map(item => [item.role==="reference" ? costText(`${item.kind}References`) : costText(`validation_${item.role}`), String(item.count)]) });
-        if(precompletion.alternatives?.length>1)sections.push({title:costText("completionOptions"),rows:precompletion.alternatives.slice(0,3).map((option,index)=>[
-            `${index+1}`,option.map(item=>`${item.count} ${item.role==="reference"?item.kind.toUpperCase():costText(`validation_${item.role}`)}`).join(" + ")])});
+    if (precompletion?.rates?.length>1) {
+        const conditions = precompletion.rates.map(rate=>[costRateCondition(id,result,precompletion,rate),costRateLabel(rate)]);
+        sections.push({title:costText("ratesTitle"),rows:conditions,financialRates:true});
     }
-    if(precompletion?.rates?.length>1)sections.push({title:costText("details"),rows:precompletion.rates.map((row,index)=>[`${costText("rate")} ${index+1}`,costRateLabel(row)])});
     if (reference && silent) {
         const audio = widget(node,"generate_audio")?.value;
         sections.push({ title:costText("selected"), rows:[
@@ -3899,10 +3932,14 @@ function costTooltipView(node) {
         if (actualText(receipt.model) && receipt.model !== id) actualRows.push([costText("modelLabel"), widget(node, "model")?.__orvIdToLabel?.get(receipt.model) || costText("modelUnavailable")]);
         sections.push({ title:costText("lastJob"), rows:actualRows });
     } else if (["MISSING", "CONFLICT", "INVALID_ACTUAL"].includes(actual?.status) || node.__orvActualBindingUnavailable) sections.push({ title:costText("lastJob"), rows:[[costText("actual"), costText("actualUnavailable")]] });
+    if (validation) sections.push(validation);
     const assumptions = [reference?.assumption, ...(precompletion?.scenarios || []).map(row => row.assumption)]
         .filter(Boolean).join(" ");
     const missingInputs = Boolean(precompletion?.missing_inputs?.length);
     let noteKey = notes[kind];
+    if (kind==="rate" && id==="bytedance/seedance-2.5-flash" &&
+        (result.rate_unit==="token" || precompletion?.rates?.some(rate=>rate.rate_unit==="token")))
+        noteKey = "unknownOutputTokens";
     if (kind === "reference" && !silent && !missingInputs) noteKey = "comparisonNote";
     if (/OpenRouter equivalence|route equivalence/i.test(assumptions)) noteKey = "routeComparisonNote";
     if (/tariff precedence/i.test(assumptions)) noteKey = "inputComponentNote";
@@ -4178,7 +4215,7 @@ function renderCostDetails(node, detail) {
     Object.assign(detail.style, { boxSizing:"border-box", width:"340px", maxWidth:"calc(100vw - 16px)",
         padding:"12px", borderRadius:"8px", border:`1px solid ${view.accent}`, background:"#1A1A1A",
         color:"#C4C4C4", font:`400 12px/18px ${nodeTypography(node).family}`, fontVariantNumeric:"tabular-nums",
-        whiteSpace:"normal", overflowWrap:"anywhere", pointerEvents:"none", boxShadow:"0 4px 16px rgba(0,0,0,0.33)" });
+        whiteSpace:"normal", overflowWrap:"break-word", pointerEvents:"none", boxShadow:"0 4px 16px rgba(0,0,0,0.33)" });
     const element = (tag, cls, text, style = {}) => {
         const item = document.createElement(tag); item.className = `orv-cost-${cls}`;
         if (text != null) item.textContent = text;
@@ -4193,16 +4230,24 @@ function renderCostDetails(node, detail) {
     price.append(context);
     if (view.amount) price.append(element("span","amount",view.amount,{flex:"none",marginInlineStart:"auto",fontSize:["range","scenarios"].includes(view.kind)?"17px":"20px",
         fontWeight:"600",lineHeight:"24px",letterSpacing:["range","scenarios"].includes(view.kind)?"-0.3px":"-0.35px",color:view.accent,whiteSpace:"nowrap",direction:"ltr",unicodeBidi:"isolate"}));
-    detail.append(heading, identity, price, element("p","note",view.note,{fontSize:"11px",fontWeight:"400",lineHeight:"16px",margin:"9px 0 0"}));
+    detail.append(heading, identity, price);
+    const note = element("p","note",view.note,{fontSize:"11px",fontWeight:"400",lineHeight:"16px",margin:"9px 0 0"});
+    if (!view.sections[0]?.financialRates) detail.append(note);
     for (const section of view.sections) {
         const group = element("section","section",null,{borderTop:"1px solid rgba(196,196,196,0.15)",marginTop:"10px",paddingTop:"8px"});
         group.append(element("h3","section-heading",section.title,{fontSize:"11px",fontWeight:"600",lineHeight:"18px",color:"#F9F9F9",margin:"0 0 5px"}));
         for (const [label,value,actual,severity] of section.rows) {
             const row = element("div","line",null,{display:"flex",justifyContent:"space-between",gap:"12px",padding:"3px 0",alignItems:"baseline"});
-            row.append(element("span","label",label,{minWidth:"0"}),element("span",actual?"actual":"value",value,{textAlign:"end",color:severity === "violation"?"#FC5083":actual?ACI_INDICATOR_COLORS.green:"#F9F9F9",fontWeight:actual?"600":"400",unicodeBidi:"isolate"}));
+            if (!label) {
+                row.append(element("span","correction",value,{maxWidth:"100%"}));
+                group.append(row);
+                continue;
+            }
+            row.append(element("span","label",label,{minWidth:"0"}),element("span",actual?"actual":"value",value,{textAlign:"end",flex:"0 0 auto",maxWidth:"65%",color:severity === "violation"?"#FC5083":actual?ACI_INDICATOR_COLORS.green:"#F9F9F9",fontWeight:actual?"600":"400",unicodeBidi:"isolate"}));
             group.append(row);
         }
         detail.append(group);
+        if (section.financialRates) detail.append(note);
     }
 }
 
@@ -4400,8 +4445,10 @@ function costBadgeText(result) {
 
 function costDetailsText(node) {
     const view = costTooltipView(node);
-    return [view.title, view.identity, view.context, view.sub, view.amount, view.note,
-        ...view.sections.flatMap(section => [section.title, ...section.rows.map(row => `${row[0]}: ${row[1]}`)])].filter(Boolean).join("\n");
+    const lines = section => [section.title, ...section.rows.map(row=>row[0] ? `${row[0]}: ${row[1]}` : row[1])];
+    return [view.title, view.identity, view.context, view.sub, view.amount,
+        ...view.sections.filter(section=>section.financialRates).flatMap(lines), view.note,
+        ...view.sections.filter(section=>!section.financialRates).flatMap(lines)].filter(Boolean).join("\n");
 }
 
 function costTechnicalDetailsText(node) {

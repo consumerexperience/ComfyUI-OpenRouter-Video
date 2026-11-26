@@ -56,7 +56,7 @@ test("ACI pre-completion REF is violet and never changes primary readiness", () 
     assert.equal(n.__orvEstimate.value, "≈ $1.85 REF.");
     assert.equal(n.__orvEstimate.result.state, "INVALID");
     assert.equal(c.costPriceView(result).accent, "#9E6BFF");
-    assert.match(c.costDetailsText(n), /missing inputs/i);
+    assert.match(c.costDetailsText(n), /Inputs to check/i);
 });
 
 for (const locale of ["en","ru"]) test(`final review preserves missing IMAGE alongside Wan comparison and diagnostics (${locale})`,()=>{
@@ -65,13 +65,13 @@ for (const locale of ["en","ru"]) test(`final review preserves missing IMAGE alo
     c.setCostPresentation(n,result);const view=c.costTooltipView(n);
     assert.equal(view.kind,'reference');assert.equal(view.amount,locale==='ru'?'$2,00':'$2.00');
     assert(view.sections.some(section=>section.title===c.costText('validationTitle')));
-    const missing=view.sections.find(section=>section.title===c.costText('missingInputs'));
-    assert(missing);assert.deepEqual(Array.from(missing.rows[0]),[c.costText('imageReferences'),'1']);
+    const validation=view.sections.find(section=>section.title===c.costText('validationTitle'));
+    assert(validation.rows.some(([label,value])=>label===c.costText('imageReferences') && value==='1'));
     assert.match(view.note,locale==='ru'?/OpenRouter/:/OpenRouter/);
     assert.match(view.note,locale==='ru'?/референс|вход/i:/reference|input/i);
     assert.equal(n.__orvEstimate.result.state,'INVALID');
     const duplicate=structuredClone(result);duplicate.validation_details=[{field:'reference_count',kind:'image',operator:'min',observed:0,bound:1,correction_key:'add_references'}];
-    c.setCostPresentation(n,duplicate);assert(!c.costTooltipView(n).sections.some(section=>section.title===c.costText('missingInputs')));
+    c.setCostPresentation(n,duplicate);assert(!c.costTooltipView(n).sections.flatMap(section=>section.rows).some(([label])=>label===c.costText('imageReferences')));
 });
 
 for (const locale of ["en","ru"]) test(`final review transport failure never invents a reference diagnosis (${locale})`,()=>{
@@ -141,7 +141,7 @@ for (const locale of ["en", "ru"]) for (const [family, amount, scope, sku, assum
     assert.match(view.note, expected[locale]);
     if (family === "Wan audio comparison") assert.match(view.note,
         locale === "ru" ? /отсутствие дополнительных сборов за референсы/i : /assumes no additional reference fees/i);
-    assert(view.sections.some(section => section.title === c.costText("missingInputs")));
+    assert(view.sections.some(section => section.title === c.costText("validationTitle")));
     assert.equal(view.accent,"#9E6BFF");
     assert.equal(view.amount,c.costUsd(amount));
     if (family === "Gemini comparison") assert.equal(view.sub,c.costText("withAudioOutput"));
@@ -698,4 +698,45 @@ test("ACI reviewed base rate survives additional unclassified charges", () => {
     assert.match(view.amount, /10.70/);
     assert.match(view.note, /Additional charges remain unverified/);
     assert.equal(c.costPriceView({state:"INVALID",rate_usd:"0.0000107",rate_unit:"token"}).kind,"invalid");
+});
+
+
+test("mixed validation retains two measured bounds and consolidates one actionable correction",()=>{
+    const {c,n}=harness();
+    c.setCostPresentation(n,{state:"INVALID",validation_details:[
+        {field:"reference_count",observed:0,bound:2,operator:"min",correction_key:"add_references"},
+        {field:"distinct_media_types",observed:0,bound:2,operator:"min",correction_key:"connect_distinct_types"},
+    ]});
+    const view=c.costTooltipView(n);
+    assert.deepEqual(JSON.parse(JSON.stringify(view.sections[0].rows)),[
+        ["References","0 / 2",false,"violation"],["Media Types","0 / 2",false,"violation"],
+        ["","Connect at least two compatible references of different media types."],
+    ]);
+});
+
+test("financial uncertainty alone does not suggest correcting a valid input",()=>{
+    const {c,n}=harness({...model,model_id:"bytedance/seedance-2.5-flash"});
+    c.setCostPresentation(n,{state:"RATE_ONLY",reason:"billing_quantity_unavailable",rate_usd:"0.000007",rate_unit:"token",
+        validation_details:[{code:"billing_quantity_unavailable",field:"media_metadata",correction_key:"check_metadata"}]});
+    assert.match(c.costTooltipView(n).note,/billable token count is unknown/);
+    assert.equal(c.costTooltipView(n).sections.length,0);
+    c.setCostPresentation(n,{state:"UNKNOWN",reason:"provider_configuration_pricing_unverified",
+        validation_details:[{code:"provider_configuration_pricing_unverified",field:"provider_controls",correction_key:"review_provider_controls"}]});
+    assert.equal(c.costTooltipView(n).sections.length,0);
+    c.setCostPresentation(n,{state:"INVALID",reason:"provider_control_invalid",
+        validation_details:[{code:"provider_control_invalid",field:"provider_controls",correction_key:"correct_provider_controls"}]});
+    assert.match(c.costDetailsText(n),/Correct saved provider controls/);
+});
+
+
+test("Seedance rate labels are bound to exact completion identity and verified SKUs",()=>{
+    const {c}=harness();
+    const advisory={actual_reference_kinds:[],completion_assumptions:["photo option","video option"],
+        alternatives:[[{kind:"image"}],[{kind:"video"}]]};
+    const result={applied_skus:["video_tokens_with_video_input","video_tokens_without_audio"]};
+    const classify=(assumption, facts=result)=>c.costRateCondition("bytedance/seedance-2.5",facts,advisory,{rate_unit:"token",assumption});
+    assert.equal(classify("video option Base rate only; additional charges are unknown."),"With video input");
+    assert.equal(classify("photo option"),"Without video input");
+    assert.equal(classify("unmapped option"),"Applicable rate");
+    assert.equal(classify("video option",{applied_skus:["video_tokens_without_audio"]}),"Applicable rate");
 });
