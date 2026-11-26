@@ -484,7 +484,7 @@ function syncDurationSliderState(node, row) {
     // The native slider clamps out-of-range values to the first position.
     // While Auto owns the semantic value, conceal that numeric position.
     const numeric = input.parentElement;
-    numeric.style.display = automatic ? "none" : "";
+    numeric.style.visibility = automatic ? "hidden" : "";
     handle.style.opacity = automatic ? "0" : "";
     if (automatic) handle.setAttribute('aria-valuetext',providerAutoLabel({}));
     else handle.removeAttribute('aria-valuetext');

@@ -131,6 +131,22 @@ test('Package02 consistent native row rhythm and explicit Size/control visibilit
  widgets[8].hidden=true;widgets[9].hidden=true;widgets[9].label='control after generate';
  context.syncAdvancedControls(node);assert.equal(widgets[8].hidden,true);assert.equal(widgets[9].hidden,false);
 });
+test('Classic uses the same visible gap before, within and after creative fields',()=>{
+ const multiline=name=>({name,margin:4,element:{style:{}},__orvTextSemantic:true});
+ const method={name:'inference_method'},prompt=multiline('prompt'),negative=multiline('negative_prompt'),resolution={name:'resolution'};
+ const node={widgets:[method,prompt,negative,resolution],__orvMasterPromptHeight:120};
+ context.sizePrimaryControls(node);
+ const visible=widget=>{
+  const allocation=widget.computeSize()[1]+4;
+  const margin=widget.margin || 0;
+  const trailing=widget.element?.style.height==='calc(100% - 4px)' ? 4 : 0;
+  return {margin,allocation,height:widget.element?allocation-2*margin-trailing:20};
+ };
+ let y=0;
+ const bounds=node.widgets.map(widget=>{const row=visible(widget);const start=y+row.margin;y+=row.allocation;return [start,start+row.height];});
+ assert.deepEqual(bounds.map(([start,end])=>end-start),[20,120,120,20]);
+ assert.deepEqual(bounds.slice(1).map(([start],i)=>start-bounds[i][1]),[8,8,8]);
+});
 test('protected frontend functions retain immediate baseline definitions',()=>{
  const before=execFileSync('git',['show','a86df3bb825a04bc2852966b69ce65848b22de3b:web/openrouter_video.js'],{cwd:root,encoding:'utf8'});
  const functions=text=>Object.fromEntries(text.replace(/\r\n/g,'\n').split(/(?=^function |^async function )/m).slice(1).map(part=>[part.match(/function (\w+)/)[1],part.slice(0,part.indexOf('\n}')+2).split('\n').filter(line=>line.trim()).join('\n').trim()]));
