@@ -3663,10 +3663,10 @@ function costText(key) {
             output:"Output video", withAudioOutput:"With audio · Output only", knownComponent:"Known component only",
             conditional:"Conditional total", alternative:"Alternative conditional totals", referenceScope:"Reference scenario", billableQuantity:"Scenario billing quantity",
             selected:"Selected configuration", audio:"Generate audio", on:"On", off:"Off", inputCharges:"Input charges", notEstablished:"Not established",
-            actualNote:"Amount charged for the completed generation.", comparisonNote:"Illustrative cost for the scenario shown. Charges depend on the applicable billing rules.", caveat:"Excludes unverified charges and does not set a spending limit.", lastJob:"Last completed job", actual:"Actual cost", job:"Job", modelLabel:"Model", actualUnavailable:"Unavailable",
+            baseRateNote:"The base rate is confirmed. Additional charges remain unverified.", actualNote:"Amount charged for the completed generation.", comparisonNote:"Illustrative cost for the scenario shown. Charges depend on the applicable billing rules.", caveat:"Excludes unverified charges and does not set a spending limit.", lastJob:"Last completed job", actual:"Actual cost", job:"Job", modelLabel:"Model", actualUnavailable:"Unavailable",
             referenceRow:"Reference", componentRow:"Component", seconds:"s", automatic:"Automatic", perSecond:"s", millionTokens:"M tok", modelUnavailable:"Model not selected",
-            routeComparisonNote:"Comparison assumes no additional reference fees. OpenRouter billing equivalence and audio/reference charges are unconfirmed; not a total.",
-            inputComponentNote:"Input VIDEO charges and tariff precedence are unconfirmed. Known components only; not a total or lower bound.",
+            routeComparisonNote:"Assumes no additional reference fees. OpenRouter billing equivalence and audio or reference charges remain unconfirmed.",
+            inputComponentNote:"Only confirmed charges are shown. Input video charges and tariff precedence remain unconfirmed.",
             missingInputs:"Missing inputs", imageReferences:"IMAGE references", videoReferences:"VIDEO references", audioReferences:"AUDIO references", completionOptions:"Example valid completions",
             durationLabel:"Duration", fixedDuration:"Fixed", unverifiedDuration:"Not verified",
             validationTitle:"Inputs to check", correction:"To correct", preview:"Preview", notKnown:"Not known",
@@ -3697,10 +3697,10 @@ function costText(key) {
             output:"Выходное видео", withAudioOutput:"Со звуком · Только выход", knownComponent:"Только известный компонент",
             conditional:"Условная сумма", alternative:"Условные суммы по сценариям", referenceScope:"Справочный сценарий", billableQuantity:"Оплачиваемый объём сценария",
             selected:"Выбранная конфигурация", audio:"Генерация звука", on:"Вкл.", off:"Выкл.", inputCharges:"Стоимость входа", notEstablished:"Не установлена",
-            actualNote:"Фактическое списание за выполненную генерацию.", comparisonNote:"Ориентир для показанного сценария. Начисления зависят от применимых правил тарификации.", caveat:"Не включает неподтверждённые начисления и не является пределом расходов.", lastJob:"Последняя завершённая операция", actual:"Фактическая стоимость", job:"Задание", modelLabel:"Модель", actualUnavailable:"Недоступна",
+            baseRateNote:"Базовый тариф подтверждён. Дополнительные начисления пока неизвестны.", actualNote:"Фактическое списание за выполненную генерацию.", comparisonNote:"Ориентир для показанного сценария. Начисления зависят от применимых правил тарификации.", caveat:"Не включает неподтверждённые начисления и не является пределом расходов.", lastJob:"Последняя завершённая операция", actual:"Фактическая стоимость", job:"Задание", modelLabel:"Модель", actualUnavailable:"Недоступна",
             referenceRow:"Ориентир", componentRow:"Компонент", seconds:" с", automatic:"Автоматически", perSecond:"с", millionTokens:"млн ток.", modelUnavailable:"Модель не выбрана",
-            routeComparisonNote:"Сравнение предполагает отсутствие дополнительных сборов за референсы. Эквивалентность тарификации OpenRouter и начисления за аудио/референсы не подтверждены; это не итог.",
-            inputComponentNote:"Тарификация входного VIDEO и приоритет тарифов не подтверждены. Только известные компоненты; не итог и не нижняя граница.",
+            routeComparisonNote:"Оценка предполагает отсутствие дополнительных сборов за референсы. Эквивалентность тарификации OpenRouter и начисления за аудио или референсы не подтверждены.",
+            inputComponentNote:"Показаны подтверждённые начисления. Тарификация входного видео и приоритет тарифов пока не подтверждены.",
             missingInputs:"Не хватает входов", imageReferences:"IMAGE-референсы", videoReferences:"VIDEO-референсы", audioReferences:"AUDIO-референсы", completionOptions:"Примеры допустимого дополнения",
             durationLabel:"Длительность", fixedDuration:"Фиксировано", unverifiedDuration:"Не подтверждено",
             validationTitle:"Проверьте входы", correction:"Как исправить", preview:"Предпросмотр", notKnown:"Неизвестно",
@@ -3859,8 +3859,9 @@ function costTooltipView(node) {
     if (validation) sections.push(validation);
     if (precompletion) {
         const missing = precompletion.missing_inputs.filter(item => !validation ||
-            !(result.validation_details || []).slice(0,3).some(detail => detail?.field === "reference_count" &&
-                detail.kind === item.kind && detail.operator === "min" &&
+            !(result.validation_details || []).slice(0,3).some(detail => detail?.operator === "min" &&
+                (item.role === "reference" ? detail.field === "reference_count" && detail.kind === item.kind :
+                    detail.field === item.role && detail.correction_key === "connect_input") &&
                 Number.isFinite(detail.observed) && Number.isFinite(detail.bound) && detail.bound - detail.observed === item.count));
         if (missing.length) sections.push({ title:costText("missingInputs"), rows:
             missing.map(item => [item.role==="reference" ? costText(`${item.kind}References`) : costText(`validation_${item.role}`), String(item.count)]) });
@@ -3892,8 +3893,11 @@ function costTooltipView(node) {
     if (kind === "reference" && !silent && !missingInputs) noteKey = "comparisonNote";
     if (/OpenRouter equivalence|route equivalence/i.test(assumptions)) noteKey = "routeComparisonNote";
     if (/tariff precedence/i.test(assumptions)) noteKey = "inputComponentNote";
+    const baseRateOnly = kind === "rate" && (result.reason === "unclassified_pricing_sku" ||
+        precompletion?.rates?.some(rate => /Base rate only/.test(rate.assumption)));
     const conditional = ["model", "scenarios"].includes(kind) || (kind === "reference" && !missingInputs && !silent && noteKey === "comparisonNote");
-    const note = [costText(noteKey), conditional ? costText("caveat") : ""].filter(Boolean).join(" ");
+    const note = [costText(noteKey), baseRateOnly ? costText("baseRateNote") : "",
+        conditional ? costText("caveat") : ""].filter(Boolean).join(" ");
     return { kind, title:costText(kind), identity:`${modelDisplayLabel(model).replace(/^[^:]+:\s*/, "")}${method ? ` · ${method}` : ""}`, context, sub, amount, note, sections, accent };
 }
 
@@ -3916,6 +3920,9 @@ function costPriceView(result = {}) {
     else if (planning && plan.display === "SCENARIO_RANGE" && costRangeUsd(plan.scenario_min_usd, plan.scenario_max_usd)) { kind = "scenarios"; amount = costRangeUsd(plan.scenario_min_usd, plan.scenario_max_usd); badge = `≈ ${amount} MODEL`; }
     else if (state === "RATE_ONLY" && costRateLabel(result)) { amount = costRateLabel(result); badge = `${amount} RATE`; }
     else if (reference) { kind = reference.scope === "COMPONENT" ? "component" : "reference"; amount = costUsd(reference.amount_usd); badge = `${reference.scope === "COMPARISON" ? "≈ " : ""}${amount} REF.`; }
+    else if (state === "PARTIAL" && result.reason === "unclassified_pricing_sku" && costRateLabel(result)) {
+        kind = "rate"; amount = costRateLabel(result); badge = `${amount} RATE`;
+    }
     else if (rows.length > 1) { kind = "details"; badge = costText("detailsBadge"); }
     if (!badge) {
         if (["formula", "range", "rate"].includes(kind)) kind = "unknown";

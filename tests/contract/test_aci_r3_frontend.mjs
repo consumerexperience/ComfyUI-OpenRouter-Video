@@ -123,7 +123,7 @@ for (const locale of ["en", "ru"]) for (const [family, amount, scope, sku, assum
         {en:/OpenRouter.*equivalence.*unconfirmed/i,ru:/эквивалентность.*OpenRouter.*не подтвержден/i}],
     ["HeyGen component", "0.35", "COMPONENT", "reference_duration_seconds_480p",
         "Output and image components; input VIDEO fees and tariff precedence unconfirmed.",
-        {en:/input VIDEO.*tariff precedence.*unconfirmed/i,ru:/входного VIDEO.*приоритет тарифов.*не подтвержден/i}],
+        {en:/input VIDEO.*tariff precedence.*unconfirmed/i,ru:/входного видео.*приоритет тарифов.*не подтвержден/i}],
 ]) test(`ACI completion retains material financial limitations: ${family} / ${locale}`, () => {
     const { c, n } = harness();
     c.app.ui = {settings:{getSettingValue(){return locale;}}};
@@ -687,4 +687,15 @@ for(const [modelId,method] of [['alibaba/wan-2.6','I2V'],['bytedance/seedance-2.
  const pending=c.refreshEstimate(n);assert.equal(requests.length,1);assert.equal(requests[0].body.inference_method,method);assert.equal(requests[0].body.reference_count,0);assert.deepEqual(requests[0].body.reference_kinds,[]);assert.equal(requests[0].body.source_video_present,false);assert.deepEqual(requests[0].body.media,[]);
  respond(requests[0],{state:'INVALID',availability:'UNAVAILABLE',reason:'required_inputs_missing'});await pending;
  assert.equal(n.__orvEstimate.result.state,'INVALID');assert.equal(n.inputs.filter(i=>i.link!=null).length,0);
+});
+
+
+test("ACI reviewed base rate survives additional unclassified charges", () => {
+    const {c,n}=harness();
+    c.setCostPresentation(n, {state:"PARTIAL",reason:"unclassified_pricing_sku",rate_usd:"0.0000107",rate_unit:"token"});
+    const view = c.costTooltipView(n);
+    assert.equal(view.kind, "rate");
+    assert.match(view.amount, /10.70/);
+    assert.match(view.note, /Additional charges remain unverified/);
+    assert.equal(c.costPriceView({state:"INVALID",rate_usd:"0.0000107",rate_unit:"token"}).kind,"invalid");
 });

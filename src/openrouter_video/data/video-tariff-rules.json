@@ -4,6 +4,120 @@
     {
       "geometry_map": {},
       "geometry_status": "NOT_APPLICABLE",
+      "model_id": "bytedance/seedance-2.5-flash",
+      "canonical_slug": "bytedance/seedance-2.5-flash-20261115",
+      "capture_methods": [
+        "I2V",
+        "FLF2V"
+      ],
+      "known_skus": [
+        "video_tokens",
+        "video_tokens_without_audio",
+        "video_tokens_with_video_input"
+      ],
+      "rules": [
+        {
+          "id": "bytedance/seedance-2.5-flash:audio",
+          "when": {
+            "method": [
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "480p",
+              "720p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              true
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "video_tokens",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "token"
+            }
+          ],
+          "reason": "billing_quantity_unavailable",
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.5-flash-20261115",
+          "notes": "Exact published token rate. No approved conversion to billable tokens for this revision.",
+          "production_active": true
+        },
+        {
+          "id": "bytedance/seedance-2.5-flash:silent",
+          "when": {
+            "method": [
+              "I2V",
+              "FLF2V"
+            ],
+            "resolution": [
+              "480p",
+              "720p"
+            ],
+            "has_video": [
+              false
+            ],
+            "generated_audio": [
+              false
+            ]
+          },
+          "expected_state": "RATE_ONLY",
+          "charges": [
+            {
+              "sku": "video_tokens_without_audio",
+              "unit": "USD",
+              "quantity": "unknown",
+              "rate_unit": "token"
+            }
+          ],
+          "reason": "billing_quantity_unavailable",
+          "evidence": "https://openrouter.ai/bytedance/seedance-2.5-flash-20261115",
+          "notes": "Exact published token rate. No approved conversion to billable tokens for this revision.",
+          "production_active": true
+        }
+      ],
+      "sku_accounting": [
+        {
+          "sku": "video_tokens",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "bytedance/seedance-2.5-flash:audio"
+          ]
+        },
+        {
+          "sku": "video_tokens_without_audio",
+          "disposition": "RULE_REFERENCE",
+          "rule_ids": [
+            "bytedance/seedance-2.5-flash:silent"
+          ]
+        },
+        {
+          "sku": "video_tokens_with_video_input",
+          "disposition": "INACTIVE_METHOD",
+          "rule_ids": []
+        }
+      ],
+      "gaps": [
+        {
+          "code": "FLASH_BILLABLE_TOKENS",
+          "description": "The rate is published; billable token quantities are unresolved for this revision."
+        }
+      ],
+      "source": "https://openrouter.ai/bytedance/seedance-2.5-flash-20261115",
+      "activation": "EVIDENCE_REVIEWED",
+      "default": {
+        "state": "UNKNOWN",
+        "reason": "NO_PROVEN_APPLICABLE_RULE"
+      }
+    },
+    {
+      "geometry_map": {},
+      "geometry_status": "NOT_APPLICABLE",
       "model_id": "google/gemini-omni-1.2-flash",
       "canonical_slug": "google/gemini-omni-1.2-flash-20261105",
       "capture_methods": [

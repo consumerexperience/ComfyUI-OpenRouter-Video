@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import copy
+import json
 from dataclasses import replace
 from decimal import Decimal
+from pathlib import Path
 from typing import Any
 
 import pytest
 
+from openrouter_video.client import _parse_capability
+from openrouter_video.evidence_registry import enrich_capabilities
 from openrouter_video.models import InferenceMethod, PricingEvidence, PricingSku
 from openrouter_video.pricing import EstimateState
 from tests.comfy.test_aci_r31_planning import RAW, model, payload, run, seedance_images
@@ -264,3 +268,35 @@ def test_auto_mixed_completion_retains_only_documented_rates_with_unknown_extra_
     assert all(rate["rate_unit"] == "token" for rate in advisory["rates"])
     assert all("additional charges" in rate["assumption"] for rate in advisory["rates"])
     assert body["duration"] == -1 and body["media"] == []
+
+
+@pytest.mark.parametrize("connected", [False, True])
+def test_seedance_flash_owner_witness_has_rate_without_assumed_tokens(connected: bool) -> None:
+    fixture = Path(__file__).parents[1] / "fixtures/aci_r31/seedance-2.5-flash-catalogue.json"
+    cap = enrich_capabilities(_parse_capability(json.loads(fixture.read_text(encoding="utf-8"))))
+    body = dict(
+        schema_version=2,
+        context_revision=1,
+        model_id=cap.model_id,
+        inference_method="I2V",
+        duration=20,
+        resolution="480p",
+        aspect_ratio="16:9",
+        generate_audio=False,
+        reference_count=0,
+        reference_kinds=[],
+        media=[dict(kind="image", role="first_frame", status="UNKNOWN")] if connected else [],
+    )
+    result = run(body, cap=cap)
+    assert result.amount_usd is result.lower_usd is result.upper_usd is None
+    assert result.applied_skus == ("video_tokens_without_audio",)
+    if connected:
+        assert result.state is EstimateState.RATE_ONLY
+        assert result.rate_usd == Decimal("0.000007")
+        assert result.rate_unit == "token"
+        assert result.precompletion_advisory is None
+    else:
+        assert result.state is EstimateState.INVALID
+        assert result.precompletion_advisory is not None
+        assert result.precompletion_advisory["display"] == "RATE_ONLY"
+        assert result.precompletion_advisory["rates"][0]["rate_usd"] == "0.000007"
