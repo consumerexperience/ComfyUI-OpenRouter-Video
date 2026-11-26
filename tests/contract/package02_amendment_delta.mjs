@@ -40,7 +40,17 @@ function stableVuePredecessor(root,path,current){
  assert.equal(restored,before,'Only Vue layout ownership and sizing may differ');
  return before;
 }
+function nativeShrinkPredecessor(root,path,current){
+ if(path!=='web/openrouter_video.js' || sha(current)!=='a226f2d08b4b78f9e3563f87b9d5780c1e6a0729cda6f1155d6a5569d3f1ac8b')return current;
+ const before=normalize(execFileSync('git',['show','5a522076592ba81a20ef11ab46bb2a352c6bd342:'+path],{cwd:root,encoding:'utf8'}));
+ assert.equal(sha(before),'f2f9c8f150a2ceebd89846f93c6fe4a8eec1fbf99f01154616ed52974f67ef4a');
+ let restored=normalize(current);
+ for(const name of ['installBetaPresentation','syncBetaPresentation'])restored=restored.replace(body(restored,name),()=>body(before,name));
+ assert.equal(restored,before,'Only the Nodes 2.0 native resize probe may differ');
+ return before;
+}
 export function package02AmendmentBaselineSource(root,path,current){
+ current=nativeShrinkPredecessor(root,path,current);
  current=stableVuePredecessor(root,path,current);
  current=finalOwnerPredecessor(root,path,current);
  const pin=JSON.parse(readFileSync(new URL('tests/fixtures/package02-amendments-source-candidate.json',root),'utf8'));

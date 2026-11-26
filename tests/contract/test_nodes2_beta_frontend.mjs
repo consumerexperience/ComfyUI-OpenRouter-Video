@@ -25,7 +25,7 @@ function domFixture(){
  const marks=[];const textarea={rows:5,placeholder:''};const plain={querySelector(){return null;},classList:{add(){}}};const prompt={querySelector(s){return s==='textarea'?textarea:s==='label[for]'?{textContent:'prompt',style:{}}:null;},toggleAttribute(key,on){if(on)marks.push(key);}};
  const grid={style:{},querySelectorAll(){return [plain,plain,prompt,plain,plain,plain,plain,plain,plain];}};
  const header={children:[],querySelector(){return this.children[0];},append(x){this.children.push(x);}};
- const element={dataset:{nodeId:'22'},style:geometryStyle(),attrs:new Map(),getAttribute(k){return this.attrs.get(k)},setAttribute(k,v){this.attrs.set(k,v)},classList:{add(s){marks.push(s);},remove(s){const i=marks.indexOf(s);if(i>=0)marks.splice(i,1);}},querySelector(s){return s.startsWith('.lg-node-header')?header:grid;}};
+ const element={dataset:{nodeId:'22'},style:geometryStyle(),attrs:new Map(),getAttribute(k){return this.attrs.get(k)},setAttribute(k,v){this.attrs.set(k,v)},removeAttribute(k){this.attrs.delete(k)},classList:{add(s){marks.push(s);},remove(s){const i=marks.indexOf(s);if(i>=0)marks.splice(i,1);}},querySelector(s){return s.startsWith('.lg-node-header')?header:grid;}};
  const document={querySelectorAll(){return [element];},createElement(){return {style:{},textContent:'',title:'',setAttribute(name,value){this[name]=value;},addEventListener(){}};}};
  const c=context({document});const n={id:22,widgets:[{name:'prompt',label:'prompt'}],__orvEstimate:{value:'≈ $1.60 EST.'}};return {c,n,header,grid,textarea,marks,element};
 }
@@ -203,4 +203,25 @@ test('Vue pointerdown preserves the native starting rectangle until capture',()=
  // Native startResize records getBoundingClientRect after root capture.
  assert.equal(root.getBoundingClientRect().height,830);
  handlers.gotpointercapture({isTrusted:true,pointerId:1});assert.equal(grid.style.flex,undefined);
+});
+
+test('Nodes 2.0 shrinking exposes Prompt minimum only after native capture and commits vertical reduction',()=>{
+ const {c,n,element}=domFixture(),handlers={},frames=[],micro=[];
+ element.style=geometryStyle({getPropertyValue:key=>key==='--node-width'?'400px':key==='--node-height'?'755px':''});
+ element.getBoundingClientRect=()=>({width:400,height:830});
+ element.addEventListener=(key,fn)=>handlers[key]=fn;
+ c.requestAnimationFrame=fn=>frames.push(fn);c.queueMicrotask=fn=>micro.push(fn);
+ n.size=[400,800];n.__orvMasterPromptHeight=150;n.computeSize=()=>[320,400];
+ c.installResponsiveHeight(n);c.syncBetaPresentation(n);
+ handlers.pointerdown({isTrusted:true,button:0,clientX:0,clientY:0,pointerId:1,target:{closest:()=>({dataset:{corner:'SE'}})}});
+ assert.equal(element.getAttribute('data-orv-resizing'),undefined);
+ handlers.gotpointercapture({isTrusted:true,pointerId:1});
+ assert.equal(element.getAttribute('data-orv-resizing'),'');
+ assert.equal(element.style.getPropertyValue('--orv-prompt-minimum'),'42px');
+ assert.match(source,/\[data-orv-resizing\][^}]*var\(--node-height/);
+ handlers.pointermove({isTrusted:true,pointerId:1});micro.shift()();
+ assert.equal(n.__orvMasterPromptHeight,75);
+ handlers.lostpointercapture();
+ assert.equal(element.getAttribute('data-orv-resizing'),undefined);
+ assert.equal(element.style.getPropertyValue('--orv-prompt-height'),'75px');
 });

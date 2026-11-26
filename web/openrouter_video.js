@@ -1045,6 +1045,12 @@ function installBetaPresentation(node) {
             [data-orv-layout="generate"] [data-orv-creative-layout] {
                 min-height:42px; height:var(--orv-prompt-height,42px);
             }
+            /* Native resize probes intrinsic size with --node-height:0px.
+               During that probe each creative field contributes its minimum. */
+            [data-orv-resizing] [data-orv-creative-layout] {
+                height:max(var(--orv-prompt-minimum,42px),
+                    min(var(--orv-prompt-height,42px),var(--node-height,var(--orv-prompt-height,42px))));
+            }
             [data-orv-layout="generate"] [data-orv-creative-layout] label[for] { display:none; }
             [data-orv-layout] [data-orv-creative-layout] textarea { min-height:42px; height:100%;
                 padding:4px 6px; margin:0; box-sizing:border-box; font:400 12px/18px ${nodeTypography().family}; overflow:auto; }
@@ -1304,6 +1310,7 @@ function syncBetaPresentation(node) {
             moveTarget?.removeEventListener?.("pointermove",move);
             moveTarget=root.ownerDocument?.defaultView || root;
             moveTarget.addEventListener("pointermove",move);
+            root.setAttribute?.("data-orv-resizing","");
             syncBetaPresentation(node);
         };
         const finish = () => {
@@ -1313,6 +1320,7 @@ function syncBetaPresentation(node) {
             if(node.__orvLiveFrame!=null && typeof cancelAnimationFrame==="function")cancelAnimationFrame(node.__orvLiveFrame);
             node.__orvLiveFrame=null;node.__orvPendingLiveLayout=null;
             origin=null;node.__orvUserResizeActive=false;
+            root.removeAttribute?.("data-orv-resizing");
             delete node.__orvLiveSize;delete node.__orvLivePromptHeight;
             syncBetaPresentation(node);
         };
@@ -1327,6 +1335,8 @@ function syncBetaPresentation(node) {
             if(typeof cancelAnimationFrame==="function")cancelAnimationFrame(node.__orvLiveFrame);
             node.__orvPendingLiveLayout=null;node.__orvLiveFrame=null;
             delete node.__orvLiveSize;delete node.__orvLivePromptHeight;
+            root.removeAttribute?.("data-orv-resizing");
+            root.style?.removeProperty?.("--orv-prompt-minimum");
             root.style?.removeProperty?.("--orv-label-width");
             root.style?.removeProperty?.("--orv-prompt-height");
             for (const [element,previous] of touched) {
@@ -1392,6 +1402,7 @@ function syncBetaPresentation(node) {
         minimum = Math.max(minimum,parseFloat(getComputedStyle(binding.textarea).minHeight) || 0);
     }
     node.__orvNativeTextMinimum = minimum;
+    setGeometryToken("--orv-prompt-minimum",`${minimum}px`);
     const region = textRegionGeometry(node,minimum);
     setGeometryToken("--orv-prompt-height",`${region.field}px`);
     for (const row of rows) {syncReadOnlyDurationRow(node,root,row);syncDurationSliderState(node,row);syncProviderNumericState(node,row);syncProviderGroupHeading(node,row);}
