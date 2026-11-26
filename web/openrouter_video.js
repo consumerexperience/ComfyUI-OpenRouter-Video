@@ -487,8 +487,11 @@ function syncDurationSliderState(node, row) {
     const numeric = input.parentElement;
     numeric.style.visibility = automatic ? "hidden" : "";
     handle.style.opacity = automatic ? "0" : "";
-    if (automatic) handle.setAttribute('aria-valuetext',providerAutoLabel({}));
-    else handle.removeAttribute('aria-valuetext');
+    if (automatic) {
+        const label = providerAutoLabel({});
+        if (handle.getAttribute("aria-valuetext") !== label) handle.setAttribute("aria-valuetext",label);
+        if (handle.getAttribute("aria-valuenow") === "-1") handle.removeAttribute("aria-valuenow");
+    } else handle.removeAttribute("aria-valuetext");
 }
 
 function presentationSize(node) { return node.__orvLiveSize || node.size || [400,0]; }
