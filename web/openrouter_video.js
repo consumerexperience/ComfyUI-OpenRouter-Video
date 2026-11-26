@@ -349,22 +349,51 @@ function installNodeTypography(node) {
     }
 }
 
-function providerDisplayValue(item, includeAuto = true) {
+function providerDisplayValue(item, includeAuto = true, editing = false) {
     if (item.__orvProviderOption && ["slider","number"].includes(item.type)) {
         const locale = costLocale();
         const auto = locale === "ru" ? "Авто" : "Auto";
         const raw = item.value;
         let cached = item.__orvNumericDisplay;
-        if (!cached || cached.locale !== locale || !Object.is(cached.raw, raw)) {
+        if (!cached || cached.locale !== locale || cached.editing !== editing || !Object.is(cached.raw, raw)) {
             const text = typeof raw === "number" ? new Intl.NumberFormat(locale, {
-                useGrouping: false, maximumFractionDigits: 15,
+                useGrouping: false, maximumFractionDigits: editing || !item.__orvProviderFractional ? 20 : 2,
             }).format(raw) : "";
-            cached = item.__orvNumericDisplay = {locale, raw, text};
+            cached = item.__orvNumericDisplay = {locale, raw, editing, text};
         }
         if (includeAuto && item.__orvProviderAuto) return item.__orvProviderKnownDefault ? `${cached.text} ${auto}` : auto;
         return cached.text;
     }
     return String(item._displayValue ?? item.value ?? "");
+}
+
+function installClassicProviderSlider(item) {
+    if (item.__orvClassicProviderSlider || typeof item.onClick !== "function") return;
+    item.__orvClassicProviderSlider = true;
+    const nativeClick = item.onClick;
+    const nativeSet = item.setValue;
+    item.onClick = function (event) {
+        if (this.computedDisabled || this.options.read_only) return;
+        if (event.e.altKey && event.canvas?.prompt) {
+            event.canvas.prompt(this.label, providerDisplayValue(this, false, true), draft => {
+                const separator = new Intl.NumberFormat(costLocale()).formatToParts(1.1)
+                    .find(part => part.type === "decimal")?.value || ".";
+                const text = String(draft).trim().replace(separator, ".");
+                if (!text || !Number.isFinite(Number(text))) return;
+                const value = Math.min(this.options.max, Math.max(this.options.min, Number(text)));
+                if (value !== this.value || this.__orvProviderAuto) this.callback?.(value);
+            }, event.e);
+            return;
+        }
+        return nativeClick.call(this,event);
+    };
+    if (typeof nativeSet === "function") item.setValue = function (value, event) {
+        const {min,max,step2} = this.options;
+        const next = value <= min ? min : value >= max ? max :
+            Number((min + Math.round((value-min)/step2)*step2).toPrecision(15));
+        if (this.__orvProviderAuto && Object.is(next,this.value)) this.callback?.(next);
+        else return nativeSet.call(this,next,event);
+    };
 }
 
 function syncProviderGroupHeading(node,row) {
@@ -384,9 +413,13 @@ function syncProviderNumericState(node, row) {
         ["number","slider"].includes(item.type) && (input?.getAttribute?.("aria-label")===item.name || label?.textContent?.trim()===(item.displayName || item.label)));
     if(!item)return;
     const unknownAuto=item.__orvProviderAuto && !item.__orvProviderKnownDefault;
-    if (input && !unknownAuto && item.type === "slider" && input.style) {
+    if (input && !unknownAuto && item.__orvProviderFractional && input.style) {
         if (!input.__orvCompactNumberOnBlur) {
             input.__orvCompactNumberOnBlur = true;
+            input.addEventListener("focus", () => {
+                const current = input.__orvNumericItem;
+                if (current && !current.computedDisabled) input.value = providerDisplayValue(current, false, true);
+            }, true);
             input.addEventListener("blur", () => {
                 // The host reapplies its fixed-precision string on blur.
                 // Reformat the settled value without touching the editor draft.
@@ -395,6 +428,7 @@ function syncProviderNumericState(node, row) {
                 });
             });
         }
+        input.__orvNumericItem = item;
         const decimal = providerDisplayValue(item, false);
         if (input.ownerDocument?.activeElement !== input && input.value !== decimal) input.value = decimal;
         const style = typeof getComputedStyle === "function" ? getComputedStyle(input) : null;
@@ -492,7 +526,11 @@ function installParameterColumns(node) {
             const b=label(ctx,width), y=this.y || 0;
             ctx.save();ctx.font=`400 ${nodeTypography(node).size}px ${nodeTypography(node).family}`;ctx.textBaseline="alphabetic";ctx.beginPath();ctx.rect(b.valueLeft,y,Math.max(0,b.right-b.valueLeft),this.height || COMPACT_LAYOUT.row);ctx.clip();
             ctx.textAlign="right";ctx.fillStyle=this.text_color || "#F9F9F9";
-            ctx.fillText(fitWidgetText(ctx,providerDisplayValue(this),Math.max(0,b.right-b.valueLeft)),b.right,this.labelBaseline ?? y+15);ctx.restore();
+            const value = providerDisplayValue(this);
+            const widthAvailable = Math.max(0,b.right-b.valueLeft);
+            if (this.__orvProviderFractional && widthAvailable > 0) ctx.fillText(value,b.right,this.labelBaseline ?? y+15,widthAvailable);
+            else ctx.fillText(fitWidgetText(ctx,value,widthAvailable),b.right,this.labelBaseline ?? y+15);
+            ctx.restore();
         };
     }
 }
@@ -2603,6 +2641,8 @@ function configureOperationControls(node, profile) {
             // Fractional fields have no provider-imposed decimal scale.
             // Avoid the native input's default three-decimal quantization.
             item.options.precision = spec.type === "integer" ? 0 : 15;
+            item.__orvProviderFractional = bounded && spec.type !== "integer";
+            if (type === "slider") installClassicProviderSlider(item);
         }
         item.options.placeholder=spec.required ? (costLocale()==="ru"?"Обязательное поле":"Required") : defaultLabel;
         item.options.tooltip=[numeric ? (costLocale()==="ru"?"Измените значение для ручной настройки. Сброс в Авто — в меню ноды.":"Edit to override. Reset to Auto from the node menu.") : "",spec.max_length == null ? "" : `Maximum ${spec.max_length} characters`,
