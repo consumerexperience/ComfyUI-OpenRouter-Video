@@ -374,7 +374,9 @@ function installClassicProviderSlider(item) {
     const nativeSet = item.setValue;
     item.onClick = function (event) {
         if (this.computedDisabled || this.options.read_only) return;
-        if (event.e.altKey && event.canvas?.prompt) {
+        const width = this.width || event.node.size[0];
+        const x = event.e.canvasX - event.node.pos[0];
+        if (Math.abs(x-width/2) <= 27 && event.canvas?.prompt) {
             event.canvas.prompt(this.label, providerDisplayValue(this, false, true), draft => {
                 const separator = new Intl.NumberFormat(costLocale()).formatToParts(1.1)
                     .find(part => part.type === "decimal")?.value || ".";
