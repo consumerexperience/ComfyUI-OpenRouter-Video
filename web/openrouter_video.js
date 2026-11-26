@@ -464,6 +464,7 @@ function syncNumericAutoButton(host, item, hidden) {
         Object.assign(state.style,{font:'inherit',fontSize:'11px',flex:'0 0 auto',padding:'0 4px',border:'0',background:'transparent',color:'inherit'});
         state.addEventListener('click',event=>{event.stopPropagation();state.__orvReset?.();});host.append(state);}
     state.hidden=Boolean(hidden);
+    if (item.__orvDurationAdapter && state.style.minInlineSize !== "38px") state.style.minInlineSize = "38px";
     state.__orvReset=item.__orvResetProvider || item.__orvResetDuration;
     const automatic=item.__orvDurationAdapter ? Number(item.value) === -1 : item.__orvProviderAuto;
     const text=automatic?providerAutoLabel({}):'↺';if(state.textContent!==text)state.textContent=text;
