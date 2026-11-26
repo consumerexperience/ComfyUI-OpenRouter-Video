@@ -42,7 +42,7 @@ for (const [state, fields, label] of [
     ["RANGE", { lower_usd: "0.8", upper_usd: "1.2" }, /0\.80.*1\.20.*EST/],
     ["RATE_ONLY", { rate_usd: "0.03", rate_unit: "s" }, /0\.03\/s.*RATE/],
     ["RATE_ONLY", { rate_usd: "0.0000064", rate_unit: "token" }, /6\.40\/M\s*tok.*RATE/],
-    ["PARTIAL", {}, /COST PARTIAL/], ["UNKNOWN", {}, /PRICE UNKNOWN/],
+    ["PARTIAL", {}, /COST PARTIAL/], ["UNKNOWN", {}, /REF —/],
     ["STALE", {}, /PRICE STALE/], ["INVALID", {}, /CHECK INPUTS/],
 ]) {
     test(`ACI ${state} has an explicit native badge state`, async () => {
@@ -93,13 +93,13 @@ test("ACI collapsed Classic retains badge without changing node geometry", () =>
     const { c, n } = harness();
     n.flags = { collapsed: true };
     n._collapsed_width = 300;
-    n.__orvEstimate.value = "PRICE UNKNOWN";
+    n.__orvEstimate.value = "REF —";
     const before = [...n.size];
     const drawn = [];
     const ctx = { save() {}, restore() {}, fillRect() {}, fillText(text) { drawn.push(text); } };
     c.drawCollapsedCostBadge(n, ctx);
     assert.deepEqual(Array.from(n.size), before);
-    assert.deepEqual(drawn, ["PRICE UNKNOWN"]);
+    assert.deepEqual(drawn, ["REF —"]);
 });
 
 test("ACI reads active loaded DOM scalars as HINT and refines without media fetch", () => {
@@ -240,7 +240,7 @@ for (const reason of ["provider_policy_version_mismatch", "provider_policy_scope
         assert.equal(requests.length, 1);
         respond(requests[0], { state: "UNKNOWN", reason_codes: [reason] });
         await pending;
-        assert.equal(n.__orvEstimate.value, "PRICE UNKNOWN");
+        assert.equal(n.__orvEstimate.value, "REF —");
         assert.equal(n.__orvEstimate.result.state, "UNKNOWN");
     });
 }

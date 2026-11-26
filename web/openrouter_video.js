@@ -3649,26 +3649,25 @@ function costLocale() {
 
 function costText(key) {
     const messages = costText.messages ||= {
-        en: { formula:"Estimated cost", range:"Estimated range", model:"Modelled cost", scenarios:"Modelled scenarios",
-            reference:"Reference cost", component:"Known cost component", details:"Cost details", rate:"Published rate",
-            partial:"Partial cost", unknown:"Price unknown", invalid:"Check inputs", stale:"Price stale", calculating:"Calculating cost",
-            partialBadge:"COST PARTIAL", unknownBadge:"PRICE UNKNOWN", invalidBadge:"CHECK INPUTS", staleBadge:"PRICE STALE", calculatingBadge:"CALCULATING…", detailsBadge:"COST DETAILS",
-            formulaNote:"Based on documented pricing. Final provider charge may differ.", rangeNote:"Documented price bounds; not a spending cap.",
-            modelNote:"Based on a billing assumption. Not a quote or spending limit.", scenariosNote:"Scenario values, not a guaranteed range or spending cap.",
-            referenceNote:"Reference only; not a total. Input charges may differ.", silentNote:"Silent-output pricing is not disclosed. Input charges may differ. Reference only; not a total.",
-            componentNote:"Other charges are not established. Not a total or lower bound.", detailsNote:"Separate known values; no combined total is established.",
-            rateNote:"Billable quantity is needed to calculate a total.", partialNote:"A total cannot be calculated from the available data.",
-            unknownNote:"Pricing for this configuration is not established.", invalidNote:"Check the required inputs and selected settings.",
+        en: { formula:"Calculated estimate", range:"Estimated range", model:"Conditional estimate", scenarios:"Conditional estimates",
+            reference:"Preliminary estimate", component:"Known cost component", details:"Cost details", rate:"Applicable rate",
+            partial:"Partial cost", unknown:"Reference estimate unavailable", invalid:"Check inputs", stale:"Price stale", calculating:"Calculating cost",
+            partialBadge:"COST PARTIAL", unknownBadge:"REF —", invalidBadge:"CHECK INPUTS", staleBadge:"PRICE STALE", calculatingBadge:"CALCULATING…", detailsBadge:"COST DETAILS",
+            formulaNote:"Calculated using the current settings and verified rates. The final charge may differ.", rangeNote:"Documented price bounds; not a spending cap.",
+            modelNote:"Calculated from available data and the billing assumptions shown.", scenariosNote:"The amount varies with the billing assumptions used in each scenario.",
+            referenceNote:"Indicative cost for the selected settings. It updates as you connect media.", silentNote:"This example uses the rate for output with audio. Charges for your selection are unconfirmed.",
+            componentNote:"Only the confirmed portion is shown. Additional charges are excluded.", detailsNote:"Separate known values; no combined total is established.",
+            rateNote:"Cost per billing unit. The total depends on your settings and the billable quantity.", partialNote:"A total cannot be calculated from the available data.",
+            unknownNote:"No verified pricing data is available for this configuration.", invalidNote:"Check the required inputs and selected settings.",
             staleNote:"Refresh pricing before relying on an estimate.", calculatingNote:"No current estimate yet.",
             output:"Output video", withAudioOutput:"With audio · Output only", knownComponent:"Known component only",
             conditional:"Conditional total", alternative:"Alternative conditional totals", referenceScope:"Reference scenario", billableQuantity:"Scenario billing quantity",
             selected:"Selected configuration", audio:"Generate audio", on:"On", off:"Off", inputCharges:"Input charges", notEstablished:"Not established",
-            lastJob:"Last completed job", actual:"Actual cost", job:"Job", modelLabel:"Model", actualUnavailable:"Unavailable",
+            actualNote:"Amount charged for the completed generation.", comparisonNote:"Illustrative cost for the scenario shown. Charges depend on the applicable billing rules.", caveat:"Excludes unverified charges and does not set a spending limit.", lastJob:"Last completed job", actual:"Actual cost", job:"Job", modelLabel:"Model", actualUnavailable:"Unavailable",
             referenceRow:"Reference", componentRow:"Component", seconds:"s", automatic:"Automatic", perSecond:"s", millionTokens:"M tok", modelUnavailable:"Model not selected",
-            completionNote:"Reference for a completed input configuration, not a quote. Add the missing inputs before generation.",
             routeComparisonNote:"Comparison assumes no additional reference fees. OpenRouter billing equivalence and audio/reference charges are unconfirmed; not a total.",
             inputComponentNote:"Input VIDEO charges and tariff precedence are unconfirmed. Known components only; not a total or lower bound.",
-            missingInputs:"Missing inputs", imageReferences:"IMAGE references", videoReferences:"VIDEO references", audioReferences:"AUDIO references", completionOptions:"Example valid completions", unknownInputQuantities:"Missing media duration, geometry and input charges are not assumed to be zero. Reference scenarios are not a spending cap.",
+            missingInputs:"Missing inputs", imageReferences:"IMAGE references", videoReferences:"VIDEO references", audioReferences:"AUDIO references", completionOptions:"Example valid completions",
             durationLabel:"Duration", fixedDuration:"Fixed", unverifiedDuration:"Not verified",
             validationTitle:"Inputs to check", correction:"To correct", preview:"Preview", notKnown:"Not known",
             validation_configuration:"Configuration", validation_inference_method:"Method", validation_model:"Model",
@@ -3684,26 +3683,25 @@ function costText(key) {
             shorten_group:"Reduce combined input duration to {limit} s or less.", shorten_input_or_output:"Shorten input or output so their sum is at most {limit} s.",
             adjust_media:"Adjust media to the displayed bound.", correct_provider_controls:"Correct saved provider controls; values are preserved.", review_provider_controls:"Review the selected provider controls.",
             choose_geometry:"Choose Resolution/Aspect or Exact Size explicitly.", check_metadata:"Load the media and wait for its metadata; unknown is not zero.", refresh_price:"Refresh catalogue pricing.", check_inputs:"Check the required inputs and selected settings." },
-        ru: { formula:"Расчётная стоимость", range:"Расчётный диапазон", model:"Модельная оценка", scenarios:"Сценарии стоимости",
-            reference:"Справочная стоимость", component:"Компонент стоимости", details:"Сведения о стоимости", rate:"Опубликованный тариф",
-            partial:"Частичная стоимость", unknown:"Цена неизвестна", invalid:"Проверьте входы", stale:"Цена устарела", calculating:"Расчёт стоимости",
-            partialBadge:"НЕПОЛНАЯ ЦЕНА", unknownBadge:"ЦЕНА НЕИЗВЕСТНА", invalidBadge:"ПРОВЕРЬТЕ ВХОДЫ", staleBadge:"ЦЕНА УСТАРЕЛА", calculatingBadge:"РАСЧЁТ…", detailsBadge:"СВЕДЕНИЯ О ЦЕНЕ",
-            formulaNote:"По опубликованным тарифам. Итоговое списание может отличаться.", rangeNote:"Границы по опубликованным правилам; не лимит расходов.",
-            modelNote:"Расчёт по допущению о тарификации. Не оферта и не лимит расходов.", scenariosNote:"Сценарные значения, не гарантированный диапазон и не лимит расходов.",
-            referenceNote:"Это ориентир, не итоговая стоимость. Начисления за вход могут отличаться.", silentNote:"Тариф без звука не раскрыт. Начисления за вход могут отличаться. Это ориентир, не итоговая стоимость.",
-            componentNote:"Другие начисления неизвестны. Не итог и не нижняя граница.", detailsNote:"Отдельные известные суммы; общий итог не установлен.",
-            rateNote:"Для расчёта суммы нужен оплачиваемый объём.", partialNote:"Доступных данных недостаточно для расчёта итога.",
-            unknownNote:"Тарификация этой конфигурации не установлена.", invalidNote:"Проверьте обязательные входы и выбранные настройки.",
+        ru: { formula:"Расчётная стоимость", range:"Расчётный диапазон", model:"Условная оценка", scenarios:"Условные оценки",
+            reference:"Предварительная оценка", component:"Известный компонент стоимости", details:"Сведения о стоимости", rate:"Тариф",
+            partial:"Частичная стоимость", unknown:"Предварительная оценка недоступна", invalid:"Проверьте входы", stale:"Цена устарела", calculating:"Расчёт стоимости",
+            partialBadge:"НЕПОЛНАЯ ЦЕНА", unknownBadge:"REF —", invalidBadge:"ПРОВЕРЬТЕ ВХОДЫ", staleBadge:"ЦЕНА УСТАРЕЛА", calculatingBadge:"РАСЧЁТ…", detailsBadge:"СВЕДЕНИЯ О ЦЕНЕ",
+            formulaNote:"Рассчитана по текущим параметрам и подтверждённым тарифам. Фактическое списание может отличаться.", rangeNote:"Границы по опубликованным правилам; не лимит расходов.",
+            modelNote:"Стоимость рассчитана на основе доступных данных и указанных тарифных допущений.", scenariosNote:"Стоимость зависит от тарифных допущений каждого сценария.",
+            referenceNote:"Ориентировочная стоимость для выбранных параметров. Уточняется по мере подключения материалов.", silentNote:"Пример использует тариф для видео со звуком. Начисления для выбранной конфигурации не подтверждены.",
+            componentNote:"Показана только подтверждённая часть стоимости. Дополнительные начисления не учтены.", detailsNote:"Отдельные известные суммы; общий итог не установлен.",
+            rateNote:"Стоимость единицы расчёта. Итоговая сумма зависит от параметров генерации и оплачиваемого объёма.", partialNote:"Доступных данных недостаточно для расчёта итога.",
+            unknownNote:"Для выбранной конфигурации пока нет подтверждённых тарифных данных.", invalidNote:"Проверьте обязательные входы и выбранные настройки.",
             staleNote:"Обновите тарифы перед использованием оценки.", calculatingNote:"Актуальной оценки пока нет.",
             output:"Выходное видео", withAudioOutput:"Со звуком · Только выход", knownComponent:"Только известный компонент",
             conditional:"Условная сумма", alternative:"Условные суммы по сценариям", referenceScope:"Справочный сценарий", billableQuantity:"Оплачиваемый объём сценария",
             selected:"Выбранная конфигурация", audio:"Генерация звука", on:"Вкл.", off:"Выкл.", inputCharges:"Стоимость входа", notEstablished:"Не установлена",
-            lastJob:"Последняя завершённая операция", actual:"Фактическая стоимость", job:"Задание", modelLabel:"Модель", actualUnavailable:"Недоступна",
+            actualNote:"Фактическое списание за выполненную генерацию.", comparisonNote:"Ориентир для показанного сценария. Начисления зависят от применимых правил тарификации.", caveat:"Не включает неподтверждённые начисления и не является пределом расходов.", lastJob:"Последняя завершённая операция", actual:"Фактическая стоимость", job:"Задание", modelLabel:"Модель", actualUnavailable:"Недоступна",
             referenceRow:"Ориентир", componentRow:"Компонент", seconds:" с", automatic:"Автоматически", perSecond:"с", millionTokens:"млн ток.", modelUnavailable:"Модель не выбрана",
-            completionNote:"Ориентир для дополненной конфигурации, не итоговая стоимость. Перед генерацией подключите недостающие входы.",
             routeComparisonNote:"Сравнение предполагает отсутствие дополнительных сборов за референсы. Эквивалентность тарификации OpenRouter и начисления за аудио/референсы не подтверждены; это не итог.",
             inputComponentNote:"Тарификация входного VIDEO и приоритет тарифов не подтверждены. Только известные компоненты; не итог и не нижняя граница.",
-            missingInputs:"Не хватает входов", imageReferences:"IMAGE-референсы", videoReferences:"VIDEO-референсы", audioReferences:"AUDIO-референсы", completionOptions:"Примеры допустимого дополнения", unknownInputQuantities:"Неизвестные параметры и начисления за вход не считаются нулевыми. Справочные сценарии — не лимит расходов.",
+            missingInputs:"Не хватает входов", imageReferences:"IMAGE-референсы", videoReferences:"VIDEO-референсы", audioReferences:"AUDIO-референсы", completionOptions:"Примеры допустимого дополнения",
             durationLabel:"Длительность", fixedDuration:"Фиксировано", unverifiedDuration:"Не подтверждено",
             validationTitle:"Проверьте входы", correction:"Как исправить", preview:"Предпросмотр", notKnown:"Неизвестно",
             validation_configuration:"Конфигурация", validation_inference_method:"Метод", validation_model:"Модель",
@@ -3882,22 +3880,20 @@ function costTooltipView(node) {
     if (result.state === "PARTIAL" && components.length > 1) sections.push({ title:costText("partial"), rows:components.map((row,index)=>[`${costText("componentRow")} ${index+1}`,costUsd(row.amount_usd)]) });
     const actual = node.__orvActualState, receipt = actual?.receipt;
     if (actual?.status === "KNOWN" && receipt && costUsd(receipt.amount)) {
-        const actualRows = [[costText("actual"), costUsd(receipt.amount), true]];
+        const actualRows = [[costText("actual"), costUsd(receipt.amount), true], [costText("actualNote"), ""]];
         if (actualText(receipt.job)) actualRows.push([costText("job"), `…${receipt.job.slice(-4)}`]);
         if (actualText(receipt.model) && receipt.model !== id) actualRows.push([costText("modelLabel"), widget(node, "model")?.__orvIdToLabel?.get(receipt.model) || costText("modelUnavailable")]);
         sections.push({ title:costText("lastJob"), rows:actualRows });
     } else if (["MISSING", "CONFLICT", "INVALID_ACTUAL"].includes(actual?.status) || node.__orvActualBindingUnavailable) sections.push({ title:costText("lastJob"), rows:[[costText("actual"), costText("actualUnavailable")]] });
-    let note = costText(notes[kind]);
-    if(reference?.source==="APPLICABLE_BREAKDOWN")note=`${note} ${costText("modelNote")}`;
-    if (precompletion) {
-        // Localize existing scenario limitations for presentation only. These
-        // markers never select a tariff, change its amount or grant readiness.
-        const assumptions=[reference?.assumption,...(precompletion.scenarios || []).map(row=>row.assumption)].filter(Boolean).join(" ");
-        if (/OpenRouter equivalence|route equivalence/i.test(assumptions)) note = costText("routeComparisonNote");
-        else if (/tariff precedence/i.test(assumptions)) note = costText("inputComponentNote");
-        else if (/unestablished input charges/i.test(assumptions)) note = costText("componentNote");
-        note = `${costText("completionNote")} ${note} ${precompletion.version==="ACI-PRECOMPLETION-2"?costText("unknownInputQuantities"):""}`.trim();
-    }
+    const assumptions = [reference?.assumption, ...(precompletion?.scenarios || []).map(row => row.assumption)]
+        .filter(Boolean).join(" ");
+    const missingInputs = Boolean(precompletion?.missing_inputs?.length);
+    let noteKey = notes[kind];
+    if (kind === "reference" && !silent && !missingInputs) noteKey = "comparisonNote";
+    if (/OpenRouter equivalence|route equivalence/i.test(assumptions)) noteKey = "routeComparisonNote";
+    if (/tariff precedence/i.test(assumptions)) noteKey = "inputComponentNote";
+    const conditional = ["model", "scenarios"].includes(kind) || (kind === "reference" && !missingInputs && !silent && noteKey === "comparisonNote");
+    const note = [costText(noteKey), conditional ? costText("caveat") : ""].filter(Boolean).join(" ");
     return { kind, title:costText(kind), identity:`${modelDisplayLabel(model).replace(/^[^:]+:\s*/, "")}${method ? ` · ${method}` : ""}`, context, sub, amount, note, sections, accent };
 }
 
@@ -4391,7 +4387,7 @@ function costDetailsText(node) {
 function costTechnicalDetailsText(node) {
     expireCostPresentation(node);
     const result = node.__orvEstimate?.result;
-    const lines = [String(node.__orvEstimate?.value || "PRICE UNKNOWN")];
+    const lines = [String(node.__orvEstimate?.value || costText("unknownBadge"))];
     if (result) {
         lines.push(`${canonicalModel(node) || ""} · ${widget(node, "inference_method")?.value || ""}`);
         if (result.observed_at) lines.push(`Catalogue observed ${result.observed_at}`);
@@ -4581,7 +4577,7 @@ function syncClassicCostBadge(node, ctx, rect) {
         width: `${Math.abs(transform.a * rect.width * sx)}px`, height: `${Math.abs(transform.d * rect.height * sy)}px` });
     badge.hidden = false;
     node.__orvClassicCostWidth = rect.width;
-    const colors = costBadgeColors(node, String(node.__orvEstimate?.value || "PRICE UNKNOWN"));
+    const colors = costBadgeColors(node, String(node.__orvEstimate?.value || costText("unknownBadge")));
     badge.style.color = colors.accent;
     badge.style.backgroundColor = colors.background || "transparent";
     badge.setAttribute("aria-label", costDetailsText(node));

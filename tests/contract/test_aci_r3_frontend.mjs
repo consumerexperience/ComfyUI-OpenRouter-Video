@@ -114,10 +114,10 @@ test("PUX02 unknown/stale or malformed diagnostics do not retain old numerical v
 // synthetic receiver-contract fixture, not a claim of a new HeyGen backend path.
 for (const locale of ["en", "ru"]) for (const [family, amount, scope, sku, assumption, expected] of [
     ["Seedance completion", "1.8489600", "COMPARISON", "video_tokens_without_audio", "Hypothetical valid completion.",
-        {en:/not a total/i,ru:/не итоговая стоимость/i}],
+        {en:/updates as you connect media/i,ru:/уточняется по мере подключения материалов/i}],
     ["Gemini comparison", "0.208512", "COMPARISON", "duration_seconds_with_audio_720p",
         "Published with-audio output rate; selected audio and input charges may differ.",
-        {en:/silent-output pricing is not disclosed/i,ru:/тариф без звука не раскрыт/i}],
+        {en:/Charges for your selection are unconfirmed/i,ru:/начисления для выбранной конфигурации не подтверждены/i}],
     ["Wan audio comparison", "2.0", "COMPARISON", "duration_seconds_1080p",
         "Native input+output seconds; OpenRouter equivalence and audio/reference charges unconfirmed. Assumes no additional reference fees.",
         {en:/OpenRouter.*equivalence.*unconfirmed/i,ru:/эквивалентность.*OpenRouter.*не подтвержден/i}],
@@ -141,7 +141,6 @@ for (const locale of ["en", "ru"]) for (const [family, amount, scope, sku, assum
     assert.match(view.note, expected[locale]);
     if (family === "Wan audio comparison") assert.match(view.note,
         locale === "ru" ? /отсутствие дополнительных сборов за референсы/i : /assumes no additional reference fees/i);
-    assert.match(view.note, locale === "ru" ? /дополненной конфигурации.*подключите/i : /completed input configuration.*missing inputs/i);
     assert(view.sections.some(section => section.title === c.costText("missingInputs")));
     assert.equal(view.accent,"#9E6BFF");
     assert.equal(view.amount,c.costUsd(amount));
@@ -236,7 +235,7 @@ for (const [state, fields, label] of [
     ["RANGE", { lower_usd: "0.8", upper_usd: "1.2" }, /0\.80.*1\.20.*EST/],
     ["RATE_ONLY", { rate_usd: "0.03", rate_unit: "s" }, /0\.03\/s.*RATE/],
     ["RATE_ONLY", { rate_usd: "0.0000064", rate_unit: "token" }, /6\.40\/M\s*tok.*RATE/],
-    ["PARTIAL", {}, /COST PARTIAL/], ["UNKNOWN", {}, /PRICE UNKNOWN/],
+    ["PARTIAL", {}, /COST PARTIAL/], ["UNKNOWN", {}, /REF —/],
     ["STALE", {}, /PRICE STALE/], ["INVALID", {}, /CHECK INPUTS/],
 ]) {
     test(`ACI ${state} has an explicit native badge state`, async () => {
@@ -287,13 +286,13 @@ test("ACI collapsed Classic retains badge without changing node geometry", () =>
     const { c, n } = harness();
     n.flags = { collapsed: true };
     n._collapsed_width = 300;
-    n.__orvEstimate.value = "PRICE UNKNOWN";
+    n.__orvEstimate.value = "REF —";
     const before = [...n.size];
     const drawn = [];
     const ctx = { save() {}, restore() {}, fillRect() {}, fillText(text) { drawn.push(text); } };
     c.drawCollapsedCostBadge(n, ctx);
     assert.deepEqual(Array.from(n.size), before);
-    assert.deepEqual(drawn, ["PRICE UNKNOWN"]);
+    assert.deepEqual(drawn, ["REF —"]);
 });
 
 test("ACI reads active loaded DOM scalars as HINT and refines without media fetch", () => {
@@ -434,7 +433,7 @@ for (const reason of ["provider_policy_version_mismatch", "provider_policy_scope
         assert.equal(requests.length, 1);
         respond(requests[0], { state: "UNKNOWN", reason_codes: [reason] });
         await pending;
-        assert.equal(n.__orvEstimate.value, "PRICE UNKNOWN");
+        assert.equal(n.__orvEstimate.value, "REF —");
         assert.equal(n.__orvEstimate.result.state, "UNKNOWN");
     });
 }
@@ -444,7 +443,7 @@ test("R3 distinguishes modelled money from EST and uses exact decimal rendering"
     const {c}=harness();
     assert.equal(c.costBadgeText({state:"RATE_ONLY",planning:modelPlan}), "≈ $1.24 MODEL");
     assert.equal(c.costBadgeText({state:"RATE_ONLY",planning:{...modelPlan,display:"SCENARIO_RANGE",scenario_min_usd:"0.0756",scenario_max_usd:"0.1344"}}), "≈ $0.08–0.13 MODEL");
-    assert.equal(c.costBadgeText({state:"UNKNOWN",planning:{...modelPlan,display:"DETAIL_ONLY"}}), "PRICE UNKNOWN");
+    assert.equal(c.costBadgeText({state:"UNKNOWN",planning:{...modelPlan,display:"DETAIL_ONLY"}}), "REF —");
     assert.equal(c.costBadgeText({state:"PARTIAL",planning:{...modelPlan,display:"DETAIL_ONLY"}}), "COST PARTIAL");
     assert.equal(c.costBadgeText({state:"FORMULA",amount_usd:"2.005",planning:modelPlan}), "≈ $2.01 EST.");
     assert.equal(c.costMoney("0.0001"),"<0.01");
@@ -455,7 +454,7 @@ test("R3 distinguishes modelled money from EST and uses exact decimal rendering"
 test("R3 limited transparency disclosure and comparison details",()=>{
     const {c,n}=harness();
     c.setCostPresentation(n,{state:"UNKNOWN",planning:{...modelPlan,display:"DETAIL_ONLY",scenarios:[{scope:"COMPARISON",label:"with audio",amount_usd:"0.20",assumption:"not selected silent mode"}]}});
-    assert.match(c.costDetailsText(n),/Reference only; not a total/);
+    assert.match(c.costDetailsText(n),/Illustrative cost/);
     assert.match(c.costDetailsText(n),/\$0.20/);
     assert(!c.costDetailsText(n).includes(" × "));
     assert.match(c.costTechnicalDetailsText(n),/COMPARISON/);
@@ -472,8 +471,8 @@ test("R2: the existing Gemini comparison is a Violet reference without changing 
     const before=JSON.stringify(result);c.setCostPresentation(n,result);
     assert.equal(n.__orvEstimate.value,"≈ $0.21 REF.");
     assert.equal(c.costBadgeColors(n,n.__orvEstimate.value).accent,"#9E6BFF");
-    assert.match(c.costDetailsText(n),/not a total/);
-    assert.match(c.costDetailsText(n),/input charges may differ/i);
+    assert.match(c.costDetailsText(n),/Excludes unverified charges/);
+    assert.match(c.costDetailsText(n),/applicable billing rules/i);
     assert(!c.costDetailsText(n).includes("0.208512"));
     assert(!c.costDetailsText(n).includes("output_seconds"));
     assert.equal(JSON.stringify(result),before,"No tariff, amount, scope or Core state mutation");
@@ -484,7 +483,7 @@ test("Owner UX: no advisory total is fabricated from components, malformed compa
     for(const row of [
         {scope:"COMPARISON",label:"invalid",assumption:"invalid",amount_usd:"NaN"},
         {scope:"CONDITIONAL_TOTAL",label:"not designated",amount_usd:"1"},
-    ])assert.equal(c.costBadgeText({state:"UNKNOWN",planning:{version:"ACI-PLANNING-1",display:"DETAIL_ONLY",scenarios:[row]}}),"PRICE UNKNOWN");
+    ])assert.equal(c.costBadgeText({state:"UNKNOWN",planning:{version:"ACI-PLANNING-1",display:"DETAIL_ONLY",scenarios:[row]}}),"REF —");
     const planning={version:"ACI-PLANNING-1",display:"DETAIL_ONLY",scenarios:[{scope:"COMPARISON",label:"published scenario",assumption:"not a quote",amount_usd:"0.2"}]};
     assert.equal(c.costBadgeText({state:"INVALID",planning}),"CHECK INPUTS");
     assert.equal(c.costBadgeText({state:"STALE",planning}),"PRICE STALE");
@@ -551,7 +550,7 @@ test("R3.1 exact brand palette and unchanged state labels", () => {
         [{state:"PARTIAL",planning:{...modelPlan,display:"SCENARIO_RANGE",scenario_min_usd:"1.80",scenario_max_usd:"2.60"}},"#FFBB00","≈ $1.80–2.60 MODEL"],
         [{state:"RATE_ONLY",rate_usd:"0.28",rate_unit:"s"},"","$0.28/s RATE"],
         [{state:"PARTIAL"},"","COST PARTIAL"],
-        [{state:"UNKNOWN"},"","PRICE UNKNOWN"],
+        [{state:"UNKNOWN"},"","REF —"],
         [{state:"STALE",planning:modelPlan},"","PRICE STALE"],
         [{state:"INVALID"},"","CHECK INPUTS"],
         [{state:"CALCULATING"},"","CALCULATING…"],
@@ -611,7 +610,7 @@ test("R2 exact Gemini witness has readable identity, reference geometry/scope an
     const view=c.costTooltipView(n);
     assert.equal(view.kind,"reference");assert.equal(view.amount,"$0.28");assert.equal(view.accent,"#9E6BFF");
     assert.equal(view.identity,"Gemini Omni 1.2 Flash · I2V");assert.equal(view.context,"720p · 4s");
-    assert.equal(view.sub,"With audio · Output only");assert.match(view.note,/Input charges may differ/);
+    assert.equal(view.sub,"With audio · Output only");assert.match(view.note,/Charges for your selection are unconfirmed/);
     assert.equal(view.sections[0].rows[0][1],"Off");assert.equal(view.sections[0].rows[1][1],"Not established");
     const text=c.costDetailsText(n);
     for(const hidden of ["duration_seconds","0.278016","0.069504","Catalogue observed","Technical details","No completed job","google/"])assert(!text.includes(hidden),hidden);
@@ -623,11 +622,11 @@ test("R2 locale follows only Comfy.Locale; RU inherits commas and other untransl
     c.app.ui={settings:{getSettingValue(key){assert.equal(key,"Comfy.Locale");return locale;}}};
     c.navigator={get language(){throw Error("Do not use browser language");}};
     c.setCostPresentation(n,r2Reference);
-    assert.equal(n.__orvEstimate.value,"≈ $0,28 REF.");assert.equal(c.costTooltipView(n).title,"Справочная стоимость");
+    assert.equal(n.__orvEstimate.value,"≈ $0,28 REF.");assert.equal(c.costTooltipView(n).title,"Предварительная оценка");
     assert.equal(c.costUsd("0.0001"),"<$0,01");assert.equal(c.costUsd("0"),"$0,00");assert.equal(c.costMoney("0.278016"),"0.28");
     assert.equal(c.costBadgeText({state:"INVALID"}),"ПРОВЕРЬТЕ ВХОДЫ");
     locale="fr";assert.equal(c.costBadgeText({state:"FORMULA",amount_usd:"2.31"}),"≈ $2.31 EST.");
-    assert.equal(c.costTooltipView(n).title,"Reference cost");
+    assert.equal(c.costTooltipView(n).title,"Preliminary estimate");
 });
 
 test("R2 locale change refreshes presentation without resetting expiry, changing Core or issuing a request",()=>{
