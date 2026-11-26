@@ -93,10 +93,10 @@ for(const locale of ['en','ru']) test(`Read-only Duration has separate localized
 
 test('actual Vue Prompt DOM with empty placeholder and native associated label is recognized',()=>{
  const c=context(),n=node(c),area={placeholder:'',rows:5,style:{},getAttribute:()=>null,setAttribute(k,v){this[k]=v;}},label={textContent:'prompt',style:{}},marks=[];
- const row={style:{},querySelector:s=>s==='textarea'?area:s==='label[for]'?label:null,classList:{add:x=>marks.push(x),remove(){}}};
+ const row={style:{},querySelector:s=>s==='textarea'?area:s==='label[for]'?label:null,toggleAttribute:(key,on)=>{if(on)marks.push(key)}};
  const grid={style:{},querySelectorAll:()=>[row]},header={querySelector:()=>null,append(){}},root={dataset:{nodeId:'1'},style:{getPropertyValue(k){return this[k]},setProperty(k,v){this[k]=v}},classList:{add(){}},querySelector:s=>s.startsWith('.lg-node-header')?null:grid};
  c.document={querySelectorAll:()=>[root]};n.id=1;n.__orvMasterPromptHeight=224;c.syncBetaPresentation(n);
- assert(marks.includes('orv-prompt-row'));assert.equal(root.style['--orv-prompt-height'],'224px');assert.equal(area.placeholder,'prompt');assert.equal(label.style.display,undefined);assert.equal(area['aria-label'],'prompt');
+ assert(marks.includes('data-orv-creative-layout'));assert.equal(root.style['--orv-prompt-height'],'224px');assert.equal(area.placeholder,'prompt');assert.equal(label.style.display,undefined);assert.equal(area['aria-label'],'prompt');
 });
 
 test('intrinsic native flow excludes blank flex slack and counts structural spacing exactly once',()=>{

@@ -32,7 +32,7 @@ function finalOwnerPredecessor(root,path,current){
 }
 // Extend the scope gate without changing historical baseline fixtures.
 function stableVuePredecessor(root,path,current){
- if(path!=='web/openrouter_video.js' || sha(current)!=='2c08c5bb8e482175d1657329d20c966a6d666007b7a15610106f2a0d37d60b54')return current;
+ if(path!=='web/openrouter_video.js' || sha(current)!=='f2f9c8f150a2ceebd89846f93c6fe4a8eec1fbf99f01154616ed52974f67ef4a')return current;
  const before=normalize(execFileSync('git',['show','a720d1d2cfb5fa29360daf3760374ad4d4720058:'+path],{cwd:root,encoding:'utf8'}));
  assert.equal(sha(before),'694be0598cfdbe3edf7b40c9ce5e4b87063a7f945fd01e27a94e67ca2685765a');
  let restored=normalize(current);

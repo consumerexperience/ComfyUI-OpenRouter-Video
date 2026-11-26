@@ -22,10 +22,10 @@ function geometryStyle(native={}) {
   setProperty(key,value){tokens.set(key,value);},removeProperty:key=>tokens.delete(key)};
 }
 function domFixture(){
- const marks=[];const textarea={rows:5,placeholder:''};const plain={querySelector(){return null;},classList:{add(){}}};const prompt={querySelector(s){return s==='textarea'?textarea:s==='label[for]'?{textContent:'prompt',style:{}}:null;},classList:{add(s){marks.push(s);}}};
+ const marks=[];const textarea={rows:5,placeholder:''};const plain={querySelector(){return null;},classList:{add(){}}};const prompt={querySelector(s){return s==='textarea'?textarea:s==='label[for]'?{textContent:'prompt',style:{}}:null;},toggleAttribute(key,on){if(on)marks.push(key);}};
  const grid={style:{},querySelectorAll(){return [plain,plain,prompt,plain,plain,plain,plain,plain,plain];}};
  const header={children:[],querySelector(){return this.children[0];},append(x){this.children.push(x);}};
- const element={dataset:{nodeId:'22'},style:geometryStyle(),classList:{add(s){marks.push(s);},remove(s){const i=marks.indexOf(s);if(i>=0)marks.splice(i,1);}},querySelector(s){return s.startsWith('.lg-node-header')?header:grid;}};
+ const element={dataset:{nodeId:'22'},style:geometryStyle(),attrs:new Map(),getAttribute(k){return this.attrs.get(k)},setAttribute(k,v){this.attrs.set(k,v)},classList:{add(s){marks.push(s);},remove(s){const i=marks.indexOf(s);if(i>=0)marks.splice(i,1);}},querySelector(s){return s.startsWith('.lg-node-header')?header:grid;}};
  const document={querySelectorAll(){return [element];},createElement(){return {style:{},textContent:'',title:'',setAttribute(name,value){this[name]=value;},addEventListener(){}};}};
  const c=context({document});const n={id:22,widgets:[{name:'prompt',label:'prompt'}],__orvEstimate:{value:'≈ $1.60 EST.'}};return {c,n,header,grid,textarea,marks,element};
 }
@@ -51,7 +51,10 @@ test('native Vue grid rewrites cannot replace OpenRouter prompt or column geomet
  const {c,n,grid,textarea,element}=domFixture();c.syncBetaPresentation(n);
  assert.equal(element.style.getPropertyValue('--orv-prompt-height'),'42px');
  grid.style.gridTemplateRows='min-content auto';grid.style.flex='1';
+ element.className='host-selected';
+ assert.equal(element.getAttribute('data-orv-layout'),'generate');
  c.syncBetaPresentation(n);
+ assert.equal(element.className,'host-selected');
  assert.equal(grid.style.gridTemplateRows,'min-content auto');assert.equal(grid.style.flex,'1');
  assert.equal(element.style.getPropertyValue('--orv-prompt-height'),'42px');assert.equal(textarea.rows,2);
  assert(source.includes('grid-template-rows:none !important'));
@@ -64,10 +67,10 @@ test('Classic canvas remains untouched when Vue DOM is absent',()=>{
 test('PUX03 advanced textareas never compete with Prompt for flexible height',()=>{
  const {c,n,grid}=domFixture(),marks=[];
  const advanced={rows:5,placeholder:'negative_prompt'},promptArea={rows:2,placeholder:'Prompt'};
- const row=(area)=>({querySelector(s){return s==='textarea'?area:s==='label[for]'&&area===promptArea?{textContent:'prompt',style:{}}:null;},classList:{add(v){marks.push([area.placeholder,v])},remove(){}}});
+ const row=(area)=>({querySelector(s){return s==='textarea'?area:s==='label[for]'&&area===promptArea?{textContent:'prompt',style:{}}:null;},toggleAttribute(key,on){if(on)marks.push([area.placeholder,key]);}});
  grid.querySelectorAll=()=>[row(advanced),row(promptArea),row({rows:3,placeholder:'provider notes'})];
  c.syncBetaPresentation(n);assert.equal(c.document.querySelectorAll()[0].style.getPropertyValue('--orv-prompt-height'),'42px');
- assert.equal(advanced.rows,5);assert.deepEqual(marks,[['Prompt','orv-prompt-row']]);
+ assert.equal(advanced.rows,5);assert.deepEqual(marks,[['Prompt','data-orv-creative-layout']]);
  grid.querySelectorAll=()=>[row(advanced)];c.syncBetaPresentation(n);assert.equal(grid.style.flex,undefined);
 });
 
@@ -114,7 +117,7 @@ test('final review Resume has cost disclosure without Generate geometry or liste
  assert.equal(header.children.length,1);assert.equal(grid.style.gridTemplateColumns,undefined);
  n.__orvResumeActualInstalled=false;c.syncBetaPresentation(n);assert(root.style.getPropertyValue('--orv-label-width'));
  n.__orvResumeActualInstalled=true;c.syncBetaPresentation(n);assert.equal(root.style.minWidth,'217px');assert.equal(Object.keys(handlers).length,0);
- assert.equal(root.style.getPropertyValue('--orv-label-width'),'');assert.equal(label.style.maxWidth,'81px');assert.equal(label.title,'Native hint');assert.equal(row.style.gridColumn,'native');
+ assert.equal(root.getAttribute('data-orv-layout'),'resume');assert.equal(root.style.getPropertyValue('--orv-label-width'),'');assert.equal(label.style.maxWidth,'81px');assert.equal(label.title,'Native hint');assert.equal(row.style.gridColumn,'native');
 });
 function capacityFixture(n,c){
  c.app.graph={links:{},getNodeById:id=>({outputs:[{type:["IMAGE","IMAGE","VIDEO","AUDIO"][id-1]}]})};

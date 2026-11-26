@@ -1022,15 +1022,15 @@ function installBetaPresentation(node) {
         // This guarded adapter inserts a normal-flow header span, not an overlay.
         const style = document.createElement("style");
         style.textContent = `
-            .orv-nodes2 { font-family:${nodeTypography().family}; }
-            .orv-nodes2 [data-testid="node-widget"] :is(label,input,button,[role="combobox"]) { font-family:${nodeTypography().family}; font-size:12px; font-weight:400; line-height:20px; }
-            .orv-nodes2 .orv-estimate { flex:0 1 auto; max-width:50%; overflow:hidden;
+            [data-orv-layout] { font-family:${nodeTypography().family}; }
+            [data-orv-layout] [data-testid="node-widget"] :is(label,input,button,[role="combobox"]) { font-family:${nodeTypography().family}; font-size:12px; font-weight:400; line-height:20px; }
+            [data-orv-layout] .orv-estimate { flex:0 1 auto; max-width:50%; overflow:hidden;
                 text-overflow:ellipsis; white-space:nowrap; border:1px solid var(--border-color, #666);
                 border-radius:6px; padding:1px 7px; color:var(--input-text, #ddd); font:600 11px/16px ${nodeTypography().family};
                 cursor:pointer; font-variant-numeric:tabular-nums; }
-            .orv-nodes2 .orv-estimate:focus-visible { outline:2px solid var(--input-text, #ddd); }
-            .orv-generate-layout { min-width:320px; }
-            .orv-generate-layout [data-testid="node-widgets"] {
+            [data-orv-layout] .orv-estimate:focus-visible { outline:2px solid var(--input-text, #ddd); }
+            [data-orv-layout="generate"] { min-width:320px; }
+            [data-orv-layout="generate"] [data-testid="node-widgets"] {
                 grid-template-columns:min-content var(--orv-label-width,128px) minmax(125px,1fr);
                 /* Vue owns its inline template. Keep ORV tracks independent of
                    Vue rerenders and let rows follow their actual widget elements. */
@@ -1038,15 +1038,15 @@ function installBetaPresentation(node) {
                 grid-auto-rows:max-content;
                 flex:0 0 auto !important;
             }
-            .orv-generate-layout [data-testid="node-widget"] { min-width:0; }
-            .orv-generate-layout [data-testid="widget-layout-field-label"] {
+            [data-orv-layout="generate"] [data-testid="node-widget"] { min-width:0; }
+            [data-orv-layout="generate"] [data-testid="widget-layout-field-label"] {
                 max-width:var(--orv-label-width,128px); overflow:hidden; text-overflow:ellipsis;
             }
-            .orv-generate-layout .orv-prompt-row {
+            [data-orv-layout="generate"] [data-orv-creative-layout] {
                 min-height:42px; height:var(--orv-prompt-height,42px);
             }
-            .orv-generate-layout .orv-prompt-row label[for] { display:none; }
-            .orv-nodes2 .orv-prompt-row textarea { min-height:42px; height:100%;
+            [data-orv-layout="generate"] [data-orv-creative-layout] label[for] { display:none; }
+            [data-orv-layout] [data-orv-creative-layout] textarea { min-height:42px; height:100%;
                 padding:4px 6px; margin:0; box-sizing:border-box; font:400 12px/18px ${nodeTypography().family}; overflow:auto; }
         `;
         document.head.append(style);
@@ -1073,7 +1073,7 @@ function installBetaPresentation(node) {
                     for (const element of record.addedNodes) {
                         const roots = element.matches?.(selector) ? [element] : element.querySelectorAll?.(selector) || [];
                         for (const mounted of roots) {
-                            if (mounted.classList?.contains("orv-nodes2")) continue;
+                            if (mounted.hasAttribute?.("data-orv-layout")) continue;
                             const id = mounted.dataset?.nodeId;
                             if (id == null) continue;
                             const node = graph?.getNodeById?.(id);
@@ -1213,7 +1213,10 @@ function syncBetaPresentation(node) {
         }
     }
     if(!node.__orvResumeActualInstalled && node.__orvProviderProfile && node.__orvProviderLocale!==costLocale())configureOperationControls(node,node.__orvProviderProfile);
-    root.classList.add("orv-nodes2");
+    // Vue rewrites className on selection and dragging. The adapter owns
+    // these attributes and custom properties for the root's entire lifetime.
+    const mode = node.__orvResumeActualInstalled ? "resume" : "generate";
+    if (root.getAttribute?.("data-orv-layout") !== mode) root.setAttribute?.("data-orv-layout",mode);
     suppressPackageBadge(node,root);
     const header = root.querySelector(".lg-node-header > div");
     if (header && (!node.graph || (app.canvas?.graph || app.graph)?.getNodeById?.(node.id) === node)) {
@@ -1249,7 +1252,6 @@ function syncBetaPresentation(node) {
             if (!element?.style || touched.has(element)) return;
             touched.set(element,{styles:Object.fromEntries(keys.map(key=>[key,element.style[key] || ""])),title,originalTitle:element.title || ""});
         };
-        root.classList.add("orv-generate-layout");
         root.__orvGeometryOwner = node;
         let origin=null, moveTarget=null;
         const start = event => {
@@ -1258,7 +1260,7 @@ function syncBetaPresentation(node) {
                 const rect=root.getBoundingClientRect?.();
                 const scale=rect?.width/node.size?.[0];
                 if (!["SE","SW","NE","NW"].includes(corner) || !Number.isFinite(event.clientX) || !Number.isFinite(event.clientY) || !(scale>0)) return;
-                const fields=[...(root.querySelectorAll?.(".orv-prompt-row") || [])];
+                const fields=[...(root.querySelectorAll?.("[data-orv-creative-layout]") || [])];
                 const regionHeight=fields.length ? fields.reduce((sum,row)=>sum+row.getBoundingClientRect().height/scale,0)+Math.max(0,fields.length-1)*COMPACT_LAYOUT.gap : textRegionGeometry(node,node.__orvNativeTextMinimum).budget;
                 origin={height:node.size[1],totalHeight:rect.height/scale,regionHeight,budget:textRegionGeometry(node).budget,id:event.pointerId};
                 node.__orvUserResizeActive = true;
@@ -1325,7 +1327,6 @@ function syncBetaPresentation(node) {
             if(typeof cancelAnimationFrame==="function")cancelAnimationFrame(node.__orvLiveFrame);
             node.__orvPendingLiveLayout=null;node.__orvLiveFrame=null;
             delete node.__orvLiveSize;delete node.__orvLivePromptHeight;
-            root.classList.remove?.("orv-generate-layout");
             root.style?.removeProperty?.("--orv-label-width");
             root.style?.removeProperty?.("--orv-prompt-height");
             for (const [element,previous] of touched) {
@@ -1333,7 +1334,7 @@ function syncBetaPresentation(node) {
                 if (previous.title) element.title=previous.originalTitle;
             }
             root.querySelectorAll?.(".orv-duration-readonly").forEach(element=>element.remove());
-            root.querySelectorAll?.(".orv-prompt-row").forEach(element=>element.classList.remove("orv-prompt-row"));
+            root.querySelectorAll?.("[data-orv-creative-layout]").forEach(element=>element.removeAttribute("data-orv-creative-layout"));
             delete node.__orvNativeFixedHeight;delete node.__orvNativeTextMinimum;
             touched.clear();delete root.__orvRememberGeometry;
             root.removeEventListener?.("pointerdown",start,true);
@@ -1377,9 +1378,9 @@ function syncBetaPresentation(node) {
         const text = label?.textContent?.trim();
         const item = creative.find(item => textarea === item.element || textarea.getAttribute?.("name") === item.name
             || textarea.__orvCreativeWidget === item || text === (item.label || item.name));
-        if (!item) { row.classList.remove?.("orv-prompt-row"); return null; }
+        row.toggleAttribute?.("data-orv-creative-layout",Boolean(item));
+        if (!item) return null;
         textarea.__orvCreativeWidget = item;
-        row.classList.add("orv-prompt-row");
         const display = creativeTextLabel(item);
         if (textarea.placeholder !== display) textarea.placeholder = display;
         if (textarea.getAttribute?.("aria-label") !== display) textarea.setAttribute?.("aria-label",display);
