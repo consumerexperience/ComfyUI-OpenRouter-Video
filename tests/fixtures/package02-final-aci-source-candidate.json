@@ -1,0 +1,18 @@
+{
+  "status": "UNACCEPTED_FINAL_ACI",
+  "baseline": "d3dcc6e1982ea6da901afd49b42432bb25deaa5c",
+  "files": {
+    "web/openrouter_video.js": {
+      "baseline_sha256": "a226f2d08b4b78f9e3563f87b9d5780c1e6a0729cda6f1155d6a5569d3f1ac8b",
+      "candidate_sha256": "1912d066ab889a8b0dc8224461cdeecf58ae3c714bde6ba976ec24d5209258c6"
+    },
+    "src/openrouter_video/pricing.py": {
+      "baseline_sha256": "1dfeb90a9e0cbf0ce3c462c7b2bc23f08529718808241b50dbad1fbe8e49c75c",
+      "candidate_sha256": "a5c795ae3c4466bd0ae1dc488884a8120b020c043bc740cc6af9cd487ff5ab80"
+    },
+    "src/openrouter_video/data/video-tariff-rules.json": {
+      "baseline_sha256": "82a87ef9ae31bac0bf7cf359fcdf6af904042e110832276265cf0236db55a8f8",
+      "candidate_sha256": "891944e26f6dd18f259b151dd2d989699b00086232d6eb9a410c986c1a4d59e2"
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import {finalAciBackendPaths} from "./package02_amendment_delta.mjs";
 import {visualBaselineSource,visualBackendPaths} from "./acxs_visual_reviewed_patch.mjs";
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -93,7 +94,8 @@ export function integratedHistoricalSource(root,file,current,revision) {
 export function integratedAuthorizedBackendDelta(root,baseline,currentPaths) {
     assertIntegratedCandidate(root,readFileSync(new URL(remediationFile,root),'utf8'));
     const authorized=execFileSync('git',['diff','--name-only',baseline,integratedBase,'--','src'],{cwd:root,encoding:'utf8'}).trim().split('\n');
-    return currentPaths.split('\n').filter(path=>path && !authorized.includes(path) && !visualBackendPaths(root).includes(path)).join('\n');
+    const declared = [...authorized, ...visualBackendPaths(root), ...finalAciBackendPaths(root)];
+    return currentPaths.split('\n').filter(path=>path && !declared.includes(path)).join('\n');
 }
 
 export function integratedBackendCandidateMatches(root,file,digest) {

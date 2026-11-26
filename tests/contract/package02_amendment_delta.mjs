@@ -49,7 +49,32 @@ function nativeShrinkPredecessor(root,path,current){
  assert.equal(restored,before,'Only the Nodes 2.0 native resize probe may differ');
  return before;
 }
+const finalAciBase = 'd3dcc6e1982ea6da901afd49b42432bb25deaa5c';
+const finalAciPricingPaths = ['src/openrouter_video/data/video-tariff-rules.json','src/openrouter_video/pricing.py'];
+function finalAciPredecessor(root,path,current) {
+ const pin=JSON.parse(readFileSync(new URL('tests/fixtures/package02-final-aci-source-candidate.json',root),'utf8'));
+ if(pin.files[path]?.candidate_sha256!==sha(current))return current;
+ assert.equal(pin.baseline,finalAciBase);
+ assert.equal(pin.status,'UNACCEPTED_FINAL_ACI');
+ assert.deepEqual(Object.keys(pin.files).sort(),[...finalAciPricingPaths,'web/openrouter_video.js'].sort());
+ const before=normalize(execFileSync('git',['show',finalAciBase+':'+path],{cwd:root,encoding:'utf8'}));
+ assert.equal(sha(before),pin.files[path].baseline_sha256);
+ if(path==='web/openrouter_video.js') {
+  let restored=normalize(current);
+  for(const name of ['costText','costTooltipView','costPriceView','costTechnicalDetailsText','syncClassicCostBadge'])
+    restored=restored.replace(body(restored,name),()=>body(before,name));
+  assert.equal(restored,before,'Only financial copy and rate presentation may differ');
+ }
+ return before;
+}
+export function finalAciBackendPaths(root) {
+ return finalAciPricingPaths.filter(path=>{
+  const raw=readFileSync(new URL(path,root),'utf8');
+  return finalAciPredecessor(root,path,raw)!==raw;
+ });
+}
 export function package02AmendmentBaselineSource(root,path,current){
+ current=finalAciPredecessor(root,path,current);
  current=nativeShrinkPredecessor(root,path,current);
  current=stableVuePredecessor(root,path,current);
  current=finalOwnerPredecessor(root,path,current);
