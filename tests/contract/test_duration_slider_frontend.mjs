@@ -40,25 +40,27 @@ test("future explicitly confirmed range fixtures remain UI architecture only", (
     assert.equal(context.durationDomain(Array.from({length:30},(_,i)=>i+1)).kind,"DISCRETE");
 });
 
-test("mixed Auto uses a semantic choice and restores the positive-only native slider", () => {
-    const slider = {name:"duration", type:"slider", value:-1, options:{}, __orvDurationAdapter:true};
-    const node = {widgets:[{name:"model"},slider,{name:"seed"}], addWidget(type,name,value,callback,options) {
-        const widget={type,name,value,callback,options};
-        this.widgets.push(widget);
-        return widget;
-    }};
+test("mixed Auto keeps one positive slider and a separate reset to the numeric sentinel", () => {
+    const values=[];
+    const slider = {name:"duration", type:"slider", value:-1, options:{}, __orvDurationAdapter:true,
+        callback:value=>values.push(value)};
+    const node = {widgets:[{name:"model"},slider,{name:"seed"}],__orvCapabilityStatus:{value:""}};
     context.configureDuration(node,[-1,4,5,6]);
-    const menu=node.widgets[1];
-    assert.equal(menu.type,"combo");
-    assert.equal(menu.options.getOptionLabel(-1),"Auto");
-    assert.equal(menu.serializeValue(),-1);
-    menu.value=5;
-    assert.equal(menu.serializeValue(),5);
-    context.configureDuration(node,[-1,4,5,6]);
-    assert.equal(node.widgets[1],menu);
+    assert.equal(node.widgets[1],slider);
+    assert.equal(slider.type,"slider");
+    assert.deepEqual(plain(slider.__orvSliderDomain.allowed_values),[4,5,6]);
+    assert.equal(slider.options.min,4);
+    assert.equal(slider.options.max,6);
+    assert.equal(slider.value,-1);
+    slider.value=5;
+    slider.__orvResetDuration();
+    assert.equal(slider.value,-1);
+    assert.deepEqual(values,[-1]);
     context.configureDuration(node,[4,5,6]);
     assert.equal(node.widgets[1],slider);
-    assert.equal(slider.value,5);
-    assert.equal(slider.type,"slider");
+    assert.equal(slider.__orvResetDuration,undefined);
+    assert.equal(slider.value,4);
     assert.deepEqual(node.widgets.map(w=>w.name),["model","duration","seed"]);
+    context.configureDuration(node,[]);
+    assert.equal(slider.hidden,true);
 });

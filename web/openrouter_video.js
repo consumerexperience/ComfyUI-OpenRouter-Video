@@ -454,15 +454,40 @@ function syncProviderNumericState(node, row) {
     }
     const absolute=input && typeof getComputedStyle==="function" && getComputedStyle(input).position==="absolute";
     const host=absolute ? input.parentElement?.parentElement : input?.parentElement;
-    if(!host?.append)return;
+    syncNumericAutoButton(host, item, unknownAuto);
+}
+
+function syncNumericAutoButton(host, item, hidden) {
+    if (!host?.append) return;
     let state=host.querySelector?.('.orv-provider-state');
     if(!state){state=document.createElement('button');state.type='button';state.className='orv-provider-state';
         Object.assign(state.style,{font:'inherit',fontSize:'11px',flex:'0 0 auto',padding:'0 4px',border:'0',background:'transparent',color:'inherit'});
-        state.addEventListener('click',event=>{event.stopPropagation();state.__orvItem?.__orvResetProvider?.();});host.append(state);}
-    state.hidden=Boolean(unknownAuto);
-    state.__orvItem=item;const text=item.__orvProviderAuto?providerAutoLabel({}):'↺';if(state.textContent!==text)state.textContent=text;
+        state.addEventListener('click',event=>{event.stopPropagation();state.__orvReset?.();});host.append(state);}
+    state.hidden=Boolean(hidden);
+    state.__orvReset=item.__orvResetProvider || item.__orvResetDuration;
+    const automatic=item.__orvDurationAdapter ? Number(item.value) === -1 : item.__orvProviderAuto;
+    const text=automatic?providerAutoLabel({}):'↺';if(state.textContent!==text)state.textContent=text;
     state.title=costLocale()==='ru'?'Сбросить в Авто':'Reset to Auto';
     state.setAttribute('aria-label',`${item.label}: ${state.title}`);
+}
+
+function syncDurationSliderState(node, row) {
+    const input = row.querySelector('input[aria-label="duration"]');
+    const handle = row.querySelector('[role="slider"]');
+    const item = widget(node, "duration");
+    if (!input || !handle || !item?.__orvDurationAdapter) return;
+    const mixed = Boolean(item.__orvResetDuration);
+    const automatic = mixed && Number(item.value) === -1;
+    const host = input.parentElement?.parentElement;
+    if (mixed) syncNumericAutoButton(host,item,false);
+    else host?.querySelector('.orv-provider-state')?.remove();
+    // The native slider clamps out-of-range values to the first position.
+    // While Auto owns the semantic value, conceal that numeric position.
+    const numeric = input.parentElement;
+    numeric.style.display = automatic ? "none" : "";
+    handle.style.opacity = automatic ? "0" : "";
+    if (automatic) handle.setAttribute('aria-valuetext',providerAutoLabel({}));
+    else handle.removeAttribute('aria-valuetext');
 }
 
 function presentationSize(node) { return node.__orvLiveSize || node.size || [400,0]; }
@@ -548,12 +573,20 @@ function sizePrimaryControls(node) {
     for (const prompt of creativeTextWidgets(node, true)) {
         prompt.__orvComputeSize = () => {
             const region = textRegionGeometry(node);
-            // Classic DOMWidget subtracts its two margins instead of the
-            // ordinary row gap. Reserve only the extra amount it subtracts.
-            const domGap = typeof prompt.margin === "number" ? COMPACT_LAYOUT.gap : 0;
+            const margin = Number(prompt.margin) || 0;
+            // LiteGraph includes its ordinary gap in the allocation and its
+            // DOM overlay removes two margins. A following native row has no
+            // leading DOM margin, so reserve it here, outside the text area.
             const height = node.__orvMeasuringMinimum
                 ? COMPACT_LAYOUT.prompt + COMPACT_LAYOUT.domInset : region.field;
-            return [0, height + domGap];
+            if (!margin) return [0,height];
+            const following = node.widgets.slice(node.widgets.indexOf(prompt)+1).find(item => !item.hidden);
+            const trailing = following && !(Number(following.margin) > 0) ? margin : 0;
+            if (prompt.element?.style) {
+                const cssHeight = trailing ? `calc(100% - ${trailing}px)` : "100%";
+                if (prompt.element.style.height !== cssHeight) prompt.element.style.height = cssHeight;
+            }
+            return [0,height + 2*margin - COMPACT_LAYOUT.gap + trailing];
         };
         setVisible(prompt, !prompt.hidden);
     }
@@ -1336,7 +1369,7 @@ function syncBetaPresentation(node) {
     if (grid.style.gridTemplateRows !== template) grid.style.gridTemplateRows = template;
     const flex = bindings.some(Boolean) ? (node.__orvUserResizeActive ? "1 1 auto" : "0 0 auto") : "";
     if (grid.style.flex !== flex) grid.style.flex = flex;
-    for (const row of rows) {syncReadOnlyDurationRow(node,root,row);syncProviderNumericState(node,row);syncProviderGroupHeading(node,row);}
+    for (const row of rows) {syncReadOnlyDurationRow(node,root,row);syncDurationSliderState(node,row);syncProviderNumericState(node,row);syncProviderGroupHeading(node,row);}
     const rect = root.getBoundingClientRect?.();
     const scale = rect?.width / presentationSize(node)[0];
     if (scale > 0 && bindings.filter(Boolean).length === region.count) {
@@ -1873,20 +1906,22 @@ function createDurationSlider(node, previous) {
         if (nativeValue?.set) nativeValue.set.call(item, next);
         else fallbackValue = next;
     } });
-    const nativeOptions = () => item.__orvDomain?.allowed_values ?
-        { ...item.options, min: 0, max: Math.max(1, item.__orvDomain.allowed_values.length - 1), step: 1 } : item.options;
+    const numericDomain = () => item.__orvSliderDomain || item.__orvDomain || {kind:"UNKNOWN"};
+    const nativeOptions = () => numericDomain().allowed_values ?
+        { ...item.options, min: 0, max: Math.max(1, numericDomain().allowed_values.length - 1), step: 1 } : item.options;
+    const trackWidth = width => item.__orvResetDuration ? width - 48 : width;
     const nativeDraw = item.drawWidget;
     const nativeClick = item.onClick;
     const nativeDrag = item.onDrag;
     const view = Object.create(item);
     Object.defineProperty(view, "value", { get() {
-        const domain = item.__orvDomain;
-        return domain?.allowed_values ? Math.max(0, domain.allowed_values.indexOf(Number(item.value))) : Number(item.value);
+        const domain = numericDomain();
+        return domain.allowed_values ? domain.allowed_values.indexOf(Number(item.value)) : Number(item.value);
     } });
     Object.defineProperty(view, "height", { value: COMPACT_LAYOUT.row });
     view.setValue = position => {
         if (item.options.read_only) return;
-        const next = durationAtPosition(item.__orvDomain || { kind: "UNKNOWN" }, position);
+        const next = durationAtPosition(numericDomain(), position);
         if (next == null) return;
         item.value = next;
         item.callback?.(next);
@@ -1901,18 +1936,40 @@ function createDurationSlider(node, previous) {
         }
         view.y = item.y;
         view.options = nativeOptions();
-        view.width = item.width;
-        view.label = "Duration";
-        const text = Number(item.value) === -1 ? "Duration Auto" : Number(item.value) > 0 ? `Duration ${item.value}s` : "Duration —";
+        const width = options.width || item.width || node.size?.[0] || 400;
+        const track = trackWidth(width);
+        view.width = track;
+        view.label = durationPresentationLabel(item);
+        const auto = Number(item.value) === -1;
+        const text = auto ? view.label : Number(item.value) > 0 ? `${view.label} ${item.value}${costLocale()==="ru"?" с":"s"}` : `${view.label} —`;
         const drawContext = new Proxy(ctx, { get(target, key) {
             if (key === "fillText") return (_nativeText, ...args) => target.fillText(text, ...args);
             const value = Reflect.get(target, key, target);
             return typeof value === "function" ? value.bind(target) : value;
         }, set(target, key, value) { target[key] = value; return true; } });
-        nativeDraw.call(view, drawContext, options);
+        nativeDraw.call(view, drawContext, {...options,width:track});
+        if (item.__orvResetDuration && options.showText !== false) {
+            ctx.save();
+            ctx.fillStyle = item.text_color || "#ddd";
+            ctx.textAlign = "center";
+            ctx.fillText(auto ? providerAutoLabel({}) : "↺",width-36,view.y+COMPACT_LAYOUT.row*0.7);
+            ctx.restore();
+        }
     };
-    if (nativeClick) item.onClick = event => { if (item.options.read_only) return; view.options = nativeOptions(); view.width = item.width; nativeClick.call(view, event); };
-    if (nativeDrag) item.onDrag = event => { if (item.options.read_only) return false; view.options = nativeOptions(); view.width = item.width; return nativeDrag.call(view, event); };
+    if (nativeClick) item.onClick = event => {
+        if (item.options.read_only) return;
+        const width = item.width || node.size?.[0] || 400;
+        if (item.__orvResetDuration && event.e && event.e.canvasX - node.pos[0] >= width-56) {
+            return item.__orvResetDuration();
+        }
+        view.options = nativeOptions(); view.width = trackWidth(width);
+        nativeClick.call(view,event);
+    };
+    if (nativeDrag) item.onDrag = event => {
+        if (item.options.read_only) return false;
+        view.options = nativeOptions(); view.width = trackWidth(item.width || node.size?.[0] || 400);
+        return nativeDrag.call(view,event);
+    };
     const appended = node.widgets.indexOf(item);
     node.widgets.splice(appended, 1);
     node.widgets[index] = item;
@@ -1921,41 +1978,23 @@ function createDurationSlider(node, previous) {
 }
 
 function configureDuration(node, supported) {
-    let item = widget(node, "duration");
+    const item = widget(node, "duration");
     if (!item) return;
     node.__orvDurationValues = supported;
     const domain = durationDomain(supported);
     const values = domain.allowed_values || [];
     const mixedAuto = values.length > 1 && values.includes(-1);
-    if (mixedAuto && item.__orvDurationAdapter && !item.__orvDurationSlider && node.addWidget) {
-        // A mixed domain contains a mode and a set of seconds, not a single
-        // numeric interval. Use native choice geometry in both renderers.
-        const slider = item;
-        const index = node.widgets.indexOf(slider);
-        item = node.addWidget("combo", "duration", slider.value, slider.callback, {
-            ...slider.options,
-            values,
-            getOptionLabel: value => Number(value) === -1
-                ? (costLocale() === "ru" ? "Авто" : "Auto")
-                : `${value}${costText("seconds")}`,
-        });
-        item.__orvDurationAdapter = true;
-        item.__orvDurationSlider = slider;
-        item.serializeValue = function () { return Number(this.value); };
-        node.widgets.splice(node.widgets.indexOf(item), 1);
-        node.widgets[index] = item;
-        sizePrimaryControls(node);
-        installNodeTypography(node);
-    } else if (!mixedAuto && item.__orvDurationSlider) {
-        const menu = item;
-        item = menu.__orvDurationSlider;
-        item.__orvDomain = domain;
-        item.value = Number(menu.value);
-        node.widgets[node.widgets.indexOf(menu)] = item;
-    }
+    const numericValues = mixedAuto ? values.filter(value => value > 0) : values;
+    item.__orvSliderDomain = mixedAuto ? durationDomain(numericValues) : undefined;
+    item.__orvResetDuration = mixedAuto ? () => {
+        if (Number(item.value) === -1) return;
+        item.value = -1;
+        item.callback?.(-1);
+        node.setDirtyCanvas?.(true,true);
+    } : undefined;
     item.options ||= {};
     item.__orvDomain = domain;
-    setVisible(item, true);
+    setVisible(item, !Array.isArray(supported) || supported.length > 0);
     const current = Number(item.value || 0);
     const valid = durationValueAllowed(domain, current);
     const linked = inputByName(node, "duration")?.link != null;
@@ -1965,12 +2004,13 @@ function configureDuration(node, supported) {
         domain.min === -1 ? "AUTOMATIC" : "FIXED" : "VARIABLE";
     item.__orvDurationPresentation = presentation;
     const readOnly = presentation !== "VARIABLE";
-    item.type = readOnly ? "text" : item.__orvDurationSlider ? "combo" : "slider";
+    item.type = readOnly ? "text" : "slider";
     item.label = durationPresentationLabel(item);
     item.options.values = values;
-    item.options.min = domain.min ?? 0;
+    item.options.min = mixedAuto ? numericValues[0] : domain.min ?? 0;
     item.options.max = domain.max ?? 1;
-    item.options.step = values.length ? arithmeticStep(values) ?? 1 : 10 ** -(domain.precision ?? 0);
+    item.options.step = numericValues.length ? arithmeticStep(numericValues) ?? 1 : 10 ** -(domain.precision ?? 0);
+    item.options.step2 = item.options.step;
     item.options.read_only = item.options.readOnly = item.options.disabled = readOnly;
     if (linked && !valid) disclose(node, "DURATION: linked value is outside the projected domain; correct the upstream value");
     if (domain.kind === "UNKNOWN" && current > 0) disclose(node, "DURATION: saved value is not verified by catalogue");
@@ -4841,6 +4881,7 @@ function bindEstimateRefresh(node) {
             }
             if (item.name === "duration" && Number(widget(node, "duration")?.value) !== 0) {
                 configureDuration(node, node.__orvDurationValues);
+                scheduleBetaPresentation([node]);
             }
             if (["resolution", "aspect_ratio", "size"].includes(item.name)) scheduleCostRefresh(node);
             else scheduleTopologyRefresh(node, () => projectSelectedModel(node));

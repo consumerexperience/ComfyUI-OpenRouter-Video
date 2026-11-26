@@ -40,10 +40,11 @@ test('PUX01 variable/fixed round trip restores native interaction without changi
 test('PUX01 automatic singleton and mixed domains retain the -1 sentinel',()=>{
  const {node,item}=fixture([-1],-1);assert.equal(item.type,'text');assert.equal(item.serializeValue(),-1);
  assert.equal(item.label,'Duration');assert.equal(context.readOnlyValueParts(item).value,'Auto');assert.equal(context.readOnlyValueParts(item).state,'Automatic');context.configureDuration(node,[-1,4,8]);
- const choice=node.widgets[0];
- assert.equal(choice.type,'combo');assert.equal(choice.options.getOptionLabel(-1),'Auto');
- assert.equal(choice.serializeValue(),-1);choice.value=4;assert.equal(choice.serializeValue(),4);
- choice.value=-1;assert.equal(choice.serializeValue(),-1);
+ assert.equal(node.widgets[0],item);assert.equal(item.type,'slider');
+ assert.equal(item.serializeValue(),-1);assert.deepEqual(plain(item.__orvSliderDomain.allowed_values),[4,8]);
+ item.onClick({position:0});assert.equal(item.serializeValue(),4);
+ item.onDrag({position:1});assert.equal(item.serializeValue(),8);
+ item.__orvResetDuration();assert.equal(item.serializeValue(),-1);
 });
 test('PUX01 linked incompatible duration preserves the link and upstream semantic value',()=>{
  const inputs=[{name:'duration',link:17}],{node,item}=fixture([4,8],6,inputs);
