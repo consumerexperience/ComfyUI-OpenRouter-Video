@@ -74,6 +74,53 @@ WEB_DIRECTORY=str(repo/'web')
 async def comfy_entrypoint(): return extension.OpenRouterVideoExtension()
 """
 
+PROVIDER_ISOLATION_WRAPPER = """
+import json
+from datetime import datetime, timezone
+from openrouter_video.capabilities import CapabilityObservation
+from openrouter_video.client import _parse_capability
+from openrouter_video.evidence_registry import enrich_capabilities
+
+model_ids = {
+    'x-ai/grok-imagine-video-1.5-lite', 'alibaba/wan-2.6',
+    'google/veo-3.1', 'heygen/avatar-iv',
+}
+catalogue = json.loads(
+    (repo/'tests/fixtures/aci_r31/current-raw-video-catalogue.json').read_text(encoding='utf8')
+)
+models = tuple(
+    enrich_capabilities(_parse_capability(row))
+    for row in catalogue['data'] if row['id'] in model_ids
+)
+
+class ProviderIsolationRuntime(fixture._FixtureRuntime):
+    async def effective_catalog(self):
+        return CapabilityObservation(datetime.now(timezone.utc), models)
+
+    async def catalog(self):
+        return await self.effective_catalog()
+
+    async def generate(self, request, node_id):
+        observation = await self.effective_catalog()
+        model = next(model for model in observation.models if model.model_id == request.model)
+        RequestValidator().validate_capabilities(request, model)
+        wire = request.to_openrouter_payload()
+        receipt = {
+            'model': request.model,
+            'node_id': node_id,
+            'fields': sorted(wire),
+            'provider': wire.get('provider'),
+        }
+        with (Path(STATE)/'provider-isolation-interception.jsonl').open('a', encoding='utf8') as f:
+            f.write(json.dumps(receipt) + '\\n')
+        raise RuntimeError('PROVIDER_ISOLATION_INTERCEPTED_BEFORE_NETWORK')
+
+runtime = ProviderIsolationRuntime()
+routes._connection_payload = lambda: {
+    'state': 'CONNECTED', 'source': 'INTERACTIVE', 'persistent': False,
+}
+"""
+
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -81,17 +128,25 @@ def main() -> None:
     parser.add_argument("--python", type=Path, required=True)
     parser.add_argument("--deps", type=Path, required=True)
     parser.add_argument("--port", type=int)
+    parser.add_argument("--provider-isolation", action="store_true")
     args = parser.parse_args()
     if args.port is not None and not 49152 <= args.port <= 65535:
         parser.error("Fixture port must be in the ephemeral test range.")
     repo = Path(__file__).resolve().parents[2]
-    base = repo / "output/playwright/native-fixture"
+    name = "provider-isolation-fixture" if args.provider_isolation else "native-fixture"
+    base = repo / "output/playwright" / name
     custom = base / "custom_nodes" / "native_fixture"
     custom.mkdir(parents=True, exist_ok=True)
     for folder in ("input", "output", "user", "temp"):
         (base / folder).mkdir(exist_ok=True)
     custom.joinpath("__init__.py").write_text(
-        "REPOSITORY=" + repr(str(repo)) + "\nSTATE=" + repr(str(base / "user")) + "\n" + WRAPPER,
+        "REPOSITORY="
+        + repr(str(repo))
+        + "\nSTATE="
+        + repr(str(base / "user"))
+        + "\n"
+        + WRAPPER
+        + (PROVIDER_ISOLATION_WRAPPER if args.provider_isolation else ""),
         encoding="utf-8",
     )
     with socket.socket() as sock:

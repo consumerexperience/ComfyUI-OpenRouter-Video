@@ -264,9 +264,12 @@ def test_auto_mixed_completion_retains_only_documented_rates_with_unknown_extra_
     advisory = result.precompletion_advisory
     assert advisory is not None and advisory["display"] == "RATE_ONLY"
     assert advisory["amount_usd"] is None and not advisory["scenarios"]
-    assert advisory["rates"]
-    assert all(rate["rate_unit"] == "token" for rate in advisory["rates"])
-    assert all("additional charges" in rate["assumption"] for rate in advisory["rates"])
+    rates = advisory["rates"]
+    assert isinstance(rates, list) and rates
+    for rate in rates:
+        assert isinstance(rate, dict) and rate["rate_unit"] == "token"
+        assumption = rate["assumption"]
+        assert isinstance(assumption, str) and "additional charges" in assumption
     assert body["duration"] == -1 and body["media"] == []
 
 
@@ -299,4 +302,6 @@ def test_seedance_flash_owner_witness_has_rate_without_assumed_tokens(connected:
         assert result.state is EstimateState.INVALID
         assert result.precompletion_advisory is not None
         assert result.precompletion_advisory["display"] == "RATE_ONLY"
-        assert result.precompletion_advisory["rates"][0]["rate_usd"] == "0.000007"
+        rates = result.precompletion_advisory["rates"]
+        assert isinstance(rates, list) and rates and isinstance(rates[0], dict)
+        assert rates[0]["rate_usd"] == "0.000007"

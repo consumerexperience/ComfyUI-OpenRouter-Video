@@ -2599,6 +2599,7 @@ function configureOperationControls(node, profile) {
         for (const item of inactive) {
             item.__orvProviderOption = true;
             setVisible(item, false);
+            if (item.name?.startsWith("provider_option:")) item.options.serialize = false;
         }
     };
     let saved;
@@ -2723,7 +2724,9 @@ function configureOperationControls(node, profile) {
         item.__orvFixedValue = numeric && spec.min === spec.max && Number.isFinite(spec.min);
         item.serialize = false;
         item.label = providerControlLabel(spec,key,path) + (spec.required ? " *" : "");
-        Object.assign(item.options ||= {}, {min:spec.min, max:spec.max});
+        // Inline provider values travel through provider_options. Comfy
+        // serializes connected STRING sockets separately from their widgets.
+        Object.assign(item.options ||= {}, {min:spec.min, max:spec.max, serialize:false});
         if (numeric) {
             // The native slider defaults to a whole unit without an explicit
             // step. This is an interaction increment, not a provider constraint.
@@ -5302,7 +5305,11 @@ app.registerExtension({
         const previousCreated = nodeType.prototype.onNodeCreated;
         nodeType.prototype.onNodeCreated = function (...args) {
             const result = previousCreated?.apply(this, args);
-            for (const item of this.widgets || []) if (item.name?.startsWith("provider_option:")) setVisible(item,false);
+            for (const item of this.widgets || []) {
+                if (!item.name?.startsWith("provider_option:")) continue;
+                setVisible(item, false);
+                item.options.serialize = false;
+            }
             claimDirectReferenceTopology(this);
             createGeometryCombos(this);
             this.__orvIsNewNode = true;

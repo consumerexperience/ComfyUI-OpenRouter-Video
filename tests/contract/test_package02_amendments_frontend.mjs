@@ -16,6 +16,19 @@ const get=(n,key)=>n.widgets.find(w=>w.name===`provider_option:heygen::${key}`);
 const saved=n=>JSON.parse(n.widgets.find(w=>w.name==='provider_options').value);
 function project(c,n,method='IR2V') {const p=avatar.method_profiles[method];n.__orvCapability={__methodProfile:p};n.widgets[0].hidden=p.controls.prompt.state!=='SUPPORTED';const issue=c.configureOperationControls(n,p);c.fitPresentationWidth(n);return issue;}
 
+test('Comfy execution serialization omits inline creative widgets in active and inactive profiles', () => {
+ const {c,n}=harness();
+ const name='provider_option:heygen::motion_prompt';
+ n.addWidget('customtext',name,'',null);
+ const executionWidgets=()=>Object.fromEntries(n.widgets.filter(w=>w.options?.serialize!==false).map(w=>[w.name,w.value]));
+ c.configureOperationControls(n,{controls:{}});
+ assert(!Object.hasOwn(executionWidgets(),name));
+ project(c,n);
+ get(n,'motion_prompt').callback('Turn gently');
+ assert(!Object.hasOwn(executionWidgets(),name));
+ assert.equal(JSON.parse(executionWidgets().provider_options).find(v=>v.key==='motion_prompt').value,'Turn gently');
+});
+
 for(const locale of ['en','ru'])test(`real Avatar semantic controls and actionable required Voice ID ${locale}`,()=>{
  const {c,n}=harness(locale);const issue=project(c,n);assert.match(issue,locale==='ru'?/ID голоса/:/Voice ID/);
  const motion=get(n,'motion_prompt');assert.equal(motion.type,'customtext');assert.equal(motion.label,'motion prompt');assert.equal(motion.options.multiline,true);assert.equal(motion.element.style.padding,'4px 6px');assert.equal(motion.computeSize()[1],n.widgets[0].computeSize()[1]);
