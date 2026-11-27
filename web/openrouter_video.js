@@ -1029,7 +1029,10 @@ function installBetaPresentation(node) {
                 border-radius:6px; padding:1px 7px; color:var(--input-text, #ddd); font:600 11px/16px ${nodeTypography().family};
                 cursor:pointer; font-variant-numeric:tabular-nums; }
             [data-orv-layout] .orv-estimate:focus-visible { outline:2px solid var(--input-text, #ddd); }
-            [data-orv-layout="generate"] { min-width:320px; }
+            [data-orv-layout="generate"] { --orv-node-min-width:320px; min-width:var(--orv-node-min-width); }
+            [data-orv-layout="generate"]:not([data-collapsed]) > [data-testid="node-inner-wrapper"] {
+                min-width:var(--orv-node-min-width);
+            }
             [data-orv-layout="generate"] [data-testid="node-widgets"] {
                 grid-template-columns:min-content var(--orv-label-width,128px) minmax(125px,1fr);
                 /* Vue owns its inline template. Keep ORV tracks independent of
@@ -1285,7 +1288,8 @@ function syncBetaPresentation(node) {
                 // Native useNodeResize reads the inline minimum before measuring
                 // candidate-width content. Bridge the existing stylesheet floor.
                 if (effectiveMinimum>0) root.style.minWidth=`${effectiveMinimum}px`;
-                origin={height:node.size[1],totalHeight:rect.height/scale,regionHeight,budget:textRegionGeometry(node).budget,id:event.pointerId,minWidth};
+                origin={height:node.size[1],totalHeight:rect.height/scale,regionHeight,budget:textRegionGeometry(node).budget,
+                    id:event.pointerId,minWidth,effectiveMinimum};
                 node.__orvUserResizeActive = true;
                 // Native startResize must measure the unchanged start rectangle.
                 // Switching the grid to flex here would move its drag origin.
@@ -1296,7 +1300,8 @@ function syncBetaPresentation(node) {
             const intent=origin;
             // useNodeResize writes on window bubble. Sample synchronously after
             // that native listener, before unrelated deferred notifications.
-            const width=parseFloat(root.style?.getPropertyValue?.("--node-width"));
+            const nativeWidth=parseFloat(root.style?.getPropertyValue?.("--node-width"));
+            const width=Math.max(nativeWidth,intent.effectiveMinimum || 0);
             const height=parseFloat(root.style?.getPropertyValue?.("--node-height"));
             queueMicrotask(()=>{
                 if (origin!==intent || root.__orvGeometryOwner!==node) return;

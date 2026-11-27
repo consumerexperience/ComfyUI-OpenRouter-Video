@@ -181,7 +181,21 @@ function resizeBoundaryAndActualPredecessor(root, path, current) {
  assert.equal(restored, before, 'Only the approved Nodes 2.0 boundary and ACTUAL header remediation can differ');
  return before;
 }
+function sharedResizeFloorPredecessor(root, path, current) {
+ if (path !== 'web/openrouter_video.js' ||
+     sha(current) !== 'b89133aa012369f0e2f5bde118409ba206714a42d39624c484e0f35684d633ae') return current;
+ const before = normalize(execFileSync('git', ['show', '2dee70f7e36d96393202d81d2e8093417950bc8b:' + path],
+     {cwd:root, encoding:'utf8'}));
+ assert.equal(sha(before), 'd0be4884a9e4620313f2abc5f0003ca99e8eeec4ad29a1485f7ec22a60d9bad5');
+ let restored = normalize(current);
+ for (const name of ['installBetaPresentation', 'syncBetaPresentation']) {
+  restored = restored.replace(body(restored, name), () => body(before, name));
+ }
+ assert.equal(restored, before, 'Only the approved shared Nodes 2.0 resize floor can differ');
+ return before;
+}
 export function package02AmendmentBaselineSource(root,path,current){
+ current=sharedResizeFloorPredecessor(root,path,current);
  current=resizeBoundaryAndActualPredecessor(root,path,current);
  current=integratedAciPredecessor(root,path,current);
  current=financialBadgeStandardPredecessor(root,path,current);

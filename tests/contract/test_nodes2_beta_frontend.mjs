@@ -196,7 +196,8 @@ test('Vue samples the same minimum as the frame and reverses without releasing c
   [280,810,320,780,130], [230,660,320,692,42],
   [150,490,320,692,42], [355,752,355,722,72],
  ]){
-  width=Math.max(parseFloat(element.style.minWidth),wantedW);
+  // The renderer can still publish a width below the outer CSS floor.
+  width=wantedW;
   height=Math.max(722,wantedH);
   handlers.pointermove({isTrusted:true,pointerId:1});micro.shift()();frames.shift()();
   assert.equal(n.__orvUserResizeActive,true);
@@ -205,6 +206,8 @@ test('Vue samples the same minimum as the frame and reverses without releasing c
  }
  handlers.lostpointercapture();
  assert.equal(element.style.minWidth,'');
+ assert.match(source,/\[data-orv-layout="generate"\] \{ --orv-node-min-width:320px; min-width:var\(--orv-node-min-width\)/);
+ assert.match(source,/\[data-orv-layout="generate"\]:not\(\[data-collapsed\]\) > \[data-testid="node-inner-wrapper"\]\s*\{\s*min-width:var\(--orv-node-min-width\)/);
 });
 
 test('Vue native window drag is observed after its write, not the root capture microtask',()=>{
