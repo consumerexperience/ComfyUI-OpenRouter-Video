@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import test from 'node:test';
+import { package02AmendmentBaselineSource } from './package02_amendment_delta.mjs';
 import { assertRuntimeRemediationScope, remediationBaseline, remediationFile,
     remediationHistoricalSource, integratedHistoricalSource, integratedAuthorizedBackendDelta,
     assertIntegratedCandidate } from './aci_r31_runtime_remediation.mjs';
@@ -42,7 +43,7 @@ test('final cumulative declaration permits only reviewed source plus two exact d
     }
     const golden=execFileSync('git',['show','4f49c9b:web/openrouter_video.js'],{cwd:root,encoding:'utf8'}).replace(/\r\n/g,'\n');
     const observer=t=>t.match(/^function installActualQueueObserver\([^\n]*\) \{[\s\S]*?^\}\n/m)[0];
-    assert.equal(observer(current),observer(golden));
+    assert.equal(observer(package02AmendmentBaselineSource(root,remediationFile,current)),observer(golden));
     assert.equal((current.match(/api\.queuePrompt/g)||[]).length,(golden.match(/api\.queuePrompt/g)||[]).length);
 });
 

@@ -4070,6 +4070,7 @@ function resetActualBinding(node) {
     }
     node.__orvActualState = emptyActualState();
     delete node.__orvActualHeader;
+    delete node.__orvActualLatestDispatch;
     node.__orvActualBindingUnavailable = false;
     node.__orvActualInstanceEpoch = (node.__orvActualInstanceEpoch || 0) + 1;
 }
@@ -4129,9 +4130,15 @@ function captureActualQueueTicket(detail) {
     pruneActualBindings();
 }
 
-function actualIntentKey(node) {
+function actualIntentKey(node, submitted) {
     const fields = ["model", "inference_method", "resolution", "aspect_ratio", "size", "duration",
         "seed", "generate_audio", "geometry_authority", "upscale_factor", "creativity", "job_id"];
+    if (submitted) for (const name of [...fields, "prompt", "first_frame_url", "last_frame_url",
+        "previous_job_id", "provider_options"]) {
+        const item = widget(node, name);
+        if (item && inputByName(node, name)?.link == null && Object.hasOwn(submitted, name) &&
+            !Object.is(item.value, submitted[name])) return null;
+    }
     const links = (node.inputs || []).filter(input => input.link != null).map(input => [input.name, input.link]);
     return JSON.stringify([node.__orvActualEditRevision || 0, fields.map(name =>
         inputByName(node, name)?.link != null ? null : widget(node, name)?.value), links]);
@@ -4149,18 +4156,20 @@ function actualOwnersForQueuedPrompt(prompt) {
     const ticket = candidates[0];
     ticket.remaining -= 1;
     const seq = ++actualDispatchSequence, expires = costClock() + ACTUAL_BINDING_TTL_MS;
-    return ticket.owners.filter(owner => {
+    return ticket.owners.flatMap(owner => {
         const queued = output[owner.node];
         const prepared = actualPreparedNodes.get(owner.instance);
         actualPreparedNodes.delete(owner.instance);
         if (queued?.class_type !== owner.type || owner.instance.graph !== owner.graph ||
             owner.graph.getNodeById?.(owner.instance.id) !== owner.instance ||
             owner.instance.__orvActualInstanceEpoch !== owner.instance_epoch ||
-            prepared?.graph !== owner.graph || prepared.instance_epoch !== owner.instance_epoch) return false;
-        if (owner.kind === "GENERATE" && queued.inputs?.model !== owner.model) return false;
-        if (owner.kind === "RESUME" && !owner.linked_resume && queued.inputs?.job_id !== owner.expected_job) return false;
-        return true;
-    }).map(owner => Object.freeze({ ...owner, seq, expires, intent: actualIntentKey(owner.instance) }));
+            prepared?.graph !== owner.graph || prepared.instance_epoch !== owner.instance_epoch) return [];
+        if (owner.kind === "GENERATE" && queued.inputs?.model !== owner.model) return [];
+        if (owner.kind === "RESUME" && !owner.linked_resume && queued.inputs?.job_id !== owner.expected_job) return [];
+        const submittedIntent = actualIntentKey(owner.instance, queued.inputs);
+        const intent = submittedIntent === prepared.intent ? submittedIntent : null;
+        return [Object.freeze({ ...owner, seq, expires, intent })];
+    });
 }
 
 function installActualQueueObserver() {
@@ -4189,6 +4198,18 @@ function installActualQueueObserver() {
                     const bound = owners.map(owner => Object.freeze({ ...owner, prompt }));
                     if (actualDispatches.size >= 256) actualDispatches.delete(actualDispatches.keys().next().value);
                     actualDispatches.set(prompt, Object.freeze(bound));
+                    for (const owner of bound) {
+                        const node = owner.instance;
+                        if (node.graph !== owner.graph || currentActualEpoch(owner.graph) !== owner.epoch ||
+                            node.__orvActualInstanceEpoch !== owner.instance_epoch ||
+                            owner.graph.getNodeById?.(node.id) !== node ||
+                            owner.seq <= (node.__orvActualLatestDispatch ?? -1)) continue;
+                        node.__orvActualLatestDispatch = owner.seq;
+                        if (node.__orvActualHeader) {
+                            delete node.__orvActualHeader;
+                            refreshCostDetails(node);
+                        }
+                    }
                     const pending = actualEarlyEvents.get(prompt);
                     actualEarlyEvents.delete(prompt);
                     if (pending?.expires > costClock()) for (const detail of pending.events) handleActualExecuted(detail);
@@ -4341,7 +4362,7 @@ function handleActualExecuted(detail) {
         const node = owner.instance;
         if (owner.node !== nodeId || node.graph !== owner.graph || currentActualEpoch(owner.graph) !== owner.epoch ||
             owner.graph.getNodeById?.(node.id) !== node || node.__orvActualInstanceEpoch !== owner.instance_epoch ||
-            !costPresentationNodes.has(node)) continue;
+            !costPresentationNodes.has(node) || owner.seq !== node.__orvActualLatestDispatch) continue;
         if (!Array.isArray(rows) || rows.length !== 1) { suppressActualCompletion(node, owner); continue; }
         const row = rows[0];
         if (!row || typeof row !== "object" || Array.isArray(row) || row.schema_version !== 1 || row.state !== "DONE" ||
@@ -4418,7 +4439,8 @@ function installCostLifecycle(node) {
             const beforeQueued = queueWidget.beforeQueued;
             queueWidget.beforeQueued = function (...args) {
                 const result = beforeQueued?.apply(this, args);
-                actualPreparedNodes.set(node, Object.freeze({ graph: node.graph, instance_epoch: node.__orvActualInstanceEpoch }));
+                actualPreparedNodes.set(node, Object.freeze({ graph: node.graph,
+                    instance_epoch: node.__orvActualInstanceEpoch, intent: actualIntentKey(node) }));
                 return result;
             };
         }

@@ -194,7 +194,22 @@ function sharedResizeFloorPredecessor(root, path, current) {
  assert.equal(restored, before, 'Only the approved shared Nodes 2.0 resize floor can differ');
  return before;
 }
+function actualSubmittedContextPredecessor(root, path, current) {
+ if (path !== 'web/openrouter_video.js' ||
+     sha(current) !== '7c9876a0b6442077f892477bb8e8562c282c5a8784955d74cf92bb4a91f7c3de') return current;
+ const before = normalize(execFileSync('git', ['show', 'b67abf3470ddd7d4e15dbf83027de81e72679a66:' + path],
+     {cwd:root, encoding:'utf8'}));
+ assert.equal(sha(before), 'b89133aa012369f0e2f5bde118409ba206714a42d39624c484e0f35684d633ae');
+ let restored = normalize(current);
+ for (const name of ['resetActualBinding', 'actualIntentKey', 'actualOwnersForQueuedPrompt',
+     'installActualQueueObserver', 'handleActualExecuted', 'installCostLifecycle']) {
+  restored = restored.replace(body(restored, name), () => body(before, name));
+ }
+ assert.equal(restored, before, 'Only the authorized ACTUAL submitted-context ownership checks can differ');
+ return before;
+}
 export function package02AmendmentBaselineSource(root,path,current){
+ current=actualSubmittedContextPredecessor(root,path,current);
  current=sharedResizeFloorPredecessor(root,path,current);
  current=resizeBoundaryAndActualPredecessor(root,path,current);
  current=integratedAciPredecessor(root,path,current);

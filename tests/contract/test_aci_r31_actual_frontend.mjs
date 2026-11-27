@@ -52,6 +52,7 @@ function harness() {
         const args = [0, payload, { previewMethod: "none" }];
         // Pinned native queue loop runs public widget hooks before graphToPrompt.
         for (const node of ownerGraph._nodes) for (const item of node.widgets || []) item.beforeQueued?.({ isPartialExecution: false });
+        options.beforeDispatch?.(payload);
         const promise = c.api.queuePrompt(...args);
         return { call: calls.at(-1), promise, payload, args };
     }
@@ -294,6 +295,34 @@ test("a completion for a superseded intent updates its tooltip without taking th
     assert.equal(h.c.costBadgeLabel(h.n), "≈ $1.00 EST.");
     assert.equal(h.n.__orvActualState.receipt.amount, "2.28");
     assert.equal(h.c.costBadgeColors(h.n, "$2.28 ACTUAL").accent, "#0ACF83");
+});
+
+test("a serialized context mismatch preserves the owned receipt without claiming current ACTUAL", async () => {
+    const h = harness();
+    h.n.widgets.push({name:"resolution",value:"720p"});
+    await bound(h, "prompt-1", {beforeDispatch: payload => {
+        payload.output[42].inputs.resolution = "480p";
+    }});
+    h.c.handleActualExecuted(h.completion());
+    assert.equal(h.c.costBadgeLabel(h.n), "≈ $1.00 EST.");
+    assert.equal(h.n.__orvActualState.receipt.amount, "2.28");
+});
+
+test("cosmetic changes preserve the owned header; a newer acknowledgement excludes a delayed completion", async () => {
+    const h = harness(); await bound(h); h.c.handleActualExecuted(h.completion());
+    h.n.size = [640, 420];
+    h.n.flags = {collapsed:true};
+    h.n.title = "Cosmetic title";
+    assert.equal(h.c.costBadgeLabel(h.n), "$2.28 ACTUAL");
+    await bound(h, "prompt-2");
+    await bound(h, "prompt-3");
+    assert.equal(h.c.costBadgeLabel(h.n), "≈ $1.00 EST.");
+    h.c.handleActualExecuted(h.completion("prompt-2", {job_id:"old-job",amount_usd:"3"}));
+    assert.equal(h.c.costBadgeLabel(h.n), "≈ $1.00 EST.");
+    assert.equal(h.n.__orvActualState.receipt.job, "job-1");
+    h.c.handleActualExecuted(h.completion("prompt-3", {job_id:"new-job",amount_usd:null}));
+    assert.equal(h.c.costBadgeLabel(h.n), "≈ $1.00 EST.");
+    assert.equal(h.n.__orvActualState.status, "MISSING");
 });
 
 test("RATE_ONLY uses exact decimal scaling and never displays positive token rate as free", () => {
