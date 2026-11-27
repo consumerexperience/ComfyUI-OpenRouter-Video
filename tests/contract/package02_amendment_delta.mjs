@@ -144,7 +144,29 @@ function financialBadgeStandardPredecessor(root, path, current) {
  assert.equal(restored, before, 'Only approved financial badge presentation can differ');
  return before;
 }
+function integratedAciPredecessor(root, path, current) {
+ if (path !== 'web/openrouter_video.js' ||
+     sha(current) !== '38fc6fb5e95f9b9e7e0c8bbe07bbd259bf5668453f2b41ad4377fed80da5f128') return current;
+ const before = normalize(execFileSync('git', ['show', '70dd97c691081a247c906ecd63d1defe80bf5773:' + path],
+     {cwd:root, encoding:'utf8'}));
+ assert.equal(sha(before), '29fcd0386820b9a492f74659be0741f9f9cbf21e20ed8a8837405de4f26994f8');
+ let restored = normalize(current);
+ const pricing = '        // A connected creative input overrides the stored value at execution.\n' +
+     '        // Its text (and length) are unavailable to the pricing preview.\n' +
+     '        const creative = ["negative_prompt", "creative_prompt"].includes(spec?.text_semantic);\n' +
+     '        const socketName = `provider_option:${option.provider}:${spec?.container || ""}:${option.key}`;\n' +
+     '        if (creative && inputByName(node, socketName)?.link != null) continue;\n';
+ const connection = '            const creativeInputChanged = args[4]?.name?.startsWith("provider_option:");\n' +
+     '            if (hasMedia || creativeInputChanged) {';
+ for (const [added, prior] of [[pricing,''], [connection,'            if (hasMedia) {']]) {
+  assert.equal(restored.split(added).length, 2);
+  restored = restored.replace(added, () => prior);
+ }
+ assert.equal(restored, before, 'Only the approved linked creative pricing correction can differ');
+ return before;
+}
 export function package02AmendmentBaselineSource(root,path,current){
+ current=integratedAciPredecessor(root,path,current);
  current=financialBadgeStandardPredecessor(root,path,current);
  current=providerIsolationPredecessor(root,path,current);
  current=tooltipRefinementPredecessor(root,path,current);

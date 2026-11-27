@@ -4868,6 +4868,11 @@ function projectProviderCostControls(node, options) {
             return { state: "UNKNOWN" };
         const spec = providers[option.provider]?.[option.key];
         const identity = `${option.provider}/${option.key}`;
+        // A connected creative input overrides the stored value at execution.
+        // Its text (and length) are unavailable to the pricing preview.
+        const creative = ["negative_prompt", "creative_prompt"].includes(spec?.text_semantic);
+        const socketName = `provider_option:${option.provider}:${spec?.container || ""}:${option.key}`;
+        if (creative && inputByName(node, socketName)?.link != null) continue;
         if (!spec || seen.has(identity) || ["format", "fields", "items", "values", "omits_controls", "container"].some(key => key in spec))
             return { state: "UNKNOWN" };
         seen.add(identity);
@@ -5291,7 +5296,8 @@ app.registerExtension({
             this.__orvEstimateRevision = (this.__orvEstimateRevision || 0) + 1;
             if (this.__orvEstimate) setCostPresentation(this, { state: "CALCULATING" });
             const hasMedia = this.inputs?.some(isMediaInput);
-            if (hasMedia) {
+            const creativeInputChanged = args[4]?.name?.startsWith("provider_option:");
+            if (hasMedia || creativeInputChanged) {
                 scheduleTopologyRefresh(this, () => {
                     if (this.__orvCapability && projectionMatchesSelection(this) && !this.__orvPendingMediaSelection) {
                         configureReferenceTopology(
