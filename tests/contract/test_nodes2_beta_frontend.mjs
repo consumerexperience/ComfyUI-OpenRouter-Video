@@ -170,12 +170,42 @@ test('Package02 live Vue resize coalesces trusted samples and updates native bou
  c.installResponsiveHeight(n);c.syncBetaPresentation(n);const before=n.__orvMasterPromptHeight;
  handlers.pointerdown({isTrusted:true,button:0,clientX:0,clientY:0,pointerId:1,target:{closest:()=>({dataset:{corner:'SE'}})}});
  for(const pair of [[500,900],[610,970],[450,910]]){[width,height]=pair;handlers.gotpointercapture({isTrusted:true,pointerId:1});handlers.pointermove({isTrusted:true,pointerId:1});micro.shift()();}
- assert.equal(frames.length,1);assert.equal(writes,0);frames.shift()();assert.equal(writes,1);assert.deepEqual(Array.from(n.size),[450,910]);assert.equal(n.__orvPreferredWidth,450);assert.equal(n.__orvMasterPromptHeight,before+80);
+ assert.equal(frames.length,1);assert.equal(writes,0);frames.shift()();assert.equal(writes,1);assert.deepEqual(Array.from(n.size),[450,880]);assert.equal(n.__orvPreferredWidth,450);assert.equal(n.__orvMasterPromptHeight,before+80);
  assert.equal(root.style.getPropertyValue('--orv-label-width'),'144.66666666666666px');
  n.size=[999,1999];n.onResize(n.size);assert.equal(n.__orvPreferredWidth,450);assert.equal(n.__orvMasterPromptHeight,before+80);
  handlers.lostpointercapture();assert.equal(n.__orvUserResizeActive,false);assert.equal(n.size[0],450);assert.equal(n.__orvLiveSize,undefined);assert.equal(root.style.getPropertyValue('--orv-prompt-height'),`${before+80}px`);
 });
 
+
+test('Vue samples the same minimum as the frame and reverses without releasing capture',()=>{
+ const {c,n,element}=domFixture(), handlers={}, frames=[], micro=[];
+ let width=400,height=830;
+ element.style=geometryStyle({getPropertyValue:key=>key==='--node-width'?`${width}px`:key==='--node-height'?`${height}px`:''});
+ element.getBoundingClientRect=()=>({width:400,height:830});
+ element.addEventListener=(key,fn)=>handlers[key]=fn;
+ c.requestAnimationFrame=fn=>{frames.push(fn);return frames.length;};
+ c.queueMicrotask=fn=>micro.push(fn);
+ n.size=[400,800];n.__orvMasterPromptHeight=150;n.computeSize=()=>[320,400];
+ n.setSize=size=>{n.size=size;n.onResize?.(size);};
+ c.installResponsiveHeight(n);c.syncBetaPresentation(n);
+ c.getComputedStyle=el=>el===element ? {minWidth:'320px'} : {};
+ handlers.pointerdown({isTrusted:true,button:0,clientX:0,clientY:0,pointerId:1,target:{closest:()=>({dataset:{corner:'SE'}})}});
+ assert.equal(element.style.minWidth,'320px');
+ handlers.gotpointercapture({isTrusted:true,pointerId:1});
+ for(const [wantedW,wantedH,expectedW,expectedBody,prompt] of [
+  [280,810,320,780,130], [230,660,320,692,42],
+  [150,490,320,692,42], [355,752,355,722,72],
+ ]){
+  width=Math.max(parseFloat(element.style.minWidth),wantedW);
+  height=Math.max(722,wantedH);
+  handlers.pointermove({isTrusted:true,pointerId:1});micro.shift()();frames.shift()();
+  assert.equal(n.__orvUserResizeActive,true);
+  assert.deepEqual(Array.from(n.size),[expectedW,expectedBody]);
+  assert.equal(n.__orvMasterPromptHeight,prompt);
+ }
+ handlers.lostpointercapture();
+ assert.equal(element.style.minWidth,'');
+});
 
 test('Vue native window drag is observed after its write, not the root capture microtask',()=>{
  const {c,n}=domFixture(),root=c.document.querySelectorAll()[0],handlers={},windowHandlers={},micro=[],frames=[];

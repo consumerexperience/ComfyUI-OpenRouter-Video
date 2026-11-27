@@ -1280,7 +1280,12 @@ function syncBetaPresentation(node) {
                 if (!["SE","SW","NE","NW"].includes(corner) || !Number.isFinite(event.clientX) || !Number.isFinite(event.clientY) || !(scale>0)) return;
                 const fields=[...(root.querySelectorAll?.("[data-orv-creative-layout]") || [])];
                 const regionHeight=fields.length ? fields.reduce((sum,row)=>sum+row.getBoundingClientRect().height/scale,0)+Math.max(0,fields.length-1)*COMPACT_LAYOUT.gap : textRegionGeometry(node,node.__orvNativeTextMinimum).budget;
-                origin={height:node.size[1],totalHeight:rect.height/scale,regionHeight,budget:textRegionGeometry(node).budget,id:event.pointerId};
+                const minWidth=root.style.minWidth;
+                const effectiveMinimum=typeof getComputedStyle==="function" ? parseFloat(getComputedStyle(root).minWidth) : NaN;
+                // Native useNodeResize reads the inline minimum before measuring
+                // candidate-width content. Bridge the existing stylesheet floor.
+                if (effectiveMinimum>0) root.style.minWidth=`${effectiveMinimum}px`;
+                origin={height:node.size[1],totalHeight:rect.height/scale,regionHeight,budget:textRegionGeometry(node).budget,id:event.pointerId,minWidth};
                 node.__orvUserResizeActive = true;
                 // Native startResize must measure the unchanged start rectangle.
                 // Switching the grid to flex here would move its drag origin.
@@ -1300,13 +1305,18 @@ function syncBetaPresentation(node) {
                 // onResize notifications and mutable node.size are not evidence.
                 if (Number.isFinite(width) && Number.isFinite(height)) {
                     const delta=height-intent.totalHeight;
-                    node.__orvCommitResizeIntent?.(width,intent.height+delta,Math.abs(delta)<0.01 ? intent.budget : intent.regionHeight+delta);
-                    node.__orvLiveSize=[width,height];
-                    node.__orvLivePromptHeight=masterHeightFromRegion(node,Math.max(0,intent.regionHeight+delta));
+                    // Native CSS height includes the title. Graph size and socket
+                    // placement use the body height from the same native sample.
+                    const bodyHeight=intent.height+delta;
+                    const region=textRegionGeometry(node,node.__orvNativeTextMinimum);
+                    const budget=Math.max(region.min,Math.abs(delta)<0.01 ? intent.budget : intent.regionHeight+delta);
+                    node.__orvCommitResizeIntent?.(width,bodyHeight,budget);
+                    node.__orvLiveSize=[width,bodyHeight];
+                    node.__orvLivePromptHeight=masterHeightFromRegion(node,budget);
                     const apply=()=>{
                         if(origin!==intent || root.__orvGeometryOwner!==node)return;
                         node.__orvAutomaticLayout=true;node.__orvApplyingLiveResize=true;
-                        try { if(node.size?.[0]!==Math.fround(width) || node.size?.[1]!==Math.fround(height)) node.setSize?.([Math.fround(width),Math.fround(height)]); }
+                        try { if(node.size?.[0]!==Math.fround(width) || node.size?.[1]!==Math.fround(bodyHeight)) node.setSize?.([Math.fround(width),Math.fround(bodyHeight)]); }
                         finally { node.__orvAutomaticLayout=false;node.__orvApplyingLiveResize=false; }
                         syncBetaPresentation(node);node.setDirtyCanvas?.(true,true);
                     };
@@ -1331,6 +1341,7 @@ function syncBetaPresentation(node) {
             node.__orvPendingLiveLayout?.();
             if(node.__orvLiveFrame!=null && typeof cancelAnimationFrame==="function")cancelAnimationFrame(node.__orvLiveFrame);
             node.__orvLiveFrame=null;node.__orvPendingLiveLayout=null;
+            if (origin) root.style.minWidth=origin.minWidth || "";
             origin=null;node.__orvUserResizeActive=false;
             root.removeAttribute?.("data-orv-resizing");
             delete node.__orvLiveSize;delete node.__orvLivePromptHeight;
@@ -1343,6 +1354,7 @@ function syncBetaPresentation(node) {
         root.__orvGeometryCleanup = () => {
             node.__orvUserResizeActive = false;
             moveTarget?.removeEventListener?.("pointermove",move);moveTarget=null;
+            if (origin) root.style.minWidth=origin.minWidth || "";
             origin=null;
             if(typeof cancelAnimationFrame==="function")cancelAnimationFrame(node.__orvLiveFrame);
             node.__orvPendingLiveLayout=null;node.__orvLiveFrame=null;
@@ -2681,7 +2693,11 @@ function configureOperationControls(node, profile) {
                 const omit=value===defaultLabel || value==="" || value==null;
                 const actual=boolean && !omit ? value===true || value===on || value==="true" : value;
                 const remaining=updateProviderIntent(node,root,{provider,key,container:spec.container,path},values,actual,omit);
-                storage.value = JSON.stringify(remaining);
+                const serialized = JSON.stringify(remaining);
+                if (storage.value !== serialized && inputByName(node, name)?.link == null) {
+                    node.__orvActualEditRevision = (node.__orvActualEditRevision || 0) + 1;
+                }
+                storage.value = serialized;
                 const issue = configureOperationControls(node, node.__orvProviderProfile);
                 if (node.__orvCapabilityStatus) node.__orvCapabilityStatus.value = issue || "";
                 setVisible(node.__orvCapabilityStatus, Boolean(issue));
@@ -4048,6 +4064,7 @@ function resetActualBinding(node) {
         if (ticket.owners.some(owner => owner.instance === node)) actualQueueTickets.delete(id);
     }
     node.__orvActualState = emptyActualState();
+    delete node.__orvActualHeader;
     node.__orvActualBindingUnavailable = false;
     node.__orvActualInstanceEpoch = (node.__orvActualInstanceEpoch || 0) + 1;
 }
@@ -4107,6 +4124,14 @@ function captureActualQueueTicket(detail) {
     pruneActualBindings();
 }
 
+function actualIntentKey(node) {
+    const fields = ["model", "inference_method", "resolution", "aspect_ratio", "size", "duration",
+        "seed", "generate_audio", "geometry_authority", "upscale_factor", "creativity", "job_id"];
+    const links = (node.inputs || []).filter(input => input.link != null).map(input => [input.name, input.link]);
+    return JSON.stringify([node.__orvActualEditRevision || 0, fields.map(name =>
+        inputByName(node, name)?.link != null ? null : widget(node, name)?.value), links]);
+}
+
 function actualOwnersForQueuedPrompt(prompt) {
     pruneActualBindings();
     // Inspect only bounded ownership fields; never copy or retain native payloads.
@@ -4130,7 +4155,7 @@ function actualOwnersForQueuedPrompt(prompt) {
         if (owner.kind === "GENERATE" && queued.inputs?.model !== owner.model) return false;
         if (owner.kind === "RESUME" && !owner.linked_resume && queued.inputs?.job_id !== owner.expected_job) return false;
         return true;
-    }).map(owner => Object.freeze({ ...owner, seq, expires }));
+    }).map(owner => Object.freeze({ ...owner, seq, expires, intent: actualIntentKey(owner.instance) }));
 }
 
 function installActualQueueObserver() {
@@ -4184,8 +4209,12 @@ function actualCostText(node, detail = false) {
 
 function costBadgeLabel(node, width = 0) {
     expireCostPresentation(node);
+    const actual = node.__orvActualHeader;
+    if (actual && actual.receipt === node.__orvActualState?.receipt) {
+        if (actual.intent === actualIntentKey(node)) return actualCostText(node) || node.__orvEstimate?.value || costText("unknownBadge");
+        delete node.__orvActualHeader;
+    }
     const primary = String(node.__orvEstimate?.value || costText("unknownBadge"));
-    // The prior job belongs in its own section, never in the next-price badge.
     const suffix = primary.match(/ (EST\.|MODEL|RATE|REF\.)$/)?.[1], budget = Math.floor(width / 7);
     if (width > 0 && suffix && primary.length > budget) {
         if (budget <= suffix.length + 3) return suffix;
@@ -4330,7 +4359,15 @@ function handleActualExecuted(detail) {
         if (owner.kind === "RESUME" && (!actualText(dispatch.expected_job) || event.job !== dispatch.expected_job)) {
             suppressActualCompletion(node, owner); continue;
         }
-        node.__orvActualState = reduceActualCompletion(node.__orvActualState || emptyActualState(), event, dispatch);
+        const previous = node.__orvActualState || emptyActualState();
+        const next = reduceActualCompletion(previous, event, dispatch);
+        node.__orvActualState = next;
+        if (next !== previous) {
+            delete node.__orvActualHeader;
+            if (next.status === "KNOWN" && dispatch.intent === actualIntentKey(node)) {
+                node.__orvActualHeader = {receipt:next.receipt,intent:dispatch.intent};
+            }
+        }
         refreshCostDetails(node);
     }
 }
@@ -4654,7 +4691,7 @@ function syncClassicCostBadge(node, ctx, rect) {
         width: `${Math.abs(transform.a * rect.width * sx)}px`, height: `${Math.abs(transform.d * rect.height * sy)}px` });
     badge.hidden = false;
     node.__orvClassicCostWidth = rect.width;
-    const colors = costBadgeColors(node, String(node.__orvEstimate?.value || costText("unknownBadge")));
+    const colors = costBadgeColors(node, costBadgeLabel(node));
     badge.style.color = colors.accent;
     badge.style.backgroundColor = colors.background || "transparent";
     badge.setAttribute("aria-label", costDetailsText(node));
@@ -4975,6 +5012,10 @@ function bindEstimateRefresh(node) {
         const previous = item.callback;
         item.callback = function (...args) {
             previous?.apply(this, args);
+            if (["prompt", "first_frame_url", "last_frame_url", "previous_job_id", "provider_options"].includes(item.name)
+                && inputByName(node, item.name)?.link == null) {
+                node.__orvActualEditRevision = (node.__orvActualEditRevision || 0) + 1;
+            }
             if (["model", "inference_method", "resolution", "aspect_ratio", "size", "duration", "generate_audio", "upscale_factor", "creativity", "provider_options"].includes(item.name)) {
                 invalidateCostPresentation(node);
             }

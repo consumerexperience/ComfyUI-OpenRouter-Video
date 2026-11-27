@@ -247,8 +247,10 @@ test("draw/details and visibility/focus check monotonic freshness even if timers
 
 test("compact display retains primary semantic suffix and distinct LAST ACTUAL details", async () => {
     const h = harness(); await bound(h); h.c.handleActualExecuted(h.completion());
+    assert.equal(h.c.costBadgeLabel(h.n, 140), "$2.28 ACTUAL");
+    assert.equal(h.c.costBadgeLabel(h.n, 1000), "$2.28 ACTUAL");
+    h.n.widgets.push({name:"resolution",value:"720p"});
     assert.equal(h.c.costBadgeLabel(h.n, 140), "≈ $1.00 EST.");
-    assert.equal(h.c.costBadgeLabel(h.n, 1000), "≈ $1.00 EST.");
     h.n.__orvEstimate = { value: "≈ $1.50 MODEL", result: { state: "PARTIAL" } };
     assert.equal(h.c.costBadgeLabel(h.n, 140), "≈ $1.50 MODEL");
     assert.match(h.c.costDetailsText(h.n), /Last completed job/);
@@ -259,6 +261,7 @@ test("compact display retains primary semantic suffix and distinct LAST ACTUAL d
 
 test("R2 keeps next MODEL in the badge and prior owned ACTUAL in a separate Green section", async () => {
     const h = harness(); await bound(h); h.c.handleActualExecuted(h.completion());
+    h.n.widgets.push({name:"resolution",value:"720p"});
     h.n.__orvEstimate = { value: "≈ $1.50 MODEL", result: { state: "PARTIAL" } };
     const label = h.c.costBadgeLabel(h.n, 1000), drawn = [];
     const ctx = { fillStyle: "#FFBB00", measureText: text => ({ width: text.length * 7 }),
@@ -282,6 +285,15 @@ test("R2 keeps next MODEL in the badge and prior owned ACTUAL in a separate Gree
     h.c.renderCostDetails(h.n, detail);
     assert(!all(detail).some(child=>child.className==="orv-cost-actual"));
     assert(!detail.textContent.includes("2.28"));
+});
+
+test("a completion for a superseded intent updates its tooltip without taking the header", async () => {
+    const h = harness(); await bound(h);
+    h.n.widgets.push({name:"resolution",value:"720p"});
+    h.c.handleActualExecuted(h.completion());
+    assert.equal(h.c.costBadgeLabel(h.n), "≈ $1.00 EST.");
+    assert.equal(h.n.__orvActualState.receipt.amount, "2.28");
+    assert.equal(h.c.costBadgeColors(h.n, "$2.28 ACTUAL").accent, "#0ACF83");
 });
 
 test("RATE_ONLY uses exact decimal scaling and never displays positive token rate as free", () => {

@@ -165,7 +165,24 @@ function integratedAciPredecessor(root, path, current) {
  assert.equal(restored, before, 'Only the approved linked creative pricing correction can differ');
  return before;
 }
+function resizeBoundaryAndActualPredecessor(root, path, current) {
+ if (path !== 'web/openrouter_video.js' ||
+     sha(current) !== 'd0be4884a9e4620313f2abc5f0003ca99e8eeec4ad29a1485f7ec22a60d9bad5') return current;
+ const before = normalize(execFileSync('git', ['show', '025e3cda3e50f6ca035ef628b93fd32e50e55937:' + path],
+     {cwd:root, encoding:'utf8'}));
+ assert.equal(sha(before), '38fc6fb5e95f9b9e7e0c8bbe07bbd259bf5668453f2b41ad4377fed80da5f128');
+ let restored = normalize(current);
+ const intent = body(restored, 'actualIntentKey');
+ restored = restored.replace(intent + '\n', '');
+ for (const name of ['syncBetaPresentation', 'configureOperationControls', 'resetActualBinding', 'actualOwnersForQueuedPrompt',
+     'costBadgeLabel', 'handleActualExecuted', 'syncClassicCostBadge', 'bindEstimateRefresh']) {
+  restored = restored.replace(body(restored, name), () => body(before, name));
+ }
+ assert.equal(restored, before, 'Only the approved Nodes 2.0 boundary and ACTUAL header remediation can differ');
+ return before;
+}
 export function package02AmendmentBaselineSource(root,path,current){
+ current=resizeBoundaryAndActualPredecessor(root,path,current);
  current=integratedAciPredecessor(root,path,current);
  current=financialBadgeStandardPredecessor(root,path,current);
  current=providerIsolationPredecessor(root,path,current);
