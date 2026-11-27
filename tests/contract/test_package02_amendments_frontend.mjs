@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {providerIsolationPredecessor} from './package02_amendment_delta.mjs';
 import {readFileSync} from 'node:fs';import vm from 'node:vm';import test from 'node:test';
 const source=readFileSync(new URL('../../web/openrouter_video.js',import.meta.url),'utf8').replace(/^import .*;\r?\n/gm,'');
 const models=JSON.parse(readFileSync(new URL('../fixtures/package02-provider-projection.json',import.meta.url),'utf8')).models;
@@ -27,6 +29,17 @@ test('Comfy execution serialization omits inline creative widgets in active and 
  get(n,'motion_prompt').callback('Turn gently');
  assert(!Object.hasOwn(executionWidgets(),name));
  assert.equal(JSON.parse(executionWidgets().provider_options).find(v=>v.key==='motion_prompt').value,'Turn gently');
+});
+
+test('historical provider isolation replay requires the complete exact frontend and preserves negative guards', () => {
+ const root=new URL('../../',import.meta.url),file='web/openrouter_video.js';
+ const current=readFileSync(new URL(file,root),'utf8');
+ const historical=providerIsolationPredecessor(root,file,current);
+ assert.equal(createHash('sha256').update(historical).digest('hex'),'7e8fd8899f359e8b06fadcfb8c229abd18d20b1998c3b70ee73f81fc03b81654');
+ for(const tampered of [current+'\n// unexpected delta\n',current.replace('serialize:false','serialize:true')]) {
+  assert.notEqual(tampered,current);
+  assert.equal(providerIsolationPredecessor(root,file,tampered),tampered);
+ }
 });
 
 for(const locale of ['en','ru'])test(`real Avatar semantic controls and actionable required Voice ID ${locale}`,()=>{

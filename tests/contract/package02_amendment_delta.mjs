@@ -97,7 +97,42 @@ function tooltipRefinementPredecessor(root,path,current) {
  assert.equal(restored,before,'Only tooltip copy, diagnostics and existing tooltip layout may differ');
  return before;
 }
+export function providerIsolationPredecessor(root, path, current) {
+ if (path !== 'web/openrouter_video.js') return current;
+ if (sha(current) !== 'd9a996deaa11a423ba03d5a63f652908b18c834facab7febdd3f97d0c05d548b') return current;
+ const parent = '551781a9079afc092d33fe8859c4e611a519c120';
+ const before = normalize(execFileSync('git', ['show', parent + ':' + path], {cwd:root, encoding:'utf8'}));
+ assert.equal(sha(before), '7e8fd8899f359e8b06fadcfb8c229abd18d20b1998c3b70ee73f81fc03b81654');
+ const replacements = [
+  [
+   '            setVisible(item, false);\n            if (item.name?.startsWith("provider_option:")) item.options.serialize = false;\n',
+   '            setVisible(item, false);\n',
+  ],
+  [
+   '        // Inline provider values travel through provider_options. Comfy\n' +
+   '        // serializes connected STRING sockets separately from their widgets.\n' +
+   '        Object.assign(item.options ||= {}, {min:spec.min, max:spec.max, serialize:false});\n',
+   '        Object.assign(item.options ||= {}, {min:spec.min, max:spec.max});\n',
+  ],
+  [
+   '            for (const item of this.widgets || []) {\n' +
+   '                if (!item.name?.startsWith("provider_option:")) continue;\n' +
+   '                setVisible(item, false);\n' +
+   '                item.options.serialize = false;\n' +
+   '            }\n',
+   '            for (const item of this.widgets || []) if (item.name?.startsWith("provider_option:")) setVisible(item,false);\n',
+  ],
+ ];
+ let restored = normalize(current);
+ for (const [after, prior] of replacements) {
+  assert.equal(restored.split(after).length, 2);
+  restored = restored.replace(after, () => prior);
+ }
+ assert.equal(restored, before, 'Only provider widget serialization may differ from the prior TEST frontend');
+ return before;
+}
 export function package02AmendmentBaselineSource(root,path,current){
+ current=providerIsolationPredecessor(root,path,current);
  current=tooltipRefinementPredecessor(root,path,current);
  current=parkedCopyPredecessor(root,path,current);
  current=finalAciPredecessor(root,path,current);
