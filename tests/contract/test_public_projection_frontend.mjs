@@ -697,10 +697,10 @@ test('provider option estimate guard invalidates a prior in-flight numeric estim
         const pending=c.refreshEstimate(n);
         widget(n,'provider_options').value=JSON.stringify([{provider:'google-vertex',container:'parameters',key:'enhancePrompt',value:false}]);
         await c.refreshEstimate(n);
-        assert.equal(n.__orvEstimate.value,'REF —');
+        assert.equal(n.__orvEstimate.value,'COST');
         resolve({ok:true,async json(){return {availability:'AVAILABLE',estimated_cost_usd:'1'};}});
         await pending;
-        assert.equal(n.__orvEstimate.value,'REF —');
+        assert.equal(n.__orvEstimate.value,'COST');
     }finally{c.api.fetchApi=previous;}
 });
 

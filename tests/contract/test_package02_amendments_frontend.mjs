@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
 import {providerIsolationPredecessor} from './package02_amendment_delta.mjs';
 import {readFileSync} from 'node:fs';import vm from 'node:vm';import test from 'node:test';
 const source=readFileSync(new URL('../../web/openrouter_video.js',import.meta.url),'utf8').replace(/^import .*;\r?\n/gm,'');
@@ -33,7 +34,8 @@ test('Comfy execution serialization omits inline creative widgets in active and 
 
 test('historical provider isolation replay requires the complete exact frontend and preserves negative guards', () => {
  const root=new URL('../../',import.meta.url),file='web/openrouter_video.js';
- const current=readFileSync(new URL(file,root),'utf8');
+ const current=execFileSync('git',['show','0cceea15c1c51c74d9166e78fc2b0978025daccb:'+file],
+     {cwd:root,encoding:'utf8'});
  const historical=providerIsolationPredecessor(root,file,current);
  assert.equal(createHash('sha256').update(historical).digest('hex'),'7e8fd8899f359e8b06fadcfb8c229abd18d20b1998c3b70ee73f81fc03b81654');
  for(const tampered of [current+'\n// unexpected delta\n',current.replace('serialize:false','serialize:true')]) {

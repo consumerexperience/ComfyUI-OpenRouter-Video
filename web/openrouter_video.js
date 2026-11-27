@@ -3668,7 +3668,7 @@ function costText(key) {
         en: { formula:"Calculated estimate", range:"Estimated range", model:"Conditional estimate", scenarios:"Conditional estimates",
             reference:"Preliminary estimate", component:"Known cost component", details:"Cost details", rate:"Applicable rate",
             partial:"Partial cost", unknown:"Reference estimate unavailable", invalid:"Check inputs", stale:"Price stale", calculating:"Calculating cost",
-            partialBadge:"COST PARTIAL", unknownBadge:"REF —", invalidBadge:"CHECK INPUTS", staleBadge:"PRICE STALE", calculatingBadge:"CALCULATING…", detailsBadge:"COST DETAILS",
+            unknownBadge:"COST", invalidBadge:"CHECK INPUTS", calculatingBadge:"CALCULATING…",
             formulaNote:"Calculated using the current settings and verified rates. The final charge may differ.", rangeNote:"Documented price bounds; not a spending cap.",
             modelNote:"Calculated from available data and the billing assumptions shown.", scenariosNote:"The amount varies with the billing assumptions used in each scenario.",
             referenceNote:"Indicative cost for the selected settings. It updates as you connect media.", silentNote:"This example uses the rate for output with audio. Charges for your selection are unconfirmed.",
@@ -3702,7 +3702,7 @@ function costText(key) {
         ru: { formula:"Расчётная стоимость", range:"Расчётный диапазон", model:"Условная оценка", scenarios:"Условные оценки",
             reference:"Предварительная оценка", component:"Известный компонент стоимости", details:"Сведения о стоимости", rate:"Тариф",
             partial:"Частичная стоимость", unknown:"Предварительная оценка недоступна", invalid:"Проверьте входы", stale:"Цена устарела", calculating:"Расчёт стоимости",
-            partialBadge:"НЕПОЛНАЯ ЦЕНА", unknownBadge:"REF —", invalidBadge:"ПРОВЕРЬТЕ ВХОДЫ", staleBadge:"ЦЕНА УСТАРЕЛА", calculatingBadge:"РАСЧЁТ…", detailsBadge:"СВЕДЕНИЯ О ЦЕНЕ",
+            unknownBadge:"СТОИМОСТЬ", invalidBadge:"ПРОВЕРЬТЕ ВХОДЫ", calculatingBadge:"РАСЧЁТ…",
             formulaNote:"Рассчитана по текущим параметрам и подтверждённым тарифам. Фактическое списание может отличаться.", rangeNote:"Границы по опубликованным правилам; не лимит расходов.",
             modelNote:"Стоимость рассчитана на основе доступных данных и указанных тарифных допущений.", scenariosNote:"Стоимость зависит от тарифных допущений каждого сценария.",
             referenceNote:"Ориентировочная стоимость для выбранных параметров. Уточняется по мере подключения материалов.", silentNote:"Пример использует тариф для видео со звуком. Начисления для выбранной конфигурации не подтверждены.",
@@ -3964,27 +3964,29 @@ function costPriceView(result = {}) {
     const plan = result.planning, planning = ["UNKNOWN", "PARTIAL", "RATE_ONLY"].includes(state) && plan?.version === "ACI-PLANNING-1";
     const reference = costAdvisoryComparison(result), rows = costReferenceRows(result);
     let kind = ({ FORMULA:"formula", RANGE:"range", RATE_ONLY:"rate", PARTIAL:"partial", INVALID:"invalid", STALE:"stale", CALCULATING:"calculating" })[state] || "unknown";
-    let amount = null, badge = null;
+    let amount = null;
     if(precompletion?.display==="SCENARIOS"){
-        kind="reference";amount=costRangeUsd(precompletion.lower_usd,precompletion.upper_usd);badge=`≈ ${amount} REF.`;
+        kind="reference";amount=costRangeUsd(precompletion.lower_usd,precompletion.upper_usd);
     } else if(precompletion?.display==="RATE_ONLY"){
-        kind="rate";const labels=[...new Set(precompletion.rates.map(costRateLabel))];amount=labels.length===1?labels[0]:null;badge=amount?`${amount} RATE`:costText("detailsBadge");
+        kind="rate";const labels=[...new Set(precompletion.rates.map(costRateLabel))];amount=labels.length===1?labels[0]:null;
     } else if(precompletion?.display==="UNKNOWN" || (state==="INVALID" && result.reason==="required_inputs_missing" && !precompletion)){
         kind="unknown";
-    } else if (state === "FORMULA") { amount = costUsd(result.amount_usd ?? result.estimated_cost_usd); if (amount) badge = `≈ ${amount} EST.`; }
-    else if (state === "RANGE") { amount = costRangeUsd(result.lower_usd, result.upper_usd); if (amount) badge = `${amount} EST.`; }
-    else if (planning && plan.display === "MODELLED" && costUsd(plan.modelled_usd)) { kind = "model"; amount = costUsd(plan.modelled_usd); badge = `≈ ${amount} MODEL`; }
-    else if (planning && plan.display === "SCENARIO_RANGE" && costRangeUsd(plan.scenario_min_usd, plan.scenario_max_usd)) { kind = "scenarios"; amount = costRangeUsd(plan.scenario_min_usd, plan.scenario_max_usd); badge = `≈ ${amount} MODEL`; }
-    else if (state === "RATE_ONLY" && costRateLabel(result)) { amount = costRateLabel(result); badge = `${amount} RATE`; }
-    else if (reference) { kind = reference.scope === "COMPONENT" ? "component" : "reference"; amount = costUsd(reference.amount_usd); badge = `${reference.scope === "COMPARISON" ? "≈ " : ""}${amount} REF.`; }
+    } else if (state === "FORMULA") { amount = costUsd(result.amount_usd ?? result.estimated_cost_usd); }
+    else if (state === "RANGE") { amount = costRangeUsd(result.lower_usd, result.upper_usd); }
+    else if (planning && plan.display === "MODELLED" && costUsd(plan.modelled_usd)) { kind = "model"; amount = costUsd(plan.modelled_usd); }
+    else if (planning && plan.display === "SCENARIO_RANGE" && costRangeUsd(plan.scenario_min_usd, plan.scenario_max_usd)) { kind = "scenarios"; amount = costRangeUsd(plan.scenario_min_usd, plan.scenario_max_usd); }
+    else if (state === "RATE_ONLY" && costRateLabel(result)) { amount = costRateLabel(result); }
+    else if (reference) { kind = reference.scope === "COMPONENT" ? "component" : "reference"; amount = costUsd(reference.amount_usd); }
     else if (state === "PARTIAL" && result.reason === "unclassified_pricing_sku" && costRateLabel(result)) {
-        kind = "rate"; amount = costRateLabel(result); badge = `${amount} RATE`;
+        kind = "rate"; amount = costRateLabel(result);
     }
-    else if (rows.length > 1) { kind = "details"; badge = costText("detailsBadge"); }
-    if (!badge) {
-        if (["formula", "range", "rate"].includes(kind)) kind = "unknown";
-        badge = costText(`${kind}Badge`) || costText("unknownBadge");
-    }
+    else if (rows.length > 1) { kind = "details"; }
+    if (!amount && !precompletion?.rates?.length && ["formula", "range", "rate"].includes(kind)) kind = "unknown";
+    const monetary = amount?.replaceAll(",", ".");
+    const format = ({formula:"≈ %s EST.", range:"≈ %s EST.", reference:"≈ %s REF.", component:"≈ %s REF.",
+        model:"%s MODEL", scenarios:"%s MODEL"})[kind];
+    const badge = format && monetary ? format.replace("%s", monetary) :
+        costText(`${kind}Badge`) || costText("unknownBadge");
     const accent = ["formula", "range"].includes(kind) ? ACI_INDICATOR_COLORS.green : ["model", "scenarios"].includes(kind) ? ACI_INDICATOR_COLORS.yellow : ["reference", "component", "details"].includes(kind) ? ACI_INDICATOR_COLORS.violet : precompletion && kind==="rate" ? ACI_INDICATOR_COLORS.violet : "#C4C4C4";
     return { kind, amount, badge, accent };
 }
@@ -4415,7 +4417,8 @@ const ACI_INDICATOR_COLORS = Object.freeze({ green: "#0ACF83", violet: "#9E6BFF"
 
 function costBadgeColors(node, text) {
     const primary = text.split(" · ")[0];
-    const accent = primary.endsWith(" MODEL") ? ACI_INDICATOR_COLORS.yellow : primary.endsWith(" REF.") ? ACI_INDICATOR_COLORS.violet :
+    const accent = primary === costText("unknownBadge") ? "#C4C4C4" :
+        primary.endsWith(" MODEL") ? ACI_INDICATOR_COLORS.yellow : primary.endsWith(" REF.") ? ACI_INDICATOR_COLORS.violet :
         primary.endsWith(" ACTUAL") && node.__orvActualState?.status === "KNOWN" ? ACI_INDICATOR_COLORS.green :
         costPriceView(node.__orvEstimate?.result).accent;
     return { accent, background: ACI_INDICATOR_COLORS.black };

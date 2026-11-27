@@ -64,7 +64,13 @@ for(const locale of ['en','ru'])for(const [key,{request,result}] of Object.entri
  const c=context();c.app.ui={settings:{getSettingValue:()=>locale}};const r=plain(result),n={widgets:Object.entries(request).map(([name,value])=>({name,value})),__orvEstimate:{result:r}};
  const advisory=c.costPrecompletionAdvisory(r);assert(advisory,key);assert.equal(r.state,'INVALID');assert.equal(r.amount_usd,null);assert.equal(c.costPriceView(r).accent,'#9E6BFF');
  const view=c.costTooltipView(n);assert(view.note.length>0);assert(!view.note.includes('undefined'));assert(view.sections.length>0);
- if(key==='video'){assert.match(c.costPriceView(r).badge,/RATE/);assert.equal(advisory.display,'RATE_ONLY');}
+ if(key==='video'){
+  const badge=locale==='ru'?'СТОИМОСТЬ':'COST';
+  assert.equal(c.costPriceView(r).badge,badge);
+  assert.equal(c.costBadgeColors(n,badge).accent,'#C4C4C4');
+  assert.equal(advisory.display,'RATE_ONLY');
+  for(const rate of advisory.rates) assert(c.costDetailsText(n).includes(c.costRateLabel(rate)));
+ }
  else assert.match(c.costPriceView(r).badge,/REF\./);
  assert.equal(r.precompletion_advisory.actual_reference_kinds.length,0);
 });
@@ -108,7 +114,7 @@ const nativePartialComponent={"availability":"UNAVAILABLE","state":"PARTIAL","ob
 
 for(const locale of ['en','ru'])test(`known partial component remains visible without claiming a total ${locale}`,()=>{
  const c=context();c.app.ui={settings:{getSettingValue:()=>locale}};const r=plain(nativePartialComponent),n={widgets:[{name:'model',value:'bytedance/seedance-2.5'},{name:'inference_method',value:'MI2V'},{name:'resolution',value:'720p'},{name:'aspect_ratio',value:'16:9'},{name:'duration',value:4}],__orvEstimate:{result:r}};
- const view=c.costPriceView(r);assert.equal(view.kind,'component');assert.equal(view.accent,'#9E6BFF');assert.match(view.badge,locale==='ru'?/0,92 REF/:/0\.92 REF/);assert.equal(r.amount_usd,null);assert.equal(r.state,'PARTIAL');
+ const view=c.costPriceView(r);assert.equal(view.kind,'component');assert.equal(view.accent,'#9E6BFF');assert.equal(view.badge,'≈ $0.92 REF.');assert.equal(r.amount_usd,null);assert.equal(r.state,'PARTIAL');
  const tip=c.costTooltipView(n);assert(tip.context.includes('720p'));assert(tip.context.includes('4'));assert(tip.note.includes(c.costText('componentNote')));assert(!tip.note.includes(c.costText('modelNote')));
  for(const change of ['stale','invalid','unknown','no_hash','ambiguous','unsupported','discount','negative']){
   const bad=plain(r);if(change==='stale')bad.valid_for_ms=0;if(change==='invalid')bad.state='INVALID';if(change==='unknown')bad.state='UNKNOWN';if(change==='no_hash')bad.rates_hash=null;

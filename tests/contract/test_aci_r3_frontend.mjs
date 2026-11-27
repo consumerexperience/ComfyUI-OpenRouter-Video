@@ -233,10 +233,10 @@ function tooltipDOM(c) {
 for (const [state, fields, label] of [
     ["FORMULA", { amount_usd: "2.3112", estimated_cost_usd: "2.3112", availability: "AVAILABLE" }, /2\.31.*EST/],
     ["RANGE", { lower_usd: "0.8", upper_usd: "1.2" }, /0\.80.*1\.20.*EST/],
-    ["RATE_ONLY", { rate_usd: "0.03", rate_unit: "s" }, /0\.03\/s.*RATE/],
-    ["RATE_ONLY", { rate_usd: "0.0000064", rate_unit: "token" }, /6\.40\/M\s*tok.*RATE/],
-    ["PARTIAL", {}, /COST PARTIAL/], ["UNKNOWN", {}, /REF —/],
-    ["STALE", {}, /PRICE STALE/], ["INVALID", {}, /CHECK INPUTS/],
+    ["RATE_ONLY", { rate_usd: "0.03", rate_unit: "s" }, /^COST$/],
+    ["RATE_ONLY", { rate_usd: "0.0000064", rate_unit: "token" }, /^COST$/],
+    ["PARTIAL", {}, /COST/], ["UNKNOWN", {}, /COST/],
+    ["STALE", {}, /COST/], ["INVALID", {}, /CHECK INPUTS/],
 ]) {
     test(`ACI ${state} has an explicit native badge state`, async () => {
         const { c, n, requests } = harness();
@@ -278,7 +278,7 @@ test("ACI cost payload excludes prompt, seeds, paths and credentials", async () 
 test("ACI native badge glyphs remain exact Unicode", () => {
     const { c } = harness();
     assert.equal(c.costBadgeText({ state: "FORMULA", amount_usd: "2.3112" }), "\u2248 $2.31 EST.");
-    assert.equal(c.costBadgeText({ state: "RANGE", lower_usd: "0.8", upper_usd: "1.2" }), "$0.80\u20131.20 EST.");
+    assert.equal(c.costBadgeText({ state: "RANGE", lower_usd: "0.8", upper_usd: "1.2" }), "\u2248 $0.80\u20131.20 EST.");
     assert.equal(c.costBadgeText({ state: "CALCULATING" }), "CALCULATING\u2026");
 });
 
@@ -286,13 +286,13 @@ test("ACI collapsed Classic retains badge without changing node geometry", () =>
     const { c, n } = harness();
     n.flags = { collapsed: true };
     n._collapsed_width = 300;
-    n.__orvEstimate.value = "REF —";
+    n.__orvEstimate.value = "COST";
     const before = [...n.size];
     const drawn = [];
     const ctx = { save() {}, restore() {}, fillRect() {}, fillText(text) { drawn.push(text); } };
     c.drawCollapsedCostBadge(n, ctx);
     assert.deepEqual(Array.from(n.size), before);
-    assert.deepEqual(drawn, ["REF —"]);
+    assert.deepEqual(drawn, ["COST"]);
 });
 
 test("ACI reads active loaded DOM scalars as HINT and refines without media fetch", () => {
@@ -433,7 +433,7 @@ for (const reason of ["provider_policy_version_mismatch", "provider_policy_scope
         assert.equal(requests.length, 1);
         respond(requests[0], { state: "UNKNOWN", reason_codes: [reason] });
         await pending;
-        assert.equal(n.__orvEstimate.value, "REF —");
+        assert.equal(n.__orvEstimate.value, "COST");
         assert.equal(n.__orvEstimate.result.state, "UNKNOWN");
     });
 }
@@ -441,15 +441,15 @@ for (const reason of ["provider_policy_version_mismatch", "provider_policy_scope
 const modelPlan = { version: "ACI-PLANNING-1", display: "MODELLED", modelled_usd: "1.24416", scenarios: [{scope:"CONDITIONAL_TOTAL", label:"native", amount_usd:"1.24416", assumption:"route assumption"}] };
 test("R3 distinguishes modelled money from EST and uses exact decimal rendering", () => {
     const {c}=harness();
-    assert.equal(c.costBadgeText({state:"RATE_ONLY",planning:modelPlan}), "≈ $1.24 MODEL");
-    assert.equal(c.costBadgeText({state:"RATE_ONLY",planning:{...modelPlan,display:"SCENARIO_RANGE",scenario_min_usd:"0.0756",scenario_max_usd:"0.1344"}}), "≈ $0.08–0.13 MODEL");
-    assert.equal(c.costBadgeText({state:"UNKNOWN",planning:{...modelPlan,display:"DETAIL_ONLY"}}), "REF —");
-    assert.equal(c.costBadgeText({state:"PARTIAL",planning:{...modelPlan,display:"DETAIL_ONLY"}}), "COST PARTIAL");
+    assert.equal(c.costBadgeText({state:"RATE_ONLY",planning:modelPlan}), "$1.24 MODEL");
+    assert.equal(c.costBadgeText({state:"RATE_ONLY",planning:{...modelPlan,display:"SCENARIO_RANGE",scenario_min_usd:"0.0756",scenario_max_usd:"0.1344"}}), "$0.08–0.13 MODEL");
+    assert.equal(c.costBadgeText({state:"UNKNOWN",planning:{...modelPlan,display:"DETAIL_ONLY"}}), "COST");
+    assert.equal(c.costBadgeText({state:"PARTIAL",planning:{...modelPlan,display:"DETAIL_ONLY"}}), "COST");
     assert.equal(c.costBadgeText({state:"FORMULA",amount_usd:"2.005",planning:modelPlan}), "≈ $2.01 EST.");
     assert.equal(c.costMoney("0.0001"),"<0.01");
     assert.equal(c.costMoney("0"),"0.00");
     assert.equal(c.costMoney("NaN"),null);
-    assert.equal(c.costBadgeText({state:"STALE",planning:modelPlan}),"PRICE STALE");
+    assert.equal(c.costBadgeText({state:"STALE",planning:modelPlan}),"COST");
 });
 test("R3 limited transparency disclosure and comparison details",()=>{
     const {c,n}=harness();
@@ -483,10 +483,10 @@ test("Owner UX: no advisory total is fabricated from components, malformed compa
     for(const row of [
         {scope:"COMPARISON",label:"invalid",assumption:"invalid",amount_usd:"NaN"},
         {scope:"CONDITIONAL_TOTAL",label:"not designated",amount_usd:"1"},
-    ])assert.equal(c.costBadgeText({state:"UNKNOWN",planning:{version:"ACI-PLANNING-1",display:"DETAIL_ONLY",scenarios:[row]}}),"REF —");
+    ])assert.equal(c.costBadgeText({state:"UNKNOWN",planning:{version:"ACI-PLANNING-1",display:"DETAIL_ONLY",scenarios:[row]}}),"COST");
     const planning={version:"ACI-PLANNING-1",display:"DETAIL_ONLY",scenarios:[{scope:"COMPARISON",label:"published scenario",assumption:"not a quote",amount_usd:"0.2"}]};
     assert.equal(c.costBadgeText({state:"INVALID",planning}),"CHECK INPUTS");
-    assert.equal(c.costBadgeText({state:"STALE",planning}),"PRICE STALE");
+    assert.equal(c.costBadgeText({state:"STALE",planning}),"COST");
     assert.equal(c.costBadgeText({state:"FORMULA",amount_usd:"4.8535200",planning}),"≈ $4.85 EST.");
 });
 
@@ -494,7 +494,9 @@ test("Owner UX: compact decimal precision is bounded without turning tiny positi
     const {c}=harness();
     for(const [input,expected] of [["0.3267354000000","0.3267"],["4.8535200","4.8535"],["0.20000000000","0.2"],
         ["1.9999999","2"],["0.0000001","<0.0001"],["0","0"],["NaN","?"]])assert.equal(c.costCompactDecimal(input),expected);
-    assert.equal(c.costBadgeText({state:"RATE_ONLY",rate_usd:"0.3267354000000",rate_unit:"s"}),"$0.3267/s RATE");
+    const rate={state:"RATE_ONLY",rate_usd:"0.3267354000000",rate_unit:"s"};
+    assert.equal(c.costRateLabel(rate),"$0.3267/s");
+    assert.equal(c.costBadgeText(rate),"COST");
 });
 
 test("R2: one read-only tooltip owner, no native title, disclosure, pinning or click handler",()=>{
@@ -532,26 +534,26 @@ test("Owner UX: renderer and graph switches retire invisible Classic cost owners
 test("R3 expired result cannot present a numerical modelled estimate",async()=>{
     const {c,n,requests}=harness(); const pending=c.refreshEstimate(n);
     respond(requests[0],{state:"RATE_ONLY",planning:modelPlan,valid_for_ms:0});await pending;
-    assert.equal(n.__orvEstimate.value,"PRICE STALE");
+    assert.equal(n.__orvEstimate.value,"COST");
 });
 test("R3 expiry timer clears unchanged numerical state",async()=>{
     const {c,n,requests}=harness();const timers=[];let now=0;c.performance.now=()=>now;c.setTimeout=(fn,ms)=>{timers.push({fn,ms});return timers.length;};
     const pending=c.refreshEstimate(n);respond(requests[0],{state:"RATE_ONLY",planning:modelPlan,valid_for_ms:100});await pending;
-    assert.equal(n.__orvEstimate.value,"≈ $1.24 MODEL");now=99;assert.equal(c.expireCostPresentation(n),false);now=100;timers.find(t=>t.ms===100).fn();assert.equal(n.__orvEstimate.value,"PRICE STALE");
+    assert.equal(n.__orvEstimate.value,"$1.24 MODEL");now=99;assert.equal(c.expireCostPresentation(n),false);now=100;timers.find(t=>t.ms===100).fn();assert.equal(n.__orvEstimate.value,"COST");
 });
 
 // R3.1 Owner-approved palette; these checks are deliberately presentation-only.
-test("R3.1 exact brand palette and unchanged state labels", () => {
+test("ACI Financial Badge Standard v1.0 formats and palette", () => {
     const {c,n}=harness();
     for (const [result,expected,label] of [
         [{state:"FORMULA",amount_usd:"2.31"},"#0ACF83","≈ $2.31 EST."],
-        [{state:"RANGE",lower_usd:"1.80",upper_usd:"2.60"},"#0ACF83","$1.80–2.60 EST."],
-        [{state:"UNKNOWN",planning:modelPlan},"#FFBB00","≈ $1.24 MODEL"],
-        [{state:"PARTIAL",planning:{...modelPlan,display:"SCENARIO_RANGE",scenario_min_usd:"1.80",scenario_max_usd:"2.60"}},"#FFBB00","≈ $1.80–2.60 MODEL"],
-        [{state:"RATE_ONLY",rate_usd:"0.28",rate_unit:"s"},"","$0.28/s RATE"],
-        [{state:"PARTIAL"},"","COST PARTIAL"],
-        [{state:"UNKNOWN"},"","REF —"],
-        [{state:"STALE",planning:modelPlan},"","PRICE STALE"],
+        [{state:"RANGE",lower_usd:"1.80",upper_usd:"2.60"},"#0ACF83","≈ $1.80–2.60 EST."],
+        [{state:"UNKNOWN",planning:modelPlan},"#FFBB00","$1.24 MODEL"],
+        [{state:"PARTIAL",planning:{...modelPlan,display:"SCENARIO_RANGE",scenario_min_usd:"1.80",scenario_max_usd:"2.60"}},"#FFBB00","$1.80–2.60 MODEL"],
+        [{state:"RATE_ONLY",rate_usd:"0.28",rate_unit:"s"},"","COST"],
+        [{state:"PARTIAL"},"","COST"],
+        [{state:"UNKNOWN"},"","COST"],
+        [{state:"STALE",planning:modelPlan},"","COST"],
         [{state:"INVALID"},"","CHECK INPUTS"],
         [{state:"CALCULATING"},"","CALCULATING…"],
     ]) {
@@ -562,12 +564,22 @@ test("R3.1 exact brand palette and unchanged state labels", () => {
         assert.equal(colors.background,"#1A1A1A");
     }
 });
+test("ACI Financial Badge Standard v1.0 keeps token tariffs in the tooltip in EN and RU", () => {
+    const {c,n}=harness();
+    const rate={state:"RATE_ONLY",rate_usd:"0.0000064",rate_unit:"token"};
+    for (const [locale, badge] of [["en","COST"],["ru","СТОИМОСТЬ"]]) {
+        c.app.ui={settings:{getSettingValue:()=>locale}};
+        c.setCostPresentation(n,rate);
+        assert.equal(n.__orvEstimate.value,badge);
+        assert.equal(c.costBadgeColors(n,badge).accent,"#C4C4C4");
+        assert.ok(c.costDetailsText(n).includes(c.costRateLabel(rate)));
+    }
+});
 test("R2 references and components stay Violet and reset to neutral on stale",()=>{
     const {c,n}=harness(); const element=tooltipDOM(c);n.__orvCostPopover=element("div");
     for(const scope of ["COMPARISON","COMPONENT"]){
         c.setCostPresentation(n,{state:"UNKNOWN",planning:{...modelPlan,display:"DETAIL_ONLY",scenarios:[{scope,label:"illustration",amount_usd:"1.20",assumption:"not total"}]}});
-        const comparison=scope==="COMPARISON";
-        assert.equal(n.__orvEstimate.value,comparison?"≈ $1.20 REF.":"$1.20 REF.");
+        assert.equal(n.__orvEstimate.value,"≈ $1.20 REF.");
         assert.equal(c.costBadgeColors(n,n.__orvEstimate.value).accent,"#9E6BFF");
         assert.equal(n.__orvCostPopover.style.borderColor,"#9E6BFF");
     }
@@ -617,12 +629,12 @@ test("R2 exact Gemini witness has readable identity, reference geometry/scope an
     assert.equal(JSON.stringify(r2Reference),before);
 });
 
-test("R2 locale follows only Comfy.Locale; RU inherits commas and other untranslated host locales fall back to EN",()=>{
+test("R2 locale follows only Comfy.Locale; financial badges keep canonical digits and RU details use commas",()=>{
     const {c,n}=harness();let locale="ru";
     c.app.ui={settings:{getSettingValue(key){assert.equal(key,"Comfy.Locale");return locale;}}};
     c.navigator={get language(){throw Error("Do not use browser language");}};
     c.setCostPresentation(n,r2Reference);
-    assert.equal(n.__orvEstimate.value,"≈ $0,28 REF.");assert.equal(c.costTooltipView(n).title,"Предварительная оценка");
+    assert.equal(n.__orvEstimate.value,"≈ $0.28 REF.");assert.equal(c.costTooltipView(n).title,"Предварительная оценка");
     assert.equal(c.costUsd("0.0001"),"<$0,01");assert.equal(c.costUsd("0"),"$0,00");assert.equal(c.costMoney("0.278016"),"0.28");
     assert.equal(c.costBadgeText({state:"INVALID"}),"ПРОВЕРЬТЕ ВХОДЫ");
     locale="fr";assert.equal(c.costBadgeText({state:"FORMULA",amount_usd:"2.31"}),"≈ $2.31 EST.");
@@ -634,27 +646,27 @@ test("R2 locale change refreshes presentation without resetting expiry, changing
     c.app.ui={settings:{getSettingValue(){return locale;},addEventListener(name,fn){assert.equal(name,"Comfy.Locale.change");handler=fn;}}};
     c.installCostLifecycle(n);c.setCostPresentation(n,{...r2Reference,valid_for_ms:1000});
     const result=n.__orvEstimate.result,expiry=n.__orvCostExpiresAt;assert(handler);
-    locale="ru";handler();assert.equal(n.__orvEstimate.value,"≈ $0,28 REF.");
+    locale="ru";handler();assert.equal(n.__orvEstimate.value,"≈ $0.28 REF.");
     assert.equal(n.__orvEstimate.result,result);assert.equal(n.__orvCostExpiresAt,expiry);assert.equal(requests.length,0);
-    c.performance.now=()=>1001;c.expireCostPresentation(n);assert.equal(n.__orvEstimate.value,"ЦЕНА УСТАРЕЛА");
+    c.performance.now=()=>1001;c.expireCostPresentation(n);assert.equal(n.__orvEstimate.value,"СТОИМОСТЬ");
 });
 
 test("R2 does not choose a comparison arbitrarily or replace a primary formula/rate",()=>{
     const {c,n}=harness();const first=r2Reference.planning.scenarios[0];
     const result={...r2Reference,planning:{...r2Reference.planning,scenarios:[first,{...first,amount_usd:"0.4"}]}};
     c.setCostPresentation(n,result);const view=c.costTooltipView(n);
-    assert.equal(n.__orvEstimate.value,"COST DETAILS");assert.equal(view.amount,null);assert.equal(view.sections[0].rows.length,2);
+    assert.equal(n.__orvEstimate.value,"COST");assert.equal(view.amount,null);assert.equal(view.sections[0].rows.length,2);
     assert.equal(c.costBadgeText({...r2Reference,state:"FORMULA",amount_usd:"1"}),"≈ $1.00 EST.");
     c.setCostPresentation(n,{...r2Reference,state:"RATE_ONLY",rate_usd:"0.28",rate_unit:"s"});
-    assert.equal(n.__orvEstimate.value,"$0.28/s RATE");assert.equal(c.costTooltipView(n).sections.at(-1).rows.length,1);
-    assert.equal(c.costBadgeText({...result,state:"STALE"}),"PRICE STALE");
+    assert.equal(n.__orvEstimate.value,"COST");assert.equal(c.costTooltipView(n).sections.at(-1).rows.length,1);
+    assert.equal(c.costBadgeText({...result,state:"STALE"}),"COST");
 });
 
 test("R2 keeps exact bounds while outward display rounding avoids false equality",()=>{
     const {c}=harness();
-    assert.equal(c.costBadgeText({state:"RANGE",lower_usd:"0.208512",upper_usd:"0.208513"}),"$0.20–0.21 EST.");
+    assert.equal(c.costBadgeText({state:"RANGE",lower_usd:"0.208512",upper_usd:"0.208513"}),"≈ $0.20–0.21 EST.");
     assert.equal(c.costUsd("0.0000001"),"<$0.01");assert.equal(c.costUsd("0"),"$0.00");
-    assert.equal(c.costBadgeText({state:"UNKNOWN",planning:{...modelPlan,display:"SCENARIO_RANGE",scenario_min_usd:"1.8",scenario_max_usd:"2.6"}}),"≈ $1.80–2.60 MODEL");
+    assert.equal(c.costBadgeText({state:"UNKNOWN",planning:{...modelPlan,display:"SCENARIO_RANGE",scenario_min_usd:"1.8",scenario_max_usd:"2.6"}}),"$1.80–2.60 MODEL");
 });
 
 test("R2 normative metrics use common screen-space DOM with no focusable or scrollable descendants",()=>{

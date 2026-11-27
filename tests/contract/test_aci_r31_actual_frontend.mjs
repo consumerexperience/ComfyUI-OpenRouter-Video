@@ -233,7 +233,7 @@ test("early buffer and observer/ticket ownership expire, registry contains no wo
 test("draw/details and visibility/focus check monotonic freshness even if timers never run", () => {
     const h = harness(); h.c.setCostPresentation(h.n, { state: "FORMULA", amount_usd: "2.28", valid_for_ms: 10 });
     h.advance(11);
-    assert.equal(h.c.costBadgeLabel(h.n), "PRICE STALE");
+    assert.equal(h.c.costBadgeLabel(h.n), "COST");
     assert(!h.c.costDetailsText(h.n).includes("2.28"));
     const listeners = new Map();
     h.c.document = { addEventListener(name, fn) { listeners.set(name, fn); } };
@@ -286,10 +286,14 @@ test("R2 keeps next MODEL in the badge and prior owned ACTUAL in a separate Gree
 
 test("RATE_ONLY uses exact decimal scaling and never displays positive token rate as free", () => {
     const h = harness();
-    assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.000001005", rate_unit: "token" }), "$1.01/M tok RATE");
-    assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.000000000000000001", rate_unit: "token" }), "<$0.01/M tok RATE");
-    assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.0000064", rate_unit: "token" }), "$6.40/M tok RATE");
-    assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.1234567890123456789", rate_unit: "s" }), "$0.1235/s RATE");
+    assert.equal(h.c.costRateLabel({ state: "RATE_ONLY", rate_usd: "0.000001005", rate_unit: "token" }), "$1.01/M tok");
+    assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.000001005", rate_unit: "token" }), "COST");
+    assert.equal(h.c.costRateLabel({ state: "RATE_ONLY", rate_usd: "0.000000000000000001", rate_unit: "token" }), "<$0.01/M tok");
+    assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.000000000000000001", rate_unit: "token" }), "COST");
+    assert.equal(h.c.costRateLabel({ state: "RATE_ONLY", rate_usd: "0.0000064", rate_unit: "token" }), "$6.40/M tok");
+    assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.0000064", rate_unit: "token" }), "COST");
+    assert.equal(h.c.costRateLabel({ state: "RATE_ONLY", rate_usd: "0.1234567890123456789", rate_unit: "s" }), "$0.1235/s");
+    assert.equal(h.c.costBadgeText({ state: "RATE_ONLY", rate_usd: "0.1234567890123456789", rate_unit: "s" }), "COST");
 });
 
 function mediaFixture(h) {

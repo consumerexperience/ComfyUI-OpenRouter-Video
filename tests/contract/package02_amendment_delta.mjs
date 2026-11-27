@@ -131,7 +131,21 @@ export function providerIsolationPredecessor(root, path, current) {
  assert.equal(restored, before, 'Only provider widget serialization may differ from the prior TEST frontend');
  return before;
 }
+function financialBadgeStandardPredecessor(root, path, current) {
+ if (path !== 'web/openrouter_video.js' ||
+     sha(current) !== '29fcd0386820b9a492f74659be0741f9f9cbf21e20ed8a8837405de4f26994f8') return current;
+ const parent = '0cceea15c1c51c74d9166e78fc2b0978025daccb';
+ const before = normalize(execFileSync('git', ['show', parent + ':' + path], {cwd:root, encoding:'utf8'}));
+ assert.equal(sha(before), 'd9a996deaa11a423ba03d5a63f652908b18c834facab7febdd3f97d0c05d548b');
+ let restored = normalize(current);
+ for (const name of ['costText', 'costPriceView', 'costBadgeColors']) {
+  restored = restored.replace(body(restored, name), () => body(before, name));
+ }
+ assert.equal(restored, before, 'Only approved financial badge presentation can differ');
+ return before;
+}
 export function package02AmendmentBaselineSource(root,path,current){
+ current=financialBadgeStandardPredecessor(root,path,current);
  current=providerIsolationPredecessor(root,path,current);
  current=tooltipRefinementPredecessor(root,path,current);
  current=parkedCopyPredecessor(root,path,current);
