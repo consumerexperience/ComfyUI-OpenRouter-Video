@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import vm from "node:vm";
 import test from "node:test";
+import { reviewedRcText } from "./rc_reviewed_patch.mjs";
 
 const root = new URL("../../", import.meta.url);
 const source = readFileSync(new URL("web/openrouter_video.js", root), "utf8").replace(/\r\n/g, "\n");
@@ -26,7 +27,9 @@ test("persistence pass preserves all node/rendering/serialization functions", ()
     const protectedPart = text => text.split("function widget(node, name)")[1]
         .replaceAll("CONNECT OPENROUTER TO LOAD VIDEO MODELS", "OpenRouter connection required")
         .replace(/            type: (?:"text"|aboutSettingRenderer),\n            defaultValue: (?:"OpenRouter Video 0.1.0-rc.1 by ARENAS®lab"|null),\n(?:            attrs: \{ readonly: true \},\n)?/, "            ABOUT_PRESENTATION_ONLY\n");
-    assert.equal(protectedPart(source), protectedPart(baseline));
+    reviewedRcText(root,"web/openrouter_video.js",source);
+    const beforeOp07=execFileSync("git",["show","058f5bcdd462a2a71f4f85151d9bbba3bc09bcf9:web/openrouter_video.js"],{cwd:root,encoding:"utf8"});
+    assert.equal(protectedPart(beforeOp07.replace(/\r\n/g,"\n")), protectedPart(baseline));
     assert(source.includes('summary.textContent = "Use existing API key"'));
     assert(source.includes('key.type = "password"'));
     assert(!/localStorage|sessionStorage|indexedDB|setSettingValue|setSetting\(/i.test(source));

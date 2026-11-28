@@ -1,0 +1,126 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "aci-v1-phases-0-3",
+  "baseline_checkpoint": "aci-protected-f8ba174",
+  "baseline_sha": "f8ba174347bd4bfed155dc64aec1d7168c39c1fa",
+  "risk_tier": "C",
+  "intended_delta": [
+    "Owner ACIv1 explicit engineering authorization; normalized tariff quantities/exclusive arithmetic and useful defensible cost states across current catalogue, one existing production estimator. ACXS nativebadge within existing layout. Pricing never defines capabilities."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/pricing/src~01openrouter_video~01pricing_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Explicit Owner ACI0-3 handoff: only existing estimator/profile, one strict declarative pricing resource, estimate-only runtime/route context and native cost badge/additive invalidation. AST negative-space guards preserve all paid/graph/capability behavior."
+    },
+    {
+      "path": "/surfaces/product_owned/pricing/src~01openrouter_video~01pricing_profile_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Explicit Owner ACI0-3 handoff: only existing estimator/profile, one strict declarative pricing resource, estimate-only runtime/route context and native cost badge/additive invalidation. AST negative-space guards preserve all paid/graph/capability behavior."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01data~01video-tariff-rules_json",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Explicit Owner ACI0-3 handoff: only existing estimator/profile, one strict declarative pricing resource, estimate-only runtime/route context and native cost badge/additive invalidation. AST negative-space guards preserve all paid/graph/capability behavior."
+    },
+    {
+      "path": "/surfaces/product_owned/submit_resume/src~01openrouter_video~01comfy~01runtime_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Explicit Owner ACI0-3 handoff: only existing estimator/profile, one strict declarative pricing resource, estimate-only runtime/route context and native cost badge/additive invalidation. AST negative-space guards preserve all paid/graph/capability behavior."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01routes_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Explicit Owner ACI0-3 handoff: only existing estimator/profile, one strict declarative pricing resource, estimate-only runtime/route context and native cost badge/additive invalidation. AST negative-space guards preserve all paid/graph/capability behavior."
+    },
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Explicit Owner ACI0-3 handoff: only existing estimator/profile, one strict declarative pricing resource, estimate-only runtime/route context and native cost badge/additive invalidation. AST negative-space guards preserve all paid/graph/capability behavior."
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01__init___py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01capabilities_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01capability_overlays_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01client_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01__init___py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01compat_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01extension_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01image_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01nodes_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01oauth_diagnostics_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01oauth_loopback_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01projection_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01video_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01configuration_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01credential_backend_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01data~01geometry-relations_json",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01eligibility_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01errors_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01geometry_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01image_transport_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01lifecycle_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01media_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01models_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01oauth_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01observability_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01policy_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01request_policy_py",
+    "/surfaces/product_owned/capabilities/src~01openrouter_video~01transport_py",
+    "/surfaces/product_owned/AppIdentity/src~01openrouter_video~01app_identity_py",
+    "/surfaces/product_owned/submit_resume/src~01openrouter_video~01application_py",
+    "/surfaces/product_owned/submit_resume/src~01openrouter_video~01execution_hooks_py",
+    "/surfaces/product_owned/native_media/src~01openrouter_video~01comfy~01native_media_py",
+    "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01data~01capability-evidence_json",
+    "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01evidence_registry_py",
+    "/surfaces/product_owned/storage/src~01openrouter_video~01local_media_py",
+    "/surfaces/product_owned/storage/src~01openrouter_video~01s3_upload_py",
+    "/surfaces/product_owned/storage/src~01openrouter_video~01staging_py",
+    "/surfaces/product_owned/database_migrations/src~01openrouter_video~01persistence_py",
+    "/surfaces/product_owned/recipes/src~01openrouter_video~01recipes_py",
+    "/surfaces/product_owned/credentials/src~01openrouter_video~01secrets_py"
+  ],
+  "expected_components": [
+    "src/openrouter_video/pricing.py",
+    "src/openrouter_video/pricing_profile.py",
+    "src/openrouter_video/data/video-tariff-rules.json",
+    "src/openrouter_video/comfy/runtime.py",
+    "src/openrouter_video/comfy/routes.py",
+    "web/openrouter_video.js"
+  ],
+  "required_gates": [
+    "baseline_declaration",
+    "semantic_diff",
+    "negative_space_tests",
+    "python",
+    "frontend",
+    "serializer",
+    "explicit_high_risk_approval",
+    "independent_math",
+    "current_sku_method_accounting",
+    "targeted_financial_review",
+    "classic_live",
+    "nodes2_live"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
@@ -42,6 +44,8 @@ class InferenceMethod(str, Enum):
     MMR2V = "MMR2V"
     V2V_EDIT = "V2V_EDIT"
     V2V_EXTEND = "V2V_EXTEND"
+    V2V_UPSCALE = "V2V_UPSCALE"
+    AVATAR_AUDIO = "AVATAR_AUDIO"
 
 
 class CapabilityEvidenceSource(str, Enum):
@@ -177,6 +181,85 @@ class InputReferenceCapabilities:
 
 
 @dataclass(frozen=True, slots=True)
+class ProviderOption:
+    """One bounded scalar passthrough value for a validated provider slug."""
+
+    provider: str
+    key: str
+    value: str | bool | int | float = field(repr=False)
+    container: str | None = None
+    path: tuple[str | int, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.provider, str) or not re.fullmatch(
+            r"[a-z0-9]+(?:-[a-z0-9]+)*", self.provider
+        ):
+            raise ValueError("Provider must be a valid lowercase provider slug.")
+        if not isinstance(self.key, str) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_.-]*", self.key):
+            raise ValueError("Provider option key must be a non-empty scalar key.")
+        if self.container not in (None, "parameters"):
+            raise ValueError("Provider option container must be absent or 'parameters'.")
+        if (
+            not isinstance(self.path, (tuple, list))
+            or len(self.path) > 4
+            or any(
+                not (
+                    isinstance(part, str)
+                    and re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", part)
+                    or type(part) is int
+                    and 0 <= part < 64
+                )
+                for part in self.path
+            )
+        ):
+            raise ValueError(
+                "Provider option path must contain field names or bounded array indices."
+            )
+        object.__setattr__(self, "path", tuple(self.path))
+        if type(self.value) not in (str, bool, int, float):
+            raise ValueError("Provider option values must be strings, booleans, or numbers.")
+        if isinstance(self.value, float) and not math.isfinite(self.value):
+            raise ValueError("Provider option numbers must be finite.")
+
+
+def _insert_provider_leaf(
+    target: dict[str, Any] | list[Any], path: tuple[str | int, ...], value: object
+) -> None:
+    key = path[0]
+    if isinstance(target, list):
+        if type(key) is not int:
+            raise ValueError("Provider array requires integer indices.")
+        while len(target) <= key:
+            target.append(None)
+        child = target[key]
+    else:
+        if not isinstance(key, str):
+            raise ValueError("Provider object requires field names.")
+        child = target.get(key)
+    if len(path) == 1:
+        target[key] = value  # type: ignore[index]  # container/key pairing checked above
+        return
+    expected = list if type(path[1]) is int else dict
+    if child is None:
+        child = expected()
+        target[key] = child  # type: ignore[index]  # container/key pairing checked above
+    elif not isinstance(child, expected):
+        raise ValueError("Provider option container collides with another value.")
+    _insert_provider_leaf(child, path[1:], value)
+
+
+def _check_provider_tree(value: object) -> None:
+    if value is None:
+        raise ValueError("Provider arrays must be contiguous, without omitted items.")
+    if isinstance(value, dict):
+        for child in value.values():
+            _check_provider_tree(child)
+    elif isinstance(value, list):
+        for child in value:
+            _check_provider_tree(child)
+
+
+@dataclass(frozen=True, slots=True)
 class GenerationRequest:
     """Bounded generation request surface; sensitive and transient."""
 
@@ -193,6 +276,54 @@ class GenerationRequest:
     last_frame: FrameReference | None = None
     source_video: InputReference | None = None
     input_references: InputReferenceCollection | None = None
+    previous_job_id: str | None = field(default=None, repr=False)
+    upscale_factor: float | int | None = None
+    creativity: int | None = None
+    provider_options: tuple[ProviderOption, ...] = ()
+
+    def __post_init__(self) -> None:
+        if self.previous_job_id is not None and (
+            not isinstance(self.previous_job_id, str)
+            or re.fullmatch(r"gen-vid-\d+-[0-9A-Za-z]{20}", self.previous_job_id) is None
+        ):
+            raise ValueError(
+                "previous_job_id must match the OpenRouter video generation ID pattern."
+            )
+        if self.upscale_factor is not None and (
+            type(self.upscale_factor) not in (int, float)
+            or not math.isfinite(self.upscale_factor)
+            or self.upscale_factor <= 0
+        ):
+            raise ValueError("upscale_factor must be a positive finite number.")
+        if self.creativity is not None and type(self.creativity) is not int:
+            raise ValueError("creativity must be an integer.")
+        if not isinstance(self.provider_options, tuple) or any(
+            not isinstance(option, ProviderOption) for option in self.provider_options
+        ):
+            raise ValueError("provider_options must be a tuple of ProviderOption entries.")
+        seen: set[tuple[str, str | None, str, tuple[str | int, ...]]] = set()
+        for option in self.provider_options:
+            identity = (option.provider, option.container, option.key, option.path)
+            if any(
+                prior[:3] == identity[:3]
+                and (
+                    prior[3][: len(option.path)] == option.path
+                    or option.path[: len(prior[3])] == prior[3]
+                )
+                for prior in seen
+            ):
+                raise ValueError("Duplicate provider option key for provider.")
+            seen.add(identity)
+        nested_providers = {option.provider for option in self.provider_options if option.container}
+        if any(
+            option.provider in nested_providers
+            and option.container is None
+            and option.key == "parameters"
+            for option in self.provider_options
+        ):
+            raise ValueError(
+                "Direct 'parameters' option conflicts with nested provider parameters."
+            )
 
     def to_openrouter_payload(self) -> dict[str, object]:
         if self.size is not None and (self.resolution is not None or self.aspect_ratio is not None):
@@ -218,6 +349,29 @@ class GenerationRequest:
         for name, value in optional:
             if value is not None:
                 payload[name] = value
+        for name, value in (
+            ("previous_job_id", self.previous_job_id),
+            ("upscale_factor", self.upscale_factor),
+            ("creativity", self.creativity),
+        ):
+            if value is not None:
+                payload[name] = value
+        if self.provider_options:
+            provider_options: dict[str, dict[str, object]] = {}
+            for option in self.provider_options:
+                provider_values = provider_options.setdefault(option.provider, {})
+                if option.container == "parameters":
+                    parameters = provider_values.setdefault("parameters", {})
+                    if not isinstance(parameters, dict):
+                        raise ValueError(
+                            "Direct 'parameters' option conflicts with nested parameters."
+                        )
+                    destination = parameters
+                else:
+                    destination = provider_values
+                _insert_provider_leaf(destination, (option.key, *option.path), option.value)
+            _check_provider_tree(provider_options)
+            payload["provider"] = {"options": provider_options}
         frames = [
             {
                 "type": "image_url",
@@ -451,6 +605,46 @@ def request_fingerprint_v3(request: GenerationRequest) -> str:
     return f"v3:{hashlib.sha256(canonical_bytes).hexdigest()}"
 
 
+def request_fingerprint_v4(request: GenerationRequest) -> str:
+    """Bind extended structural intent while preserving v3 for legacy requests."""
+
+    if (
+        request.previous_job_id is None
+        and request.upscale_factor is None
+        and request.creativity is None
+        and not request.provider_options
+    ):
+        return request_fingerprint_v3(request)
+    payload: dict[str, object] = {"schema": 4, "base": request_fingerprint_v3(request)}
+    if request.previous_job_id is not None:
+        payload["previous_job_id_sha256"] = hashlib.sha256(
+            request.previous_job_id.encode("utf-8")
+        ).hexdigest()
+    if request.upscale_factor is not None:
+        payload["upscale_factor"] = request.upscale_factor
+    if request.creativity is not None:
+        payload["creativity"] = request.creativity
+    if request.provider_options:
+        payload["provider_options"] = [
+            {
+                "provider": option.provider,
+                "container": option.container,
+                "key": option.key,
+                "value": ("present" if isinstance(option.value, str) else option.value),
+                **({"path": option.path} if option.path else {}),
+            }
+            for option in request.provider_options
+        ]
+    canonical_bytes = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+    ).encode("utf-8")
+    return f"v4:{hashlib.sha256(canonical_bytes).hexdigest()}"
+
+
 __all__ = (
     "BillingContext",
     "CapabilityEvidenceSource",
@@ -470,6 +664,7 @@ __all__ = (
     "ModelCapabilityField",
     "ProductError",
     "ProductErrorCode",
+    "ProviderOption",
     "PricingEvidence",
     "PricingSku",
     "RemoteJobSnapshot",
@@ -478,4 +673,5 @@ __all__ = (
     "request_fingerprint_v1",
     "request_fingerprint_v2",
     "request_fingerprint_v3",
+    "request_fingerprint_v4",
 )

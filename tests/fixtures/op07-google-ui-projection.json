@@ -1,0 +1,1118 @@
+{
+  "models": [
+    {
+      "model_id": "google/gemini-omni-1.2-flash",
+      "display_name": "Google: Gemini Omni 1.2 Flash",
+      "supported_durations": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "supported_resolutions": [
+        "360p",
+        "720p",
+        "1080p",
+        "4K"
+      ],
+      "supported_aspect_ratios": [
+        "9:16",
+        "16:9"
+      ],
+      "supported_sizes": [
+        "360x640",
+        "640x360",
+        "720x1280",
+        "1280x720",
+        "1080x1920",
+        "1920x1080",
+        "2160x3840",
+        "3840x2160"
+      ],
+      "supported_frame_types": [
+        "first_frame",
+        "last_frame"
+      ],
+      "supports_seed": true,
+      "generate_audio": true,
+      "supported_reference_kinds": null,
+      "max_reference_count": null,
+      "mixed_reference_kinds": null,
+      "supports_edit": null,
+      "supports_extend": null,
+      "supported_inference_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "inference_method_statuses": [
+        {
+          "method": "T2V",
+          "status": "READY"
+        },
+        {
+          "method": "I2V",
+          "status": "READY"
+        },
+        {
+          "method": "FLF2V",
+          "status": "READY"
+        },
+        {
+          "method": "IR2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "MI2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "VR2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "AR2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "MMR2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "V2V_EDIT",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "V2V_EXTEND",
+          "status": "UNKNOWN"
+        }
+      ],
+      "preferred_inference_method": "T2V",
+      "observed_at": "2026-11-08T00:00:00+00:00",
+      "unmapped_upstream_capabilities": [
+        "allowed_passthrough_parameters",
+        "creativity",
+        "upscale_factor"
+      ],
+      "configuration_relations": [],
+      "method_profiles": {
+        "T2V": {
+          "state": "SUPPORTED",
+          "controls": {
+            "prompt": {
+              "state": "SUPPORTED"
+            },
+            "duration": {
+              "state": "SUPPORTED",
+              "values": [
+                8
+              ]
+            },
+            "resolution": {
+              "state": "SUPPORTED",
+              "values": [
+                "720p"
+              ]
+            },
+            "aspect_ratio": {
+              "state": "SUPPORTED",
+              "values": [
+                "16:9"
+              ]
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {
+            "fixed": [],
+            "reference_kinds": [],
+            "kind_sets": [
+              []
+            ],
+            "min": 0,
+            "max": 0,
+            "per_kind_max": {}
+          },
+          "configuration_relations": [
+            {
+              "axes": [
+                "duration",
+                "resolution",
+                "aspect_ratio"
+              ],
+              "when": {},
+              "complete": false,
+              "allowed": [
+                {
+                  "duration": [
+                    8
+                  ],
+                  "resolution": [
+                    "720p"
+                  ],
+                  "aspect_ratio": [
+                    "16:9"
+                  ]
+                }
+              ],
+              "forbidden": []
+            }
+          ]
+        },
+        "I2V": {
+          "state": "SUPPORTED",
+          "controls": {
+            "prompt": {
+              "state": "SUPPORTED"
+            },
+            "duration": {
+              "state": "SUPPORTED",
+              "values": [
+                8
+              ]
+            },
+            "resolution": {
+              "state": "SUPPORTED",
+              "values": [
+                "720p"
+              ]
+            },
+            "aspect_ratio": {
+              "state": "SUPPORTED",
+              "values": [
+                "16:9"
+              ]
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {
+            "fixed": [
+              "first_frame"
+            ],
+            "reference_kinds": [],
+            "kind_sets": [
+              []
+            ],
+            "min": 0,
+            "max": 0,
+            "per_kind_max": {}
+          },
+          "configuration_relations": [
+            {
+              "axes": [
+                "duration",
+                "resolution",
+                "aspect_ratio"
+              ],
+              "when": {},
+              "complete": false,
+              "allowed": [
+                {
+                  "duration": [
+                    8
+                  ],
+                  "resolution": [
+                    "720p"
+                  ],
+                  "aspect_ratio": [
+                    "16:9"
+                  ]
+                }
+              ],
+              "forbidden": []
+            }
+          ]
+        },
+        "FLF2V": {
+          "state": "SUPPORTED",
+          "controls": {
+            "prompt": {
+              "state": "SUPPORTED"
+            },
+            "duration": {
+              "state": "SUPPORTED",
+              "values": [
+                8
+              ]
+            },
+            "resolution": {
+              "state": "SUPPORTED",
+              "values": [
+                "720p"
+              ]
+            },
+            "aspect_ratio": {
+              "state": "SUPPORTED",
+              "values": [
+                "16:9"
+              ]
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {
+            "fixed": [
+              "first_frame",
+              "last_frame"
+            ],
+            "reference_kinds": [],
+            "kind_sets": [
+              []
+            ],
+            "min": 0,
+            "max": 0,
+            "per_kind_max": {}
+          },
+          "configuration_relations": [
+            {
+              "axes": [
+                "duration",
+                "resolution",
+                "aspect_ratio"
+              ],
+              "when": {},
+              "complete": false,
+              "allowed": [
+                {
+                  "duration": [
+                    8
+                  ],
+                  "resolution": [
+                    "720p"
+                  ],
+                  "aspect_ratio": [
+                    "16:9"
+                  ]
+                }
+              ],
+              "forbidden": []
+            }
+          ]
+        },
+        "IR2V": {
+          "state": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "MI2V": {
+          "state": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "VR2V": {
+          "state": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "AR2V": {
+          "state": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "MMR2V": {
+          "state": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "V2V_EDIT": {
+          "state": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "V2V_EXTEND": {
+          "state": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        }
+      },
+      "geometry_profile": {
+        "version": 1,
+        "tuples": [
+          {
+            "resolution": null,
+            "aspect_ratio": "9:16",
+            "size": "360x640",
+            "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+            "confidence": "SAFE_DERIVED"
+          },
+          {
+            "resolution": null,
+            "aspect_ratio": "16:9",
+            "size": "640x360",
+            "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+            "confidence": "SAFE_DERIVED"
+          },
+          {
+            "resolution": null,
+            "aspect_ratio": "9:16",
+            "size": "720x1280",
+            "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+            "confidence": "SAFE_DERIVED"
+          },
+          {
+            "resolution": null,
+            "aspect_ratio": "16:9",
+            "size": "1280x720",
+            "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+            "confidence": "SAFE_DERIVED"
+          },
+          {
+            "resolution": null,
+            "aspect_ratio": "9:16",
+            "size": "1080x1920",
+            "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+            "confidence": "SAFE_DERIVED"
+          },
+          {
+            "resolution": null,
+            "aspect_ratio": "16:9",
+            "size": "1920x1080",
+            "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+            "confidence": "SAFE_DERIVED"
+          },
+          {
+            "resolution": null,
+            "aspect_ratio": "9:16",
+            "size": "2160x3840",
+            "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+            "confidence": "SAFE_DERIVED"
+          },
+          {
+            "resolution": null,
+            "aspect_ratio": "16:9",
+            "size": "3840x2160",
+            "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+            "confidence": "SAFE_DERIVED"
+          }
+        ]
+      }
+    },
+    {
+      "model_id": "google/veo-3.1-lite",
+      "display_name": "Google: Veo 3.1 Lite",
+      "supported_durations": [
+        4,
+        6,
+        8
+      ],
+      "supported_resolutions": [
+        "720p",
+        "1080p"
+      ],
+      "supported_aspect_ratios": [
+        "9:16",
+        "16:9"
+      ],
+      "supported_sizes": [
+        "720x1280",
+        "1280x720",
+        "1080x1920",
+        "1920x1080"
+      ],
+      "supported_frame_types": [
+        "first_frame",
+        "last_frame"
+      ],
+      "supports_seed": true,
+      "generate_audio": true,
+      "supported_reference_kinds": null,
+      "max_reference_count": null,
+      "mixed_reference_kinds": null,
+      "supports_edit": null,
+      "supports_extend": null,
+      "supported_inference_methods": [
+        "T2V",
+        "I2V",
+        "FLF2V"
+      ],
+      "inference_method_statuses": [
+        {
+          "method": "T2V",
+          "status": "READY"
+        },
+        {
+          "method": "I2V",
+          "status": "READY"
+        },
+        {
+          "method": "FLF2V",
+          "status": "READY"
+        },
+        {
+          "method": "IR2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "MI2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "VR2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "AR2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "MMR2V",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "V2V_EDIT",
+          "status": "UNKNOWN"
+        },
+        {
+          "method": "V2V_EXTEND",
+          "status": "UNKNOWN"
+        }
+      ],
+      "preferred_inference_method": "T2V",
+      "observed_at": "2026-11-08T00:00:00+00:00",
+      "unmapped_upstream_capabilities": [
+        "allowed_passthrough_parameters",
+        "creativity",
+        "upscale_factor"
+      ],
+      "configuration_relations": [],
+      "method_profiles": {
+        "T2V": {
+          "state": "SUPPORTED",
+          "controls": {
+            "prompt": {
+              "state": "SUPPORTED"
+            },
+            "duration": {
+              "state": "SUPPORTED",
+              "values": [
+                8
+              ]
+            },
+            "resolution": {
+              "state": "SUPPORTED",
+              "values": [
+                "720p"
+              ]
+            },
+            "aspect_ratio": {
+              "state": "SUPPORTED",
+              "values": [
+                "16:9"
+              ]
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {
+            "fixed": [],
+            "reference_kinds": [],
+            "kind_sets": [
+              []
+            ],
+            "min": 0,
+            "max": 0,
+            "per_kind_max": {}
+          },
+          "configuration_relations": [
+            {
+              "axes": [
+                "duration",
+                "resolution",
+                "aspect_ratio"
+              ],
+              "when": {},
+              "complete": false,
+              "allowed": [
+                {
+                  "duration": [
+                    8
+                  ],
+                  "resolution": [
+                    "720p"
+                  ],
+                  "aspect_ratio": [
+                    "16:9"
+                  ]
+                }
+              ],
+              "forbidden": []
+            }
+          ]
+        },
+        "I2V": {
+          "state": "SUPPORTED",
+          "controls": {
+            "prompt": {
+              "state": "SUPPORTED"
+            },
+            "duration": {
+              "state": "SUPPORTED",
+              "values": [
+                8
+              ]
+            },
+            "resolution": {
+              "state": "SUPPORTED",
+              "values": [
+                "720p"
+              ]
+            },
+            "aspect_ratio": {
+              "state": "SUPPORTED",
+              "values": [
+                "16:9"
+              ]
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {
+            "fixed": [
+              "first_frame"
+            ],
+            "reference_kinds": [],
+            "kind_sets": [
+              []
+            ],
+            "min": 0,
+            "max": 0,
+            "per_kind_max": {}
+          },
+          "configuration_relations": [
+            {
+              "axes": [
+                "duration",
+                "resolution",
+                "aspect_ratio"
+              ],
+              "when": {},
+              "complete": false,
+              "allowed": [
+                {
+                  "duration": [
+                    8
+                  ],
+                  "resolution": [
+                    "720p"
+                  ],
+                  "aspect_ratio": [
+                    "16:9"
+                  ]
+                }
+              ],
+              "forbidden": []
+            }
+          ]
+        },
+        "FLF2V": {
+          "state": "SUPPORTED",
+          "controls": {
+            "prompt": {
+              "state": "SUPPORTED"
+            },
+            "duration": {
+              "state": "SUPPORTED",
+              "values": [
+                8
+              ]
+            },
+            "resolution": {
+              "state": "SUPPORTED",
+              "values": [
+                "720p"
+              ]
+            },
+            "aspect_ratio": {
+              "state": "SUPPORTED",
+              "values": [
+                "16:9"
+              ]
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {
+            "fixed": [
+              "first_frame",
+              "last_frame"
+            ],
+            "reference_kinds": [],
+            "kind_sets": [
+              []
+            ],
+            "min": 0,
+            "max": 0,
+            "per_kind_max": {}
+          },
+          "configuration_relations": [
+            {
+              "axes": [
+                "duration",
+                "resolution",
+                "aspect_ratio"
+              ],
+              "when": {},
+              "complete": false,
+              "allowed": [
+                {
+                  "duration": [
+                    8
+                  ],
+                  "resolution": [
+                    "720p"
+                  ],
+                  "aspect_ratio": [
+                    "16:9"
+                  ]
+                }
+              ],
+              "forbidden": []
+            }
+          ]
+        },
+        "IR2V": {
+          "state": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "MI2V": {
+          "state": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "VR2V": {
+          "state": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "AR2V": {
+          "state": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "MMR2V": {
+          "state": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "V2V_EDIT": {
+          "state": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        },
+        "V2V_EXTEND": {
+          "state": "UNKNOWN",
+          "controls": {
+            "prompt": {
+              "state": "UNKNOWN"
+            },
+            "duration": {
+              "state": "UNKNOWN"
+            },
+            "resolution": {
+              "state": "UNKNOWN"
+            },
+            "aspect_ratio": {
+              "state": "UNKNOWN"
+            },
+            "size": {
+              "state": "UNKNOWN"
+            },
+            "seed": {
+              "state": "UNKNOWN"
+            },
+            "generate_audio": {
+              "state": "UNKNOWN"
+            }
+          },
+          "topology": {},
+          "configuration_relations": []
+        }
+      },
+      "geometry_profile": {
+        "version": 1,
+        "tuples": [
+          {
+            "resolution": null,
+            "aspect_ratio": "9:16",
+            "size": "720x1280",
+            "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+            "confidence": "SAFE_DERIVED"
+          },
+          {
+            "resolution": null,
+            "aspect_ratio": "16:9",
+            "size": "1280x720",
+            "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+            "confidence": "SAFE_DERIVED"
+          },
+          {
+            "resolution": null,
+            "aspect_ratio": "9:16",
+            "size": "1080x1920",
+            "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+            "confidence": "SAFE_DERIVED"
+          },
+          {
+            "resolution": null,
+            "aspect_ratio": "16:9",
+            "size": "1920x1080",
+            "provenance": "EXACT_DIMENSIONS_RATIONAL_ONE_PIXEL_TOLERANCE",
+            "confidence": "SAFE_DERIVED"
+          }
+        ]
+      }
+    }
+  ]
+}

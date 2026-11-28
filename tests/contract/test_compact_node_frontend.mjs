@@ -9,9 +9,9 @@ const source=readFileSync(new URL('../../web/openrouter_video.js',import.meta.ur
 const context={app:{registerExtension(){}},api:{}};
 vm.runInNewContext(source,context);
 const plain=v=>JSON.parse(JSON.stringify(v));
-const fixture=(values,value=0)=>{
+const fixture=(values,value=0,inputs=[])=>{
  const old={name:'duration',value};
- const node={widgets:[old],__orvCapabilityStatus:{value:''},setDirtyCanvas(){},addWidget(type,name,value,callback,options){
+ const node={widgets:[old],inputs,__orvCapabilityStatus:{value:''},setDirtyCanvas(){},addWidget(type,name,value,callback,options){
   const item={type,name,value,callback,options,y:0,height:20,
    drawWidget(ctx){ctx.fillRect(15,0,370,20);ctx.fillText(`${this.label}  ${this.value}`,200,14);},
    onClick(e){this.setValue(e.position);},onDrag(e){this.setValue(e.position);},
@@ -20,6 +20,41 @@ const fixture=(values,value=0)=>{
  context.createDurationSlider(node,old);context.configureDuration(node,values);
  return {node,item:node.widgets[0]};
 };
+test('PUX01 fixed duration has no slider track, arrows or interactive change and keeps numeric wire value',()=>{
+ const {node,item}=fixture([8],8),calls=[];
+ assert.equal(item.type,'text');assert.equal(item.options.read_only,true);assert.equal(item.options.disabled,true);
+ assert.equal(item.options.max,8);assert.equal(item.__orvDurationPresentation,'FIXED');
+ item.drawWidget({fillRect(){calls.push('track')},fillText(text){calls.push(text)}},{});
+ assert.deepEqual(calls,['Duration','8 s','Fixed']);
+ item.onClick({position:0});item.onDrag({position:10});item.__orvSelectPosition(2);
+ assert.equal(item.serializeValue(),8);const saved=JSON.parse(JSON.stringify({duration:item.serializeValue()}));
+ assert.equal(fixture([8],saved.duration).item.serializeValue(),8);
+ const identity=node.widgets;context.createGeometryCombos(node);assert.equal(node.widgets,identity);assert.equal(node.widgets[0],item);
+});
+test('PUX01 variable/fixed round trip restores native interaction without changing evidence domain',()=>{
+ const {node,item}=fixture([4,6,8],6);
+ for(const values of [[8],[8],[4,6,8]]){context.configureDuration(node,values);assert.equal(item.__orvDomain.kind,'DISCRETE');}
+ assert.equal(item.type,'slider');assert.equal(item.options.read_only,false);assert.equal(item.options.disabled,false);
+ item.onClick({position:1});assert.equal(item.value,6);assert.deepEqual(plain(item.__orvDomain.allowed_values),[4,6,8]);
+});
+test('PUX01 automatic singleton and mixed domains retain the -1 sentinel',()=>{
+ const {node,item}=fixture([-1],-1);assert.equal(item.type,'text');assert.equal(item.serializeValue(),-1);
+ assert.equal(item.label,'Duration');assert.equal(context.readOnlyValueParts(item).value,'Auto');assert.equal(context.readOnlyValueParts(item).state,'Automatic');context.configureDuration(node,[-1,4,8]);
+ assert.equal(node.widgets[0],item);assert.equal(item.type,'slider');
+ assert.equal(item.serializeValue(),-1);assert.deepEqual(plain(item.__orvSliderDomain.allowed_values),[4,8]);
+ item.onClick({position:0});assert.equal(item.serializeValue(),4);
+ item.onDrag({position:1});assert.equal(item.serializeValue(),8);
+ item.__orvResetDuration();assert.equal(item.serializeValue(),-1);
+});
+test('PUX01 linked incompatible duration preserves the link and upstream semantic value',()=>{
+ const inputs=[{name:'duration',link:17}],{node,item}=fixture([4,8],6,inputs);
+ assert.equal(item.value,6);assert.equal(node.inputs[0].link,17);assert.match(node.__orvCapabilityStatus.value,/linked value/);
+});
+test('PUX01 fixed label follows Comfy locale without changing serialized seconds',()=>{
+ let locale='ru';context.app.ui={settings:{getSettingValue(){return locale}}};const {item}=fixture([8],8);
+ assert.equal(item.label,'Длительность');assert.equal(context.readOnlyValueParts(item).value,'8 с');assert.equal(context.readOnlyValueParts(item).state,'Фиксировано');locale='en';assert.equal(context.durationPresentationLabel(item),'Duration');
+ assert.equal(item.serializeValue(),8);delete context.app.ui;
+});
 for(const [axis,values,expected] of [
  ['resolution',['480p','720p','1080p'],'720p'],['resolution',['1080p'],'1080p'],['resolution',['2K'],'2K'],
  ['resolution',['4K','480p'],'480p'],['aspect_ratio',['1:1','16:9'],'16:9'],['aspect_ratio',['1:1','4:3','9:16'],'4:3'],
@@ -87,14 +122,30 @@ test('legacy enums migrate, explicit valid values persist, Size stays optional',
  }
  const res=node.widgets[0];res.value='480p';context.configureEnum(node,res,['480p','720p'],'RESOLUTION');assert.equal(res.value,'480p');
 });
-test('compact layout, explicit Size/control visibility and real block gap',()=>{
+test('Package02 consistent native row rhythm and explicit Size/control visibility',()=>{
  const widgets=['model','inference_method','prompt','resolution','aspect_ratio','duration','seed','generate_audio','size','randomize'].map(name=>({name,hidden:false}));
  const node={widgets,computeSize(){return [900,500];},setSize(size){this.size=size;}};
  context.sizePrimaryControls(node);context.fitPresentationWidth(node);
- assert.equal(node.size[0],400);assert.equal(widgets[5].computeSize()[1],24);assert.equal(widgets[6].computeSize()[1],20);
+ assert.equal(node.size[0],400);assert.equal(widgets[5].computeSize()[1],20);assert.equal(widgets[6].computeSize()[1],20);
  assert.equal(widgets[2].computeSize()[1],58);
  widgets[8].hidden=true;widgets[9].hidden=true;widgets[9].label='control after generate';
  context.syncAdvancedControls(node);assert.equal(widgets[8].hidden,true);assert.equal(widgets[9].hidden,false);
+});
+test('Classic uses the same visible gap before, within and after creative fields',()=>{
+ const multiline=name=>({name,margin:4,element:{style:{}},__orvTextSemantic:true});
+ const method={name:'inference_method'},prompt=multiline('prompt'),negative=multiline('negative_prompt'),resolution={name:'resolution'};
+ const node={widgets:[method,prompt,negative,resolution],__orvMasterPromptHeight:120};
+ context.sizePrimaryControls(node);
+ const visible=widget=>{
+  const allocation=widget.computeSize()[1]+4;
+  const margin=widget.margin || 0;
+  const trailing=widget.element?.style.height==='calc(100% - 4px)' ? 4 : 0;
+  return {margin,allocation,height:widget.element?allocation-2*margin-trailing:20};
+ };
+ let y=0;
+ const bounds=node.widgets.map(widget=>{const row=visible(widget);const start=y+row.margin;y+=row.allocation;return [start,start+row.height];});
+ assert.deepEqual(bounds.map(([start,end])=>end-start),[20,120,120,20]);
+ assert.deepEqual(bounds.slice(1).map(([start],i)=>start-bounds[i][1]),[8,8,8]);
 });
 test('protected frontend functions retain immediate baseline definitions',()=>{
  const before=execFileSync('git',['show','a86df3bb825a04bc2852966b69ce65848b22de3b:web/openrouter_video.js'],{cwd:root,encoding:'utf8'});

@@ -20,6 +20,28 @@ SNAPSHOTS = json.loads(
 
 def _digest(path: str, selected: list[str] | None) -> str:
     tree = ast.parse((ROOT / path).read_text(encoding="utf-8"))
+    if path == "src/openrouter_video/image_transport.py" and selected is None:
+        # Owner abcc0172 authorizes one metadata reader; retain the complete
+        # historical AST shield for the canonical PNG validator and constants.
+        helpers = [
+            n
+            for n in tree.body
+            if isinstance(n, ast.FunctionDef) and n.name == "image_data_url_metadata"
+        ]
+        assert len(helpers) == 1
+        tree.body.remove(helpers[0])
+        exported = next(
+            n
+            for n in tree.body
+            if isinstance(n, ast.Assign)
+            and any(isinstance(t, ast.Name) and t.id == "__all__" for t in n.targets)
+        )
+        assert isinstance(exported.value, ast.Tuple)
+        exported.value.elts = [
+            e
+            for e in exported.value.elts
+            if not (isinstance(e, ast.Constant) and e.value == "image_data_url_metadata")
+        ]
     nodes = (
         tree.body
         if selected is None
@@ -60,7 +82,7 @@ def test_native_media_does_not_change_model_catalog() -> None:
 def test_native_media_does_not_change_capability_matrix() -> None:
     from openrouter_video.capabilities import inference_method_matrix
     from openrouter_video.evidence_registry import enrich_capabilities
-    from openrouter_video.models import FrameType, ModelCapabilities
+    from openrouter_video.models import FrameType, InferenceMethod, ModelCapabilities
     from openrouter_video.recipes import RECIPES
 
     model = enrich_capabilities(
@@ -77,12 +99,16 @@ def test_native_media_does_not_change_capability_matrix() -> None:
         "IR2V",
         "MI2V",
         "VR2V",
+        "AR2V",  # Owner F03: exact documented pure-audio Seedance 2.5 contract.
         "MMR2V",
         "V2V_EDIT",
         "V2V_EXTEND",
     }
-    assert all(matrix[method].value == "UNKNOWN" for method in matrix if method.value in {"AR2V"})
-    assert len(RECIPES) == 10
+    assert matrix[InferenceMethod.AR2V].value == "READY"
+    assert len(RECIPES) == 12
+    assert all(
+        matrix[m].value != "READY" for m in matrix if m.value in {"V2V_UPSCALE", "AVATAR_AUDIO"}
+    )
     assert not any("bytedance" in repr(recipe) for recipe in RECIPES)
 
 

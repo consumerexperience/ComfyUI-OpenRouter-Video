@@ -36,8 +36,9 @@ class _Schema:
 
 
 class _NodeOutput:
-    def __init__(self, *values: object) -> None:
+    def __init__(self, *values: object, ui: object = None) -> None:
         self.values = values
+        self.ui = ui
 
 
 class _ComfyNode:
@@ -80,6 +81,7 @@ def _install_fake_numbered_api() -> None:
         Hidden=types.SimpleNamespace(unique_id="UNIQUE_ID"),
         Combo=types.SimpleNamespace(Input=_Field),
         String=types.SimpleNamespace(Input=_Field, Output=_Field),
+        Image=types.SimpleNamespace(Output=_Field),
         Int=types.SimpleNamespace(Input=_Field),
         ControlAfterGenerate=types.SimpleNamespace(
             fixed="fixed", increment="increment", decrement="decrement", randomize="randomize"
@@ -151,6 +153,7 @@ def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
         "MODEL",
         "ACTUAL_COST_USD",
         "STATUS",
+        "LAST_FRAME",
     ]
     assert [item.name for item in resume.outputs] == [
         "VIDEO",
@@ -158,6 +161,7 @@ def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
         "MODEL",
         "ACTUAL_COST_USD",
         "STATUS",
+        "LAST_FRAME",
     ]
     assert [item.name for item in generate.inputs] == [
         "model",
@@ -177,6 +181,13 @@ def test_generate_resume_v3_schemas_and_privacy_surface() -> None:
         "direct_references",
         "input_references",
         "geometry_authority",
+        "previous_job_id",
+        "upscale_factor",
+        "creativity",
+        "provider_options",
+        "provider_option:atlas-cloud::negative_prompt",
+        "provider_option:google-vertex:parameters:negativePrompt",
+        "provider_option:heygen::motion_prompt",
     ]
     assert [item.name for item in resume.inputs] == ["job_id"]
     assert generate.hidden == resume.hidden == ["UNIQUE_ID"]
@@ -284,6 +295,7 @@ def test_generate_normalizes_once_and_returns_exact_output(
         "vendor/model",
         "0.2500",
         "DONE",
+        None,
     )
 
 
@@ -297,6 +309,7 @@ def test_native_video_and_done_progress_are_truthful_and_ordered(
 
     monkeypatch.setattr(compat, "report_phase", report)
     monkeypatch.setattr(nodes, "to_native_video", lambda _: "native-video")
+    monkeypatch.setattr(nodes, "to_native_last_frame", lambda _: "last-image")
     result = GenerationResult(
         LocalLifecycleState.DONE,
         "job-progress",
@@ -306,6 +319,7 @@ def test_native_video_and_done_progress_are_truthful_and_ordered(
     output = asyncio.run(nodes._node_output(result, "node-progress"))
 
     assert output.values[0] == "native-video"
+    assert output.values[5] == "last-image"
     assert phases == [
         (ExecutionPhase.NATIVE_VIDEO, "node-progress"),
         (ExecutionPhase.DONE, "node-progress"),
@@ -365,6 +379,85 @@ def test_generate_bridges_typed_reference_collection(monkeypatch: pytest.MonkeyP
         nodes.OpenRouterVideoGenerate.execute("vendor/model", "prompt", input_references=collection)
     )
     assert captured[0].input_references is collection
+
+
+@pytest.mark.parametrize(
+    ("mid", "method", "kwargs", "wire_key", "expected"),
+    [
+        (
+            "black-forest-labs/flux-video-upscale",
+            "V2V_UPSCALE",
+            {"upscale_factor": "2.5", "creativity": 1},
+            "upscale_factor",
+            2.5,
+        ),
+        (
+            "google/gemini-omni-1.2-flash",
+            "V2V_EDIT",
+            {"previous_job_id": "gen-vid-123-abcdefghijklmnopqrst"},
+            "previous_job_id",
+            "gen-vid-123-abcdefghijklmnopqrst",
+        ),
+        (
+            "runway/gen-4.5",
+            "T2V",
+            {
+                "provider_options": json.dumps(
+                    [
+                        {
+                            "provider": "runway",
+                            "key": "contentModeration",
+                            "path": ["publicFigureThreshold"],
+                            "value": "low",
+                        }
+                    ]
+                )
+            },
+            "provider",
+            {"options": {"runway": {"contentModeration": {"publicFigureThreshold": "low"}}}},
+        ),
+    ],
+)
+def test_specialized_adapter_fields_reach_real_core_wire(
+    monkeypatch: pytest.MonkeyPatch,
+    mid: str,
+    method: str,
+    kwargs: dict[str, Any],
+    wire_key: str,
+    expected: object,
+) -> None:
+    from openrouter_video.capabilities import CapabilityObservation, RequestValidator
+    from tests.unit.test_full_catalogue_coverage import model
+
+    capability = model(mid)
+    captured: list[dict[str, object]] = []
+
+    class Runtime:
+        async def effective_catalog(self) -> CapabilityObservation:
+            return CapabilityObservation(datetime.now(timezone.utc), (capability,))
+
+        async def generate(self, request: Any, _: str | None) -> GenerationResult:
+            RequestValidator().validate_shape(request)
+            RequestValidator().validate_capabilities(request, capability)
+            captured.append(request.to_openrouter_payload())
+            return GenerationResult(
+                LocalLifecycleState.DONE,
+                "job-offline",
+                artifact=VideoArtifact(Path("ignored.mp4"), "video/mp4", 10),
+            )
+
+    monkeypatch.setattr(nodes, "get_runtime", Runtime)
+    monkeypatch.setattr(nodes, "to_native_video", lambda _: "native-video")
+    if method in {"V2V_UPSCALE", "V2V_EDIT"} and "previous_job_id" not in kwargs:
+        kwargs["source_video"] = InputReference(
+            InputReferenceKind.VIDEO, "https://assets.example/source.mp4"
+        )
+    asyncio.run(
+        nodes.OpenRouterVideoGenerate.execute(mid, "prompt", inference_method=method, **kwargs)
+    )
+    assert captured[0][wire_key] == expected
+    if method == "V2V_EDIT":
+        assert "provider" not in captured[0]  # Optional task is not injected.
 
 
 def test_audio_helper_and_v2v_source_role_bridge_to_core(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -500,7 +593,7 @@ def test_native_image_normalizes_into_existing_frame_and_ordered_reference_roles
     assert "api_key" not in caplog.text.lower()
 
 
-@pytest.mark.parametrize("duration", (-1, True, 1.5))
+@pytest.mark.parametrize("duration", (-2, True, 1.5))
 def test_generate_rejects_invalid_duration_without_runtime_call(
     duration: object, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -511,6 +604,20 @@ def test_generate_rejects_invalid_duration_without_runtime_call(
     )
     with pytest.raises(nodes.AdapterExecutionError, match="UNSUPPORTED_PARAMETER"):
         nodes._duration(duration)
+
+
+def test_automatic_duration_sentinel_is_preserved_for_capability_validation() -> None:
+    assert nodes._duration(-1) == -1
+    assert nodes._duration(0) is None
+
+
+def test_estimate_route_accepts_only_the_documented_automatic_sentinel() -> None:
+    assert (
+        routes._parse_estimate_inputs({"model_id": "vendor/model", "duration": -1}).duration == -1
+    )
+    for value in (0, -2, True):
+        with pytest.raises(ValueError, match="duration is invalid"):
+            routes._parse_estimate_inputs({"model_id": "vendor/model", "duration": value})
 
 
 @pytest.mark.parametrize("seed", ("1.2", "not-a-number"))
@@ -555,7 +662,7 @@ def test_resume_strips_job_id_and_has_no_submit_surface(monkeypatch: pytest.Monk
     output = asyncio.run(nodes.OpenRouterVideoResume.execute(" job-9 "))
 
     assert calls == ["job-9"]
-    assert output.values == ("native-video", "job-9", "", "", "DONE")
+    assert output.values == ("native-video", "job-9", "", "", "DONE", None)
     with pytest.raises(nodes.AdapterExecutionError, match="job_id"):
         asyncio.run(nodes.OpenRouterVideoResume.execute("   "))
 
@@ -656,12 +763,16 @@ def test_models_route_returns_only_sorted_valid_ids_and_sanitized_errors(
         return payload, status
 
     class Runtime(ProjectionCatalogRuntime):
-        async def catalog(self) -> object:
+        async def effective_catalog(self) -> object:
+            from tests.projection_fixtures import synthetic_projected_model
+
             return types.SimpleNamespace(
+                observed_at=datetime.now(timezone.utc),
                 models=(
-                    ModelCapabilities("z/model"),
-                    ModelCapabilities("a/model"),
-                )
+                    synthetic_projected_model("z/model"),
+                    synthetic_projected_model("a/model"),
+                    ModelCapabilities("hidden/model"),
+                ),
             )
 
     monkeypatch.setattr(compat, "json_response", response)
@@ -674,7 +785,7 @@ def test_models_route_returns_only_sorted_valid_ids_and_sanitized_errors(
     assert _schema_inputs(generate)["model"].options["options"] == ["SELECT MODEL"]
 
     class InvalidRuntime:
-        async def catalog(self) -> object:
+        async def effective_catalog(self) -> object:
             return types.SimpleNamespace(models=(ModelCapabilities(""),))
 
     monkeypatch.setattr(routes, "get_runtime", InvalidRuntime)
@@ -684,7 +795,7 @@ def test_models_route_returns_only_sorted_valid_ids_and_sanitized_errors(
     )
 
     class FailedRuntime:
-        async def catalog(self) -> object:
+        async def effective_catalog(self) -> object:
             raise RequestPolicyError("secret prompt and headers")
 
     monkeypatch.setattr(routes, "get_runtime", FailedRuntime)
@@ -704,6 +815,8 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
         async def effective_catalog(self) -> object:
             return types.SimpleNamespace(
                 observed_at=observed,
+                source_state="FRESH",
+                evolution=None,
                 models=(
                     ModelCapabilities(
                         "vendor/model",
@@ -739,18 +852,14 @@ def test_ui_capabilities_route_is_capability_only_and_preserves_unknown(
 
     assert status == 200
     assert payload["observed_at"] == observed.isoformat()
-    assert payload["ui_contract_version"] == 5
+    assert payload["ui_contract_version"] == 7
     assert len(payload["catalogue_revision"]) == 64
     generate = nodes.OpenRouterVideoGenerate.define_schema()
     assert _schema_inputs(generate)["model"].options["options"] == ["SELECT MODEL"]
-    projected = payload["models"][0]
-    assert projected["supported_resolutions"] == ("480p", "768p")
-    assert projected["supported_aspect_ratios"] == ("5:4", "16:9")
-    assert projected["supports_seed"] is None
-    assert projected["supported_reference_kinds"] == ("image", "video")
-    assert projected["max_reference_count"] == 50
-    assert projected["mixed_reference_kinds"] is True
-    assert projected["supported_inference_methods"] == ()  # Primitive flags are not shape proof.
+    assert payload["models"] == []  # Primitive flags are not request-shape proof.
+    assert payload["unavailable_models"] == [
+        {"model_id": "vendor/model", "reason": "NO_CONFIRMED_SERIALIZABLE_METHOD"}
+    ]
     serialized = repr(payload).lower()
     assert "pricing" not in serialized
     assert "0.42" not in serialized
@@ -763,7 +872,9 @@ def test_empty_catalogue_is_not_misclassified_as_ui_desync(
 
     class Runtime(ProjectionCatalogRuntime):
         async def effective_catalog(self) -> object:
-            return types.SimpleNamespace(observed_at=observed, models=())
+            return types.SimpleNamespace(
+                observed_at=observed, models=(), source_state="FRESH", evolution=None
+            )
 
     monkeypatch.setattr(routes, "get_runtime", Runtime)
     monkeypatch.setattr(
@@ -820,7 +931,7 @@ def test_health_route_is_pure_local_sanitized_observation(
         "catalogue_model_count": 30,
         "catalogue_revision": "a" * 64,
         "plugin_version": "9.9.9-test-only",
-        "ui_contract_version": 5,
+        "ui_contract_version": 7,
     }
     assert "key" not in repr(payload).lower()
     assert "authorization" not in repr(payload).lower()
@@ -917,13 +1028,20 @@ def test_cost_estimate_route_returns_prepared_result_only(
     assert status == 200
     assert captured[0].model_id == "vendor/model"
     assert captured[0].inference_method.value == "I2V"
-    assert payload == {
+    legacy_fields = {
         "availability": "AVAILABLE",
         "observed_at": observed.isoformat(),
         "applied_skus": ("per-video-second-480p",),
         "estimated_cost_usd": "0.140",
         "provenance": "catalogue pricing_skus.per-video-second-480p × duration",
     }
+    assert {key: payload[key] for key in legacy_fields} == legacy_fields
+    assert payload["state"] == "FORMULA"
+    assert payload["amount_usd"] == "0.140"
+    assert payload["lower_usd"] is payload["upper_usd"] is None
+    assert payload["context_revision"] == 0
+    assert payload["rules_version"] == "ACI-1.0"
+    assert "pricing_skus" not in payload and "pricing_evidence" not in payload
 
 
 def test_model_validation_accepts_reconstructed_native_autogrow() -> None:

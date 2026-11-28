@@ -1,0 +1,150 @@
+{
+  "STATUS": "PASS",
+  "AUTHORIZED_DELTA": [
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01eligibility_py",
+      "operation": "add",
+      "before": null,
+      "after": "3380ef4a5e3e9c3b5fb628ef5d00f99ef20afb11a822267108f824ed74e28041"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01capabilities_py",
+      "operation": "replace",
+      "before": "a67e1980c71aa64ddde5c4e2d0f3cec59dd738175ad3297306a1b822893f013c",
+      "after": "5cb420b0e41d5c8026e6c51fd3117a6ae8ed77fe99874d2dc6002beb4b0bd95b"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01client_py",
+      "operation": "replace",
+      "before": "73cc21f9347453bac52616979d45266f6ab023cf6232b29ae6560ea1fa80abe0",
+      "after": "8c4629c9f3425f1aa7ec7d6d33cdda3f21cda917ee0235d1abffaef6372961a1"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01compat_py",
+      "operation": "replace",
+      "before": "404e53f450a78ce05dd8cfc282cc105cb647ea6d7ee53435d99689fb753587ef",
+      "after": "acf6f3ae92fe73214273b7971bb62337a3a6c0fbd045fb85acf6a59b4543378f"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01nodes_py",
+      "operation": "replace",
+      "before": "322d02cd0467b63684935f7042776df7b3bc75d40cd50760883b15048ea18a9d",
+      "after": "2eab3384fa3fbd4782ce403de642a02f3a9c26f6a988009f0c9e8a8b3ae93e67"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01projection_py",
+      "operation": "replace",
+      "before": "d36602e458e47bf5fed8432882c829ed424263a7be97fde04c438013257390d5",
+      "after": "ac5c9e5fc47ff5c6765967ceca354750d84cdbc700f9143b9cbdbe8455a072df"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01routes_py",
+      "operation": "replace",
+      "before": "9481fbc4241e2b4363800c84c468cd89582367c9ecf52dfc8ef2f53d6212fff5",
+      "after": "d77103c9628bded79143c33c534a2474a89b3063a6979b1fe9af20f5e7fbddef"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01video_py",
+      "operation": "replace",
+      "before": "4a68b60806cfce1e06712f0dcee3e0adef07d96ab553ce070d9c25bbfcf3aae4",
+      "after": "abba994f7b8b8f8c424be4ea46339b2710b0f92ed1b0b5a2ae3597fb685b0480"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01configuration_py",
+      "operation": "replace",
+      "before": "e8a3a63f2255d0fd36d795a5558c61e5705a8332eca35e17060b3cfb31160a0e",
+      "after": "58f45955b3a30a786cbebf74f6ebd94073c3e7e163d8a20ddaa9ea94fd6f2d34"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01image_transport_py",
+      "operation": "replace",
+      "before": "b855df55ecf95d08d0aae6972a8f31ddb09945ea4686888ba28c9bef660761f0",
+      "after": "abebb6011eae69993f5077873663557408996415b824b2eabcef3a588ca2a9c5"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01media_py",
+      "operation": "replace",
+      "before": "28f4680749b6ae634f0df6781c292aec0ed9e479a7fd305930a3fa4362a895bc",
+      "after": "c44e8ad04a968664440dfe1b5856cb799c872760c19a21e175a0a92221f0256a"
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01models_py",
+      "operation": "replace",
+      "before": "49dba07e5569019bdcdf5066b8a6855b1aed98d2f8491bb6dd78fc8ac3b6d4b4",
+      "after": "743595402a2df614e85501e3d105e0b28acd7d360cce7ec8bb7ca997de15b020"
+    },
+    {
+      "path": "/surfaces/product_owned/database_migrations/src~01openrouter_video~01persistence_py",
+      "operation": "replace",
+      "before": "da8297880feb43f6bb4bfd54b8b677462d0b859c72e72e1a78b0bd6d0a38cff4",
+      "after": "62369d569597f088de397b945b524551bbb6a3dc4514037ec42458b7078cbc2b"
+    },
+    {
+      "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01data~01capability-evidence_json",
+      "operation": "replace",
+      "before": "ec25bd96a4b12bdb9b0b3b0559dfd8c113c7f2ebf34824719303f044b592844a",
+      "after": "8f029442dd4b361c432fdcca2b682eedc44069a4ac57433b806e5a7eaa18a6cb"
+    },
+    {
+      "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01evidence_registry_py",
+      "operation": "replace",
+      "before": "5586744579d6ebae23c4176d78ae9f9b4a5335aa3978c781f9027adfcd2da457",
+      "after": "8d4cf176439faa8ca3578429db7a2bfee7c8cc7d2413ffc56d469cb8f8dc9b97"
+    },
+    {
+      "path": "/surfaces/product_owned/native_media/src~01openrouter_video~01comfy~01native_media_py",
+      "operation": "replace",
+      "before": "b299ac091d9191f3dcd35b8611b4b88cba0faa302a0bc9c5502d8c78afea435e",
+      "after": "55f0b01337e200732d7290d1cc05bc305712186bf6bedf42caebf834d21f8541"
+    },
+    {
+      "path": "/surfaces/product_owned/pricing/src~01openrouter_video~01pricing_py",
+      "operation": "replace",
+      "before": "c73360cad870769b21545b9453a5af5e38922812207075488d4ee596ea9e4e52",
+      "after": "f2e53621eaedd3e90ec62d28ab62df1e393839d83b81678a62463a17dc2884f4"
+    },
+    {
+      "path": "/surfaces/product_owned/recipes/src~01openrouter_video~01recipes_py",
+      "operation": "replace",
+      "before": "9c8927ff3aabd3788465a9b27348d5bfc851dfc816e41510188c5854b4a4fb70",
+      "after": "29b11a33ae507c378213eb5ec619d72aaa614d47588c2e30057c7392a056cb53"
+    },
+    {
+      "path": "/surfaces/product_owned/storage/src~01openrouter_video~01local_media_py",
+      "operation": "replace",
+      "before": "67ecfd50ba69076b254c6dfee979535ef0e65d7b62c8f9627d95ec8efdf5fce6",
+      "after": "9ed03216faa922f9bc95735304b33ddc4727df79a16446959192926f7a35cd23"
+    },
+    {
+      "path": "/surfaces/product_owned/submit_resume/src~01openrouter_video~01application_py",
+      "operation": "replace",
+      "before": "0b01e0cdf2a479749c414c0ee3c11d3187eed17957d3faed97c4b4d0bad5fe2a",
+      "after": "6f86c4c1367046a65946d0e4f69d07f5e1cffd6b48669cf410174e62aad48aa3"
+    },
+    {
+      "path": "/surfaces/product_owned/submit_resume/src~01openrouter_video~01comfy~01runtime_py",
+      "operation": "replace",
+      "before": "5690f3efb49086147a307b920841e3e6ec9f750fa0e3e9dbec51f0c5552a45c3",
+      "after": "2a8ee08cc62b029637eb9226101d99077ac90799885ba9a65553941b4873ab4c"
+    },
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operation": "replace",
+      "before": "ff031603b9ff464096aaae8986970d92984b14f32ad5c92116cf876ecdcd981c",
+      "after": "3bf1a4c000cd9b13f4be74f274114c81688b398c9534f1bfc36e81d69b5c5d51"
+    }
+  ],
+  "UNAUTHORIZED_DELTA": [],
+  "UNCHANGED_PROTECTED_SURFACES": [
+    "/surfaces/product_owned/security",
+    "/surfaces/product_owned/submit_resume/src~01openrouter_video~01execution_hooks_py",
+    "/surfaces/product_owned/AppIdentity",
+    "/surfaces/product_owned/storage/src~01openrouter_video~01s3_upload_py",
+    "/surfaces/product_owned/storage/src~01openrouter_video~01staging_py"
+  ],
+  "UNKNOWN_DYNAMIC_SURFACES": [],
+  "OBSERVED_EVIDENCE_CHANGES": [],
+  "ACCEPTED_CONTRACT_DIGEST": "sha256:a2987facf690f1df565e246087f0bc54573f50a1fa80a74a8cfc8a5b1a4c57f5",
+  "CURRENT_CONTRACT_DIGEST": "sha256:a2eb437e5d1c311c0000402130a1b3d3c00c2cf4dbe3caa94a16ab94fb52bb97",
+  "CONTRACT_DELTA_DIGEST": "sha256:1c59ef72ddbbc2380119ad2ffe6e762f714ad01e802ed5c0ca0bead1e531b3ce"
+}

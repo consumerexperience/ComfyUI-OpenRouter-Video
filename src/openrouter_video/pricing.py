@@ -1,56 +1,272 @@
-"""Conservative, model-agnostic preflight cost estimation from catalogue evidence."""
+"""Pure evidence-scoped preflight estimates; never grants submission authority."""
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, replace
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Final
+from itertools import product
+from typing import Any
 
-from openrouter_video.capabilities import (
-    CapabilityModeStatus,
-    mode_enforcement_matrix,
-)
+from openrouter_video.capabilities import CapabilityModeStatus, mode_enforcement_matrix
+from openrouter_video.local_media import LocalMedia
 from openrouter_video.models import (
     InferenceMethod,
     InputReferenceKind,
     ModelCapabilities,
-    PricingEvidence,
+    ProviderOption,
 )
-from openrouter_video.pricing_profile import PricingUnit, normalize_pricing
+from openrouter_video.pricing_profile import (
+    ChargeBreakdown,
+    TariffCase,
+    TariffProfile,
+    decimal_value,
+    evaluate_charge_plan,
+    load_profiles,
+    normalize_rate,
+)
 
-_PER_SECOND: Final = "per-video-second"
-_RESOLUTION_SKU = re.compile(r"^per-video-second-(?P<resolution>[a-z0-9]+)$")
+RULES_VERSION = "ACI-1.0"
 
 
 class EstimateAvailability(str, Enum):
-    """Whether current catalogue evidence supports a numeric estimate."""
-
     AVAILABLE = "AVAILABLE"
     UNAVAILABLE = "UNAVAILABLE"
 
 
+class EstimateState(str, Enum):
+    FORMULA = "FORMULA"
+    RANGE = "RANGE"
+    RATE_ONLY = "RATE_ONLY"
+    PARTIAL = "PARTIAL"
+    STALE = "STALE"
+    UNKNOWN = "UNKNOWN"
+    INVALID = "INVALID"
+
+
+@dataclass(frozen=True, slots=True)
+class MediaCostMetadata:
+    """One active occurrence, containing only safe scalar read-only metadata."""
+
+    kind: InputReferenceKind
+    role: str = "reference"
+    duration_seconds: Decimal | None = None
+    width: int | None = None
+    height: int | None = None
+    fps: Decimal | None = None
+    status: str = "UNKNOWN"
+    occurrence_index: int | None = None
+    context_revision: int | None = None
+
+    def __post_init__(self) -> None:
+        roles = {"reference", "source_video", "first_frame", "last_frame", "audio"}
+        if self.role not in roles or self.status not in {"KNOWN", "HINT", "UNKNOWN"}:
+            raise ValueError("invalid_media_metadata")
+        if self.role == "source_video" and self.kind is not InputReferenceKind.VIDEO:
+            raise ValueError("invalid_media_role")
+        if self.role in {"first_frame", "last_frame"} and self.kind is not InputReferenceKind.IMAGE:
+            raise ValueError("invalid_media_role")
+        if self.role == "audio" and self.kind is not InputReferenceKind.AUDIO:
+            raise ValueError("invalid_media_role")
+        for counter, maximum in (
+            (self.occurrence_index, 63),
+            (self.context_revision, 9007199254740991),
+        ):
+            if counter is not None and (type(counter) is not int or not 0 <= counter <= maximum):
+                raise ValueError("invalid_media_occurrence_revision")
+        for value in (self.duration_seconds, self.fps):
+            if value is not None and not 0 < decimal_value(value) <= 1000000:
+                raise ValueError("invalid_media_quantity")
+        for dimension in (self.width, self.height):
+            if dimension is not None and (
+                type(dimension) is not int or not 0 < dimension <= 100000
+            ):
+                raise ValueError("invalid_media_geometry")
+        if (self.width is None) != (self.height is None):
+            raise ValueError("incomplete_media_geometry")
+        if self.status == "UNKNOWN" and any(
+            value is not None
+            for value in (
+                self.duration_seconds,
+                self.width,
+                self.height,
+                self.fps,
+            )
+        ):
+            raise ValueError("unknown_metadata_has_values")
+
+
+def metadata_from_local_media(
+    media: LocalMedia,
+    *,
+    kind: InputReferenceKind,
+    role: str,
+) -> MediaCostMetadata:
+    """Read existing native callbacks only; never encode, open files, execute or upload."""
+    duration, width, height = None, None, None
+    try:
+        if media.duration is not None:
+            # Existing host callbacks use floats. Convert their textual metadata once;
+            # monetary rates and arithmetic never enter through binary floating point.
+            duration = decimal_value(str(media.duration()))
+        if media.geometry is not None:
+            width, height = media.geometry()
+        return MediaCostMetadata(kind, role, duration, width, height, status="KNOWN")
+    except (ValueError, TypeError, ArithmeticError):
+        return MediaCostMetadata(kind, role)
+
+
+@dataclass(frozen=True, slots=True)
+class CostProviderControl:
+    """A bounded neutral-control descriptor. Text content is never accepted."""
+
+    provider: str
+    key: str
+    number_value: Decimal | None = None
+    text_length: int | None = None
+
+    def __post_init__(self) -> None:
+        if (
+            not isinstance(self.provider, str)
+            or len(self.provider) > 64
+            or not re.fullmatch(
+                r"[a-z0-9]+(?:-[a-z0-9]+)*",
+                self.provider,
+            )
+            or not isinstance(self.key, str)
+            or not re.fullmatch(r"[a-z][a-z0-9_]{0,63}", self.key)
+        ):
+            raise ValueError("invalid_cost_provider_identifier")
+        if (self.number_value is None) == (self.text_length is None):
+            raise ValueError("cost_provider_descriptor_requires_one_value")
+        if self.number_value is not None:
+            decimal_value(self.number_value)
+        if self.text_length is not None and (
+            type(self.text_length) is not int or not 0 <= self.text_length <= 65536
+        ):
+            raise ValueError("unbounded_cost_provider_text_length")
+
+
 @dataclass(frozen=True, slots=True)
 class CostEstimateInputs:
-    """Non-sensitive selected configuration used by the estimator."""
+    """Effective cost-only configuration. No prompt, URL, path or graph identifiers."""
 
     model_id: str
     duration: int | None = None
     resolution: str | None = None
     aspect_ratio: str | None = None
     size: str | None = None
-    generate_audio: bool = False
+    generate_audio: bool | None = False
     inference_method: InferenceMethod = InferenceMethod.T2V
     reference_kinds: tuple[InputReferenceKind, ...] = ()
     reference_count: int = 0
     source_video_present: bool = False
+    schema_version: int = 1
+    context_revision: int = 0
+    media: tuple[MediaCostMetadata, ...] = ()
+    upscale_factor: int | Decimal | None = None
+    creativity: int | None = None
+    effective_output_seconds: Decimal | None = None
+    provider_policy_version: str | None = None
+    provider_controls: tuple[CostProviderControl, ...] = ()
+
+
+def project_cost_provider_controls(
+    capabilities: ModelCapabilities,
+    inputs: CostEstimateInputs,
+) -> tuple[ProviderOption, ...] | None:
+    """Intersect exact neutral tariff data with current Core's typed/live validation.
+
+    A synthetic string validates only the original text's reported type/length.
+    No source content is copied, serialized or permitted to affect pricing intent.
+    """
+    if not inputs.provider_controls:
+        return ()
+    if len(inputs.provider_controls) > 8 or inputs.provider_policy_version != RULES_VERSION:
+        return None
+    profile = next(
+        (
+            profile
+            for profile in load_profiles()
+            if profile.model_id == capabilities.model_id
+            and profile.canonical_slug == capabilities.canonical_slug
+        ),
+        None,
+    )
+    if profile is None:
+        return None
+    from openrouter_video.configuration import project_method, project_semantic_values
+
+    core = project_method(capabilities, inputs.inference_method.value)
+    current = core.get("controls", {}).get("provider_options", {})
+    seen: set[tuple[str, str]] = set()
+    options: list[ProviderOption] = []
+    for descriptor in inputs.provider_controls:
+        identity = (descriptor.provider, descriptor.key)
+        policy = next(
+            (
+                policy
+                for policy in profile.neutral_controls
+                if (policy.provider, policy.key) == identity
+                and inputs.inference_method.value in policy.methods
+            ),
+            None,
+        )
+        if identity in seen:
+            raise ValueError("duplicate_cost_provider_descriptor")
+        if policy is None:
+            return None
+        seen.add(identity)
+        spec = current.get("providers", {}).get(descriptor.provider, {}).get(descriptor.key)
+        if (
+            not isinstance(spec, dict)
+            or spec.get("type") != policy.type
+            or any(
+                field in spec
+                for field in ("container", "omits_controls", "format", "fields", "items", "values")
+            )
+        ):
+            return None
+        value: str | float
+        if policy.type == "string":
+            if (
+                descriptor.text_length is None
+                or descriptor.number_value is not None
+                or "values" in spec
+            ):
+                raise ValueError("cost_provider_descriptor_type_mismatch")
+            value = "x" * descriptor.text_length
+        else:
+            if descriptor.number_value is None or descriptor.text_length is not None:
+                raise ValueError("cost_provider_descriptor_type_mismatch")
+            value = float(decimal_value(descriptor.number_value))
+        options.append(ProviderOption(descriptor.provider, descriptor.key, value))
+    # Reuse the existing validator and live passthrough allowlist, not a second
+    # numeric/domain implementation. The result stays inside the estimate branch.
+    project_semantic_values(
+        capabilities,
+        inputs.inference_method.value,
+        {
+            "provider_options": tuple(options),
+            "duration": inputs.duration,
+            "resolution": inputs.resolution,
+            "aspect_ratio": inputs.aspect_ratio,
+            "size": inputs.size,
+            "generate_audio": inputs.generate_audio,
+            "geometry_authority": "EXACT" if inputs.size else "NORMALIZED",
+        },
+    )
+    return tuple(options)
 
 
 @dataclass(frozen=True, slots=True)
 class EstimateResult:
-    """A prepared frontend-safe estimate result without raw pricing evidence."""
+    """Compatibility envelope; a numeric total exists only for complete FORMULA."""
 
     availability: EstimateAvailability
     observed_at: datetime
@@ -58,14 +274,56 @@ class EstimateResult:
     provenance: str | None = None
     applied_skus: tuple[str, ...] = ()
     reason: str | None = None
+    state: EstimateState = EstimateState.UNKNOWN
+    amount_usd: Decimal | None = None
+    lower_usd: Decimal | None = None
+    upper_usd: Decimal | None = None
+    range_kind: str | None = None
+    rate_usd: Decimal | None = None
+    rate_unit: str | None = None
+    breakdown: tuple[ChargeBreakdown, ...] = ()
+    assumptions: tuple[str, ...] = ()
+    reason_codes: tuple[str, ...] = ()
+    snapshot_hash: str | None = None
+    rates_hash: str | None = None
+    rules_version: str = RULES_VERSION
+    context_revision: int = 0
+    planning: Mapping[str, object] | None = None
+    precompletion_advisory: Mapping[str, object] | None = None
+    validation_details: tuple[Mapping[str, object], ...] = ()
+
+    def __post_init__(self) -> None:
+        # Old positional constructors retain their behavior and gain the new contract.
+        if self.availability is EstimateAvailability.AVAILABLE:
+            if self.estimated_cost_usd is None:
+                raise ValueError("available_estimate_requires_amount")
+            object.__setattr__(self, "state", EstimateState.FORMULA)
+            object.__setattr__(self, "amount_usd", self.estimated_cost_usd)
+        elif self.estimated_cost_usd is not None or self.amount_usd is not None:
+            raise ValueError("incomplete_estimate_cannot_have_total")
+        if not self.reason_codes and self.reason:
+            object.__setattr__(self, "reason_codes", (self.reason,))
 
     @classmethod
-    def unavailable(cls, observed_at: datetime, reason: str) -> EstimateResult:
-        return cls(EstimateAvailability.UNAVAILABLE, observed_at, reason=reason)
+    def unavailable(
+        cls,
+        observed_at: datetime,
+        reason: str,
+        *,
+        state: EstimateState = EstimateState.UNKNOWN,
+        context_revision: int = 0,
+    ) -> EstimateResult:
+        return cls(
+            EstimateAvailability.UNAVAILABLE,
+            observed_at,
+            reason=reason,
+            state=state,
+            context_revision=context_revision,
+        )
 
 
 class PreflightCostEstimator:
-    """Estimate only documented, unambiguous generic SKU shapes."""
+    """One exact-profile resolver and one Decimal arithmetic implementation."""
 
     __slots__ = ()
 
@@ -76,48 +334,285 @@ class PreflightCostEstimator:
         *,
         observed_at: datetime,
     ) -> EstimateResult:
-        if inputs.model_id not in {capabilities.model_id, capabilities.canonical_slug}:
-            return EstimateResult.unavailable(observed_at, "model_mismatch")
-        if inputs.size is not None and (
-            inputs.resolution is not None or inputs.aspect_ratio is not None
-        ):
-            return EstimateResult.unavailable(observed_at, "geometry_intent_conflict")
-        selected_values: tuple[tuple[object | None, tuple[object, ...] | None], ...] = (
-            (inputs.duration, capabilities.supported_durations),
-            (inputs.resolution, capabilities.supported_resolutions),
-            (inputs.aspect_ratio, capabilities.supported_aspect_ratios),
-            (inputs.size, capabilities.supported_sizes),
-        )
-        if any(
-            selected is not None and (supported is None or selected not in supported)
-            for selected, supported in selected_values
-        ):
-            return EstimateResult.unavailable(observed_at, "configuration_not_authorized")
-        if inputs.generate_audio and capabilities.generate_audio is not True:
-            return EstimateResult.unavailable(observed_at, "configuration_not_authorized")
-        if inputs.reference_count != len(inputs.reference_kinds) or inputs.reference_count < 0:
-            return EstimateResult.unavailable(observed_at, "reference_topology_invalid")
-        if (
-            mode_enforcement_matrix(capabilities)[inputs.inference_method]
-            is not CapabilityModeStatus.READY
-        ):
-            return EstimateResult.unavailable(observed_at, "inference_method_not_authorized")
-        evidence = capabilities.pricing_evidence
-        if evidence is not None and any(
-            sku.key.startswith(
-                (
-                    "duration_seconds",
-                    "cents_",
-                    "video_tokens",
-                    "minimum_",
-                    "text_to_video_",
-                    "image_to_video_",
-                    "reference_",
-                )
+        inputs = canonicalize_cost_metadata(inputs)
+        try:
+            neutral = project_cost_provider_controls(capabilities, inputs)
+        except ValueError:
+            return EstimateResult.unavailable(
+                observed_at,
+                "provider_control_invalid",
+                state=EstimateState.INVALID,
+                context_revision=inputs.context_revision,
             )
-            for sku in evidence.skus
+        if neutral is None:
+            return EstimateResult.unavailable(
+                observed_at,
+                "provider_configuration_pricing_unverified",
+                context_revision=inputs.context_revision,
+            )
+        reason = _invalid_reason(capabilities, inputs)
+        if reason:
+            return EstimateResult.unavailable(
+                observed_at,
+                reason,
+                state=EstimateState.INVALID,
+                context_revision=inputs.context_revision,
+            )
+        inventory = media_inventory_status(inputs)
+        if inventory is not None:
+            return EstimateResult.unavailable(
+                observed_at,
+                inventory,
+                state=EstimateState.INVALID
+                if inventory == "active_occurrence_metadata_invalid"
+                else EstimateState.UNKNOWN,
+                context_revision=inputs.context_revision,
+            )
+        evidence = capabilities.pricing_evidence
+        if evidence is None or not evidence.skus:
+            return EstimateResult.unavailable(
+                observed_at,
+                "pricing_evidence_unavailable",
+                context_revision=inputs.context_revision,
+            )
+        try:
+            rates = {sku.key: decimal_value(sku.rate_usd) for sku in evidence.skus}
+            if len(rates) != len(evidence.skus):
+                raise ValueError("duplicate_pricing_sku")
+        except ValueError:
+            return EstimateResult.unavailable(
+                observed_at, "pricing_rate_invalid", context_revision=inputs.context_revision
+            )
+        profiles = load_profiles()
+        profile = next((p for p in profiles if p.model_id == capabilities.model_id), None)
+        units = {
+            str(charge["sku"]): str(charge["unit"])
+            for rule in (() if profile is None else profile.rules)
+            for charge in rule.charges
+        }
+        identity = {
+            "endpoint_family": "video",
+            "model_id": capabilities.model_id,
+            "canonical_slug": capabilities.canonical_slug,
+            "currency": "USD",
+            "rates": {
+                key: {
+                    "unit": units.get(key, "RAW_UNCLASSIFIED"),
+                    "value": _canonical_decimal(
+                        normalize_rate(value, units[key]) if key in units else value
+                    ),
+                }
+                for key, value in sorted(rates.items())
+            },
+        }
+        rates_hash = hashlib.sha256(
+            json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        legacy_units = set(rates) == {"generate"} or all(
+            key == "per-video-second" or re.fullmatch(r"per-video-second-[a-z0-9]+", key)
+            for key in rates
+        )
+        legacy_bridge = (
+            legacy_units
+            and set(rates) != {"generate"}
+            and profile is not None
+            and capabilities.canonical_slug == profile.canonical_slug
+            and inputs.inference_method is InferenceMethod.T2V
+            and not inputs.reference_kinds
+            and inputs.reference_count == 0
+            and not inputs.source_video_present
+            and not inputs.media
+            and _legacy_profile_is_complete(profile, inputs)
+        )
+        if legacy_bridge or profile is None:
+            result = self._legacy(capabilities, inputs, observed_at, rates)
+        elif legacy_units:
+            result = EstimateResult.unavailable(observed_at, "legacy_pricing_scope_unverified")
+        elif capabilities.canonical_slug != profile.canonical_slug:
+            result = EstimateResult.unavailable(observed_at, "canonical_revision_unverified")
+        elif set(rates) - set(profile.known_skus):
+            known = self._profile(profile, capabilities, inputs, observed_at, rates)
+            result = EstimateResult(
+                EstimateAvailability.UNAVAILABLE,
+                observed_at,
+                reason="unclassified_pricing_sku",
+                state=EstimateState.PARTIAL,
+                rate_usd=known.rate_usd,
+                rate_unit=known.rate_unit,
+                breakdown=known.breakdown,
+                assumptions=known.assumptions,
+                applied_skus=known.applied_skus,
+            )
+        else:
+            result = self._profile(profile, capabilities, inputs, observed_at, rates)
+        if (
+            profile is not None
+            and profile.planning_policy is not None
+            and not legacy_units
+            and capabilities.canonical_slug == profile.canonical_slug
+            and set(rates) == set(profile.known_skus)
+            and result.state
+            in {EstimateState.PARTIAL, EstimateState.RATE_ONLY, EstimateState.UNKNOWN}
+            and result.reason
+            not in {"exclusive_rule_conflict", "alias_rates_diverged", "alias_evidence_unavailable"}
+            and inputs.schema_version == 2
         ):
-            return self._current_vocabulary(capabilities, inputs, observed_at)
+            from openrouter_video.pricing_planning import plan_scenarios
+
+            result = replace(result, planning=plan_scenarios(profile, inputs, rates))
+        if any(control.text_length is not None for control in inputs.provider_controls):
+            result = replace(
+                result,
+                assumptions=result.assumptions
+                + (
+                    "Pricing-neutral text content is redacted; "
+                    "its reported length is a client hint. "
+                    "Generation retains the existing full control validation.",
+                ),
+            )
+        return replace(result, rates_hash=rates_hash, context_revision=inputs.context_revision)
+
+    def _profile(
+        self,
+        profile: TariffProfile,
+        capabilities: ModelCapabilities,
+        inputs: CostEstimateInputs,
+        observed_at: datetime,
+        rates: Mapping[str, object],
+    ) -> EstimateResult:
+        resolution, width, height, assumptions = _geometry(profile, inputs)
+        context = _profile_context(profile, inputs, resolution)
+        matches = [rule for rule in profile.rules if _matches(rule, context)]
+        if len(matches) != 1:
+            reason = "exclusive_rule_conflict" if matches else profile.default_reason
+            return EstimateResult.unavailable(observed_at, reason)
+        rule = matches[0]
+        if not rule.active:
+            return EstimateResult.unavailable(
+                observed_at,
+                rule.reason or "tariff_semantics_unresolved",
+                state=EstimateState.PARTIAL
+                if rule.expected_state == "PARTIAL"
+                else EstimateState.UNKNOWN,
+            )
+        if rule.require_equal_skus:
+            try:
+                aliases = [decimal_value(rates[key]) for key in rule.require_equal_skus]
+            except (KeyError, ValueError):
+                return EstimateResult.unavailable(observed_at, "alias_evidence_unavailable")
+            if len(set(aliases)) != 1:
+                return EstimateResult.unavailable(observed_at, "alias_rates_diverged")
+        if rule.expected_state in {"UNKNOWN", "INVALID", "STALE"}:
+            return EstimateResult.unavailable(
+                observed_at,
+                rule.reason or "tariff_semantics_unresolved",
+                state=EstimateState(rule.expected_state),
+            )
+        values: dict[str, object] = {
+            "output_seconds": inputs.duration if inputs.duration != -1 else None,
+            "width": width,
+            "height": height,
+            "reference_images": sum(
+                kind is InputReferenceKind.IMAGE for kind in inputs.reference_kinds
+            ),
+            "active_image_inputs": sum(
+                kind is InputReferenceKind.IMAGE for kind in inputs.reference_kinds
+            )
+            + (
+                1
+                if inputs.inference_method is InferenceMethod.I2V
+                else 2
+                if inputs.inference_method is InferenceMethod.FLF2V
+                else 0
+            ),
+            "effective_output_seconds": None,  # client scalar is not authoritative billing duration
+        }
+        sources = [
+            item
+            for item in inputs.media
+            if item.role == "source_video" and item.status in {"KNOWN", "HINT"}
+        ]
+        if len(sources) == 1:
+            values["source_seconds"] = sources[0].duration_seconds
+            if sources[0].status == "HINT":
+                assumptions += (
+                    "Source duration comes from an already loaded media preview; "
+                    "it is an estimate hint, not authoritative delivered usage.",
+                )
+            if profile.metadata_policy == "UPSCALE_SOURCE_24":
+                # Native output geometry/cap rounding is not established by the
+                # source size or factor. Keep the applicable rate until authoritative
+                # delivered geometry is available through ordinary materialization.
+                values["width"], values["height"] = None, None
+        plan = evaluate_charge_plan(rule.charges, values, rates=rates)
+        rows = tuple(replace(row, evidence=rule.evidence) for row in plan.breakdown)
+        if rule.expected_state == "FORMULA" and plan.state == "FORMULA":
+            return EstimateResult(
+                EstimateAvailability.AVAILABLE,
+                observed_at,
+                plan.amount_usd,
+                "evidence-scoped catalogue tariff",
+                tuple(row.sku for row in rows),
+                breakdown=rows,
+                assumptions=assumptions
+                + ("Advisory continuous formula; provider billing may differ.",),
+            )
+        state = (
+            EstimateState.PARTIAL
+            if rule.expected_state == "PARTIAL" or plan.state == "PARTIAL"
+            else EstimateState.UNKNOWN
+        )
+        rate, unit = None, None
+        bases = [
+            charge
+            for index, charge in enumerate(rule.charges)
+            if charge.get("relation", "base" if index == 0 else "add") == "base"
+        ]
+        single_rate_with_floor = (
+            rule.expected_state in {"RATE_ONLY", "FORMULA"}
+            and len(bases) == 1
+            and all(
+                charge is bases[0] or charge.get("relation") == "minimum" for charge in rule.charges
+            )
+        )
+        if len(rule.charges) == 1 or single_rate_with_floor:
+            charge = bases[0]
+            try:
+                rate = normalize_rate(rates[str(charge["sku"])], str(charge["unit"]))
+                unit = _rate_unit(str(charge["quantity"]), charge.get("rate_unit"))
+            except (KeyError, ValueError):
+                pass
+            if (
+                rate is not None
+                and unit is not None
+                and rule.expected_state in {"FORMULA", "RATE_ONLY"}
+            ):
+                state = EstimateState.RATE_ONLY
+        return EstimateResult(
+            EstimateAvailability.UNAVAILABLE,
+            observed_at,
+            reason=(
+                "delivered_output_geometry_or_fps_unproven"
+                if profile.metadata_policy == "UPSCALE_SOURCE_24"
+                else rule.reason or plan.reason or "billing_quantity_unavailable"
+            ),
+            state=state,
+            rate_usd=rate,
+            rate_unit=unit,
+            breakdown=rows,
+            assumptions=assumptions,
+            applied_skus=tuple(row.sku for row in rows),
+        )
+
+    def _legacy(
+        self,
+        capabilities: ModelCapabilities,
+        inputs: CostEstimateInputs,
+        observed_at: datetime,
+        rates: Mapping[str, object],
+    ) -> EstimateResult:
+        # The original documented generic vocabulary remains compatible. Current
+        # opaque catalogue keys require an exact evidence profile, never a name pattern.
         if inputs.source_video_present or InputReferenceKind.VIDEO in inputs.reference_kinds:
             return EstimateResult.unavailable(
                 observed_at, "video_input_pricing_semantics_ambiguous"
@@ -126,123 +621,982 @@ class PreflightCostEstimator:
             return EstimateResult.unavailable(
                 observed_at, "audio_input_pricing_semantics_ambiguous"
             )
-        evidence = capabilities.pricing_evidence
-        if evidence is None or not evidence.skus:
-            return EstimateResult.unavailable(observed_at, "pricing_evidence_unavailable")
-
-        rates = {sku.key: sku.rate_usd for sku in evidence.skus}
-        if len(rates) == 1 and "generate" in rates:
+        if inputs.duration == -1:
+            return EstimateResult.unavailable(observed_at, "automatic_duration_unknown")
+        unit = "USD"
+        if set(rates) == {"generate"}:
+            key, quantity = "generate", "fixed"
+        elif (
+            len(rates) == 1
+            and inputs.inference_method in {InferenceMethod.T2V, InferenceMethod.I2V}
+            and not inputs.reference_kinds
+            and (
+                match := re.fullmatch(
+                    r"(duration_seconds|cents_per_video_output_second)(?:_(\d+p|\d+[kK]))?",
+                    next(iter(rates)),
+                )
+            )
+            is not None
+        ):
+            key = next(iter(rates))
+            if match.group(2) and (
+                inputs.resolution is None
+                or match.group(2).casefold() != inputs.resolution.casefold()
+            ):
+                return EstimateResult.unavailable(observed_at, "matching_pricing_sku_unavailable")
+            if inputs.duration is None or inputs.duration <= 0:
+                return EstimateResult.unavailable(observed_at, "duration_required_for_pricing")
+            quantity = "output_seconds"
+            unit = "USD" if match.group(1) == "duration_seconds" else "cents"
+        elif all(
+            key == "per-video-second" or re.fullmatch(r"per-video-second-[a-z0-9]+", key)
+            for key in rates
+        ):
+            specific = f"per-video-second-{inputs.resolution.lower()}" if inputs.resolution else ""
+            key = specific if specific in rates else "per-video-second"
+            if key not in rates:
+                return EstimateResult.unavailable(observed_at, "matching_pricing_sku_unavailable")
+            if inputs.duration is None or inputs.duration <= 0:
+                return EstimateResult.unavailable(observed_at, "duration_required_for_pricing")
+            quantity = "output_seconds"
+        else:
+            # Existing explicitly structured output/image/floor units are reusable
+            # contracts, unlike opaque provider SKU names. Unknown charges or two
+            # competing base shapes still fail closed.
+            specific = f"cents_per_second_output_{inputs.resolution}" if inputs.resolution else ""
+            generic = "cents_per_second_output"
+            known = {"cents_per_image_input", "minimum_cents_per_generation"}
+            output_keys = {
+                candidate
+                for candidate in rates
+                if candidate == generic
+                or re.fullmatch(r"cents_per_second_output_[a-z0-9]+", candidate)
+            }
+            inactive = {
+                candidate
+                for candidate in rates
+                if re.fullmatch(r"cents_per_second_video_continuation_[a-z0-9]+", candidate)
+                and inputs.inference_method is InferenceMethod.T2V
+            }
+            if set(rates) - known - output_keys - inactive or not output_keys:
+                return EstimateResult.unavailable(observed_at, "pricing_sku_semantics_ambiguous")
+            if specific in output_keys and generic in output_keys:
+                return EstimateResult.unavailable(observed_at, "exclusive_rule_conflict")
+            key = specific if specific in output_keys else generic
+            if key not in rates:
+                return EstimateResult.unavailable(observed_at, "matching_pricing_sku_unavailable")
+            charges: list[Mapping[str, object]] = [
+                {"sku": key, "unit": "cents", "quantity": "output_seconds"},
+            ]
+            if "cents_per_image_input" in rates:
+                charges.append(
+                    {
+                        "sku": "cents_per_image_input",
+                        "unit": "cents",
+                        "quantity": "active_image_inputs",
+                        "relation": "add",
+                    }
+                )
+            if "minimum_cents_per_generation" in rates:
+                charges.append(
+                    {
+                        "sku": "minimum_cents_per_generation",
+                        "unit": "cents",
+                        "quantity": "fixed",
+                        "relation": "minimum",
+                    }
+                )
+            image_count = sum(kind is InputReferenceKind.IMAGE for kind in inputs.reference_kinds)
+            image_count += (
+                1
+                if inputs.inference_method is InferenceMethod.I2V
+                else 2
+                if inputs.inference_method is InferenceMethod.FLF2V
+                else 0
+            )
+            plan = evaluate_charge_plan(
+                charges,
+                {"output_seconds": inputs.duration, "active_image_inputs": image_count},
+                rates=rates,
+            )
+            if plan.state != "FORMULA":
+                return EstimateResult.unavailable(
+                    observed_at, plan.reason or "billing_quantity_unavailable"
+                )
             return EstimateResult(
                 EstimateAvailability.AVAILABLE,
                 observed_at,
-                estimated_cost_usd=rates["generate"],
-                provenance="catalogue pricing_skus.generate",
-                applied_skus=("generate",),
+                plan.amount_usd,
+                "documented structured output/image/minimum units",
+                tuple(row.sku for row in plan.breakdown),
+                breakdown=plan.breakdown,
             )
-
-        if inputs.duration is None or inputs.duration <= 0:
-            return EstimateResult.unavailable(observed_at, "duration_required_for_pricing")
-        if not _only_per_second_skus(evidence):
-            return EstimateResult.unavailable(observed_at, "pricing_sku_semantics_ambiguous")
-
-        resolution_key = f"{_PER_SECOND}-{inputs.resolution.lower()}" if inputs.resolution else None
-        if resolution_key is not None and resolution_key in rates:
-            selected_key = resolution_key
-        elif _PER_SECOND in rates:
-            selected_key = _PER_SECOND
-        else:
-            return EstimateResult.unavailable(observed_at, "matching_pricing_sku_unavailable")
-
-        estimated = rates[selected_key] * Decimal(inputs.duration)
+        plan = evaluate_charge_plan(
+            [{"sku": key, "unit": unit, "quantity": quantity}],
+            {"output_seconds": inputs.duration},
+            rates=rates,
+        )
+        if plan.state != "FORMULA":
+            return EstimateResult.unavailable(observed_at, plan.reason or "pricing_unavailable")
         return EstimateResult(
             EstimateAvailability.AVAILABLE,
             observed_at,
-            estimated_cost_usd=estimated,
-            provenance=f"catalogue pricing_skus.{selected_key} × duration",
-            applied_skus=(selected_key,),
+            plan.amount_usd,
+            f"catalogue pricing_skus.{key}",
+            (key,),
+            breakdown=plan.breakdown,
         )
 
-    def _current_vocabulary(
-        self, capabilities: ModelCapabilities, inputs: CostEstimateInputs, observed_at: datetime
-    ) -> EstimateResult:
-        evidence = capabilities.pricing_evidence
-        if evidence is None or inputs.duration is None:
-            return EstimateResult.unavailable(observed_at, "duration_required_for_pricing")
-        dimensions = normalize_pricing(evidence)
-        if any(d.unit is PricingUnit.UNKNOWN for d in dimensions):
-            return EstimateResult.unavailable(observed_at, "pricing_sku_semantics_ambiguous")
-        if (
-            inputs.source_video_present
-            or InputReferenceKind.VIDEO in inputs.reference_kinds
-            or InputReferenceKind.AUDIO in inputs.reference_kinds
-        ):
-            return EstimateResult.unavailable(observed_at, "input_media_charge_cannot_be_bounded")
-        if any(
-            d.unit in (PricingUnit.OUTPUT_TOKEN, PricingUnit.MEGAPIXEL_SECOND) for d in dimensions
-        ):
-            return EstimateResult.unavailable(
-                observed_at, "token_or_pixel_billing_quantity_unproven"
-            )
-        resolution = inputs.resolution
-        candidates = []
-        image_mode = inputs.inference_method is not InferenceMethod.T2V
-        for d in dimensions:
-            if d.unit is not PricingUnit.OUTPUT_SECOND:
-                continue
+
+def _profile_context(
+    profile: TariffProfile,
+    inputs: CostEstimateInputs,
+    resolution: str | None,
+) -> dict[str, object]:
+    """One predicate context shared by profile resolution and legacy compatibility."""
+    return {
+        "method": inputs.inference_method.value,
+        "resolution": resolution,
+        "generated_audio": (
+            profile.audio_default
+            if inputs.generate_audio is None and inputs.schema_version == 2
+            else inputs.generate_audio
+        ),
+        "has_video": inputs.source_video_present
+        or InputReferenceKind.VIDEO in inputs.reference_kinds,
+        "has_references": inputs.reference_count > 0,
+        "duration": inputs.duration,
+        "upscale_mode": None
+        if inputs.creativity is None
+        else ("precise" if inputs.creativity == 0 else "creative"),
+    }
+
+
+def _legacy_profile_is_complete(profile: TariffProfile, inputs: CostEstimateInputs) -> bool:
+    """A legacy unit cannot erase a current profile's unresolved charge relations."""
+    resolution, _, _, _ = _geometry(profile, inputs)
+    context = _profile_context(profile, inputs, resolution)
+    matches = [rule for rule in profile.rules if _matches(rule, context)]
+    if len(matches) != 1:
+        return False
+    rule = matches[0]
+    if not rule.active or rule.expected_state != "FORMULA" or rule.require_equal_skus:
+        return False
+    # A generic legacy per-second key does not identify a duration-conditioned
+    # tariff. Charge-plan completeness is not proof of an alias to either tier.
+    # Compare only otherwise applicable formula cases; do not infer aliases from
+    # coincident current prices or expand this into model-name policy.
+    if any(
+        alternative.active
+        and alternative.expected_state == "FORMULA"
+        and alternative.charges != rule.charges
+        and _matches(
+            replace(
+                alternative,
+                when=tuple(item for item in alternative.when if item[0] != "duration"),
+            ),
+            context,
+        )
+        for alternative in profile.rules
+    ):
+        return False
+    base_count = 0
+    for index, charge in enumerate(rule.charges):
+        relation = charge.get("relation", "base" if index == 0 else "add")
+        if relation == "base":
+            if charge["quantity"] != "output_seconds" or charge.get("free_allowance", 0) != 0:
+                return False
+            base_count += 1
+        elif relation == "add" and charge["quantity"] in {
+            "active_image_inputs",
+            "reference_images",
+        }:
+            # The caller requires effective T2V and no active media/reference/source
+            # occurrences. These counts are therefore exactly zero, independent of
+            # rate or any nonnegative free allowance. No other addition is omitted.
             if (
-                "video_continuation" in d.key
-                and inputs.inference_method is not InferenceMethod.V2V_EXTEND
+                inputs.reference_count
+                or inputs.reference_kinds
+                or inputs.media
+                or inputs.source_video_present
+            ):
+                return False
+        else:
+            return False
+    return base_count == 1
+
+
+def _matches(rule: TariffCase, context: Mapping[str, object]) -> bool:
+    # None is a genuine unknown, not false. An explicit null predicate can describe it.
+    return all(
+        any(
+            type(context.get(key)) is type(value) and context.get(key) == value for value in options
+        )
+        for key, options in rule.when
+    )
+
+
+def _canonical_decimal(value: Decimal) -> str:
+    text = format(value, "f")
+    return (text.rstrip("0").rstrip(".") or "0") if "." in text else text
+
+
+def _geometry(
+    profile: TariffProfile, inputs: CostEstimateInputs
+) -> tuple[str | None, int | None, int | None, tuple[str, ...]]:
+    resolution, size = inputs.resolution, inputs.size
+    assumptions: tuple[str, ...] = ()
+    if size:
+        tiers = {tier for tier, ratios in profile.geometry_map.items() if size in ratios.values()}
+        if len(tiers) == 1:
+            resolution = next(iter(tiers))
+    elif inputs.resolution and inputs.aspect_ratio:
+        size = profile.geometry_map.get(inputs.resolution, {}).get(inputs.aspect_ratio)
+        if profile.normalized_geometry_map is not None:
+            native = profile.normalized_geometry_map.get(inputs.resolution, {}).get(
+                inputs.aspect_ratio
+            )
+            if not native or native != size:
+                return (
+                    resolution,
+                    None,
+                    None,
+                    (
+                        "Normalized geometry unresolved: "
+                        "catalogue and native size evidence differ; "
+                        "explicit requested size remains unchanged.",
+                    ),
+                )
+        if size and profile.geometry_status == "EXPLICIT_CAPTURE_MAP_ESTIMATE_ASSUMPTION":
+            assumptions = (
+                "Geometry uses the explicit catalogue size mapping; "
+                "actual provider geometry may differ.",
+            )
+    if size and re.fullmatch(r"[1-9][0-9]{0,5}x[1-9][0-9]{0,5}", size):
+        width, height = (int(part) for part in size.split("x"))
+        return resolution, width, height, assumptions
+    return resolution, None, None, assumptions
+
+
+def _rate_unit(quantity: str, declared_unit: object) -> str | None:
+    units = {
+        "fixed": "generation",
+        "output_seconds": "s",
+        "source_seconds": "s",
+        "effective_output_seconds": "s",
+        "video_tokens_output_24": "token",
+        "megapixel_seconds_binary_output_24": "MP.s",
+        "megapixel_seconds": "MP.s",
+    }
+    # Unknown quantity has an explicit unit only for exact declared SKU references;
+    # this lookup is unit presentation, never charge selection or activation.
+    if quantity == "unknown":
+        return declared_unit if isinstance(declared_unit, str) else None
+    return units.get(quantity)
+
+
+def _completion_shapes(
+    profile: Mapping[str, Any], kinds: tuple[str, ...], source_present: bool
+) -> tuple[tuple[str, ...], ...]:
+    """Enumerate minimal documented completions; Core alone admits each shape."""
+    from openrouter_video.configuration import (
+        apply_transport_input_constraints,
+        projected_shape_valid,
+    )
+
+    topology = apply_transport_input_constraints(profile["topology"], source_present)
+    if topology.get("constraint_state", "SUPPORTED") != "SUPPORTED":
+        return ()
+    found: set[tuple[str, ...]] = set()
+    if topology.get("execution_domain") == "VERIFIED_CONFIGURATIONS":
+        for counts in topology.get("verified_configurations", []):
+            if any(kinds.count(k) > counts.get(k, 0) for k in set(kinds)):
+                continue
+            extra = tuple(
+                k
+                for k in ("image", "video", "audio")
+                for _ in range(counts.get(k, 0) - kinds.count(k))
+            )
+            candidate = kinds + extra
+            if projected_shape_valid(profile, candidate, source_present):
+                found.add(candidate)
+    else:
+        for group in topology.get("kind_sets", []):
+            group = tuple(sorted(set(group)))
+            if not set(kinds) <= set(group) or any(
+                k not in {"image", "video", "audio"} for k in group
             ):
                 continue
-            if "text_to_video_" in d.key and image_mode:
+            base = kinds + tuple(
+                k
+                for k in group
+                for _ in range(
+                    max(0, max(1, topology.get("per_kind_min", {}).get(k, 0)) - kinds.count(k))
+                )
+            )
+            remainder = max(0, topology.get("min", 0) - len(base))
+            if len(base) + remainder > 64:
                 continue
-            if "image_to_video_" in d.key and not image_mode:
+            # Three supported modalities and the existing 64-occurrence envelope
+            # bound this search. No model-specific completion or invented quantity.
+            splits = product(range(remainder + 1), repeat=max(0, len(group) - 1))
+            for head in splits:
+                tail = remainder - sum(head)
+                if tail < 0 or (not group and remainder):
+                    continue
+                counts = (*head, tail) if group else ()
+                candidate = base + tuple(
+                    k for k, count in zip(group, counts, strict=True) for _ in range(count)
+                )
+                if projected_shape_valid(profile, candidate, source_present):
+                    found.add(candidate)
+    # Each modality set retains its minimum completion, not a silently chosen set.
+    return tuple(sorted(found, key=lambda row: (len(row), row)))
+
+
+def _completion_prices(priced: EstimateResult, assumption: str) -> list[dict[str, Any]]:
+    """Adapt existing estimator evidence, preserving material billing caveats."""
+    if priced.state is EstimateState.FORMULA and priced.amount_usd is not None:
+        return [
+            dict(
+                label="Minimum completed configuration",
+                scope="COMPARISON",
+                sku=priced.applied_skus[0] if len(priced.applied_skus) == 1 else "combined_charges",
+                quantity="1",
+                quantity_unit="configuration",
+                amount_usd=format(priced.amount_usd, "f"),
+                assumption=assumption,
+                charges=[
+                    dict(
+                        sku=row.sku,
+                        unit=row.unit,
+                        quantity_unit="documented_quantity",
+                        quantity=format(row.quantity, "f") if row.quantity is not None else None,
+                        rate_usd=format(row.rate_usd, "f"),
+                        amount_usd=format(row.amount_usd, "f")
+                        if row.amount_usd is not None
+                        else None,
+                        relation=row.relation,
+                    )
+                    for row in priced.breakdown
+                ],
+            )
+        ]
+    rows = (priced.planning or {}).get("scenarios", [])
+    result = []
+    if isinstance(rows, list):
+        for row in rows:
+            if not isinstance(row, dict) or not isinstance(row.get("amount_usd"), str):
                 continue
-            if "with_audio" in d.key and not inputs.generate_audio:
+            if row.get("scope") not in {"COMPARISON", "COMPONENT", "CONDITIONAL_TOTAL"}:
                 continue
-            if "without_audio" in d.key and inputs.generate_audio:
-                continue
-            geometry = re.search(r"_(\d+p|\d+k)$", d.key)
-            if geometry and geometry.group(1) != resolution:
-                continue
-            candidates.append(d)
-        if not candidates:
-            return EstimateResult.unavailable(observed_at, "matching_pricing_sku_unavailable")
-        # Conservative upper estimate when generic and specialized prices coexist.
-        selected = max(candidates, key=lambda d: d.rate_usd)
-        estimated = selected.rate_usd * inputs.duration
-        applied = [selected.key]
-        for d in dimensions:
-            if d.unit is PricingUnit.IMAGE_INPUT:
-                count = sum(k is InputReferenceKind.IMAGE for k in inputs.reference_kinds)
-                if inputs.inference_method in (InferenceMethod.I2V, InferenceMethod.FLF2V):
-                    count = 1 if inputs.inference_method is InferenceMethod.I2V else 2
-                estimated += d.rate_usd * count
-                applied.append(d.key)
-            if d.unit is PricingUnit.MINIMUM:
-                estimated = max(estimated, d.rate_usd)
-                applied.append(d.key)
-        return EstimateResult(
-            EstimateAvailability.AVAILABLE,
-            observed_at,
-            estimated,
-            "catalogue typed SKU conservative output/input/minimum bound",
-            tuple(applied),
+            result.append(
+                dict(
+                    row,
+                    scope="COMPONENT" if row["scope"] == "COMPONENT" else "COMPARISON",
+                    assumption=f"{row.get('assumption', '')} {assumption}".strip(),
+                )
+            )
+    if not result:
+        for row in priced.breakdown:
+            if row.amount_usd is not None:
+                result.append(
+                    dict(
+                        label="Known cost component",
+                        scope="COMPONENT",
+                        sku=row.sku,
+                        quantity=str(row.quantity),
+                        quantity_unit="documented_quantity",
+                        amount_usd=format(row.amount_usd, "f"),
+                        assumption=(
+                            "Known component only; unestablished input charges are not zero. "
+                            f"{assumption}"
+                        ),
+                        charges=[],
+                    )
+                )
+    return result
+
+
+def precompletion_cost_estimate(
+    capabilities: ModelCapabilities, inputs: CostEstimateInputs, *, observed_at: datetime
+) -> EstimateResult | None:
+    """Financial-only completion across documented fixed/reference roles.
+
+    All hypothetical quantities remain UNKNOWN. Strict Core validation, tariff
+    applicability and generation readiness are never relaxed by this advisory.
+    """
+    from openrouter_video.configuration import (
+        configuration_status,
+        project_method,
+        project_semantic_values,
+    )
+
+    inputs = canonicalize_cost_metadata(inputs)
+    if inputs.schema_version != 2 or inputs.reference_count != len(inputs.reference_kinds):
+        return None
+    profile = project_method(capabilities, inputs.inference_method.value)
+    if profile["state"] != "SUPPORTED":
+        return None
+    kinds = tuple(kind.value for kind in inputs.reference_kinds)
+    references = tuple(item for item in inputs.media if item.role == "reference")
+    if tuple(item.kind.value for item in references) != kinds:
+        return None
+    role_kinds = {
+        "first_frame": InputReferenceKind.IMAGE,
+        "last_frame": InputReferenceKind.IMAGE,
+        "source_video": InputReferenceKind.VIDEO,
+        "audio": InputReferenceKind.AUDIO,
+    }
+    required = tuple(profile["topology"].get("fixed", []))
+    if any(role not in role_kinds for role in required):
+        return None
+    fixed = tuple(item for item in inputs.media if item.role != "reference")
+    if any(item.role not in required or item.kind is not role_kinds[item.role] for item in fixed):
+        return None
+    if any(sum(item.role == role for item in fixed) > 1 for role in required):
+        return None
+    # A source-presence flag without an occurrence is missing metadata, not a
+    # missing connection. Never replace it with an assumed financial quantity.
+    if inputs.source_video_present != any(item.role == "source_video" for item in fixed):
+        return None
+    missing_fixed = tuple(role for role in required if not any(item.role == role for item in fixed))
+    source = inputs.source_video_present or "source_video" in missing_fixed
+    shapes = _completion_shapes(profile, kinds, source)
+    if not shapes or (not missing_fixed and kinds in shapes):
+        return None
+    alternatives: list[list[dict[str, object]]] = []
+    scenarios: list[dict[str, Any]] = []
+    rates: list[dict[str, str]] = []
+    assumptions: list[str] = []
+    rates_hash = None
+    skus: set[str] = set()
+    for shape in shapes:
+        added = shape[len(kinds) :]
+        missing = [dict(kind=k, role="reference", count=added.count(k)) for k in sorted(set(added))]
+        missing.extend(
+            dict(kind=role_kinds[role].value, role=role, count=1) for role in missing_fixed
         )
-
-
-def _only_per_second_skus(evidence: PricingEvidence) -> bool:
-    for sku in evidence.skus:
-        if sku.key == _PER_SECOND:
+        if not missing:
             continue
-        if _RESOLUTION_SKU.fullmatch(sku.key) is None:
-            return False
-    return True
+        hypothetical_media = references + tuple(
+            MediaCostMetadata(kind=InputReferenceKind(k)) for k in added
+        )
+        hypothetical_media += tuple(
+            next(
+                (item for item in fixed if item.role == role),
+                MediaCostMetadata(kind=role_kinds[role], role=role),
+            )
+            for role in required
+        )
+        hypothetical_media = tuple(
+            replace(item, occurrence_index=index) if item.status == "HINT" else item
+            for index, item in enumerate(hypothetical_media)
+        )
+        hypothetical = replace(
+            inputs,
+            reference_kinds=tuple(InputReferenceKind(k) for k in shape),
+            reference_count=len(shape),
+            source_video_present=source,
+            media=hypothetical_media,
+        )
+        if _invalid_reason(capabilities, hypothetical) or media_inventory_status(hypothetical):
+            continue
+        raw = {
+            name: getattr(hypothetical, name)
+            for name in (
+                "duration",
+                "resolution",
+                "aspect_ratio",
+                "size",
+                "generate_audio",
+                "upscale_factor",
+                "creativity",
+            )
+        }
+        raw["geometry_authority"] = "EXACT" if hypothetical.size else "NORMALIZED"
+        try:
+            raw["provider_options"] = project_cost_provider_controls(capabilities, hypothetical)
+            projected = project_semantic_values(capabilities, inputs.inference_method.value, raw)
+        except ValueError:
+            continue
+        context = dict(
+            raw,
+            inference_method=inputs.inference_method.value,
+            reference_count=len(shape),
+            reference_kinds=list(shape),
+            source_video_present=source,
+        )
+        if (
+            configuration_status(tuple(profile["configuration_relations"]), projected, context)
+            != "READY"
+        ):
+            continue
+        priced = PreflightCostEstimator().estimate(
+            capabilities, hypothetical, observed_at=observed_at
+        )
+        if priced.state is EstimateState.INVALID:
+            continue
+        if missing_fixed or set(added) != {"image"}:
+            assumption = (
+                "Hypothetical minimum completion: "
+                + ", ".join(
+                    f"add {item['count']} {str(item['kind']).upper()} {item['role']}"
+                    for item in missing
+                )
+                + "; quantities remain unknown; not executable yet."
+            )
+        else:
+            assumption = (
+                f"Hypothetical completion: add {len(added)} IMAGE reference(s); not executable yet."
+            )
+        alternatives.append(missing)
+        assumptions.append(assumption)
+        rows = _completion_prices(priced, assumption)
+        for row in rows:
+            row["missing_inputs"] = missing
+        scenarios.extend(rows)
+        rates_hash = priced.rates_hash or rates_hash
+        skus.update(priced.applied_skus)
+        rate, rate_unit = priced.rate_usd, priced.rate_unit
+        if rate is not None and priced.reason == "unclassified_pricing_sku":
+            assumption += " Base rate only; additional charges are unknown."
+        if rate is not None and rate_unit:
+            rates.append(
+                dict(
+                    rate_usd=format(rate, "f"),
+                    rate_unit=rate_unit,
+                    assumption=assumption,
+                )
+            )
+    if not alternatives:
+        return None
+    result = EstimateResult.unavailable(
+        observed_at,
+        "required_inputs_missing",
+        state=EstimateState.INVALID,
+        context_revision=inputs.context_revision,
+    )
+    # Preserve the externally accepted v1 contract for the unchanged IMAGE-only
+    # case. New roles and alternative completions use an explicit additive v2.
+    legacy = len(alternatives) == len(scenarios) == 1 and all(
+        item["kind"] == "image" and item["role"] == "reference" for item in alternatives[0]
+    )
+    if legacy:
+        scenario = dict(scenarios[0])
+        scenario.pop("missing_inputs", None)
+        return replace(
+            result,
+            rates_hash=rates_hash,
+            applied_skus=tuple(sorted(skus)),
+            precompletion_advisory=dict(
+                version="ACI-PRECOMPLETION-1",
+                currency="USD",
+                scope=scenario["scope"],
+                amount_usd=scenario["amount_usd"],
+                actual_reference_kinds=list(kinds),
+                missing_inputs=alternatives[0],
+                completion_assumptions=assumptions,
+                scenario=scenario,
+            ),
+        )
+    unique_rates = list({(row["rate_usd"], row["rate_unit"]): row for row in rates}.values())
+    amounts = [decimal_value(row["amount_usd"]) for row in scenarios]
+    display = (
+        "REFERENCE"
+        if len(scenarios) == 1
+        else "SCENARIOS"
+        if scenarios
+        else "RATE_ONLY"
+        if unique_rates
+        else "UNKNOWN"
+    )
+    common = [
+        item for item in alternatives[0] if all(item in option for option in alternatives[1:])
+    ]
+    advisory = dict(
+        version="ACI-PRECOMPLETION-2",
+        currency="USD",
+        scope="COMPARISON",
+        display=display,
+        amount_usd=scenarios[0]["amount_usd"] if len(scenarios) == 1 else None,
+        actual_reference_kinds=list(kinds),
+        missing_inputs=common,
+        alternatives=alternatives,
+        completion_assumptions=assumptions,
+        scenarios=scenarios,
+        rates=unique_rates,
+        lower_usd=format(min(amounts), "f") if amounts else None,
+        upper_usd=format(max(amounts), "f") if amounts else None,
+    )
+    if len(scenarios) == 1:
+        advisory["scenario"] = scenarios[0]
+        advisory["scope"] = scenarios[0]["scope"]
+    return replace(
+        result,
+        rates_hash=rates_hash,
+        applied_skus=tuple(sorted(skus)),
+        precompletion_advisory=advisory,
+    )
+
+
+def _invalid_reason(capabilities: ModelCapabilities, inputs: CostEstimateInputs) -> str | None:
+    if type(inputs.schema_version) is not int or inputs.schema_version not in {1, 2}:
+        return "cost_schema_invalid"
+    if inputs.model_id not in {capabilities.model_id, capabilities.canonical_slug}:
+        return "model_mismatch"
+    if (
+        type(inputs.reference_count) is not int
+        or not 0 <= inputs.reference_count <= 64
+        or inputs.reference_count != len(inputs.reference_kinds)
+    ):
+        return "reference_topology_invalid"
+    if (
+        type(inputs.context_revision) is not int
+        or not 0 <= inputs.context_revision <= 9007199254740991
+    ):
+        return "context_revision_invalid"
+    if inputs.generate_audio is not None and type(inputs.generate_audio) is not bool:
+        return "audio_intent_invalid"
+    explicit_reason = explicit_v2_cost_input_reason(capabilities, inputs)
+    if explicit_reason:
+        return explicit_reason
+    if inputs.size is not None and (
+        inputs.resolution is not None or inputs.aspect_ratio is not None
+    ):
+        return "geometry_intent_conflict"
+    if inputs.duration is not None and (
+        type(inputs.duration) is not int or inputs.duration == 0 or inputs.duration < -1
+    ):
+        return "duration_invalid"
+    selected_values: tuple[tuple[object | None, tuple[object, ...] | None], ...] = (
+        (inputs.duration, capabilities.supported_durations),
+        (inputs.resolution, capabilities.supported_resolutions),
+        (inputs.aspect_ratio, capabilities.supported_aspect_ratios),
+        (inputs.size, capabilities.supported_sizes),
+    )
+    if any(
+        selected is not None and (supported is None or selected not in supported)
+        for selected, supported in selected_values
+    ):
+        return "configuration_not_authorized"
+    if inputs.generate_audio is True and capabilities.generate_audio is not True:
+        return "configuration_not_authorized"
+    if (
+        mode_enforcement_matrix(capabilities)[inputs.inference_method]
+        is not CapabilityModeStatus.READY
+    ):
+        return "inference_method_not_authorized"
+    references = tuple(item.kind for item in inputs.media if item.role == "reference")
+    if references and references != inputs.reference_kinds:
+        return "metadata_reference_topology_invalid"
+    if sum(item.role == "source_video" for item in inputs.media) > int(inputs.source_video_present):
+        return "metadata_source_topology_invalid"
+    for role, method in (
+        ("first_frame", (InferenceMethod.I2V, InferenceMethod.FLF2V)),
+        ("last_frame", (InferenceMethod.FLF2V,)),
+    ):
+        count = sum(item.role == role for item in inputs.media)
+        if count > 1 or (count and inputs.inference_method not in method):
+            return "metadata_frame_topology_invalid"
+    if len(inputs.media) > 64:
+        return "media_metadata_unbounded"
+    return None
+
+
+def canonicalize_cost_metadata(inputs: CostEstimateInputs) -> CostEstimateInputs:
+    """A stale or unstamped preview supplies no quantity for the current occurrence."""
+    if inputs.schema_version != 2:
+        return inputs
+    media = tuple(
+        replace(item, status="UNKNOWN", duration_seconds=None, width=None, height=None, fps=None)
+        if item.status == "HINT"
+        and (item.occurrence_index != index or item.context_revision != inputs.context_revision)
+        else item
+        for index, item in enumerate(inputs.media)
+    )
+    return replace(inputs, media=media, effective_output_seconds=None)
+
+
+def media_inventory_status(inputs: CostEstimateInputs) -> str | None:
+    """Validate the full v2 ordered active inventory; metadata absence is not zero."""
+    if inputs.schema_version != 2:
+        return None
+    expected = [(kind, "reference") for kind in inputs.reference_kinds]
+    if inputs.inference_method in {InferenceMethod.I2V, InferenceMethod.FLF2V}:
+        expected.append((InputReferenceKind.IMAGE, "first_frame"))
+    if inputs.inference_method is InferenceMethod.FLF2V:
+        expected.append((InputReferenceKind.IMAGE, "last_frame"))
+    if inputs.source_video_present:
+        expected.append((InputReferenceKind.VIDEO, "source_video"))
+    actual = [(item.kind, item.role) for item in inputs.media]
+    if actual == expected:
+        return None
+    # A proper ordered subset has missing records. Contradictory/excess/reordered
+    # records are malformed pricing context, never permission to omit a charge.
+    remaining = iter(expected)
+    if len(actual) < len(expected) and all(
+        any(item == candidate for candidate in remaining) for item in actual
+    ):
+        return "active_occurrence_metadata_missing"
+    return "active_occurrence_metadata_invalid"
+
+
+def explicit_v2_cost_input_reason(
+    capabilities: ModelCapabilities,
+    inputs: CostEstimateInputs,
+    *,
+    diagnostics: list[dict[str, object]] | None = None,
+) -> str | None:
+    """Never project an explicit v2 choice into a different priced configuration."""
+    if inputs.schema_version != 2:
+        return None
+    from openrouter_video.configuration import (
+        apply_transport_input_constraints,
+        combined_media_duration_reason,
+        project_method,
+        project_semantic_values,
+        projected_shape_valid,
+    )
+
+    def reject(code: str, field: str = "configuration", **facts: object) -> str:
+        if diagnostics is not None:
+            diagnostics.append(
+                dict(
+                    code=code,
+                    scope="selection",
+                    field=field,
+                    correction_key="choose_allowed",
+                    **facts,
+                )
+            )
+        return code
+
+    profile = project_method(capabilities, inputs.inference_method.value)
+    if profile["state"] != "SUPPORTED":
+        return reject("inference_method_not_authorized", "inference_method")
+    names = (
+        "duration",
+        "resolution",
+        "aspect_ratio",
+        "size",
+        "generate_audio",
+        "upscale_factor",
+        "creativity",
+    )
+    raw = {name: getattr(inputs, name) for name in names}
+    raw["geometry_authority"] = "EXACT" if inputs.size else "NORMALIZED"
+    raw["provider_options"] = project_cost_provider_controls(capabilities, inputs)
+    if inputs.upscale_factor is not None:
+        raw["upscale_factor"] = float(inputs.upscale_factor)
+    try:
+        projected = project_semantic_values(capabilities, inputs.inference_method.value, raw)
+    except ValueError:
+        return reject("configuration_not_authorized")
+    for name in names:
+        selected = getattr(inputs, name)
+        if selected is None:
+            continue
+        effective = projected.get(name)
+        if (
+            name == "upscale_factor"
+            and effective is not None
+            and decimal_value(str(effective)) == decimal_value(selected)
+        ):
+            continue
+        if type(selected) is not type(effective) or selected != effective:
+            allowed = profile["controls"].get(name, {}).get("values")
+            observed = (
+                selected
+                if isinstance(selected, (int, bool))
+                or (isinstance(allowed, list) and selected in allowed)
+                else None
+            )
+            return reject(
+                "configuration_not_authorized",
+                name,
+                observed=observed,
+                allowed=allowed,
+                unit="s" if name == "duration" else "",
+            )
+    if inputs.source_video_present and "source_video" not in profile["topology"]["fixed"]:
+        return reject("reference_shape_not_projected", "source_video")
+    if inputs.reference_kinds and not profile["topology"]["reference_kinds"]:
+        return reject("reference_shape_not_projected", "reference_shape")
+    if not projected_shape_valid(
+        profile,
+        tuple(kind.value for kind in inputs.reference_kinds),
+        inputs.source_video_present,
+    ):
+        topology = apply_transport_input_constraints(
+            profile["topology"], inputs.source_video_present
+        )
+        kinds = tuple(kind.value for kind in inputs.reference_kinds)
+        if diagnostics is not None:
+            for kind, maximum in topology.get("per_kind_max", {}).items():
+                if kinds.count(kind) > maximum:
+                    diagnostics.append(
+                        dict(
+                            code="reference_shape_not_projected",
+                            scope="reference_group",
+                            field="reference_count",
+                            kind=kind,
+                            observed=kinds.count(kind),
+                            bound=maximum,
+                            operator="max",
+                            unit="references",
+                            correction_key="remove_references",
+                        )
+                    )
+            if len(kinds) < topology.get("min", 0):
+                diagnostics.append(
+                    dict(
+                        code="reference_shape_not_projected",
+                        scope="reference_group",
+                        field="reference_count",
+                        kind=topology["reference_kinds"][0]
+                        if len(topology.get("reference_kinds", [])) == 1
+                        else "",
+                        observed=len(kinds),
+                        bound=topology["min"],
+                        operator="min",
+                        unit="references",
+                        correction_key="add_references",
+                    )
+                )
+            if topology.get("max") is not None and len(kinds) > topology["max"]:
+                diagnostics.append(
+                    dict(
+                        code="reference_shape_not_projected",
+                        scope="reference_group",
+                        field="reference_count",
+                        observed=len(kinds),
+                        bound=topology["max"],
+                        operator="max",
+                        unit="references",
+                        correction_key="remove_references",
+                    )
+                )
+            sets = topology.get("kind_sets", [])
+            minimum_types = min((len(set(group)) for group in sets), default=0)
+            if minimum_types > 1 and len(set(kinds)) < minimum_types:
+                diagnostics.append(
+                    dict(
+                        code="reference_shape_not_projected",
+                        scope="reference_group",
+                        field="distinct_media_types",
+                        observed=len(set(kinds)),
+                        bound=minimum_types,
+                        operator="min",
+                        unit="types",
+                        correction_key="connect_distinct_types",
+                    )
+                )
+            if not diagnostics:
+                reject("reference_shape_not_projected", "reference_shape")
+        return "reference_shape_not_projected"
+    limits = profile.get("media_limits", {})
+    active_media = canonicalize_cost_metadata(inputs).media
+    first_media_reason: str | None = None
+    for index, item in enumerate(active_media):
+        if item.status not in {"KNOWN", "HINT"}:
+            continue
+        rule = {**limits.get(item.kind.value, {}), **limits.get(item.role, {})}
+        quantities: dict[str, Decimal | int | None] = {
+            "duration_seconds": item.duration_seconds,
+            "width": item.width,
+            "height": item.height,
+            "pixels": item.width * item.height
+            if item.width is not None and item.height is not None
+            else None,
+        }
+        for name, quantity in quantities.items():
+            if quantity is None:
+                continue
+            for prefix in ("min", "max"):
+                bound = rule.get(f"{prefix}_{name}")
+                if bound is not None and (
+                    (prefix == "min" and quantity < Decimal(str(bound)))
+                    or (prefix == "max" and quantity > Decimal(str(bound)))
+                ):
+                    first_media_reason = (
+                        first_media_reason or "media_metadata_outside_projected_limits"
+                    )
+                    if diagnostics is not None:
+                        diagnostics.append(
+                            dict(
+                                code="media_metadata_outside_projected_limits",
+                                scope="occurrence",
+                                field=name,
+                                kind=item.kind.value,
+                                role=item.role,
+                                occurrence_index=index,
+                                kind_index=sum(
+                                    other.kind is item.kind for other in active_media[: index + 1]
+                                ),
+                                observed=str(quantity),
+                                bound=str(bound),
+                                operator=prefix,
+                                unit="s" if name == "duration_seconds" else "px",
+                                metadata_status=item.status,
+                                correction_key="adjust_media",
+                            )
+                        )
+    for kind in (InputReferenceKind.VIDEO, InputReferenceKind.AUDIO):
+        durations = tuple(
+            item.duration_seconds if item.status in {"KNOWN", "HINT"} else None
+            for item in active_media
+            if item.kind is kind
+        )
+        reason = combined_media_duration_reason(
+            limits.get(kind.value, {}), durations, inputs.duration
+        )
+        if reason and reason != "media_combined_duration_unknown":
+            first_media_reason = first_media_reason or reason
+            if diagnostics is not None:
+                rule = limits.get(kind.value, {})
+                total = sum((value for value in durations if value is not None), Decimal(0))
+                coupled = reason == "media_input_output_duration_exceeds_limit"
+                observed = total + Decimal(inputs.duration or 0) if coupled else total
+                diagnostics.append(
+                    dict(
+                        code=reason,
+                        scope="reference_group",
+                        kind=kind.value,
+                        field="input_output_duration" if coupled else "combined_duration",
+                        observed=str(observed),
+                        bound=str(
+                            rule[
+                                "max_combined_input_output_duration_seconds"
+                                if coupled
+                                else "max_combined_duration_seconds"
+                            ]
+                        ),
+                        operator="max",
+                        unit="s",
+                        observed_is_lower_bound=any(value is None for value in durations),
+                        metadata_status="HINT"
+                        if any(item.kind is kind and item.status == "HINT" for item in active_media)
+                        else "UNKNOWN"
+                        if any(value is None for value in durations)
+                        else "KNOWN",
+                        correction_key="shorten_input_or_output" if coupled else "shorten_group",
+                    )
+                )
+    return first_media_reason
 
 
 __all__ = (
     "CostEstimateInputs",
+    "CostProviderControl",
     "EstimateAvailability",
     "EstimateResult",
+    "EstimateState",
+    "MediaCostMetadata",
     "PreflightCostEstimator",
+    "metadata_from_local_media",
+    "canonicalize_cost_metadata",
+    "media_inventory_status",
+    "explicit_v2_cost_input_reason",
+    "project_cost_provider_controls",
 )

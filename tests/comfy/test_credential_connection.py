@@ -51,6 +51,17 @@ def test_connect_persist_restart_catalogue_and_disconnect(
 
         catalog = validate_connection
 
+        async def effective_catalog(self) -> Any:
+            from datetime import datetime, timezone
+
+            from tests.projection_fixtures import synthetic_projected_model
+
+            await self.validate_connection()
+            return SimpleNamespace(
+                observed_at=datetime.now(timezone.utc),
+                models=(synthetic_projected_model("test/model"),),
+            )
+
     class Request:
         query = {"state": "test-state", "code": "test-code"}
 

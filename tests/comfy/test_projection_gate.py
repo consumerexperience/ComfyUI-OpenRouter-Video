@@ -10,7 +10,7 @@ from typing import Any
 import httpx
 import pytest
 
-from openrouter_video.capabilities import CapabilityObservation
+from openrouter_video.capabilities import CapabilityObservation, request_witness
 from openrouter_video.client import _parse_capability
 from openrouter_video.comfy import nodes, runtime
 from openrouter_video.evidence_registry import enrich_capabilities
@@ -24,7 +24,11 @@ from openrouter_video.models import (
     PricingSku,
     VideoArtifact,
 )
-from openrouter_video.pricing import CostEstimateInputs, EstimateAvailability
+from openrouter_video.pricing import (
+    CostEstimateInputs,
+    EstimateAvailability,
+    PreflightCostEstimator,
+)
 
 ROOT = Path(__file__).parents[2]
 CATALOGUE = json.loads(
@@ -36,6 +40,72 @@ def model(slug: str) -> Any:
     return enrich_capabilities(
         _parse_capability(next(raw for raw in CATALOGUE["models"] if raw["id"] == slug))
     )
+
+
+def test_known_model_legacy_bridge_never_omits_active_image_charges() -> None:
+    capability = replace(
+        model("x-ai/grok-imagine-video"),
+        pricing_evidence=PricingEvidence((PricingSku("per-video-second-720p", Decimal("0.03")),)),
+    )
+    assert request_witness(capability, InferenceMethod.IR2V) is not None
+    result = PreflightCostEstimator().estimate(
+        capability,
+        CostEstimateInputs(
+            capability.model_id,
+            duration=1,
+            resolution="720p",
+            aspect_ratio="16:9",
+            inference_method=InferenceMethod.IR2V,
+            reference_kinds=(InputReferenceKind.IMAGE,),
+            reference_count=1,
+        ),
+        observed_at=datetime.now(timezone.utc),
+    )
+    assert result.state.value == "UNKNOWN"
+    assert result.estimated_cost_usd is result.amount_usd is None
+    assert result.reason == "legacy_pricing_scope_unverified"
+
+
+@pytest.mark.parametrize(
+    "duration,amount,sku",
+    [(15, "0.300", "duration_seconds_480p"), (20, "0.900", "long_duration_seconds_480p")],
+)
+def test_known_model_legacy_bridge_uses_documented_long_duration_sku(
+    duration: int, amount: str, sku: str
+) -> None:
+    # This retained discovery capture has the actual 5..30 second domain; the
+    # older general UI-audit fixture above predates the long-duration capability.
+    captured = json.loads(
+        (ROOT / "tests/fixtures/op07-topology-catalogue-b628912.json").read_text(encoding="utf8")
+    )
+    capability = enrich_capabilities(
+        _parse_capability(
+            next(raw for raw in captured["data"] if raw["id"] == "heygen/heygen-video-1")
+        )
+    )
+    assert capability.supported_durations is not None
+    assert 20 in capability.supported_durations
+    inputs = CostEstimateInputs(
+        capability.model_id,
+        duration=duration,
+        resolution="480p",
+        aspect_ratio="16:9",
+    )
+    estimator = PreflightCostEstimator()
+    observed = datetime.now(timezone.utc)
+    current = estimator.estimate(capability, inputs, observed_at=observed)
+    # R3.1 supersedes the prior unresolved relation with documented long SKU semantics.
+    assert current.state.value == "FORMULA"
+    assert current.estimated_cost_usd == Decimal(amount)
+    assert current.applied_skus == (sku,)
+    legacy = replace(
+        capability,
+        pricing_evidence=PricingEvidence((PricingSku("per-video-second-480p", Decimal("0.03")),)),
+    )
+    result = estimator.estimate(legacy, inputs, observed_at=observed)
+    assert result.state.value == "UNKNOWN"
+    assert result.estimated_cost_usd is result.amount_usd is None
+    assert result.reason == "legacy_pricing_scope_unverified"
 
 
 def test_hidden_raw_seed_and_media_are_omitted_before_any_encoder_or_parser(
@@ -167,7 +237,6 @@ def test_estimator_consumes_same_omitted_semantics_and_never_contacts_network(
             hidden = replace(
                 ordinary,
                 generate_audio=True,
-                size="480x480",
                 reference_kinds=(InputReferenceKind.AUDIO,),
                 reference_count=1,
                 source_video_present=True,
@@ -177,10 +246,137 @@ def test_estimator_consumes_same_omitted_semantics_and_never_contacts_network(
             assert first.availability is second.availability is EstimateAvailability.AVAILABLE
             assert first.estimated_cost_usd == second.estimated_cost_usd == Decimal("0.03")
             assert first.applied_skus == second.applied_skus
+            # Exact sizes are now positively reconciled for this T2V
+            # method, so simultaneous normalized/exact intent is a real
+            # conflict rather than hidden state to ignore.
+            conflicted = await process.estimate_cost(replace(ordinary, size="480x480"))
+            assert conflicted.availability is EstimateAvailability.UNAVAILABLE
+            assert conflicted.reason == "geometry_intent_conflict"
             blocked = await process.estimate_cost(
                 replace(ordinary, inference_method=InferenceMethod.AR2V)
             )
             assert blocked.availability is EstimateAvailability.UNAVAILABLE
+        finally:
+            await process.aclose(timeout=2)
+
+    asyncio.run(scenario())
+
+
+def test_required_provider_configuration_yields_unavailable_estimate_without_network(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    raw = json.loads((ROOT / "tests/fixtures/op07-full-catalogue.json").read_text(encoding="utf8"))[
+        "data"
+    ]
+    capability = enrich_capabilities(
+        _parse_capability(next(row for row in raw if row["id"] == "heygen/avatar-iv"))
+    )
+    observed = datetime.now(timezone.utc)
+
+    class Capabilities:
+        async def effective_catalog(self) -> CapabilityObservation:
+            return CapabilityObservation(observed, (capability,))
+
+        def is_fresh(self, _: object) -> bool:
+            return True
+
+    def forbidden(_: httpx.Request) -> httpx.Response:
+        pytest.fail("Estimate must not issue HTTP")
+
+    monkeypatch.setattr(
+        runtime.HttpxTransport,
+        "create",
+        classmethod(lambda cls: cls.for_test(httpx.MockTransport(forbidden))),
+    )
+    monkeypatch.setattr(runtime.compat, "host_interrupted", lambda: False)
+
+    async def scenario() -> None:
+        process = runtime.ProcessRuntime(tmp_path / "jobs.sqlite3", tmp_path / "output")
+        try:
+            process._resources = replace(process._require_resources(), capabilities=Capabilities())
+            result = await process.estimate_cost(
+                CostEstimateInputs(capability.model_id, inference_method=InferenceMethod.IR2V)
+            )
+            assert result.availability is EstimateAvailability.UNAVAILABLE
+            assert result.reason == "provider_configuration_pricing_unverified"
+        finally:
+            await process.aclose(timeout=2)
+
+    asyncio.run(scenario())
+
+
+def test_estimate_preserves_references_with_nullable_total_without_network(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    capability = _parse_capability(
+        {
+            "id": "synthetic/nullable-total-estimate",
+            "reference_kinds": ["image", "video"],
+            "mixed_reference_kinds": True,
+            "request_shape_profiles": {
+                "schema_version": 1,
+                "methods": {
+                    "MMR2V": {
+                        "state": "SUPPORTED",
+                        "controls": {"prompt": {"state": "SUPPORTED"}},
+                        "topology": {
+                            "fixed": [],
+                            "reference_kinds": ["image", "video"],
+                            "kind_sets": [["image", "video"]],
+                            "min": 2,
+                            "max": None,
+                            "per_kind_max": {"image": 9, "video": 3},
+                        },
+                    }
+                },
+            },
+        }
+    )
+    observed = datetime.now(timezone.utc)
+    captured: list[CostEstimateInputs] = []
+
+    class Capabilities:
+        async def effective_catalog(self) -> CapabilityObservation:
+            return CapabilityObservation(observed, (capability,))
+
+        def is_fresh(self, _: object) -> bool:
+            return True
+
+    class Estimator:
+        def estimate(self, _: object, inputs: CostEstimateInputs, **kwargs: object) -> object:
+            captured.append(inputs)
+            return runtime.EstimateResult.unavailable(observed, "synthetic_no_pricing")
+
+    def forbidden(_: httpx.Request) -> httpx.Response:
+        pytest.fail("Offline estimate must not issue HTTP")
+
+    monkeypatch.setattr(
+        runtime.HttpxTransport,
+        "create",
+        classmethod(lambda cls: cls.for_test(httpx.MockTransport(forbidden))),
+    )
+    monkeypatch.setattr(runtime, "PreflightCostEstimator", Estimator)
+    monkeypatch.setattr(runtime.compat, "host_interrupted", lambda: False)
+
+    async def scenario() -> None:
+        process = runtime.ProcessRuntime(tmp_path / "jobs.sqlite3", tmp_path / "output")
+        try:
+            process._resources = replace(process._require_resources(), capabilities=Capabilities())
+            await process.estimate_cost(
+                CostEstimateInputs(
+                    capability.model_id,
+                    inference_method=InferenceMethod.MMR2V,
+                    reference_kinds=(InputReferenceKind.IMAGE, InputReferenceKind.VIDEO),
+                    reference_count=2,
+                )
+            )
+            assert len(captured) == 1
+            assert captured[0].reference_count == 2
+            assert captured[0].reference_kinds == (
+                InputReferenceKind.IMAGE,
+                InputReferenceKind.VIDEO,
+            )
         finally:
             await process.aclose(timeout=2)
 

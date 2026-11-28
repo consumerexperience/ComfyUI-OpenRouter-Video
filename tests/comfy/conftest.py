@@ -30,8 +30,9 @@ class _Schema:
 
 
 class _NodeOutput:
-    def __init__(self, *values: object) -> None:
+    def __init__(self, *values: object, ui: object = None) -> None:
         self.values = values
+        self.ui = ui
 
 
 class _InputImpl:
@@ -80,6 +81,7 @@ def _install() -> None:
         Hidden=types.SimpleNamespace(unique_id="UNIQUE_ID"),
         Combo=types.SimpleNamespace(Input=_Field),
         String=types.SimpleNamespace(Input=_Field, Output=_Field),
+        Image=types.SimpleNamespace(Output=_Field),
         Int=types.SimpleNamespace(Input=_Field),
         ControlAfterGenerate=types.SimpleNamespace(
             fixed="fixed", increment="increment", decrement="decrement", randomize="randomize"

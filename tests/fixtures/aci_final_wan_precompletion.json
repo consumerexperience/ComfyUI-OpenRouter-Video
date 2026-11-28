@@ -1,0 +1,120 @@
+{
+  "source_candidate": "5f1bc3f4df60ad3b19f43215a7d32a3827adf5f6",
+  "request": {
+    "schema_version": 2,
+    "context_revision": 1,
+    "model_id": "alibaba/wan-3.0",
+    "duration": 10,
+    "resolution": "1080p",
+    "aspect_ratio": "16:9",
+    "size": null,
+    "generate_audio": false,
+    "inference_method": "MMR2V",
+    "reference_kinds": [
+      "audio"
+    ],
+    "reference_count": 1,
+    "source_video_present": false,
+    "media": [
+      {
+        "kind": "audio",
+        "role": "reference",
+        "status": "HINT",
+        "duration_seconds": "10",
+        "occurrence_index": 0,
+        "context_revision": 1
+      }
+    ],
+    "creativity": null,
+    "upscale_factor": null
+  },
+  "result": {
+    "availability": "UNAVAILABLE",
+    "observed_at": "2026-11-14 11:44:50+00:00",
+    "estimated_cost_usd": null,
+    "provenance": null,
+    "applied_skus": [
+      "duration_seconds_1080p"
+    ],
+    "reason": "required_inputs_missing",
+    "state": "INVALID",
+    "amount_usd": null,
+    "lower_usd": null,
+    "upper_usd": null,
+    "range_kind": null,
+    "rate_usd": null,
+    "rate_unit": null,
+    "breakdown": [],
+    "assumptions": [],
+    "reason_codes": [
+      "required_inputs_missing"
+    ],
+    "snapshot_hash": null,
+    "rates_hash": "38fa8098c8013ac92fda9ce168d4c0b84cfdf476b2f5c07cf5a9d7985ea8c640",
+    "rules_version": "ACI-1.0",
+    "context_revision": 1,
+    "planning": null,
+    "precompletion_advisory": {
+      "version": "ACI-PRECOMPLETION-1",
+      "currency": "USD",
+      "scope": "COMPARISON",
+      "amount_usd": "2.0",
+      "actual_reference_kinds": [
+        "audio"
+      ],
+      "missing_inputs": [
+        {
+          "kind": "image",
+          "role": "reference",
+          "count": 1
+        }
+      ],
+      "completion_assumptions": [
+        "Hypothetical completion: add 1 IMAGE reference(s); not executable yet."
+      ],
+      "scenario": {
+        "label": "native input + output seconds",
+        "scope": "COMPARISON",
+        "sku": "duration_seconds_1080p",
+        "quantity": "10",
+        "quantity_unit": "s",
+        "amount_usd": "2.0",
+        "assumption": "Native input+output seconds; OpenRouter equivalence and audio/reference charges unconfirmed. Assumes no additional reference fees. Hypothetical completion: add 1 IMAGE reference(s); not executable yet.",
+        "charges": [
+          {
+            "sku": "duration_seconds_1080p",
+            "unit": "USD",
+            "quantity_unit": "s",
+            "quantity": "10",
+            "rate_usd": "0.2",
+            "amount_usd": "2.0",
+            "relation": "base"
+          }
+        ]
+      }
+    },
+    "validation_details": [
+      {
+        "code": "reference_shape_not_projected",
+        "scope": "reference_group",
+        "field": "reference_count",
+        "kind": "",
+        "observed": 1,
+        "bound": 2,
+        "operator": "min",
+        "unit": "references",
+        "correction_key": "add_references"
+      },
+      {
+        "code": "reference_shape_not_projected",
+        "scope": "reference_group",
+        "field": "distinct_media_types",
+        "observed": 1,
+        "bound": 2,
+        "operator": "min",
+        "unit": "types",
+        "correction_key": "connect_distinct_types"
+      }
+    ]
+  }
+}

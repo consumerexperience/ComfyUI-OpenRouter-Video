@@ -1,6 +1,7 @@
-import copy
 import hashlib
 import json
+import shutil
+import subprocess
 from dataclasses import replace
 from datetime import datetime, timezone
 
@@ -26,8 +27,77 @@ METHODS = (InferenceMethod.V2V_EDIT, InferenceMethod.V2V_EXTEND)
 SOURCE = InputReference(InputReferenceKind.VIDEO, "https://example.com/source.mp4")
 
 
-def test_manifest_delta_is_exactly_two_method_profiles_and_their_scope_note() -> None:
-    data = copy.deepcopy(load_manifest())
+@pytest.mark.parametrize("method", METHODS)
+@pytest.mark.parametrize("seed", [0, 137, 2147483647])
+def test_transform_seed_reaches_the_existing_canonical_wire(
+    method: InferenceMethod, seed: int
+) -> None:
+    model = current_model("bytedance/seedance-2.5")
+    request = GenerationRequest(
+        model.model_id,
+        "Continue or edit",
+        method,
+        duration=4,
+        resolution="480p",
+        aspect_ratio="16:9",
+        source_video=SOURCE,
+        seed=seed,
+    )
+    RequestValidator().validate_shape(request)
+    RequestValidator().validate_capabilities(request, model)
+    assert request.to_openrouter_payload()["seed"] == seed
+
+
+def test_manifest_retains_edit_extend_history_and_current_method_support() -> None:
+    git = shutil.which("git")
+    assert git is not None
+    data = json.loads(
+        subprocess.check_output(  # noqa: S603 - fixed Git/revision/path
+            [
+                git,
+                "show",
+                "058f5bcdd462a2a71f4f85151d9bbba3bc09bcf9:src/openrouter_video/data/capability-evidence.json",
+            ],
+            text=True,
+            encoding="utf-8",
+        )
+    )
+    current_seedance = next(
+        m for m in load_manifest()["models"] if m["exact_model_id"] == "bytedance/seedance-2.5"
+    )
+    # F03 adds documented pure-audio Seedance 2.5 admission. Keep the
+    # edit/extend regression scoped to its historical profile delta below.
+    baseline_seedance = next(
+        m for m in data["models"] if m["exact_model_id"] == "bytedance/seedance-2.5"
+    )
+    current_methods = current_seedance["facts"]["request_shape_profiles"]["value"]["methods"]
+    baseline_methods = baseline_seedance["facts"]["request_shape_profiles"]["value"]["methods"]
+    assert (
+        current_methods["V2V_EDIT"]["state"] == baseline_methods["V2V_EDIT"]["state"] == "SUPPORTED"
+    )
+    assert (
+        current_methods["V2V_EXTEND"]["state"]
+        == baseline_methods["V2V_EXTEND"]["state"]
+        == "SUPPORTED"
+    )
+    assert current_methods["AR2V"]["state"] == "SUPPORTED"
+    prior = json.loads(
+        subprocess.check_output(  # noqa: S603 - exact local immutable candidate
+            [
+                git,
+                "show",
+                "afcf96390cde4f8616e765f8dc41e76df60d1665:src/openrouter_video/data/capability-evidence.json",
+            ],
+            text=True,
+            encoding="utf-8",
+        )
+    )
+    prior_seedance = next(
+        m for m in prior["models"] if m["exact_model_id"] == "bytedance/seedance-2.5"
+    )
+    prior_methods = prior_seedance["facts"]["request_shape_profiles"]["value"]["methods"]
+    for method in METHODS:
+        assert current_methods[method.value] == prior_methods[method.value]
     data.pop("content_hash")
     model = next(m for m in data["models"] if m["exact_model_id"] == "bytedance/seedance-2.5")
     fact = model["facts"]["request_shape_profiles"]
@@ -116,7 +186,11 @@ def test_optional_limits_reserve_required_source_and_reject_overflow(
 def test_other_models_and_draft_do_not_gain_projection() -> None:
     for raw in CATALOGUE["models"]:
         model = current_model(raw["id"])
-        if model.model_id != "bytedance/seedance-2.5":
+        if model.model_id not in {
+            "bytedance/seedance-2.5",
+            "black-forest-labs/flux-video-edit",
+            "runway/aleph-2",
+        }:
             assert all(project_method(model, m.value)["state"] != "SUPPORTED" for m in METHODS)
     assert not any("draft" in method.value.lower() for method in InferenceMethod)
 
@@ -147,4 +221,8 @@ def test_estimator_reuses_existing_video_reference_price(method: InferenceMethod
         observed_at=now,
     )
     assert actual == reference
-    assert actual.reason == "video_input_pricing_semantics_ambiguous"
+    # This sanitized public projection fixture intentionally has no price evidence.
+    # Equal source/reference treatment must not manufacture a price from metadata.
+    assert actual.reason == "pricing_evidence_unavailable"
+    assert actual.availability.value == "UNAVAILABLE"
+    assert actual.estimated_cost_usd is actual.amount_usd is None

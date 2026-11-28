@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import math
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from enum import Enum
 from typing import TypeVar
 
-from openrouter_video.capabilities import CapabilityModeStatus
+from openrouter_video.capabilities import CapabilityModeStatus, eligible_methods
 from openrouter_video.configuration import profile_constraints, project_method
 from openrouter_video.evidence_registry import preferred_method
 from openrouter_video.geometry import geometry_profile, reviewed_geometry
@@ -17,6 +17,34 @@ from openrouter_video.models import InferenceMethod, ModelCapabilities
 
 _UI_METHODS = tuple(InferenceMethod)
 _Option = TypeVar("_Option", int, str)
+
+
+def project_selectable(
+    capabilities: ModelCapabilities, observed_at: datetime
+) -> UiModelCapabilities:
+    """One selection authority shared by routes and frontend bootstrap."""
+    view = project_model(capabilities, observed_at)
+    # Operation discovery is not a claim that its full count domain is verified.
+    # Keep documented operations visible with the Core domain diagnostic; paid
+    # execution still requires an admitted, validated request witness.
+    executable = {method.value for method in eligible_methods(capabilities)}
+    methods = tuple(
+        method.value
+        for method in _UI_METHODS
+        if method.value in executable
+        or (
+            (profile := project_method(capabilities, method.value))["state"] == "SUPPORTED"
+            and profile["topology"].get("execution_domain") == "UNVERIFIED"
+            and profile.get("method_support") == "SUPPORTED"
+        )
+    )
+    return replace(
+        view,
+        supported_inference_methods=methods,
+        preferred_inference_method=view.preferred_inference_method
+        if view.preferred_inference_method in methods
+        else next(iter(methods), None),
+    )
 
 
 def _option_order(axis: str, value: int | str) -> tuple[int, float, float, int, int, str]:

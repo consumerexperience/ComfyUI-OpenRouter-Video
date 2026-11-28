@@ -1,0 +1,229 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "op07-discovery-remediation",
+  "baseline_checkpoint": "op05-frozen-058f5bc",
+  "baseline_sha": "058f5bcdd462a2a71f4f85151d9bbba3bc09bcf9",
+  "risk_tier": "B",
+  "intended_delta": [
+    "Supported-only selection, live refresh and lossless legacy intent; full confirmed standard domains and typed specialized operations; unresolved contracts remain open."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01media_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/storage/src~01openrouter_video~01local_media_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/native_media/src~01openrouter_video~01comfy~01native_media_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01compat_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01models_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01client_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01configuration_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01evidence_registry_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01image_transport_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/recipes/src~01openrouter_video~01recipes_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01nodes_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01video_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/pricing/src~01openrouter_video~01pricing_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/submit_resume/src~01openrouter_video~01application_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/submit_resume/src~01openrouter_video~01comfy~01runtime_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01capabilities_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/database_migrations/src~01openrouter_video~01persistence_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01eligibility_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01projection_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01routes_py",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01data~01capability-evidence_json",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    },
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operations": [
+        "add",
+        "replace"
+      ],
+      "reason": "Owner 6497404b: bounded discovery/eligibility/refresh delta; Owner architectural correction 8fad0a0c: reuse existing Core capability service and Owner FULL FEATURE PARITY continuation; Owner cf05eca6: close verified catalogue gaps, typed composite provider controls and documented output containers; Owner 1d8d8e76: bounded metadata retention, catalogue-only SQLite evolution metadata, semantic refresh and capability accounting; Owner abcc0172: input reconciliation, media budgets, native metadata and explicit stale bound quarantine; Owner f65992ce: separate operation support, partial parameter domains and limit completeness; preserve documented operations and re-admit evidence-backed configurations without fabricated maxima; Owner all-model Documentation First: compatible official contracts admit documented methods, scalar domains and typed options without per-count paid proof; integrate supplied patch and recover positive ABSENCE_ONLY controls; Owner F01-F09 functional remediation: advertised automatic duration, exact documented methods/media guards, nonexclusive documentation-first geometry, completeness detection and append-only best-effort local LAST_FRAME IMAGE for Generate and Resume; first five outputs and billing/security remain protected; not release acceptance."
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned/security",
+    "/surfaces/product_owned/submit_resume/src~01openrouter_video~01execution_hooks_py",
+    "/surfaces/product_owned/AppIdentity",
+    "/surfaces/product_owned/storage/src~01openrouter_video~01s3_upload_py",
+    "/surfaces/product_owned/storage/src~01openrouter_video~01staging_py"
+  ],
+  "expected_components": [
+    "src/openrouter_video/media.py",
+    "src/openrouter_video/local_media.py",
+    "src/openrouter_video/comfy/native_media.py",
+    "src/openrouter_video/comfy/compat.py",
+    "src/openrouter_video/models.py",
+    "src/openrouter_video/client.py",
+    "src/openrouter_video/configuration.py",
+    "src/openrouter_video/evidence_registry.py",
+    "src/openrouter_video/image_transport.py",
+    "src/openrouter_video/recipes.py",
+    "src/openrouter_video/comfy/nodes.py",
+    "src/openrouter_video/comfy/video.py",
+    "src/openrouter_video/pricing.py",
+    "src/openrouter_video/application.py",
+    "src/openrouter_video/comfy/runtime.py",
+    "src/openrouter_video/capabilities.py",
+    "src/openrouter_video/persistence.py",
+    "src/openrouter_video/eligibility.py",
+    "src/openrouter_video/comfy/projection.py",
+    "src/openrouter_video/comfy/routes.py",
+    "src/openrouter_video/data/capability-evidence.json",
+    "web/openrouter_video.js"
+  ],
+  "required_gates": [
+    "baseline_declaration",
+    "semantic_diff",
+    "negative_space_tests",
+    "python",
+    "frontend",
+    "serializer"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

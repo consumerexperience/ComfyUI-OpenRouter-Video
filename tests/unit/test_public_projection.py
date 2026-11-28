@@ -8,16 +8,16 @@ from typing import Any, cast
 
 import pytest
 
-from openrouter_video.capabilities import RequestValidator, inference_method_matrix
+from openrouter_video.capabilities import RequestValidator, inference_method_matrix, request_witness
 from openrouter_video.client import _parse_capability
-from openrouter_video.comfy.projection import project_model
+from openrouter_video.comfy.projection import project_model, project_selectable
 from openrouter_video.configuration import (
     REQUEST_SHAPES_KEY,
     configuration_status,
     project_method,
     project_semantic_values,
-    projected_shape_valid,
 )
+from openrouter_video.errors import ProductFailureError
 from openrouter_video.evidence_registry import enrich_capabilities, load_manifest
 from openrouter_video.models import (
     CapabilityFactState,
@@ -58,7 +58,14 @@ def test_every_current_model_and_method_has_supported_only_public_projection(
         for name, control in profile["controls"].items():
             if control["state"] != "SUPPORTED":
                 assert "values" not in control
-            elif name not in {"seed", "generate_audio", "prompt"}:
+            elif name not in {
+                "seed",
+                "generate_audio",
+                "prompt",
+                "provider_options",
+                "previous_job_id",
+                "upscale_factor",
+            }:
                 assert control["values"]
 
 
@@ -114,7 +121,7 @@ def test_future_evidence_update_exposes_method_and_new_domain_without_runtime_br
     shapes = copy.deepcopy(cast(dict[str, Any], fact.value))
     shapes["methods"]["AR2V"] = {
         "state": "SUPPORTED",
-        "controls": {},
+        "controls": {"prompt": {"state": "SUPPORTED"}},
         "topology": {
             "fixed": [],
             "reference_kinds": ["audio"],
@@ -139,21 +146,36 @@ def test_future_evidence_update_exposes_method_and_new_domain_without_runtime_br
 
 
 @pytest.mark.parametrize("slug", ["bytedance/seedance-2.0-mini", "bytedance/seedance-2.0-fast"])
-def test_audio_only_conflict_does_not_remove_confirmed_mixed_audio(slug: str) -> None:
+def test_audio_only_rejection_keeps_mixed_method_and_documented_limits_separate(slug: str) -> None:
     model = current_model(slug)
-    assert project_method(model, "AR2V")["state"] == "CONFLICT"
+    assert project_method(model, "AR2V")["state"] == "UNSUPPORTED"
     mixed = project_method(model, "MMR2V")
-    assert mixed["state"] == "SUPPORTED"
-    assert projected_shape_valid(mixed, ("image", "video", "audio"))
-    assert not projected_shape_valid(mixed, ("audio", "audio"))
-    assert not projected_shape_valid(mixed, ("audio",))
-    assert not projected_shape_valid(mixed, ("image", "video", "audio", "audio"))
+    assert mixed["state"] == mixed["method_support"] == "SUPPORTED"
+    assert mixed["topology"]["max"] == 15
+    assert mixed["topology"]["per_kind_max"] == {"image": 9, "video": 3, "audio": 3}
+    assert mixed["topology"]["limit_completeness"] == "COMPLETE"
+    assert mixed["topology"]["execution_domain"] == "CONFIRMED_BOUNDS"
+    assert mixed["topology"]["constraint_evidence"]["max"]["classification"] == (
+        "DERIVED_PER_KIND_CEILING"
+    )
+    assert mixed["topology"]["constraint_evidence"]["per_kind_max"]["classification"] == (
+        "PROVIDER_DOCUMENTED_COMPATIBLE"
+    )
+    if slug.endswith("mini"):
+        assert mixed["topology"]["verified_configurations"] == [
+            {"image": 1, "video": 1, "audio": 1}
+        ]
+    assert request_witness(model, InferenceMethod.MMR2V) is not None
+    selectable = project_selectable(model, datetime.now(timezone.utc)).as_dict()
+    assert "MMR2V" in cast(list[str], selectable["supported_inference_methods"])
 
 
 def test_hailuo_and_grok_joint_domains_are_not_cartesian_and_unrelated_modes_survive() -> None:
     hailuo = current_model("minimax/hailuo-2.3")
     assert project_method(hailuo, "T2V")["controls"]["duration"]["values"] == [6]
     assert project_method(hailuo, "I2V")["controls"]["duration"]["values"] == [6]
+    hailuo_h3 = current_model("minimax/hailuo-3")
+    assert project_method(hailuo_h3, "T2V")["state"] == "SUPPORTED"
     grok = current_model("x-ai/grok-imagine-video")
     profile = project_method(grok, "MI2V")
     context = {"geometry_authority": "NORMALIZED", "inference_method": "MI2V", "reference_count": 2}
@@ -164,11 +186,13 @@ def test_hailuo_and_grok_joint_domains_are_not_cartesian_and_unrelated_modes_sur
         )
         == "READY"
     )
+    # Historical tuples demonstrated valid examples; they do not exhaust the
+    # documented independent duration domain.
     assert (
         configuration_status(
             relations, {"resolution": "480p", "duration": 10, "aspect_ratio": "16:9"}, context
         )
-        == "CONFIRMED_INCOMPATIBLE"
+        == "READY"
     )
     assert (
         configuration_status(
@@ -176,11 +200,13 @@ def test_hailuo_and_grok_joint_domains_are_not_cartesian_and_unrelated_modes_sur
             {"resolution": "480p", "duration": 1, "aspect_ratio": "16:9"},
             {**context, "reference_count": 3},
         )
-        == "CONFIRMED_INCOMPATIBLE"
+        == "READY"
     )
     assert 15 in project_method(grok, "T2V")["controls"]["duration"]["values"]
     assert "480p" in project_method(grok, "I2V")["controls"]["resolution"]["values"]
-    assert project_method(grok, "I2V")["controls"]["aspect_ratio"]["state"] == "UNKNOWN"
+    aspect = project_method(grok, "I2V")["controls"]["aspect_ratio"]
+    assert aspect["state"] == "UNSUPPORTED"  # current native docs confirm input-driven aspect
+    assert "values" not in aspect
 
 
 def test_hidden_values_and_roles_are_omitted_before_serializer_without_method_coercion() -> None:
@@ -248,9 +274,12 @@ def test_exact_enum_and_authority_are_scoped_and_explicit_supported_false_is_pre
     )
     assert values["size"] == "1280x720" and values["resolution"] is values["aspect_ratio"] is None
     mini = current_model("bytedance/seedance-2.0-mini")
-    assert (
-        project_semantic_values(mini, "MMR2V", {"generate_audio": False})["generate_audio"] is False
-    )
+    for method in ("T2V", "IR2V"):
+        assert project_method(mini, method)["state"] == "SUPPORTED"
+        assert (
+            project_semantic_values(mini, method, {"generate_audio": False})["generate_audio"]
+            is False
+        )
     assert (
         GenerationRequest("synthetic/valid", "test", generate_audio=False).to_openrouter_payload()[
             "generate_audio"
@@ -259,9 +288,9 @@ def test_exact_enum_and_authority_are_scoped_and_explicit_supported_false_is_pre
     )
 
 
-def test_accepted_native_mixed_and_image_reference_semantic_requests_still_validate() -> None:
+def test_verified_mini_example_and_documented_reference_limit_are_enforced() -> None:
     mini = current_model("bytedance/seedance-2.0-mini")
-    mixed = GenerationRequest(
+    verified = GenerationRequest(
         mini.model_id,
         "test",
         InferenceMethod.MMR2V,
@@ -269,13 +298,52 @@ def test_accepted_native_mixed_and_image_reference_semantic_requests_still_valid
         resolution="480p",
         aspect_ratio="16:9",
         input_references=InputReferenceCollection(
-            tuple(
-                InputReference(kind, "https://example.com/reference") for kind in InputReferenceKind
+            (
+                InputReference(InputReferenceKind.IMAGE, "https://example.com/reference.png"),
+                InputReference(InputReferenceKind.VIDEO, "https://example.com/reference.mp4"),
+                InputReference(InputReferenceKind.AUDIO, "https://example.com/reference.wav"),
             )
         ),
     )
-    RequestValidator().validate_shape(mixed)
-    RequestValidator().validate_capabilities(mixed, mini)
+    RequestValidator().validate_shape(verified)
+    RequestValidator().validate_capabilities(verified, mini)
+
+    expanded = GenerationRequest(
+        mini.model_id,
+        "test",
+        InferenceMethod.MMR2V,
+        duration=4,
+        resolution="480p",
+        aspect_ratio="16:9",
+        input_references=InputReferenceCollection(
+            (
+                InputReference(InputReferenceKind.IMAGE, "https://example.com/reference.png"),
+                InputReference(InputReferenceKind.IMAGE, "https://example.com/reference-2.png"),
+                InputReference(InputReferenceKind.VIDEO, "https://example.com/reference.mp4"),
+                InputReference(InputReferenceKind.AUDIO, "https://example.com/reference.wav"),
+            )
+        ),
+    )
+    RequestValidator().validate_shape(expanded)
+    RequestValidator().validate_capabilities(expanded, mini)
+
+    over_image_limit = replace(
+        expanded,
+        input_references=InputReferenceCollection(
+            tuple(
+                InputReference(InputReferenceKind.IMAGE, f"https://example.com/image-{index}.png")
+                for index in range(10)
+            )
+            + (
+                InputReference(InputReferenceKind.VIDEO, "https://example.com/reference.mp4"),
+                InputReference(InputReferenceKind.AUDIO, "https://example.com/reference.wav"),
+            )
+        ),
+    )
+    with pytest.raises(ProductFailureError) as failure:
+        RequestValidator().validate_capabilities(over_image_limit, mini)
+    assert failure.value.error.code.value == "UNSUPPORTED_PARAMETER"
+    assert failure.value.error.billing_context.value == "NO_SUBMIT"
     grok = current_model("x-ai/grok-imagine-video")
     images = InputReferenceCollection(
         tuple(

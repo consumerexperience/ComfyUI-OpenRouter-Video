@@ -1,0 +1,34 @@
+import {package02AmendmentBaselineSource} from "./package02_amendment_delta.mjs";
+// Exact proposed Package02 delta. No acceptance implied; historical pins stay immutable.
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+const base='cdab03f03d218f6ac30129638d3ce0a9e9a3c50f';
+const normalize=s=>s.replace(/\r\n/g,'\n');
+const sha=s=>createHash('sha256').update(normalize(s)).digest('hex');
+function body(text,name){
+ const start=new RegExp(`^(?:async )?function ${name}\\(`,'m').exec(text);assert(start,name);
+ const a=start.index,e=text.indexOf('\n',a),line=text.slice(a,e).trimEnd();
+ if(line.endsWith('}'))return text.slice(a,e+1);
+ const end=/^\}\n/m.exec(text.slice(e+1));assert(end,name);return text.slice(a,e+1+end.index+end[0].length);
+}
+export function package02BaselineSource(root,path,current){
+ current=package02AmendmentBaselineSource(root,path,current);
+ const pin=JSON.parse(readFileSync(new URL('tests/fixtures/package02-source-candidate.json',root),'utf8'));
+ if(!pin.files[path] || sha(current)!==pin.files[path])return current;
+ assert.equal(pin.status,'UNACCEPTED_PACKAGE02');assert.equal(pin.baseline,base);
+ const before=normalize(execFileSync('git',['show',`${base}:${path}`],{cwd:root,encoding:'utf8'}));assert.equal(sha(before),pin.baseline_files[path]);
+ if(path==='web/openrouter_video.js'){
+  const allowed='applyPresentation capacitySummaryText configureModelPicker costAdvisoryComparison costPrecompletionAdvisory costPriceView costReferenceRows costText costTooltipView fitPresentationWidth installBetaPresentation installParameterColumns installResponsiveHeight sizePrimaryControls stylePrompt syncBetaPresentation textRegionGeometry'.split(' ');
+  const added='capacityMeterHeight classicContentBounds drawCapacityMeter fitWidgetText modelDisplayLabel presentationSize referenceCapacity scheduleResizeLayout suppressPackageBadge syncCapacityMeter'.split(' ');
+  assert.deepEqual(Object.keys(pin.functions).sort(),allowed.sort());assert.deepEqual(Object.keys(pin.added).sort(),added.sort());
+  let restored=normalize(current);
+  for(const name of allowed){const text=body(restored,name);assert.equal(sha(text),pin.functions[name],name);restored=restored.replace(text,()=>body(before,name));}
+  for(const name of added){const text=body(restored,name);assert.equal(sha(text),pin.added[name],name);assert(restored.includes(text+'\n'));restored=restored.replace(text+'\n','');}
+  assert.equal(pin.literal_deltas.length,3);
+  for(const {before:old,after:fresh} of pin.literal_deltas){assert.equal(restored.split(fresh).length,2);restored=restored.replace(fresh,()=>old);}
+  assert.equal(restored,before,'Protected remainder, registration, globals and all other functions exact');
+ }
+ return before;
+}

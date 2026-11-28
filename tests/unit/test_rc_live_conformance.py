@@ -3,10 +3,15 @@ from typing import Any, cast
 
 import pytest
 
-from openrouter_video.capabilities import RequestValidator, inference_method_matrix
+from openrouter_video.capabilities import RequestValidator, inference_method_matrix, request_witness
 from openrouter_video.client import _parse_capability
-from openrouter_video.comfy.projection import project_model
-from openrouter_video.configuration import profile_constraints, project_configuration
+from openrouter_video.comfy.projection import project_model, project_selectable
+from openrouter_video.configuration import (
+    profile_constraints,
+    project_configuration,
+    project_method,
+)
+from openrouter_video.eligibility import eligible_methods
 from openrouter_video.errors import ProductFailureError
 from openrouter_video.evidence_registry import enrich_capabilities
 from openrouter_video.models import (
@@ -83,21 +88,48 @@ def test_live_exact_conflict_is_scoped_and_normalized_remains_available(
     )
 
 
-def test_standalone_audio_conflict_does_not_deny_mixed_audio_or_other_models() -> None:
+def test_standalone_audio_rejection_preserves_documented_mixed_methods_and_limits() -> None:
     mini = observed_model("bytedance/seedance-2.0-mini")
     matrix = inference_method_matrix(mini)
-    assert matrix[InferenceMethod.AR2V].value == "CONFLICT"
+    assert matrix[InferenceMethod.AR2V].value == "UNSUPPORTED"
     assert matrix[InferenceMethod.MMR2V].value == "READY"
     assert matrix[InferenceMethod.VR2V].value == "READY"
     projected = cast(dict[str, Any], project_model(mini, datetime.now(timezone.utc)).as_dict())
     assert "AR2V" not in projected["supported_inference_methods"]
     assert "MMR2V" in projected["supported_inference_methods"]
+    assert "VR2V" in projected["supported_inference_methods"]
+    mini_mixed = project_method(mini, "MMR2V")
+    assert mini_mixed["state"] == mini_mixed["method_support"] == "SUPPORTED"
+    assert mini_mixed["topology"]["execution_domain"] == "CONFIRMED_BOUNDS"
+    assert mini_mixed["topology"]["max"] == 15
+    assert mini_mixed["topology"]["per_kind_max"] == {"image": 9, "video": 3, "audio": 3}
+    assert mini_mixed["topology"]["verified_configurations"] == [
+        {"image": 1, "video": 1, "audio": 1}
+    ]
+    assert request_witness(mini, InferenceMethod.MMR2V) is not None
+    assert InferenceMethod.MMR2V in eligible_methods(mini)
     fast = observed_model("bytedance/seedance-2.0-fast")
-    assert inference_method_matrix(fast)[InferenceMethod.AR2V].value == "CONFLICT"
+    assert inference_method_matrix(fast)[InferenceMethod.AR2V].value == "UNSUPPORTED"
     assert inference_method_matrix(fast)[InferenceMethod.MMR2V].value == "READY"
+    assert inference_method_matrix(fast)[InferenceMethod.VR2V].value == "READY"
+    fast_mixed = project_method(fast, "MMR2V")
+    assert fast_mixed["state"] == fast_mixed["method_support"] == "SUPPORTED"
+    assert fast_mixed["topology"]["execution_domain"] == "CONFIRMED_BOUNDS"
+    assert fast_mixed["topology"]["max"] == 15
+    assert request_witness(fast, InferenceMethod.MMR2V) is not None
+    assert InferenceMethod.MMR2V in eligible_methods(fast)
     other = observed_model("bytedance/seedance-2.0")
     assert inference_method_matrix(other)[InferenceMethod.AR2V].value == "UNSUPPORTED"
     assert inference_method_matrix(other)[InferenceMethod.MMR2V].value == "READY"
+    assert inference_method_matrix(other)[InferenceMethod.VR2V].value == "READY"
+    other_mixed = project_method(other, "MMR2V")
+    assert other_mixed["state"] == other_mixed["method_support"] == "SUPPORTED"
+    assert other_mixed["topology"]["execution_domain"] == "CONFIRMED_BOUNDS"
+    assert other_mixed["topology"]["max"] == 15
+    assert request_witness(other, InferenceMethod.MMR2V) is not None
+    for model in (mini, fast, other):
+        selectable = project_selectable(model, datetime.now(timezone.utc)).as_dict()
+        assert "MMR2V" in cast(list[str], selectable["supported_inference_methods"])
 
 
 def test_audio_wire_matches_first_party_shape_without_synthetic_fields() -> None:

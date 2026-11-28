@@ -12,16 +12,19 @@ def test_frontend_helper_is_projection_only_and_model_agnostic() -> None:
 
     assert "/openrouter-video/v1/ui-capabilities" in text
     assert "/openrouter-video/v1/cost-estimate" in text
-    assert "const UI_CONTRACT_VERSION = 5" in text
+    assert "const UI_CONTRACT_VERSION = 7" in text
     assert "FRONTEND/BACKEND CONTRACT MISMATCH" in text
-    assert "CATALOGUE EMPTY — NO SELECTABLE MODELS" in text
+    assert "No supported video models currently available" in text
     assert "estimated_cost_usd" in text
     assert "pricing_skus" not in text
     assert "per-video-second" not in text
     assert "bytedance/" not in lowered
     assert "seedance" not in lowered
     assert "google/" not in lowered
-    assert "authorization" not in lowered.replace("authorization_url", "")
+    # Owner-approved financial disclosure is prose, not an auth header or route.
+    assert "authorization" not in lowered.replace("authorization_url", "").replace(
+        "spending authorization.", ""
+    )
     assert lowered.count("api_key") == 1
     # The UI must name the prompt field, but must not log its contents.
     assert "console." not in lowered
@@ -38,9 +41,14 @@ def test_frontend_helper_keeps_unresolved_and_auto_semantics_local() -> None:
     assert "ESTIMATE UNAVAILABLE" in text
     assert "migratePhase8Values" in text
     assert "Number(seed.value)" in text
-    assert 'return "image"' in text
-    assert 'return "video"' in text
-    assert 'return "audio"' in text
+    # Native kind identity is shared by all methods, rather than assigned from
+    # the selected method. Behavioral graph tests also reject AUDIO_ENCODER.
+    assert "const type = origin?.outputs?.[slot]?.type" in text
+    assert '["IMAGE", "VIDEO", "AUDIO"].includes(type)' in text
+    assert "return type.toLowerCase()" in text
     assert "switchWouldOrphan" in text
     assert "mixed_image_video_references" not in text
-    assert "Core" not in text  # no attempt to reimplement validator semantics
+    # Core references in standalone comments describe the boundary. Enforce
+    # the original token constraint on the executable frontend source.
+    executable = "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("//"))
+    assert "Core" not in executable

@@ -4,13 +4,21 @@ from __future__ import annotations
 
 import asyncio
 import threading
+from datetime import datetime, timezone
+from decimal import Decimal
 from importlib.metadata import PackageNotFoundError, version
 from typing import Any, Final
 
+from openrouter_video.capabilities import (
+    FRESH_TTL,
+    capability_completeness_report,
+    semantic_fingerprint,
+)
 from openrouter_video.errors import OpenRouterHTTPError, ProductFailureError, RequestPolicyError
 from openrouter_video.models import InferenceMethod, InputReferenceKind
 from openrouter_video.oauth import exchange as exchange_pkce
-from openrouter_video.pricing import CostEstimateInputs
+from openrouter_video.pricing import CostEstimateInputs, CostProviderControl, MediaCostMetadata
+from openrouter_video.pricing_profile import decimal_value
 from openrouter_video.secrets import (
     clear_interactive_openrouter_api_key,
     interactive_credential_status,
@@ -23,7 +31,7 @@ from openrouter_video.secrets import (
 from . import compat
 from .oauth_diagnostics import Outcome, callback_outcomes
 from .oauth_loopback import LoopbackReceiver
-from .projection import project_model
+from .projection import project_selectable
 from .runtime import get_runtime, local_runtime_health
 
 _REGISTRY_ATTRIBUTE: Final = "_openrouter_video_registered_routes"
@@ -35,7 +43,7 @@ _oauth_start_lock: asyncio.Lock | None = None
 
 async def _models_handler(_: Any) -> Any:
     try:
-        observation = await get_runtime().catalog()
+        observation = await get_runtime().effective_catalog()
     except (ProductFailureError, RequestPolicyError):
         compat.mark_catalogue_unavailable()
         return compat.json_response({"error": "model_catalog_unavailable"}, status=503)
@@ -51,7 +59,13 @@ async def _models_handler(_: Any) -> Any:
         for model_id in model_ids
     ):
         return compat.json_response({"error": "model_catalog_internal_error"}, status=500)
-    sorted_model_ids = tuple(sorted(model_ids))
+    sorted_model_ids = tuple(
+        sorted(
+            model.model_id
+            for model in observation.models
+            if project_selectable(model, observation.observed_at).supported_inference_methods
+        )
+    )
     return compat.json_response([compat.MODEL_UNRESOLVED, *sorted_model_ids], status=200)
 
 
@@ -59,22 +73,39 @@ async def _ui_capabilities_handler(_: Any) -> Any:
     try:
         observation = await get_runtime().effective_catalog()
         projected = tuple(
-            project_model(model, observation.observed_at) for model in observation.models
+            project_selectable(model, observation.observed_at) for model in observation.models
         )
     except (ProductFailureError, RequestPolicyError):
         compat.mark_catalogue_unavailable()
         return compat.json_response({"error": "model_catalog_unavailable"}, status=503)
     except Exception:
         return compat.json_response({"error": "model_catalog_internal_error"}, status=500)
-    sorted_projected = tuple(sorted(projected, key=lambda item: item.model_id))
+    sorted_projected = tuple(
+        sorted(
+            (item for item in projected if item.supported_inference_methods),
+            key=lambda item: item.model_id,
+        )
+    )
     model_ids = tuple(item.model_id for item in sorted_projected)
-    revision = compat.cache_catalogue_health(model_ids, observation.observed_at.isoformat())
+    completeness = capability_completeness_report(observation.models)
+    revision = semantic_fingerprint(
+        {"models": [item.as_dict() for item in projected], "completeness": completeness}
+    )
+    compat.cache_catalogue_health(model_ids, observation.observed_at.isoformat(), revision)
     return compat.json_response(
         {
             "observed_at": observation.observed_at.isoformat(),
             "catalogue_revision": revision,
+            "source_state": observation.source_state,
+            "capability_completeness": completeness,
+            "evolution": observation.evolution,
             "ui_contract_version": compat.UI_CONTRACT_VERSION,
             "models": [item.as_dict() for item in sorted_projected],
+            "unavailable_models": [
+                {"model_id": item.model_id, "reason": "NO_CONFIRMED_SERIALIZABLE_METHOD"}
+                for item in projected
+                if not item.supported_inference_methods
+            ],
         },
         status=200,
     )
@@ -280,8 +311,47 @@ async def _cost_estimate_handler(request: Any) -> Any:
 
     payload: dict[str, object] = {
         "availability": result.availability.value,
+        "state": result.state.value,
         "observed_at": result.observed_at.isoformat(),
         "applied_skus": result.applied_skus,
+        "amount_usd": _cost_decimal(result.amount_usd),
+        "lower_usd": _cost_decimal(result.lower_usd),
+        "upper_usd": _cost_decimal(result.upper_usd),
+        "range_kind": result.range_kind,
+        "planning": result.planning,
+        "precompletion_advisory": result.precompletion_advisory,
+        "validation_details": result.validation_details,
+        "valid_for_ms": max(
+            0,
+            min(
+                int(FRESH_TTL.total_seconds() * 1000),
+                int(
+                    (result.observed_at + FRESH_TTL - datetime.now(timezone.utc)).total_seconds()
+                    * 1000
+                ),
+            ),
+        ),
+        "rate_usd": _cost_decimal(result.rate_usd),
+        "rate_unit": result.rate_unit,
+        "breakdown": [
+            {
+                "sku": row.sku,
+                "unit": row.unit,
+                "quantity": _cost_decimal(row.quantity),
+                "rate_usd": _cost_decimal(row.rate_usd),
+                "amount_usd": _cost_decimal(row.amount_usd),
+                "relation": row.relation,
+                "evidence": row.evidence,
+                "applicability": row.applicability,
+            }
+            for row in result.breakdown
+        ],
+        "assumptions": result.assumptions,
+        "reason_codes": result.reason_codes,
+        "snapshot_hash": result.snapshot_hash,
+        "rates_hash": result.rates_hash,
+        "rules_version": result.rules_version,
+        "context_revision": result.context_revision,
     }
     if result.estimated_cost_usd is not None:
         payload["estimated_cost_usd"] = format(result.estimated_cost_usd, "f")
@@ -306,30 +376,73 @@ def _parse_estimate_inputs(value: object) -> CostEstimateInputs:
         "reference_kinds",
         "reference_count",
         "source_video_present",
+        "schema_version",
     }
+    schema_version = value.get("schema_version", 1)
+    if type(schema_version) is not int or schema_version not in {1, 2}:
+        raise ValueError("unsupported_cost_schema")
+    if schema_version == 2:
+        allowed |= {
+            "context_revision",
+            "media",
+            "upscale_factor",
+            "creativity",
+            "effective_output_seconds",
+            "provider_policy_version",
+            "provider_controls",
+        }
     if set(value) - allowed:
         raise ValueError("estimate request contains unsupported fields")
     model_id = _required_text(value.get("model_id"))
     duration_raw = value.get("duration")
     if duration_raw is not None and (
-        isinstance(duration_raw, bool) or not isinstance(duration_raw, int) or duration_raw <= 0
+        isinstance(duration_raw, bool)
+        or not isinstance(duration_raw, int)
+        or duration_raw < -1
+        or duration_raw == 0
     ):
         raise ValueError("duration is invalid")
-    audio = value.get("generate_audio", False)
-    if not isinstance(audio, bool):
+    audio = value.get("generate_audio", False if schema_version == 1 else None)
+    if not (type(audio) is bool or (schema_version == 2 and audio is None)):
         raise ValueError("generate_audio is invalid")
     method_raw = value.get("inference_method", InferenceMethod.T2V.value)
     if not isinstance(method_raw, str):
         raise ValueError("inference_method is invalid")
     kinds_raw = value.get("reference_kinds", [])
-    if not isinstance(kinds_raw, list) or any(not isinstance(item, str) for item in kinds_raw):
+    if (
+        not isinstance(kinds_raw, list)
+        or len(kinds_raw) > 64
+        or any(not isinstance(item, str) for item in kinds_raw)
+    ):
         raise ValueError("reference_kinds is invalid")
     count_raw = value.get("reference_count", 0)
-    if isinstance(count_raw, bool) or not isinstance(count_raw, int) or count_raw < 0:
+    if type(count_raw) is not int or not 0 <= count_raw <= 64:
         raise ValueError("reference_count is invalid")
     source_video = value.get("source_video_present", False)
     if not isinstance(source_video, bool):
         raise ValueError("source_video_present is invalid")
+    revision = value.get("context_revision", 0)
+    if type(revision) is not int or not 0 <= revision <= 9007199254740991:
+        raise ValueError("context_revision is invalid")
+    factor = value.get("upscale_factor")
+    if factor is not None:
+        if not isinstance(factor, str) and type(factor) is not int:
+            raise ValueError("upscale_factor is invalid")
+        factor = decimal_value(factor)
+        if not 0 < factor <= 16:
+            raise ValueError("upscale_factor is invalid")
+    creativity = value.get("creativity")
+    if creativity is not None and (type(creativity) is not int or creativity not in {0, 1}):
+        raise ValueError("creativity is invalid")
+    media_raw = value.get("media", [])
+    if not isinstance(media_raw, list) or len(media_raw) > 64:
+        raise ValueError("media metadata is invalid")
+    provider_raw = value.get("provider_controls", [])
+    if not isinstance(provider_raw, list) or len(provider_raw) > 8:
+        raise ValueError("provider cost descriptors are invalid")
+    provider_controls = tuple(_parse_cost_provider_control(item) for item in provider_raw)
+    if len({(item.provider, item.key) for item in provider_controls}) != len(provider_controls):
+        raise ValueError("duplicate provider cost descriptor")
     return CostEstimateInputs(
         model_id=model_id,
         duration=duration_raw,
@@ -341,6 +454,81 @@ def _parse_estimate_inputs(value: object) -> CostEstimateInputs:
         reference_kinds=tuple(InputReferenceKind(item) for item in kinds_raw),
         reference_count=count_raw,
         source_video_present=source_video,
+        schema_version=schema_version,
+        context_revision=revision,
+        media=tuple(_parse_cost_media(item) for item in media_raw),
+        upscale_factor=factor,
+        creativity=creativity,
+        effective_output_seconds=_parse_cost_decimal(value.get("effective_output_seconds")),
+        provider_policy_version=_optional_text(value.get("provider_policy_version")),
+        provider_controls=provider_controls,
+    )
+
+
+def _cost_decimal(value: Decimal | None) -> str | None:
+    return None if value is None else format(value, "f")
+
+
+def _parse_cost_decimal(value: object) -> Decimal | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValueError("cost metadata must be a decimal string")
+    result = decimal_value(value)
+    if not 0 < result <= 1000000:
+        raise ValueError("cost metadata outside domain")
+    return result
+
+
+def _parse_cost_media(value: object) -> MediaCostMetadata:
+    if not isinstance(value, dict) or set(value) - {
+        "kind",
+        "role",
+        "duration_seconds",
+        "width",
+        "height",
+        "fps",
+        "status",
+        "occurrence_index",
+        "context_revision",
+    }:
+        raise ValueError("unsupported media metadata")
+    return MediaCostMetadata(
+        InputReferenceKind(value.get("kind")),
+        role=value.get("role", "reference"),
+        duration_seconds=_parse_cost_decimal(value.get("duration_seconds")),
+        width=value.get("width"),
+        height=value.get("height"),
+        fps=_parse_cost_decimal(value.get("fps")),
+        # A public caller cannot assert the internal native adapter's KNOWN
+        # authority. Loaded previews remain advisory revision-bound HINTs.
+        status="HINT" if value.get("status") == "KNOWN" else value.get("status", "UNKNOWN"),
+        occurrence_index=value.get("occurrence_index"),
+        context_revision=value.get("context_revision"),
+    )
+
+
+def _parse_cost_provider_control(value: object) -> CostProviderControl:
+    if (
+        not isinstance(value, dict)
+        or not {"provider", "key"} <= set(value)
+        or set(value)
+        - {
+            "provider",
+            "key",
+            "number_value",
+            "text_length",
+        }
+    ):
+        raise ValueError("unsupported provider cost descriptor")
+    number = value.get("number_value")
+    if number is not None and not isinstance(number, str):
+        raise ValueError("provider number must be a decimal string")
+    return CostProviderControl(
+        provider=_required_text(value.get("provider")),
+        key=_required_text(value.get("key")),
+        number_value=None if number is None else decimal_value(number),
+        text_length=value.get("text_length"),
     )
 
 

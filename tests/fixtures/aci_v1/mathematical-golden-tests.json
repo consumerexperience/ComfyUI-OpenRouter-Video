@@ -1,0 +1,821 @@
+{
+  "status": "reference arithmetic only; historical rates or synthetic examples; no live billing proof",
+  "cases": [
+    {
+      "id": "VEO_FAST_720_SILENT",
+      "input": {
+        "values": {
+          "output_seconds": 4
+        },
+        "charges": [
+          {
+            "rate": "0.08",
+            "unit": "USD",
+            "quantity": "output_seconds"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "0.32"
+      }
+    },
+    {
+      "id": "VEO_FAST_1080_SILENT",
+      "input": {
+        "values": {
+          "output_seconds": 4
+        },
+        "charges": [
+          {
+            "rate": "0.10",
+            "unit": "USD",
+            "quantity": "output_seconds"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "0.40"
+      }
+    },
+    {
+      "id": "VEO_FAST_720_AUDIO",
+      "input": {
+        "values": {
+          "output_seconds": 4
+        },
+        "charges": [
+          {
+            "rate": "0.10",
+            "unit": "USD",
+            "quantity": "output_seconds"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "0.40"
+      }
+    },
+    {
+      "id": "VEO_FAST_4K_AUDIO",
+      "input": {
+        "values": {
+          "output_seconds": 8
+        },
+        "charges": [
+          {
+            "rate": "0.30",
+            "unit": "USD",
+            "quantity": "output_seconds"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "2.40"
+      }
+    },
+    {
+      "id": "SEED25_720_10S",
+      "input": {
+        "values": {
+          "width": 1280,
+          "height": 720,
+          "output_seconds": 10
+        },
+        "charges": [
+          {
+            "rate": "0.0000107",
+            "unit": "USD",
+            "quantity": "video_tokens_output_24"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "2.3112"
+      }
+    },
+    {
+      "id": "SEED25_VERTICAL",
+      "input": {
+        "values": {
+          "width": 720,
+          "height": 1280,
+          "output_seconds": 10
+        },
+        "charges": [
+          {
+            "rate": "0.0000107",
+            "unit": "USD",
+            "quantity": "video_tokens_output_24"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "2.3112"
+      }
+    },
+    {
+      "id": "SEED25_WIDE",
+      "input": {
+        "values": {
+          "width": 1470,
+          "height": 630,
+          "output_seconds": 10
+        },
+        "charges": [
+          {
+            "rate": "0.0000107",
+            "unit": "USD",
+            "quantity": "video_tokens_output_24"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "2.32248515625"
+      }
+    },
+    {
+      "id": "SEED20_4K",
+      "input": {
+        "values": {
+          "width": 3840,
+          "height": 2160,
+          "output_seconds": 5
+        },
+        "charges": [
+          {
+            "rate": "0.000004",
+            "unit": "USD",
+            "quantity": "video_tokens_output_24"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "3.888"
+      }
+    },
+    {
+      "id": "SEED20_1080",
+      "input": {
+        "values": {
+          "width": 1920,
+          "height": 1080,
+          "output_seconds": 5
+        },
+        "charges": [
+          {
+            "rate": "0.0000077",
+            "unit": "USD",
+            "quantity": "video_tokens_output_24"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "1.8711"
+      }
+    },
+    {
+      "id": "SEED_WITH_VIDEO_UNKNOWN",
+      "input": {
+        "values": {
+          "width": 1280,
+          "height": 720,
+          "output_seconds": 10
+        },
+        "charges": [
+          {
+            "rate": "0.0000064",
+            "unit": "USD",
+            "quantity": "unknown"
+          }
+        ]
+      },
+      "expected": {
+        "state": "UNKNOWN",
+        "amount": null
+      }
+    },
+    {
+      "id": "GROK_IMAGES_CENTS",
+      "input": {
+        "values": {
+          "output_seconds": 10,
+          "active_image_inputs": 3
+        },
+        "charges": [
+          {
+            "rate": "7",
+            "unit": "cents",
+            "quantity": "output_seconds"
+          },
+          {
+            "rate": "0.2",
+            "unit": "cents",
+            "quantity": "active_image_inputs"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "0.706"
+      }
+    },
+    {
+      "id": "HAILUO_FREE_5",
+      "input": {
+        "values": {
+          "output_seconds": 5,
+          "reference_images": 5
+        },
+        "charges": [
+          {
+            "rate": "0.13",
+            "unit": "USD",
+            "quantity": "output_seconds"
+          },
+          {
+            "rate": "0.04",
+            "unit": "USD",
+            "quantity": "reference_images",
+            "free": 5
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "0.65"
+      }
+    },
+    {
+      "id": "HAILUO_FREE_6",
+      "input": {
+        "values": {
+          "output_seconds": 5,
+          "reference_images": 6
+        },
+        "charges": [
+          {
+            "rate": "0.13",
+            "unit": "USD",
+            "quantity": "output_seconds"
+          },
+          {
+            "rate": "0.04",
+            "unit": "USD",
+            "quantity": "reference_images",
+            "free": 5
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "0.69"
+      }
+    },
+    {
+      "id": "HEYGEN_FREE_2_SYNTHETIC",
+      "input": {
+        "values": {
+          "output_seconds": 10,
+          "reference_images": 4
+        },
+        "charges": [
+          {
+            "rate": "0.07",
+            "unit": "USD",
+            "quantity": "output_seconds"
+          },
+          {
+            "rate": "0.04",
+            "unit": "USD",
+            "quantity": "reference_images",
+            "free": 2
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "0.78"
+      }
+    },
+    {
+      "id": "FLUX_EDIT_SOURCE",
+      "input": {
+        "values": {
+          "source_seconds": "7.5"
+        },
+        "charges": [
+          {
+            "rate": "3",
+            "unit": "cents",
+            "quantity": "source_seconds"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "0.225"
+      }
+    },
+    {
+      "id": "FLUX_EDIT_NO_METADATA",
+      "input": {
+        "values": {},
+        "charges": [
+          {
+            "rate": "3",
+            "unit": "cents",
+            "quantity": "source_seconds"
+          }
+        ]
+      },
+      "expected": {
+        "state": "UNKNOWN",
+        "amount": null
+      }
+    },
+    {
+      "id": "ALEPH_FLOOR_SYNTHETIC",
+      "input": {
+        "values": {
+          "output_seconds": 1
+        },
+        "charges": [
+          {
+            "rate": "28",
+            "unit": "cents",
+            "quantity": "output_seconds"
+          },
+          {
+            "rate": "56",
+            "unit": "cents",
+            "quantity": "fixed",
+            "relation": "minimum"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "0.56"
+      }
+    },
+    {
+      "id": "ALEPH_ABOVE_FLOOR_SYNTHETIC",
+      "input": {
+        "values": {
+          "output_seconds": 3
+        },
+        "charges": [
+          {
+            "rate": "28",
+            "unit": "cents",
+            "quantity": "output_seconds"
+          },
+          {
+            "rate": "56",
+            "unit": "cents",
+            "quantity": "fixed",
+            "relation": "minimum"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "0.84"
+      }
+    },
+    {
+      "id": "MP_SECONDS_SYNTHETIC",
+      "input": {
+        "values": {
+          "width": 1920,
+          "height": 1080,
+          "output_seconds": 5
+        },
+        "charges": [
+          {
+            "rate": "3.5",
+            "unit": "cents",
+            "quantity": "megapixel_seconds"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "0.36288"
+      }
+    },
+    {
+      "id": "TOKEN_MILLION_SCALE",
+      "input": {
+        "values": {
+          "tokens": 216000
+        },
+        "charges": [
+          {
+            "rate": "10.7",
+            "unit": "USD_per_million",
+            "quantity": "tokens"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "2.3112"
+      }
+    },
+    {
+      "id": "PIECEWISE_SYNTHETIC",
+      "input": {
+        "values": {
+          "output_seconds": 12
+        },
+        "charges": [
+          {
+            "rate": "0",
+            "unit": "USD",
+            "quantity": "output_seconds",
+            "tiers": [
+              {
+                "through": "10",
+                "rate": "0.1"
+              },
+              {
+                "through": null,
+                "rate": "0.2"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "1.4"
+      }
+    },
+    {
+      "id": "ROUND_UP_SYNTHETIC",
+      "input": {
+        "values": {
+          "output_seconds": "1.01"
+        },
+        "charges": [
+          {
+            "rate": "0.1",
+            "unit": "USD",
+            "quantity": "output_seconds",
+            "rounding_quantum": "1"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "0.2"
+      }
+    },
+    {
+      "id": "ZERO_VALID",
+      "input": {
+        "values": {
+          "output_seconds": 10
+        },
+        "charges": [
+          {
+            "rate": "0",
+            "unit": "USD",
+            "quantity": "output_seconds"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "0"
+      }
+    },
+    {
+      "id": "FIXED",
+      "input": {
+        "values": {},
+        "charges": [
+          {
+            "rate": "0.12",
+            "unit": "USD",
+            "quantity": "fixed"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "0.12"
+      }
+    },
+    {
+      "id": "NEGATIVE",
+      "input": {
+        "values": {
+          "output_seconds": -1
+        },
+        "charges": [
+          {
+            "rate": "0.1",
+            "unit": "USD",
+            "quantity": "output_seconds"
+          }
+        ]
+      },
+      "expected": {
+        "state": "UNKNOWN",
+        "amount": null
+      }
+    },
+    {
+      "id": "NAN",
+      "input": {
+        "values": {
+          "output_seconds": 1
+        },
+        "charges": [
+          {
+            "rate": "NaN",
+            "unit": "USD",
+            "quantity": "output_seconds"
+          }
+        ]
+      },
+      "expected": {
+        "state": "UNKNOWN",
+        "amount": null
+      }
+    },
+    {
+      "id": "INF",
+      "input": {
+        "values": {
+          "output_seconds": 1
+        },
+        "charges": [
+          {
+            "rate": "Infinity",
+            "unit": "USD",
+            "quantity": "output_seconds"
+          }
+        ]
+      },
+      "expected": {
+        "state": "UNKNOWN",
+        "amount": null
+      }
+    },
+    {
+      "id": "STALE",
+      "input": {
+        "values": {
+          "output_seconds": 1
+        },
+        "charges": [
+          {
+            "rate": "0.1",
+            "unit": "USD",
+            "quantity": "output_seconds"
+          }
+        ],
+        "stale": true
+      },
+      "expected": {
+        "state": "STALE",
+        "amount": null
+      }
+    },
+    {
+      "id": "INVALID",
+      "input": {
+        "values": {
+          "output_seconds": 1
+        },
+        "charges": [
+          {
+            "rate": "0.1",
+            "unit": "USD",
+            "quantity": "output_seconds"
+          }
+        ],
+        "invalid": true
+      },
+      "expected": {
+        "state": "INVALID",
+        "amount": null
+      }
+    },
+    {
+      "id": "CONFLICT",
+      "input": {
+        "values": {
+          "output_seconds": 1
+        },
+        "charges": [
+          {
+            "rate": "0.1",
+            "unit": "USD",
+            "quantity": "output_seconds"
+          }
+        ],
+        "conflict": true
+      },
+      "expected": {
+        "state": "UNKNOWN",
+        "amount": null
+      }
+    },
+    {
+      "id": "UNKNOWN_ADDON",
+      "input": {
+        "values": {
+          "output_seconds": 1
+        },
+        "charges": [
+          {
+            "rate": "0.1",
+            "unit": "USD",
+            "quantity": "output_seconds"
+          }
+        ],
+        "unknown_charge": true
+      },
+      "expected": {
+        "state": "PARTIAL",
+        "amount": null
+      }
+    },
+    {
+      "id": "AUTO_NO_DURATION",
+      "input": {
+        "values": {},
+        "charges": [
+          {
+            "rate": "0.1",
+            "unit": "USD",
+            "quantity": "output_seconds"
+          }
+        ]
+      },
+      "expected": {
+        "state": "UNKNOWN",
+        "amount": null
+      }
+    },
+    {
+      "id": "BOOL_NOT_QUANTITY",
+      "input": {
+        "values": {
+          "output_seconds": true
+        },
+        "charges": [
+          {
+            "rate": "0.1",
+            "unit": "USD",
+            "quantity": "output_seconds"
+          }
+        ]
+      },
+      "expected": {
+        "state": "UNKNOWN",
+        "amount": null
+      }
+    },
+    {
+      "id": "CENTS_MINIMUM_NOT_DOUBLE",
+      "input": {
+        "values": {
+          "output_seconds": 1
+        },
+        "charges": [
+          {
+            "rate": "3",
+            "unit": "cents",
+            "quantity": "output_seconds"
+          },
+          {
+            "rate": "5",
+            "unit": "cents",
+            "quantity": "fixed",
+            "relation": "minimum"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "0.05"
+      }
+    },
+    {
+      "id": "MISSING_BASE",
+      "input": {
+        "values": {},
+        "charges": [
+          {
+            "rate": "0.56",
+            "unit": "USD",
+            "quantity": "fixed",
+            "relation": "minimum"
+          }
+        ]
+      },
+      "expected": {
+        "state": "UNKNOWN",
+        "amount": null
+      }
+    },
+    {
+      "id": "MISSING_RATE",
+      "input": {
+        "values": {
+          "output_seconds": 1
+        },
+        "charges": [
+          {
+            "rate": null,
+            "unit": "USD",
+            "quantity": "output_seconds"
+          }
+        ]
+      },
+      "expected": {
+        "state": "UNKNOWN",
+        "amount": null
+      }
+    },
+    {
+      "id": "INPUT_OUTPUT_SYNTHETIC",
+      "input": {
+        "values": {
+          "width": 1280,
+          "height": 720,
+          "fps": 24,
+          "input_seconds": 5,
+          "output_seconds": 10
+        },
+        "charges": [
+          {
+            "rate": "0.0000064",
+            "unit": "USD",
+            "quantity": "video_tokens_input_output"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "2.0736"
+      }
+    },
+    {
+      "id": "BFL_BINARY_MP_SECONDS",
+      "input": {
+        "values": {
+          "width": 1920,
+          "height": 1080,
+          "output_seconds": 10
+        },
+        "charges": [
+          {
+            "rate": "3.5",
+            "unit": "cents",
+            "quantity": "megapixel_seconds_binary_output_24"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "0.692138671875"
+      }
+    },
+    {
+      "id": "BFL_BINARY_MP_CREATIVE",
+      "input": {
+        "values": {
+          "width": 1920,
+          "height": 1080,
+          "output_seconds": 10
+        },
+        "charges": [
+          {
+            "rate": "5",
+            "unit": "cents",
+            "quantity": "megapixel_seconds_binary_output_24"
+          }
+        ]
+      },
+      "expected": {
+        "state": "FORMULA",
+        "amount": "0.98876953125"
+      }
+    }
+  ]
+}

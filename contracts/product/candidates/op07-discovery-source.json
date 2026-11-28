@@ -1,0 +1,84 @@
+{
+  "protocol": "openrouter-video-product-contract",
+  "schema_version": 1,
+  "contract_id": "op07-frozen-baseline",
+  "checkpoint_id": "op05-frozen-058f5bc",
+  "subject_sha": "058f5bcdd462a2a71f4f85151d9bbba3bc09bcf9",
+  "exporter": {
+    "name": "accepted-source-normalized-digest",
+    "version": "1"
+  },
+  "surfaces": {
+    "product_owned": {
+      "submit_resume": {
+        "src~1openrouter_video~1application_py": "6f86c4c1367046a65946d0e4f69d07f5e1cffd6b48669cf410174e62aad48aa3",
+        "src~1openrouter_video~1execution_hooks_py": "459c6370f1b987ee5214139172e910fa2af0884869b8fed2a328d0cb4cf47da7",
+        "src~1openrouter_video~1comfy~1runtime_py": "2a8ee08cc62b029637eb9226101d99077ac90799885ba9a65553941b4873ab4c"
+      },
+      "AppIdentity": {
+        "src~1openrouter_video~1app_identity_py": "94fc446b83ddd707ca4d6463b280dd0fa210e4f106ec08a059bf4abd260e7ed7"
+      },
+      "capabilities": {
+        "src~1openrouter_video~1capabilities_py": "5cb420b0e41d5c8026e6c51fd3117a6ae8ed77fe99874d2dc6002beb4b0bd95b",
+        "src~1openrouter_video~1capability_overlays_py": "2faf6a156a6abe497992f6dfec594c3e6f6a0fcaaf45a963b3a6b428311cb232",
+        "src~1openrouter_video~1client_py": "8c4629c9f3425f1aa7ec7d6d33cdda3f21cda917ee0235d1abffaef6372961a1",
+        "src~1openrouter_video~1configuration_py": "58f45955b3a30a786cbebf74f6ebd94073c3e7e163d8a20ddaa9ea94fd6f2d34",
+        "src~1openrouter_video~1credential_backend_py": "ddaa46fcae133aee57d09d039b91d0a840fbc8260150af6e796f56789b3f041e",
+        "src~1openrouter_video~1eligibility_py": "3380ef4a5e3e9c3b5fb628ef5d00f99ef20afb11a822267108f824ed74e28041",
+        "src~1openrouter_video~1errors_py": "2ee7cc10ae9e353b28539b82810b8a7bf54ed1c33f6373daab2d71c3dd50642f",
+        "src~1openrouter_video~1geometry_py": "1047b75ba88d498e1b8205cb89c9a14d8ee8b9f74b2ddb00d66000ae4e20a0ba",
+        "src~1openrouter_video~1image_transport_py": "abebb6011eae69993f5077873663557408996415b824b2eabcef3a588ca2a9c5",
+        "src~1openrouter_video~1lifecycle_py": "5a8a124025bfdfdddba5c6d5714a02c061f81d7544a5e0e2ac033ee3adfbdc75",
+        "src~1openrouter_video~1media_py": "c44e8ad04a968664440dfe1b5856cb799c872760c19a21e175a0a92221f0256a",
+        "src~1openrouter_video~1models_py": "743595402a2df614e85501e3d105e0b28acd7d360cce7ec8bb7ca997de15b020",
+        "src~1openrouter_video~1oauth_py": "46b9db48e487de21f97b3b5ffa0c47bead28fa4f0ce12003181c3e2a3bbd1013",
+        "src~1openrouter_video~1observability_py": "b4c97e23d1bfbffa4553c6af9064a695ead6a7fd8e66b1c23f682a55c2305f7b",
+        "src~1openrouter_video~1policy_py": "86429367bd0a510502a114b085263bb21472e42b403e49fb1d3ec945aa8dbf39",
+        "src~1openrouter_video~1request_policy_py": "df34611e8fcf10b280d3c6d94bafc48be4feeff7879e0380d7f417e8ff43a141",
+        "src~1openrouter_video~1transport_py": "be05e33cc8ee5561185bb804848d2c2aba61f3229b622a035bb2f8d82a560a96",
+        "src~1openrouter_video~1__init___py": "29609578652107b9020a259f63a9076e7128ac40d8638935b40f7d475417287b",
+        "src~1openrouter_video~1comfy~1compat_py": "acf6f3ae92fe73214273b7971bb62337a3a6c0fbd045fb85acf6a59b4543378f",
+        "src~1openrouter_video~1comfy~1extension_py": "e8e544a1cd58cd7933fb62fab5a42f834a630d29cc50446324a69a295d9107ae",
+        "src~1openrouter_video~1comfy~1image_py": "ad04516d799f093ce6dfa65ecf0dc193970408119338c4da329dd9da4a88ba50",
+        "src~1openrouter_video~1comfy~1nodes_py": "2eab3384fa3fbd4782ce403de642a02f3a9c26f6a988009f0c9e8a8b3ae93e67",
+        "src~1openrouter_video~1comfy~1oauth_diagnostics_py": "f6f07be096153de722339e48391fc283472504a6c2f74a747eed2d71f2c39948",
+        "src~1openrouter_video~1comfy~1oauth_loopback_py": "5988509ad6c9b81339b2dd70747a89ea01d0456895c1d47921f99aa2975cb062",
+        "src~1openrouter_video~1comfy~1projection_py": "ac5c9e5fc47ff5c6765967ceca354750d84cdbc700f9143b9cbdbe8455a072df",
+        "src~1openrouter_video~1comfy~1routes_py": "d77103c9628bded79143c33c534a2474a89b3063a6979b1fe9af20f5e7fbddef",
+        "src~1openrouter_video~1comfy~1video_py": "abba994f7b8b8f8c424be4ea46339b2710b0f92ed1b0b5a2ae3597fb685b0480",
+        "src~1openrouter_video~1comfy~1__init___py": "53c1674848551aacdf94a06520af63ff90947add1e69af174b3d983367958654",
+        "src~1openrouter_video~1data~1geometry-relations_json": "43ba114f123a24b53de0adbe08544b3f43c3a4c28b3f96eb1501419ebb86b228"
+      },
+      "evidence_registry": {
+        "src~1openrouter_video~1evidence_registry_py": "8d4cf176439faa8ca3578429db7a2bfee7c8cc7d2413ffc56d469cb8f8dc9b97",
+        "src~1openrouter_video~1data~1capability-evidence_json": "8f029442dd4b361c432fdcca2b682eedc44069a4ac57433b806e5a7eaa18a6cb"
+      },
+      "storage": {
+        "src~1openrouter_video~1local_media_py": "9ed03216faa922f9bc95735304b33ddc4727df79a16446959192926f7a35cd23",
+        "src~1openrouter_video~1s3_upload_py": "bd01633e38999b3f0214d9c002e296e2a03ec328a9ecacfce0f9ff5ee7c9c4bf",
+        "src~1openrouter_video~1staging_py": "c42e38037a0c8d6f4093bca75d15b1d9e2cbebfb17d58f4e4be7267a718165fd"
+      },
+      "database_migrations": {
+        "src~1openrouter_video~1persistence_py": "62369d569597f088de397b945b524551bbb6a3dc4514037ec42458b7078cbc2b"
+      },
+      "pricing": {
+        "src~1openrouter_video~1pricing_py": "f2e53621eaedd3e90ec62d28ab62df1e393839d83b81678a62463a17dc2884f4",
+        "src~1openrouter_video~1pricing_profile_py": "9fbd09ffa1bdd102a8042352edb1eda40004885f8d52c9a4080446293bb11f06"
+      },
+      "recipes": {
+        "src~1openrouter_video~1recipes_py": "29b11a33ae507c378213eb5ec619d72aaa614d47588c2e30057c7392a056cb53"
+      },
+      "credentials": {
+        "src~1openrouter_video~1secrets_py": "96fa459efe15082d1d009bdb42a5f3fae20ab7bc7507c17a7f9d3ccc6fcebcff"
+      },
+      "native_media": {
+        "src~1openrouter_video~1comfy~1native_media_py": "55f0b01337e200732d7290d1cc05bc305712186bf6bedf42caebf834d21f8541"
+      },
+      "workflow_persistence": {
+        "web~1openrouter_video_js": "3bf1a4c000cd9b13f4be74f274114c81688b398c9534f1bfc36e81d69b5c5d51"
+      }
+    },
+    "upstream_dynamic": {},
+    "observed_evidence": {}
+  }
+}

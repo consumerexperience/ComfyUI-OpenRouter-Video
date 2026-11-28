@@ -1,0 +1,35 @@
+{
+  "status": "UNACCEPTED",
+  "baseline_sha": "a39204322349b5d13270c7df3f3e6cc24d12180a",
+  "authority": "Owner ACXS Cost Tooltip R2 and normative Visual Design Guide; supersedes A-D tooltip/pinning/comparison styling only; UNACCEPTED runtime/Owner qualification",
+  "candidate_files": {
+    "web/openrouter_video.js": "02ca1ab4ffebbe7991827d27244670fbd8dd427ad49de4591b0d2dc174e4c4f8"
+  },
+  "presentation_functions": {
+    "syncBetaPresentation": "f735694030046f2a3ce226f35fc44a900f6c687f6f281168de62c708f026d8bb",
+    "actualCostText": "05aec857626b5e27a0d99c27b0e6ce1a4463f4028d42f9f568b07ce56fabe6a4",
+    "renderCostDetails": "1f631d5735f2230867d2cf55677d684a5d3cfebd33cdfb7686453f10e77db11e",
+    "costDetailAccent": "d3803297599dd45d719c04b6c01eb4db2ea01fd98b06360db5e5a4eaaff67ae6",
+    "costBadgeText": "2c264e86aec9259b92299f152e93273d47853487e4bd8c16facb170760e1efaf",
+    "costDetailsText": "1758652eff89987dc5565ef324a027e16a92b5ef9a47436dfe291dcce6e2b5ec",
+    "bindCostBadge": "701e7c448c6ff02896eaba3d83dfd9d6d2b7e690301ac2fd05c4dbe1a8c1ddc7",
+    "syncClassicCostBadge": "01d76fb686356877a8ae8e37c0bce180cf554c92f7694b1859f1983dd23ed512",
+    "costBadgeLabel": "b2946e720dcc81035a09944f720db00b7130282cee631cd5656820a401bbe1cd",
+    "createEstimateState": "3156bae47b2f01e468be4c4db400560b0fe971102cf4644a00fa82775f4756d9",
+    "installCostLifecycle": "ac8c5462db432ad85907ef5a4495f0c878b87b332ad7ee4dabcaf80b8a9433a3",
+    "drawCollapsedCostBadge": "f6b885cc4f1012604b677197eef981d8858ea54c8e8f7cf09e443597e7a5e2c0",
+    "costCompactDecimal": "c9a01362bdada992f1dc9a954d74cb6d39cc78a71e639714810fa5c810e161c4",
+    "costAdvisoryComparison": "982689d307bce155da26073605b8f3649f4c26ee9c165c334836c7dccd48875b",
+    "costLocale": "1375162251ca58fbdfd694a99f3044c670044b4e834a23260953a53d46cd4cc7",
+    "costText": "05e4f63ef20dd1a89924c923ff3ae9218563e085f70258bfe6b59ec6916fd3a9",
+    "costUsd": "084b993ed1b81cf7e5ebd79a613500bcd204f6b52859080ba472d62300cc81e5",
+    "costRangeUsd": "fdbe8a11b3487944715040b5c7b82822205d43e08d5fdfae0af2cce96085630e",
+    "costReferenceRows": "7ab9cecb32b86c5f5d21e5f639f45c72bb20ee7ff9148ff8f722ab090c2bc93e",
+    "costRateLabel": "20ec62511a1820939a22e773992e2e504d2cbd1c3be650473dcb2625a4250c05",
+    "costTooltipView": "8e59605fa0602fd2a06fab1bc30b006e66f8ceef45207e547432d300e136da63",
+    "costPriceView": "b30635899cc86a3b0a544efe4882d78debb90372b1981067b83fe3c30012a1d9",
+    "costTechnicalDetailsText": "1e6667187cc23f548d05f783d2716b4842108ba7b8cfc05aa135101d0bdc0f0b",
+    "positionCostTooltip": "6aacf1b57cca74ad5969e27f4b6dbc6157a645ac5342e7902032f5b44996cbf8",
+    "costBadgeColors": "004970bee639bcd918423c1b8191df68638d77c6e9a550a2b6778c81eb81404c"
+  }
+}

@@ -10,8 +10,10 @@ permissions:
   contents: read
 
 env:
-  OPENROUTER_VIDEO_CONTRACT_BASELINE: contracts/product/baselines/rc2-c0d9600.source-contract.json
-  OPENROUTER_VIDEO_CONTRACT_DELTA: contracts/product/deltas/pr38-ci-remediation.contract-delta.json
+  OPENROUTER_VIDEO_CONTRACT_BASELINE: contracts/product/accepted/native-media-e2e-v1.product-contract.json
+  OPENROUTER_VIDEO_CONTRACT_DELTA: contracts/product/deltas/Package02-725fde4-Proposed-Contract-Delta.json
+  OPENROUTER_VIDEO_CONTRACT_BINDING: contracts/product/candidates/Package02-725fde4-CI-Exact-Binding.json
+  OPENROUTER_VIDEO_CONTRACT_BINDING_SHA256: b55b4e98e6b6627a3b2b8e93e93a54029d4370f5b59b903c74d9025224f10fb8
 
 jobs:
   quality:
@@ -30,6 +32,12 @@ jobs:
       - run: python -m ruff check .
       - run: python -m ruff format --check .
       - run: python -m mypy src tests
+      - name: Read-only public capability drift report
+        continue-on-error: true
+        shell: bash
+        run: |
+          curl --fail --silent --show-error --max-time 30 --max-filesize 2097152 https://openrouter.ai/api/v1/videos/models -o "$RUNNER_TEMP/video-models.json"
+          python scripts/report_capability_completeness.py --current "$RUNNER_TEMP/video-models.json" --previous tests/fixtures/op07-full-catalogue.json --output "$RUNNER_TEMP/capability-drift.json" --summary "$GITHUB_STEP_SUMMARY" --fail-underexposure
       - run: python -m build
       - run: python scripts/verify_release_artifacts.py --dist dist
       - run: python -m pip_audit
@@ -63,6 +71,22 @@ jobs:
           cache: pip
       - run: python -m pip install -r requirements-dev.lock
       - run: python -m pip install --no-deps -e .
+      - name: Verify exact governed contract identities
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          manifest = Path(os.environ["OPENROUTER_VIDEO_CONTRACT_BINDING"]).read_bytes()
+          assert hashlib.sha256(manifest).hexdigest() == os.environ["OPENROUTER_VIDEO_CONTRACT_BINDING_SHA256"]
+          binding = json.loads(manifest)
+          delta = Path(os.environ["OPENROUTER_VIDEO_CONTRACT_DELTA"]).read_bytes()
+          assert hashlib.sha256(delta).hexdigest() == binding["delta_sha256"]
+          for file, expected in binding["approved_source_utf8_lf_sha256"].items():
+              assert hashlib.sha256(Path(file).read_text(encoding="utf-8").encode()).hexdigest() == expected, file
+          PY
       - run: python -m pytest
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:

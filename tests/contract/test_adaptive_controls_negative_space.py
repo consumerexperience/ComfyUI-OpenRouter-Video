@@ -9,6 +9,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from tests.contract.aci_reviewed_patch import aci_historical_source
+
 ROOT = Path(__file__).resolve().parents[2]
 BASE = "72998e931e5e9e59a277b63c2f2b0cd4cb513164"
 
@@ -31,8 +33,17 @@ def definitions(text: str) -> dict[str, str]:
 
 def test_existing_method_recipes_discovery_cache_and_http_classes_are_unchanged() -> None:
     for relative, exceptions in {
-        "src/openrouter_video/capabilities.py": {"RequestValidator", "inference_method_matrix"},
-        "src/openrouter_video/client.py": {"_parse_capability", "_optional_int_tuple"},
+        "src/openrouter_video/capabilities.py": {
+            "RequestValidator",
+            "inference_method_matrix",
+            "CapabilityService",
+            "CapabilityObservation",
+        },
+        "src/openrouter_video/client.py": {
+            "_parse_capability",
+            "_optional_int_tuple",
+            "_catalogue_control",
+        },
         "src/openrouter_video/evidence_registry.py": {"load_manifest", "enrich_capabilities"},
     }.items():
         before = definitions(baseline(relative))
@@ -56,7 +67,14 @@ def test_request_validation_changes_only_configuration_capability_validation() -
                 node.name: ast.dump(node, include_attributes=False)
                 for node in validator.body
                 if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-                and node.name != "validate_capabilities"
+                and node.name
+                not in {
+                    "validate_capabilities",
+                    "validate_shape",
+                    "_validate_topology",
+                    "_validate_specialized_fields",
+                    "prepare_native_media",
+                }
             }
         )
     assert methods[0] == methods[1]
@@ -83,9 +101,16 @@ def test_protected_native_media_security_pricing_and_wire_files_are_exactly_pres
         "src/openrouter_video/data/capability-evidence.json",
     ]
     candidate = json.loads((ROOT / "tests/fixtures/pre_rc_first_run_ux.json").read_text())
+    op07 = json.loads((ROOT / "tests/fixtures/op07_discovery_candidate.json").read_text())
     for path in paths:
-        current = (ROOT / path).read_text(encoding="utf-8")
+        current = aci_historical_source(path, (ROOT / path).read_text(encoding="utf-8"))
         digest = hashlib.sha256(current.encode()).hexdigest()
+        if digest == op07.get("candidate_files", {}).get(path):
+            continue
+        if path == "src/openrouter_video/data/capability-evidence.json":
+            assert digest == op07["candidate_files"][path]
+            # The profile delta is checked against frozen evidence separately.
+            continue
         if path == "src/openrouter_video/secrets.py":
             assert digest == candidate.get("candidate_files", {}).get(path)
             continue

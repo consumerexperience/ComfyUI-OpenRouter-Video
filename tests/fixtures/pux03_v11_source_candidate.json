@@ -1,0 +1,13 @@
+{
+  "baseline": "059216452192cac427466cb8d404f9957b09a848",
+  "baseline_sha256": "2127129ce26d3a7528130b3baea0103a282601250f94a3eae734685b7c8b6f2f",
+  "status": "UNACCEPTED_LAYOUT_V11",
+  "candidate_sha256": "378db4cb1f66fef5574f844acb267ac9f599f65544ae85ccb7e0a0d0ca763a36",
+  "functions": {
+    "sizePrimaryControls": "c3c9ca54e669274621907b6e1e3026513eebba308155fe0242c50363b51d0c75",
+    "installResponsiveHeight": "8715812ef624bdd584454a5e1dafa6f4b7c15d1b265eb58c6538af1c0c8ece7f",
+    "fitPresentationWidth": "50ae8dfefe031968144b9204e265496c2ef2802df19240927c11c0dfe3150b9d",
+    "syncBetaPresentation": "1aed84ed66a0fdd6520dcdd9c7fd99045657e8f0fb3a6ad5fee0b2353e806d21"
+  },
+  "added_helper_sha256": "d1744af9743044a3a5f82f9d630ef566b2e517d95c35b649b2887262cb522408"
+}

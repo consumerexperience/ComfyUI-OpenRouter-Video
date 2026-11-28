@@ -1,0 +1,269 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "package02-actual-closure-725fde4-seven-paths-proposal",
+  "baseline_checkpoint": "capability-catalog-rebase-v1",
+  "baseline_sha": "0f05665cb302fe4bc8398f2e9e04b08a5116a313",
+  "risk_tier": "C",
+  "intended_delta": [
+    "Exact-hash reconciliation candidate with qualification state recorded separately. Approval must bind the exact delta and companion SHA-256."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01oauth_diagnostics_py",
+      "operations": [
+        "add"
+      ],
+      "reason": "Sanitized memory-only outcome categories Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01configuration_py",
+      "operations": [
+        "add"
+      ],
+      "reason": "Typed provider projection and estimate-only context Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01data~01geometry-relations_json",
+      "operations": [
+        "add"
+      ],
+      "reason": "Exact geometry relation rules Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01data~01video-tariff-rules_json",
+      "operations": [
+        "add"
+      ],
+      "reason": "Approved ACI profiles and exact Flash SKU without billed-volume assumptions Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01eligibility_py",
+      "operations": [
+        "add"
+      ],
+      "reason": "Supported-only model and method gate Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01geometry_py",
+      "operations": [
+        "add"
+      ],
+      "reason": "Geometry synchronization and independent wire authority Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01pricing_planning_py",
+      "operations": [
+        "add"
+      ],
+      "reason": "Conditional estimates and scenario envelopes Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01capabilities_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "OP07 request and catalogue gates and estimate-only semantics Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01client_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Typed OP07 wire and catalogue extension Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01projection_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Supported-only projection and scoped geometry Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01video_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Best-effort local LAST_FRAME Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01image_transport_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Metadata over existing bounded PNG validation Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01media_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "QuickTime identification and reuse without relabeling Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01models_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Typed operations and continuation fingerprint Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/database_migrations/src~01openrouter_video~01persistence_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Catalogue evolution column only, job migrations unchanged Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01data~01capability-evidence_json",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Reviewed exact-ID evidence and Package 02 creative annotations Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/evidence_registry/src~01openrouter_video~01evidence_registry_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Exact-model evidence and stale-bound quarantine Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/native_media/src~01openrouter_video~01comfy~01native_media_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Typed native media and documented metadata bounds Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/pricing/src~01openrouter_video~01pricing_profile_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Reviewed data compiler and exclusive matching Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/pricing/src~01openrouter_video~01pricing_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Pre-completion and base-rate financial planning without fabricated quantities Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/recipes/src~01openrouter_video~01recipes_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Exact documented provider operations Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/storage/src~01openrouter_video~01local_media_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Bounded local storage and materialization Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/submit_resume/src~01openrouter_video~01application_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Read-only continuation preflight and exactly-once claim authority Exact current hash is bound by the companion reconciliation record."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01credential_backend_py",
+      "operations": [
+        "add"
+      ],
+      "reason": "Existing Windows restart/vault witness; Windows factory byte-equivalent to the witnessed source. Sole later edit is the Linux factory type annotation, covered by the constructor regression. Exact identities are in the companion decision."
+    },
+    {
+      "path": "/surfaces/product_owned/credentials/src~01openrouter_video~01secrets_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Byte-identical to the previously witnessed successful Windows restart. Current isolated vault tests cover save, restore, precedence, failure and redaction. Exact identities are in the companion decision."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01oauth_loopback_py",
+      "operations": [
+        "add"
+      ],
+      "reason": "Live external OAuth callback SUCCESS and loopback listener ownership. Exact source identity bound by companion approval."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01oauth_py",
+      "operations": [
+        "add"
+      ],
+      "reason": "Live external OAuth code exchange SUCCESS through official origin. Exact source identity bound by companion approval."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01compat_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Native six outputs, live Connected/catalogue and host wiring. Exact source identity bound by companion approval."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01nodes_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Native output schema, owned terminal metadata and verified retained charge. Exact source identity bound by companion approval."
+    },
+    {
+      "path": "/surfaces/product_owned/capabilities/src~01openrouter_video~01comfy~01routes_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Live OAuth SUCCESS, local routing and catalogue. Exact source identity bound by companion approval."
+    },
+    {
+      "path": "/surfaces/product_owned/submit_resume/src~01openrouter_video~01comfy~01runtime_py",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Single-submit, no-paid-Resume and successful OAuth exchange with persistent status before restart. Exact source identity bound by companion approval."
+    },
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Exact submitted context and stale acknowledgement protection; renderer witnesses separately recorded. Exact source identity bound by companion approval."
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned/capabilities",
+    "/surfaces/product_owned/AppIdentity",
+    "/surfaces/product_owned/submit_resume",
+    "/surfaces/product_owned/native_media",
+    "/surfaces/product_owned/evidence_registry",
+    "/surfaces/product_owned/storage",
+    "/surfaces/product_owned/database_migrations",
+    "/surfaces/product_owned/pricing",
+    "/surfaces/product_owned/recipes",
+    "/surfaces/product_owned/credentials",
+    "/surfaces/product_owned/workflow_persistence"
+  ],
+  "expected_components": [
+    "contracts",
+    "evidence"
+  ],
+  "required_gates": [
+    "full_tests",
+    "ruff",
+    "ruff_format",
+    "mypy",
+    "build",
+    "dependency_audit",
+    "CodeQL",
+    "exact_head",
+    "baseline_declaration",
+    "negative_space_tests",
+    "semantic_diff",
+    "explicit_high_risk_approval"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

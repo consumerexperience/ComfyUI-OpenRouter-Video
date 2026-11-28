@@ -44,7 +44,7 @@ from openrouter_video.models import (
     ProductErrorCode,
     RemoteJobSnapshot,
     VideoArtifact,
-    request_fingerprint_v3,
+    request_fingerprint_v4,
 )
 from openrouter_video.persistence import JOB_RECORD_SCHEMA_VERSION, JobStore
 from openrouter_video.s3_upload import StorageError
@@ -487,6 +487,7 @@ class GenerateService:
         "_store",
         "_staging",
         "_submit",
+        "_continuation_observation",
         "_validator",
     )
 
@@ -511,6 +512,7 @@ class GenerateService:
         self._validator = validator
         self._store = store
         self._submit = submit_client
+        self._continuation_observation = observation_client
         self._now = now
         self._control = control
         self._progress = progress
@@ -557,7 +559,7 @@ class GenerateService:
             self._validator.validate_shape(request)
         except ProductFailureError as exc:
             return GenerationResult(LocalLifecycleState.NOT_SUBMITTED, None, error=exc.error)
-        fingerprint = request_fingerprint_v3(request)
+        fingerprint = request_fingerprint_v4(request)
         try:
             existing = self._store.get_by_operation_id(operation_id)
         except PersistenceError:
@@ -568,6 +570,39 @@ class GenerateService:
         try:
             capability = await self._capabilities.resolve(request.model)
             self._validator.validate_capabilities(request, capability)
+            request = self._validator.prepare_native_media(request, capability)
+            if request.previous_job_id is not None:
+                # Continuation preflight is read-only and precedes the submit claim.
+                try:
+                    previous = await self._continuation_observation.get_job(request.previous_job_id)
+                except (OpenRouterHTTPError, TransportError, MalformedOpenRouterResponseError):
+                    raise ProductFailureError(
+                        ProductError(
+                            ProductErrorCode.CAPABILITY_SIGNAL_GAP,
+                            "Previous job could not be verified; nothing was submitted.",
+                            BillingContext.NO_SUBMIT,
+                        )
+                    ) from None
+                prior_record = self._store.get_by_job_id(request.previous_job_id)
+                previous_model = previous.model or (prior_record.model if prior_record else None)
+                if (
+                    not previous_model
+                    or previous.job_id != request.previous_job_id
+                    or previous.status_raw != "completed"
+                    or previous_model
+                    not in {
+                        capability.model_id,
+                        capability.canonical_slug,
+                    }
+                ):
+                    raise ProductFailureError(
+                        ProductError(
+                            ProductErrorCode.UNSUPPORTED_PARAMETER,
+                            "Previous job must be completed and match the selected model.",
+                            BillingContext.NO_SUBMIT,
+                        )
+                    )
+                # End continuation preflight.
         except CooperativeInterrupt:
             raise OperationInterrupted(
                 GenerationResult(

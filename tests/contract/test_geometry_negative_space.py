@@ -8,6 +8,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from tests.contract.aci_r31_reviewed_patch import r31_historical_source
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -21,13 +23,16 @@ def test_adapter_and_projection_changes_are_geometry_only() -> None:
                 [git, "-C", str(ROOT), "show", "7af8197:" + path], text=True, encoding="utf-8"
             )
         )
-        text = (ROOT / path).read_text(encoding="utf-8")
+        text = r31_historical_source(path, (ROOT / path).read_text(encoding="utf-8"))
         pin = json.loads((ROOT / "tests/fixtures/rc_live_reviewed_patch.json").read_text())
         digest = hashlib.sha256(text.encode()).hexdigest()
         candidate = json.loads((ROOT / "tests/fixtures/pre_rc_first_run_ux.json").read_text())
-        assert digest == pin["reviewed_files"][path] or digest == candidate.get(
-            "candidate_files", {}
-        ).get(path)
+        op07 = json.loads((ROOT / "tests/fixtures/op07_discovery_candidate.json").read_text())
+        assert (
+            digest == pin["reviewed_files"][path]
+            or digest == candidate.get("candidate_files", {}).get(path)
+            or digest == op07.get("candidate_files", {}).get(path)
+        )
         # Historical geometry-only shield remains intact. New projection code
         # is independently bound by full-source/node diff and behavioral tests.
         current = ast.parse(

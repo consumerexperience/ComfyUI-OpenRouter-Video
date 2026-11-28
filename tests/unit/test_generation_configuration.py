@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -13,13 +14,16 @@ from openrouter_video.configuration import (
     CONFIGURATION_KEY,
     configuration_status,
     finite_domain,
+    normalize_request_shapes,
     profile_constraints,
     project_configuration,
+    project_semantic_values,
 )
 from openrouter_video.errors import ProductFailureError
 from openrouter_video.evidence_registry import enrich_capabilities, load_manifest
 from openrouter_video.models import CapabilityFactState, GenerationRequest, ModelCapabilities
 from openrouter_video.persistence import JobStore
+from tests.projection_fixtures import synthetic_projected_model
 
 
 def relation(*, complete: bool = True, when: dict[str, object] | None = None) -> dict[str, Any]:
@@ -242,3 +246,89 @@ def test_known_coupling_without_a_context_never_becomes_independence() -> None:
     coupled = model(relation(when={"reference_count": [1, 2]}))
     assert configuration_status(profile_constraints(coupled), {}, {}) == "UNKNOWN_COMBINATION"
     assert configuration_status(profile_constraints(coupled), {}, {"reference_count": 0}) == "READY"
+
+
+def test_seed_contract_accepts_unbounded_integers_and_keeps_sentinel_semantics() -> None:
+    model = synthetic_projected_model()
+    fact = model.evidence_facts[0]
+    shapes = json.loads(json.dumps(fact.value))
+    del shapes["methods"]["T2V"]["controls"]["seed"]["integer_range"]
+    updated = replace(
+        model,
+        evidence_facts=(
+            fact.__class__(
+                fact.model_id,
+                fact.key,
+                shapes,
+                fact.state,
+                fact.authority,
+                fact.source_reference,
+                fact.observed_at,
+                fact.scope,
+                fact.artifact_version,
+            ),
+        ),
+    )
+    assert project_semantic_values(updated, "T2V", {"seed": 2**53 - 1})["seed"] == 2**53 - 1
+    assert project_semantic_values(updated, "T2V", {"seed": True})["seed"] is None
+    assert project_semantic_values(updated, "T2V", {"seed": -1})["seed"] is None
+
+
+@pytest.mark.parametrize(
+    "bounds",
+    [
+        None,
+        {},
+        {"min": 1},
+        {"min": 5, "max": 2},
+        {"min": True, "max": 9},
+        {"min": -1, "max": 1},
+        {"min": 0, "max": 1, "step": 1},
+    ],
+)
+def test_declared_seed_bounds_are_optional_but_must_be_exact_integer_bounds(bounds: object) -> None:
+    profile: dict[str, Any] = {
+        "schema_version": 1,
+        "methods": {
+            "T2V": {
+                "state": "SUPPORTED",
+                "controls": {"seed": {"state": "SUPPORTED"}},
+                "topology": {
+                    "fixed": [],
+                    "reference_kinds": [],
+                    "kind_sets": [[]],
+                    "min": 0,
+                    "max": 0,
+                    "per_kind_max": {},
+                },
+            }
+        },
+    }
+    if bounds is not None:
+        profile["methods"]["T2V"]["controls"]["seed"]["integer_range"] = bounds
+    if bounds is None:
+        assert normalize_request_shapes(profile) == profile
+    else:
+        with pytest.raises(ValueError, match="seed integer bounds"):
+            normalize_request_shapes(profile)
+
+
+def test_seed_projection_uses_current_models_declared_bounds() -> None:
+    model = synthetic_projected_model()
+    fact = model.evidence_facts[0]
+    values = json.loads(json.dumps(fact.value))
+    values["methods"]["T2V"]["controls"]["seed"]["integer_range"] = {"min": 10, "max": 20}
+    narrowed_fact = fact.__class__(
+        fact.model_id,
+        fact.key,
+        values,
+        fact.state,
+        fact.authority,
+        fact.source_reference,
+        fact.observed_at,
+        fact.scope,
+        fact.artifact_version,
+    )
+    narrowed = replace(model, evidence_facts=(narrowed_fact,))
+    assert project_semantic_values(narrowed, "T2V", {"seed": 15})["seed"] == 15
+    assert project_semantic_values(narrowed, "T2V", {"seed": 25})["seed"] is None

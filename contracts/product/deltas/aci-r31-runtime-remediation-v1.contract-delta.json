@@ -1,0 +1,51 @@
+{
+  "protocol": "openrouter-video-contract-delta",
+  "schema_version": 1,
+  "delta_id": "ACI-04-R3.1-runtime-remediation-v1",
+  "baseline_checkpoint": "aci-r31-runtime-import-restore-a392043",
+  "baseline_sha": "a39204322349b5d13270c7df3f3e6cc24d12180a",
+  "risk_tier": "C",
+  "intended_delta": [
+    "Owner-authorized frontend import/restore remediation: normalize raw reference_N input names in place after native onConfigure, preserving socket objects, slots, links and all occurrences.",
+    "Preserve coexisting canonical and raw-alias occurrences using distinct free canonical wire names; reject duplicate raw aliases atomically without changing saved state.",
+    "Restore four missing named fields: previous_job_id, upscale_factor, creativity, provider_options.",
+    "Exact raw-source guard protects every byte outside the declared helper, two collision guards, configure call and named-field additions; Python source and pricing arithmetic, queue and transport remain unchanged.",
+    "Owner cost UX correction A-D: single custom tooltip with no native title; bounded exact-decimal formatting; existing qualified COMPARISON scenarios may appear as explicitly advisory MODEL, never exact total or bound; concise primary content and collapsed technical detail. No tariff or backend change.",
+    "Owner-authorized ACXS R2 and Visual Design Guide supersede the preceding cost UX projection: read-only common tooltip, exact typography/palette, comparison/component REF only, separate prior ACTUAL section, no technical disclosure, and verified Comfy.Locale EN/RU binding with English fallback. Pricing arithmetic/state, graph controls, native media and execution ownership remain unchanged."
+  ],
+  "allowed_semantic_changes": [
+    {
+      "path": "/surfaces/product_owned/workflow_persistence/web~01openrouter_video_js",
+      "operations": [
+        "replace"
+      ],
+      "reason": "Owner-authorized ACI Runtime Remediation, exact a392043 baseline and five declared frontend edits; no pricing or submission expansion."
+    }
+  ],
+  "protected_surfaces": [
+    "/surfaces/product_owned/capabilities",
+    "/surfaces/product_owned/AppIdentity",
+    "/surfaces/product_owned/submit_resume",
+    "/surfaces/product_owned/native_media",
+    "/surfaces/product_owned/evidence_registry",
+    "/surfaces/product_owned/storage",
+    "/surfaces/product_owned/database_migrations",
+    "/surfaces/product_owned/pricing",
+    "/surfaces/product_owned/recipes",
+    "/surfaces/product_owned/credentials"
+  ],
+  "expected_components": [
+    "web/openrouter_video.js"
+  ],
+  "required_gates": [
+    "baseline_declaration",
+    "semantic_diff",
+    "negative_space_tests",
+    "frontend",
+    "serializer",
+    "classic_live",
+    "nodes2_live",
+    "explicit_high_risk_approval"
+  ],
+  "unexpected_scope_policy": "STOP_AND_REPORT"
+}

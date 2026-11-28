@@ -1,0 +1,13 @@
+{
+  "status": "UNACCEPTED",
+  "baseline_sha": "f8ba174347bd4bfed155dc64aec1d7168c39c1fa",
+  "purpose": "Owner-authorized offline ACI phases 0-3 engineering candidate. Historical accepted pins remain unchanged. Current ACI scope/behavior tests and independent review required; no host or Owner acceptance implied.",
+  "candidate_files": {
+    "src/openrouter_video/pricing.py": "81004092b2903f72d7c0f24961ed40b20d9b1c39df994737c16e01a6a6e428db",
+    "src/openrouter_video/pricing_profile.py": "2c762b0826b0915eadce6ca27bad69ffc9dcae77744e1485d23cc7a4a891bec9",
+    "src/openrouter_video/data/video-tariff-rules.json": "4ca0b1b840c2f3477eb47d4a1deb575f11f8760420c33b96e1f79deaa3b716b0",
+    "src/openrouter_video/comfy/runtime.py": "6cfd555912faf2fc072129255fcde3abac55a10f9c744ff39649ab7650bccee1",
+    "src/openrouter_video/comfy/routes.py": "87380ebacfee409cf4ed2e4664771ac048382f4e173ff16c3fce359659097081",
+    "web/openrouter_video.js": "c81fe76ade016fee9d782dfdb40a419c3c82f393e4bf58a39af45c8ba7390c8f"
+  }
+}

@@ -5,9 +5,15 @@ from pathlib import Path
 
 import pytest
 
-from openrouter_video.capabilities import CapabilityModeStatus, inference_method_matrix
+from openrouter_video.capabilities import (
+    CapabilityModeStatus,
+    RequestValidator,
+    inference_method_matrix,
+    request_witness,
+)
 from openrouter_video.client import _parse_capability
 from openrouter_video.comfy.projection import project_model
+from openrouter_video.configuration import project_method
 from openrouter_video.evidence_registry import enrich_capabilities, load_manifest
 from openrouter_video.models import (
     InferenceMethod,
@@ -113,7 +119,7 @@ def test_future_documented_model_can_be_enriched_by_data_only() -> None:
     )
     manifest = load_manifest()
     template = next(
-        e for e in manifest["models"] if e["exact_model_id"] == "bytedance/seedance-2.0-mini"
+        e for e in manifest["models"] if e["exact_model_id"] == "bytedance/seedance-2.5"
     )
     updated = {
         **manifest,
@@ -124,9 +130,49 @@ def test_future_documented_model_can_be_enriched_by_data_only() -> None:
     assert enrich_capabilities(enriched, updated) == enriched
 
 
-def test_mini_ready_and_accepted_seedance_methods_preserved() -> None:
-    mini = enrich_capabilities(ModelCapabilities("bytedance/seedance-2.0-mini"))
-    assert inference_method_matrix(mini)[InferenceMethod.MMR2V] is CapabilityModeStatus.READY
+@pytest.mark.parametrize(
+    "model_id",
+    [
+        "bytedance/seedance-2.0",
+        "bytedance/seedance-2.0-fast",
+        "bytedance/seedance-2.0-mini",
+    ],
+)
+def test_seedance_20_documented_reference_caps_are_effective_and_serialize(model_id: str) -> None:
+    model = enrich_capabilities(ModelCapabilities(model_id))
+    matrix = inference_method_matrix(model)
+    for method in ("MI2V", "MMR2V"):
+        projected = project_method(model, method)
+        topology = projected["topology"]
+        assert projected["state"] == "SUPPORTED"
+        assert projected["method_support"] == "SUPPORTED"
+        assert matrix[InferenceMethod(method)] is CapabilityModeStatus.READY
+        expected_per_kind = (
+            {"image": 9}
+            if method == "MI2V"
+            else {
+                "image": 9,
+                "video": 3,
+                "audio": 3,
+            }
+        )
+        assert topology["max"] == sum(expected_per_kind.values())
+        assert topology["per_kind_max"] == expected_per_kind
+        assert topology["execution_domain"] == "CONFIRMED_BOUNDS"
+        assert topology["limit_completeness"] == "COMPLETE"
+        evidence = topology["constraint_evidence"]
+        assert evidence["max"]["classification"] == "DERIVED_PER_KIND_CEILING"
+        assert evidence["max"]["state"] == "SUPPORTED"
+        assert evidence["per_kind_max"]["classification"] == "PROVIDER_DOCUMENTED_COMPATIBLE"
+        assert evidence["per_kind_max"]["state"] == "SUPPORTED"
+        witness = request_witness(model, InferenceMethod(method))
+        assert witness is not None
+        RequestValidator().validate_capabilities(witness, model)
+    assert project_method(model, "VR2V")["state"] == "SUPPORTED"
+    assert project_method(model, "AR2V")["state"] == "UNSUPPORTED"
+
+
+def test_seedance_25_confirmed_method_and_reference_profile_remains_usable() -> None:
     full = enrich_capabilities(ModelCapabilities("bytedance/seedance-2.5"))
     assert full.input_reference_capabilities is not None
     assert full.input_reference_capabilities.max_reference_count == 50
@@ -138,7 +184,9 @@ def test_manifest_integrity_and_conflicts_remain_explicit(tmp_path: Path) -> Non
     import json
 
     manifest = load_manifest()
-    assert len(manifest["models"]) == 30
+    ids = [model["exact_model_id"] for model in manifest["models"]]
+    assert len(ids) == len(set(ids))
+    assert "google/gemini-omni-1.2-flash" in ids
     manifest["artifact_version"] = "tampered"
     path = tmp_path / "manifest.json"
     path.write_text(json.dumps(manifest))
