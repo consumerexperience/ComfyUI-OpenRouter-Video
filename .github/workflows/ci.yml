@@ -88,7 +88,7 @@ jobs:
               assert hashlib.sha256(Path(file).read_text(encoding="utf-8").encode()).hexdigest() == expected, file
           PY
       - run: python -m pytest
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
       - run: node --test tests/contract/*.mjs
