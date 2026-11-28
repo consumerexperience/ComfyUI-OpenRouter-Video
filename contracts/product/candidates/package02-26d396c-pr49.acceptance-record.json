@@ -1,0 +1,40 @@
+{
+  "acceptance_id": "package02-26d396c-pr49",
+  "acceptance_index_updated": false,
+  "builder_package_digest": "sha256:2866906eac8b29205c7e84abcf4fd3c1f80031695ab8f28a4e8604b76de8005a",
+  "builder_version": "0.6.1+codex.20261103.roadmap1",
+  "canonical_readback": false,
+  "canonical_sha": null,
+  "checkpoint_tag": null,
+  "contract_delta_digest": "sha256:b6e8f182c8b4519ac15eb95680612b167659bbbb13c2fdb6783fbd10251d0d7a",
+  "exact_head_sha": "26d396c555c44f988ccb18a5f96fe8ee1e814fc9",
+  "product_contract_digest": "sha256:0d12fd98eb666bc888a98691aadf16ba2899a9caaa2fe14bf30ca623aed46a95",
+  "product_owner_approval": {
+    "status": "APPROVED",
+    "exact_head_sha": "26d396c555c44f988ccb18a5f96fe8ee1e814fc9",
+    "product_contract_digest": "sha256:0d12fd98eb666bc888a98691aadf16ba2899a9caaa2fe14bf30ca623aed46a95"
+  },
+  "protocol": "openrouter-video-acceptance-record",
+  "schema_version": 1,
+  "state": "ACCEPTANCE_CANDIDATE",
+  "tag_readback": false,
+  "verification_result": {
+    "gates": [
+      "32_approved_source_identities",
+      "canonical_main_pr49_tree_parity",
+      "exact_artifact_payload_parity",
+      "post_merge_Analyze Python",
+      "post_merge_quality",
+      "post_merge_test-linux-py310",
+      "post_merge_test-linux-py313",
+      "post_merge_test-windows-py310",
+      "post_merge_test-windows-py313",
+      "recorded_native_and_runtime_qualification",
+      "recorded_pr49_head_qualification"
+    ],
+    "status": "PASS"
+  },
+  "run_id": "package02-26d396c-public-beta-1-approval-20261128",
+  "single_writer_proven": true,
+  "lease_digest": "sha256:64fba2dc74b864f6caeabf2211aae26e86c357fc33633d4f47668fe87b323fd3"
+}
