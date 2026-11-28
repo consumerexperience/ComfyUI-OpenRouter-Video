@@ -1,120 +1,214 @@
 # OpenRouter Video for ComfyUI
 
-A BYOK, model-agnostic gateway from ComfyUI to OpenRouter's asynchronous Video API.
-Use your own OpenRouter account, API key and balance. Results are native ComfyUI
-VIDEO, with JOB_ID, MODEL, ACTUAL_COST_USD when available, and STATUS outputs.
+ARENAS®lab / CREATIVE TOOLS · 001 · Public Beta 1
 
-## Release candidate
+**One node. Many models. Your workflow.**
 
-This is v0.1 RC preparation, not a stable release or Registry publication.
-The single version authority is project.version in pyproject.toml. Python tooling
-normalizes 0.1.0-rc.2 to PEP 440 version 0.1.0rc2.
+An adaptive video system for ComfyUI, powered by OpenRouter. Generate, edit and extend video with supported models through one adaptive interface — without leaving your graph.
+
+| Video models | Model–method pairs | Inference methods |
+| :---: | :---: | :---: |
+| **28** | **110** | **12** |
+
+[Get Public Beta 1](https://github.com/arenas-lab/ComfyUI-OpenRouter-Video/releases/tag/public-beta-1) · [Installation](#installation) · [Secure connection](#your-account-your-budget-your-control) · [How it works](#different-models-one-interface) · [Quick start](#quick-start) · [Models & methods](#models--methods) · [Security](#trust-and-transparency)
+
+Open source · [MIT License](LICENSE) · Bring your own OpenRouter account
+
+*Public Beta 1 catalogue snapshot: 26–28 November 2026. Availability and capabilities vary by model and may change. Supported pairs are not a count of individually completed live generations.*
+
+## Different models. One interface.
+
+Switch between supported models and inference methods. The node adapts its inputs, parameters and geometry to the selected capabilities.
+
+![Authentic screen recording of model and method switching](docs/assets/product/adaptive-node.gif)
+
+*Real ComfyUI screen recording, cropped to focus on the node.*
+
+## Your account. Your budget. Your control.
+
+Connect directly with your OpenRouter account using the [official OAuth PKCE flow](https://openrouter.ai/docs/guides/overview/auth/oauth). No API key to copy into your node.
+
+![Illustrated connection flow: sign in from ComfyUI Settings, authorize on OpenRouter, return to ComfyUI connected. Manage key limits and expiry, keep credentials outside your workflow, and revoke access in OpenRouter.](docs/assets/product/secure-connection-flow.gif)
+
+*Illustrated connection flow. See the real interface below.*
+
+**Settings → OpenRouter Video → Connect OpenRouter → Sign in with OpenRouter**
+
+Authorize in your browser, then return to ComfyUI. Manage your key limits, expiration and revocation in your [OpenRouter account](https://openrouter.ai/keys), where available. OpenRouter bills inference to your own balance.
+
+<details>
+<summary>See the real connection interface or use an existing API key</summary>
+
+![Native ComfyUI interface: sign-in dialog and existing Connected status](docs/assets/product/secure-connection-native.png)
+
+*Two independent native interface captures, not a continuous OAuth recording. Authorization takes place on OpenRouter's website.*
+
+Already have a key? Choose **Use existing API key** in the connection dialog. Managed or headless installations can use `OPENROUTER_API_KEY`.
+
+![Native manual API key dialog with empty masked input](docs/assets/product/manual-key-native.png)
+
+</details>
+
+[Credential storage, privacy and revocation](#trust-and-transparency) · [Security policy](SECURITY.md)
+
+<!-- TRUST ASSET GATE: replace or supplement the illustrated flow with authorized real provider consent and account-management captures. Do not present the illustration as live evidence. Public Beta 1 does not set provider-side caps or expiration. -->
+
+## Keep your connections.
+
+
+Connect supported image, video and audio references. Grouped Autogrow exposes additional inputs as needed. Incompatible connections are parked rather than discarded and can be restored when compatible again.
+
+![Authentic screen recording of four reference connections being parked and restored](docs/assets/product/adaptive-workflow.gif)
+
+*Real screen recording, cropped and accelerated. Reference types, combinations and limits depend on the selected model and method.*
+
+Native VIDEO and AUDIO references require your own private S3-compatible staging storage. T2V and native IMAGE inputs do not require S3. [Media setup and cleanup](docs/native-media-bridge.md).
+
+## Creative freedom. Financial clarity.
+
+Adaptive Cost Intelligence (ACI) brings available pricing information into the node before generation, with the assumptions and limitations behind each figure. After completion, the node can report the actual cost supplied by OpenRouter.
+
+| Calculated estimate · EST | Known component / reference · REF |
+| --- | --- |
+| ![Native EST tooltip](docs/assets/product/est.png) | ![Native REF tooltip](docs/assets/product/ref.png) |
+| **Conditional scenarios · MODEL** | **No supported total · COST** |
+| ![Native MODEL tooltip](docs/assets/product/model.png) | ![Native COST tooltip](docs/assets/product/cost.png) |
+
+EST, REF and MODEL are not guaranteed charges or spending caps. COST can expose available unit rates or indicate missing pricing data. ACTUAL uses provider-reported cost when available; missing actual cost is not zero. Example prices are dated and configuration-specific.
+
+<!-- ACTUAL ASSET GATE: add a rights-cleared, sanitized actual-cost capture, explicitly distinguished from replay and EST. -->
+
+## Built for ComfyUI.
+
+Classic and Nodes 2.0 share the same adaptive semantics. Native VIDEO connects directly to compatible downstream nodes; LAST_FRAME is available as an IMAGE output when extraction succeeds. Job ID, model, status and actual cost (when provided) are exposed alongside media.
+
+| Classic | Nodes 2.0 |
+| :---: | :---: |
+| ![Classic renderer](docs/assets/product/classic.png) | ![Nodes 2.0 renderer](docs/assets/product/nodes2.png) |
+
+## Resume. Don't regenerate.
+
+
+OpenRouter Video Resume observes and downloads an existing job by ID without submitting a new paid generation. Each intentional Generate operation attempts at most one paid submit. An ambiguous submission, poll interruption or download failure never triggers an automatic paid resubmit. Recovery requires a known job ID and upstream availability. If the submission outcome is unknown and no Job ID is available, do not blindly retry.
+
+## Models & methods
+
+The Public Beta 1 snapshot covers model families including Google Gemini Omni and Veo, ByteDance Seedance, Alibaba Wan, xAI Grok Imagine, MiniMax, Runway and others.
+
+| Method | Models in snapshot |
+| --- | ---: |
+| Text to Video (T2V) | 22 |
+| First Frame to Video (I2V) | 24 |
+| First + Last Frame (FLF2V) | 16 |
+| Image Reference (IR2V) | 12 |
+| Multiple Image References (MI2V) | 10 |
+| Video Reference (VR2V) | 8 |
+| Audio Reference (AR2V) | 2 |
+| Mixed Multimodal References (MMR2V) | 6 |
+| Video Editing (V2V_EDIT) | 5 |
+| Video Extension (V2V_EXTEND) | 3 |
+| Video Upscaling (V2V_UPSCALE) | 1 |
+| Avatar Audio (AVATAR_AUDIO) | 1 |
+| **Total model–method pairs** | **110** |
+
+These counts describe the dated supported model–method catalogue, not paid live-test coverage. Not all models support all methods. The adaptive controls expose the relevant available configurations.
 
 ## Installation
 
-Stop ComfyUI. From its directory, clone the custom node:
+Public Beta 1 is available through [GitHub Releases](https://github.com/arenas-lab/ComfyUI-OpenRouter-Video/releases/tag/public-beta-1). Registry and Manager installation are not yet verified.
+
+Requires **Python 3.10+** and a compatible ComfyUI host with the numbered V3 API `comfy_api.v0_0_2`, native media and dynamic inputs. The native Windows test host used ComfyUI 0.34.3; hosted CI covered Windows and Linux with Python 3.10 and 3.13. These are verification anchors, not a guarantee for every host or platform.
+
+### Standard installation (Git)
+
+Stop ComfyUI. From its root directory, using the Python interpreter that actually runs your ComfyUI installation:
 
 ```sh
-git clone https://github.com/consumerexperience/ComfyUI-OpenRouter-Video.git custom_nodes/ComfyUI-OpenRouter-Video
+git clone --branch public-beta-1 --single-branch https://github.com/arenas-lab/ComfyUI-OpenRouter-Video.git custom_nodes/ComfyUI-OpenRouter-Video
 python -m pip install ./custom_nodes/ComfyUI-OpenRouter-Video
+python -m pip check
 ```
 
-Use the interpreter that runs ComfyUI in place of python, including the bundled
-interpreter for a portable installation. Check out your intended reviewed revision
-before installing. The default remote branch does not contain an unpublished local RC.
-An unpacked source distribution can occupy the same custom-node directory; run the
-same pip installation command there. The wheel alone installs the Python Core and
-adapter, not the custom-node entrypoint and web directory needed by ComfyUI.
+If using a virtual environment, activate ComfyUI's own environment before running these commands.
 
-Python 3.10+ and ComfyUI's numbered V3 API comfy_api.v0_0_2 with native media and
-dynamic inputs are required. Historical verification anchors are ComfyUI v0.34.3
-and v0.37.0. RC installation is checked on the v0.34.3 anchor; other host versions
-require compatible APIs and are not automatically certified.
+### Windows Portable (PowerShell)
 
-Real callback-page compatibility remains unresolved for the Codex native popup
-and the reported Yandex Browser failure. Controlled Chromium tests pass, but do
-not establish the cause of either real-browser issue. See the RC notes below.
+Stop ComfyUI. Open PowerShell from the portable root (the folder containing `ComfyUI` and `python_embeded`):
 
-## First run
+```powershell
+git clone --branch public-beta-1 --single-branch https://github.com/arenas-lab/ComfyUI-OpenRouter-Video.git .\ComfyUI\custom_nodes\ComfyUI-OpenRouter-Video
+& .\python_embeded\python.exe -m pip install .\ComfyUI\custom_nodes\ComfyUI-OpenRouter-Video
+& .\python_embeded\python.exe -m pip check
+```
 
-Open Settings → OpenRouter Video → Connect OpenRouter → Sign in with OpenRouter.
-Complete the provider's authorization in your browser, then return to ComfyUI.
-The connection status updates without reloading the page. A masked Use existing
-API key option is available in the same dialog.
+Use the actual interpreter path if your installation differs. A separate clean Windows Portable installation has not yet been confirmed by the available evidence. The commands above are for a new installation; do not create a duplicate custom-node checkout. If `pip check` reports a conflict, resolve it before proceeding.
 
-Interactive connections use the OS credential vault when available (Windows
-Credential Manager, macOS Keychain or Linux Secret Service). If the vault is
-unavailable, the UI reports session-only storage; reconnect after restarting
-ComfyUI. Disconnect removes the interactive credential. For managed/headless use,
-configure OPENROUTER_API_KEY in the launch environment and restart ComfyUI; this
-environment credential takes precedence and is not removed by Disconnect.
+<details>
+<summary>Manual source archive installation (without Git)</summary>
 
-The key belongs outside nodes and workflows. Never commit a secret .env or put
-credentials into workflow JSON, source files, logs or bug reports.
+Download `openrouter_video-0.1.0rc2.tar.gz` from [Public Beta 1](https://github.com/arenas-lab/ComfyUI-OpenRouter-Video/releases/tag/public-beta-1). Verify the download against the attached `SHA256SUMS.txt` before extraction. Stop ComfyUI and unpack the distribution into `ComfyUI/custom_nodes/ComfyUI-OpenRouter-Video`, ensuring the package root contains the custom-node entrypoint, `web` directory and `pyproject.toml`. From the ComfyUI root run:
 
-Add OpenRouter Video. Choose Model and Inference Method, enter Prompt,
-connect the required media, and select the offered parameters. Loading a workflow
-or selecting a model does not generate a video. Discovery needs a connected account or an environment
-key; missing credentials produce a configuration error without a paid submit.
+```sh
+python -m pip install ./custom_nodes/ComfyUI-OpenRouter-Video
+python -m pip check
+```
 
-Native IMAGE uses the direct image bridge. Native VIDEO/AUDIO also need your own
-private S3-compatible staging storage. Public HTTPS media reference helper nodes
-remain available. See [native media setup and cleanup](docs/native-media-bridge.md).
-The project supplies no storage service and does not collect credentials.
+For Windows Portable use its bundled interpreter and the paths shown above. The wheel alone does not install the full custom-node UI.
 
-## Adaptive controls and media
+</details>
 
-Only capabilities confirmed for the selected OpenRouter model and method appear.
-UNKNOWN and conflicting states fail closed. Provider-native support does not
-establish support through OpenRouter. Available methods vary by model:
+## Quick start
 
-- T2V: text to video.
-- I2V and FLF2V: first frame or first and last frame.
-- IR2V and MI2V: one or multiple image references.
-- VR2V: video references.
-- MMR2V: mixed image/video/audio references.
-- Seedance 2.5 V2V_EDIT and V2V_EXTEND: Source Video plus Prompt describing the
-  change or continuation, through the existing reference-based request shape.
+**Install → Connect → Generate**
 
-Load Image, Load Video and Load Audio connect where topology permits. Reference
-kinds, combinations and counts are bounded. Generate Audio is independent from
-AUDIO references. Edit/Extend omit First/Last Frame inputs. Seedance 2.5 exposes
-480p/720p in the reviewed integration; Draft is not exposed. Standalone AR2V is
-hidden where unconfirmed or conflicting. Known Exact Size conflicts are constrained.
+1. Restart ComfyUI and open **Settings → OpenRouter Video → Connect OpenRouter**.
+2. Choose **Sign in with OpenRouter** or **Use existing API key**. See [Secure connection](#your-account-your-budget-your-control).
+3. Import the starter workflow below, or add **OpenRouter Video** and connect its VIDEO output to **Save Video**.
+4. Select an available model and **T2V**, enter a prompt and review the available cost information. Queue only when ready to incur the provider charge.
+5. Save your result. Use **OpenRouter Video Resume** for an interrupted known job.
 
-Classic and Nodes 2.0 share the same adaptive semantics. Compatible values and
-links survive save/reload. Incompatible intent is retained for repair. Model
-switching can choose a supported fallback; reselect your intended method when
-returning to a compatible model.
+![Native starter workflow: OpenRouter Video connected to Save Video](docs/assets/product/first-video-workflow.png)
 
-## Resume, recovery and billing
+[Open the minimal T2V workflow (JSON)](example_workflows/minimal-t2v-save-video.json) (on GitHub, use Download raw file)
 
-Each intentional Generate operation attempts at most one paid Video submit.
-Ambiguous submission, poll interruption and download failure never trigger an
-automatic resubmit. Keep the returned job ID. OpenRouter Video Resume observes
-and downloads that known job; it submits no new generation and uploads no media.
+The example contains two nodes and one native VIDEO connection. Loading the workflow or choosing a model does not generate a video. T2V requires no private staging storage. Review the model and parameters before queuing.
 
-SQLite recovery state lives in the ComfyUI user directory. Preserve it during
-updates. Staging cleanup follows remote job state and exact object ownership;
-the native-media guide covers pending cleanup and storage configuration changes.
+*Native pre-submit starter workflow. The cost shown is an estimate, not a completed generation or current quote.*
 
-The header estimate is not a spending cap or charge guarantee. It is unavailable
-when pricing or input-media charges cannot be bounded. Actual cost comes from
-OpenRouter when available. No project telemetry or analytics service is included;
-static application attribution has no user, device or installation identifier.
+## Documentation & support
 
-## Update
+[Release notes and assets](https://github.com/arenas-lab/ComfyUI-OpenRouter-Video/releases/tag/public-beta-1) · [Native media guide](docs/native-media-bridge.md) · [Security](SECURITY.md) · [Changelog](CHANGELOG.md) · [Issues](https://github.com/arenas-lab/ComfyUI-OpenRouter-Video/issues) · [License](LICENSE)
 
-Stop ComfyUI. Inspect local changes and move the custom-node checkout to the
-intended reviewed revision. On a clean tracked branch use git pull --ff-only,
-then run python -m pip install . from the custom-node directory with the ComfyUI
-interpreter and restart. Preserve user data and local credential configuration;
-do not force-reset local work or delete job databases.
 
-## Limitations and development
+### Trust and transparency
 
-Capabilities and availability vary by OpenRouter integration. Accepted live
-evidence is not universal model-quality certification. See [RC notes](CHANGELOG.md),
-[security guidance](SECURITY.md) and [contributing checks](CONTRIBUTING.md).
-Original project code is MIT licensed; ComfyUI's host implementation is not bundled.
-See [LICENSE](LICENSE).
+Your OpenRouter account, your API key, your balance. The project is MIT-licensed and has no project-owned telemetry service or mandatory project subscription. Provider inference is billed separately by OpenRouter.
+
+<details>
+<summary>API keys, credential storage & privacy</summary>
+
+Interactive credentials stay outside the graph and use the OS credential vault when available, with an indicated session-only fallback. Windows OAuth persistence was verified; other platforms and browser callback behavior may vary. The OS account is the trust boundary: the vault does not isolate credentials from malicious code running as the same user.
+
+OpenRouter provides key limits, reset, expiration and revocation where available; Public Beta 1 does not set these controls itself. Local Disconnect removes the interactive credential, while remote revocation is separate. An environment credential takes precedence and is not removed by local Disconnect.
+
+The plugin does not serialize its credentials into workflow JSON. OpenRouter, upstream providers and configured storage process data required for requests. The MIT license covers project code, not provider inference or third-party media. This is an independent integration, not an official partnership or independent security certification.
+
+</details>
+
+See the [security policy](SECURITY.md) and [release notes](https://github.com/arenas-lab/ComfyUI-OpenRouter-Video/releases/tag/public-beta-1) for known browser callback and host limitations. Provider availability, pricing and capabilities may change; exact output geometry is not guaranteed.
+
+<details>
+<summary>Update, rollback and uninstall</summary>
+
+Stop ComfyUI before changing the installation. Inspect local modifications, preserve the ComfyUI user directory (including SQLite recovery data), and check out the intended reviewed revision. Reinstall with the same ComfyUI interpreter, run `pip check` and restart. For a clean tracked branch, use `git pull --ff-only`; do not force-reset user changes.
+
+To disconnect, remove the interactive credential in Settings. To revoke the key remotely, manage it in OpenRouter. Environment credentials must be removed separately. To uninstall, stop ComfyUI, remove the custom-node directory and, if no other installation relies on it, uninstall its Python Core with `python -m pip uninstall openrouter-video` using the ComfyUI interpreter. Preserve recovery data unless you intentionally choose to delete it. Do not remove shared dependencies indiscriminately.
+
+</details>
+
+---
+
+**ARENAS®lab**  
+CREATIVE TOOLS
+
+Creative freedom. Engineering precision.

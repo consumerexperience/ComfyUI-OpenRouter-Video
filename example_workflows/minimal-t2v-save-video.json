@@ -1,0 +1,410 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "revision": 0,
+  "last_node_id": 2,
+  "last_link_id": 1,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "OpenRouterVideoGenerate",
+      "pos": [
+        375,
+        155
+      ],
+      "size": [
+        460,
+        379.99994228737046
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "COMBO",
+          "widget": {
+            "name": "model"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "inference_method",
+          "name": "inference_method",
+          "type": "COMBO",
+          "widget": {
+            "name": "inference_method"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "prompt"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "resolution",
+          "name": "resolution",
+          "type": "STRING",
+          "widget": {
+            "name": "resolution"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "aspect_ratio",
+          "name": "aspect_ratio",
+          "type": "STRING",
+          "widget": {
+            "name": "aspect_ratio"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "duration",
+          "name": "duration",
+          "type": "INT",
+          "widget": {
+            "name": "duration"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "size",
+          "name": "size",
+          "type": "STRING",
+          "widget": {
+            "name": "size"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "generate_audio",
+          "name": "generate_audio",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "generate_audio"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "first_frame_url",
+          "name": "first_frame_url",
+          "type": "STRING",
+          "widget": {
+            "name": "first_frame_url"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "last_frame_url",
+          "name": "last_frame_url",
+          "type": "STRING",
+          "widget": {
+            "name": "last_frame_url"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "geometry_authority",
+          "name": "geometry_authority",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "geometry_authority"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "previous_job_id",
+          "name": "previous_job_id",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "previous_job_id"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "upscale_factor",
+          "name": "upscale_factor",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "upscale_factor"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "creativity",
+          "name": "creativity",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "creativity"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "provider_options",
+          "name": "provider_options",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "provider_options"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "provider_option:atlas-cloud::negative_prompt",
+          "name": "provider_option:atlas-cloud::negative_prompt",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "provider_option:atlas-cloud::negative_prompt"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "provider_option:google-vertex:parameters:negativePrompt",
+          "name": "provider_option:google-vertex:parameters:negativePrompt",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "provider_option:google-vertex:parameters:negativePrompt"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "provider_option:heygen::motion_prompt",
+          "name": "provider_option:heygen::motion_prompt",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "provider_option:heygen::motion_prompt"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "VIDEO",
+          "name": "VIDEO",
+          "type": "VIDEO",
+          "links": [
+            1
+          ]
+        },
+        {
+          "localized_name": "JOB_ID",
+          "name": "JOB_ID",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "localized_name": "MODEL",
+          "name": "MODEL",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "localized_name": "ACTUAL_COST_USD",
+          "name": "ACTUAL_COST_USD",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "localized_name": "STATUS",
+          "name": "STATUS",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "localized_name": "LAST_FRAME",
+          "name": "LAST_FRAME",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OpenRouterVideoGenerate",
+        "orv_prompt_geometry": {
+          "version": 2,
+          "height": 42
+        },
+        "orv_capability_intent": {
+          "controls": {},
+          "media": [],
+          "methods": {}
+        }
+      },
+      "widgets_values": [
+        null,
+        "x-ai/grok-imagine-video-1.5-lite",
+        "T2V",
+        "A white sphere slowly rotates against a neutral gray studio background.",
+        "480p",
+        "16:9",
+        1,
+        -1,
+        false,
+        null,
+        "",
+        "randomize",
+        "",
+        "",
+        "NORMALIZED",
+        "",
+        "",
+        -1,
+        "",
+        null,
+        null,
+        "",
+        "",
+        ""
+      ],
+      "widgets_values_named": {
+        "model": "x-ai/grok-imagine-video-1.5-lite",
+        "inference_method": "T2V",
+        "prompt": "A white sphere slowly rotates against a neutral gray studio background.",
+        "resolution": "480p",
+        "aspect_ratio": "16:9",
+        "duration": 1,
+        "seed": -1,
+        "generate_audio": false,
+        "size": "",
+        "randomize": "randomize",
+        "first_frame_url": "",
+        "last_frame_url": "",
+        "geometry_authority": "NORMALIZED",
+        "previous_job_id": "",
+        "upscale_factor": "",
+        "creativity": -1,
+        "provider_options": "",
+        "provider_option:atlas-cloud::negative_prompt": "",
+        "provider_option:google-vertex:parameters:negativePrompt": "",
+        "provider_option:heygen::motion_prompt": ""
+      },
+      "color": "#173c33",
+      "bgcolor": "#1b2024",
+      "boxcolor": "#45dca5"
+    },
+    {
+      "id": 2,
+      "type": "SaveVideo",
+      "pos": [
+        985,
+        207
+      ],
+      "size": [
+        360,
+        126
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "video",
+          "name": "video",
+          "type": "VIDEO",
+          "link": 1
+        },
+        {
+          "localized_name": "filename_prefix",
+          "name": "filename_prefix",
+          "type": "STRING",
+          "widget": {
+            "name": "filename_prefix"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "format.codec",
+          "name": "format.codec",
+          "type": "COMFY_DYNAMICCOMBO_V3",
+          "widget": {
+            "name": "format.codec"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "format",
+          "name": "format",
+          "type": "COMFY_DYNAMICCOMBO_V3",
+          "widget": {
+            "name": "format"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "codec",
+          "name": "codec",
+          "shape": 7,
+          "type": "COMFY_DYNAMICCOMBO_V3",
+          "widget": {
+            "name": "codec"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "video",
+          "name": "video",
+          "type": "VIDEO",
+          "links": null
+        }
+      ],
+      "properties": {},
+      "widgets_values": [
+        "video/OpenRouterVideo",
+        "auto",
+        "auto",
+        "auto"
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "video/OpenRouterVideo",
+        "format": "auto",
+        "format.codec": "auto",
+        "codec": "auto"
+      }
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      "VIDEO"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1.23,
+      "offset": [
+        50,
+        45
+      ]
+    }
+  },
+  "version": 0.4
+}
