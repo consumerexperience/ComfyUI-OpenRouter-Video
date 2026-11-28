@@ -34,7 +34,7 @@
     ],
     "status": "PASS"
   },
-  "run_id": "package02-public-beta-1-index-20261128",
+  "run_id": "package02-26d396c-public-beta-1-approval-20261128",
   "single_writer_proven": true,
-  "lease_digest": "sha256:7f872443ed0cf65022c6073ac50c109a50f02cbd80b809bf7a43fbc50a40a3c5"
+  "lease_digest": "sha256:64fba2dc74b864f6caeabf2211aae26e86c357fc33633d4f47668fe87b323fd3"
 }
